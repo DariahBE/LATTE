@@ -1,7 +1,6 @@
 <?php
 //include_once("../config/config.inc.php");
 include_once(ROOT_DIR."/includes/client.inc.php");
-include_once(ROOT_DIR."/includes/mapping.inc.php");
 
 /*// IDEA:
   use GET statement to collect a tripple: Nodetype, NodeProperty, NodeValue.
@@ -88,6 +87,38 @@ class Node{
   private $client;
   function __construct($client)  {
     $this->client = $client;
+  }
+
+  function getDistinctLabels(){
+    $result = $this->client->run('MATCH (n) RETURN DISTINCT labels(n) AS label');
+    //return a translated dict:
+    $data = array();
+    foreach ($result as $record){
+      $label = $record->get('label')[0];
+      if(boolval(NODETRANSLATIONS) AND array_key_exists($label, NODETRANSLATIONS)){
+        $labelTranslated = NODETRANSLATIONS[$label];
+      }else{
+        $labelTranslated = false;
+      }
+      array_push($data, array($label,$labelTranslated));
+    }
+    return $data;
+  }
+
+  function getDistinctProperties($ofLabel){
+    $label = $ofLabel;//needs sanitation!!
+    $result = $this->client->run('MATCH(n:'.$label.') UNWIND keys(n) AS keys RETURN DISTINCT keys');
+    $data = array();
+    foreach($result as $record){
+      $key = $record['keys'];
+      if(boolval(NODEKEYSTRANSLATIONS) AND array_key_exists($key, NODEKEYSTRANSLATIONS[$ofLabel])){
+        $keyTranslation = NODEKEYSTRANSLATIONS[$ofLabel][$key];
+      }else{
+        $keyTranslation = false;
+      }
+      array_push($data, array($key, $keyTranslation));
+    }
+    return $data;
   }
 
   function countNodesByLabel(){

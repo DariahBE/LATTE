@@ -20,7 +20,7 @@ $URI = 'neo4j://localhost:7687';
 */
 $nodes = array(
   'Person' => array("perid", "mindate", "maxdate", "namid", "sex"),
-  'Text' => array("texid", "text", "text_marked", "language"),
+  'Text' => array("texid", "text", "language"),
   'Place' => array("geoid", "name", "region")
 );
 
@@ -33,6 +33,35 @@ $edges_translate = array(
   'see_also' => 'Knowledgebase relations',
   'resides_in' => 'Lives in',
   'knows' => 'Knows'
+);
+$nodes_translate = array(
+  'See_Also' => 'Knowledgebase record',
+  'Variant' => 'Synonym'
+);
+$nodeKeys_translate = array(
+  'Person' => array(
+    'perid' => 'Trismegistos Person ID',
+    'mindate' => 'Earliest attestation',
+    'maxdate' => 'Latest attestation',
+    'namid' => 'Trismegistos Nam ID',
+    'sex' => 'Gender'
+  ),
+  'Text' => array(
+    'texid' => 'Trismegistos Text ID',
+    'text' => 'Textcontent',
+    'language' => 'Language'
+  ),
+  'Place' => array(
+    'geoid' => 'Trismegistos Geo ID',
+    'name' => 'Placename',
+    'region' => 'Trismegistos region'
+  ),
+  'See_Also' => array(
+    '' => '',
+  ),
+  'Variant' => array(
+    '' => '',
+  )
 );
 
 ########### WHICH ENGINE SHOULD BE USED TO DETECT THE LANGUAGE OF A GIVEN TEXT?
@@ -55,6 +84,8 @@ define("HOSTPORT", $hostport);
 define("DEFAULTDRIVER", $defaultdriver);
 define("NODES", $nodes);
 define("EDGETRANSLATIONS", $edges_translate);
+define("NODETRANSLATIONS", $nodes_translate);
+define("NODEKEYSTRANSLATIONS", $nodeKeys_translate);
 define("URI", $URI);
 
 /*EntityExtractor*/

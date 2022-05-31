@@ -480,6 +480,12 @@ Ensure the default browser behavior of the `hidden` attribute.
 .mb-1 {
   margin-bottom: 0.25rem;
 }
+.mt-1 {
+  margin-top: 0.25rem;
+}
+.mr-2 {
+  margin-right: 0.5rem;
+}
 .box-border {
   box-sizing: border-box;
 }
@@ -555,6 +561,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .h-12 {
   height: 3rem;
 }
+.h-4 {
+  height: 1rem;
+}
 .h-\[calc\(100\%-theme\(\'spacing\.1\'\)\)\] {
   height: calc(100% - 0.25rem);
 }
@@ -572,6 +581,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 .w-full {
   width: 100%;
+}
+.w-4 {
+  width: 1rem;
 }
 .flex-shrink-0 {
   flex-shrink: 0;
@@ -642,6 +654,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .animate-bounce {
   -webkit-animation: bounce 1s infinite;
           animation: bounce 1s infinite;
+}
+.cursor-pointer {
+  cursor: pointer;
 }
 .touch-auto {
   touch-action: auto;
@@ -859,6 +874,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 .grid-cols-4 {
   grid-template-columns: repeat(4, minmax(0, 1fr));
+}
+.grid-cols-5 {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
 }
 .flex-row {
   flex-direction: row;
@@ -1196,6 +1214,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .rounded {
   border-radius: 0.25rem;
 }
+.rounded-full {
+  border-radius: 9999px;
+}
 .rounded-t {
   border-top-left-radius: 0.25rem;
   border-top-right-radius: 0.25rem;
@@ -1226,6 +1247,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 .border {
   border-width: 1px;
+}
+.border-2 {
+  border-width: 2px;
 }
 .border-x {
   border-left-width: 1px;
@@ -1265,6 +1289,10 @@ Ensure the default browser behavior of the `hidden` attribute.
 .border-none {
   border-style: none;
 }
+.border-gray-300 {
+  --tw-border-opacity: 1;
+  border-color: rgb(209 213 219 / var(--tw-border-opacity));
+}
 .bg-amber-200 {
   --tw-bg-opacity: 1;
   background-color: rgb(253 230 138 / var(--tw-bg-opacity));
@@ -1284,6 +1312,10 @@ Ensure the default browser behavior of the `hidden` attribute.
 .bg-gray-900 {
   --tw-bg-opacity: 1;
   background-color: rgb(17 24 39 / var(--tw-bg-opacity));
+}
+.bg-white {
+  --tw-bg-opacity: 1;
+  background-color: rgb(255 255 255 / var(--tw-bg-opacity));
 }
 .bg-\[rgb\(255\2c 0\2c 0\)\] {
   --tw-bg-opacity: 1;
@@ -1317,6 +1349,9 @@ Ensure the default browser behavior of the `hidden` attribute.
   -webkit-box-decoration-break: clone;
           box-decoration-break: clone;
 }
+.bg-contain {
+  background-size: contain;
+}
 .bg-fixed {
   background-attachment: fixed;
 }
@@ -1338,6 +1373,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .bg-clip-text {
   -webkit-background-clip: text;
           background-clip: text;
+}
+.bg-center {
+  background-position: center;
 }
 .bg-repeat {
   background-repeat: repeat;
@@ -1772,6 +1810,9 @@ Ensure the default browser behavior of the `hidden` attribute.
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
   transition-duration: 150ms;
 }
+.duration-200 {
+  transition-duration: 200ms;
+}
 .ease-in {
   transition-timing-function: cubic-bezier(0.4, 0, 1, 1);
 }
@@ -1820,6 +1861,16 @@ Ensure the default browser behavior of the `hidden` attribute.
   pointer-events: none;
 }
 
+.checked\:border-blue-600:checked {
+  --tw-border-opacity: 1;
+  border-color: rgb(37 99 235 / var(--tw-border-opacity));
+}
+
+.checked\:bg-blue-600:checked {
+  --tw-bg-opacity: 1;
+  background-color: rgb(37 99 235 / var(--tw-bg-opacity));
+}
+
 .hover\:font-bold:hover {
   font-weight: 700;
 }
@@ -1832,6 +1883,11 @@ Ensure the default browser behavior of the `hidden` attribute.
 .hover\:before\:text-center:hover::before {
   content: var(--tw-content);
   text-align: center;
+}
+
+.focus\:outline-none:focus {
+  outline: 2px solid transparent;
+  outline-offset: 2px;
 }
 
 .hover\:focus\:text-center:focus:hover {
