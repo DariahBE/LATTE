@@ -1,0 +1,7 @@
+.idea/
+.vscode/
+/index.php
+cert/
+/vendor/
+*.lock
+*.cache

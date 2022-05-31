@@ -1,0 +1,5 @@
+{
+    "require": {
+        "laudis/neo4j-php-client": "^2.4"
+    }
+}

@@ -1,0 +1,69 @@
+<?xml version="1.0"?>
+<psalm
+    checkForThrowsInGlobalScope="true"
+    loadXdebugStub="true"
+    findUnusedVariablesAndParams="true"
+    ensureArrayIntOffsetsExist="true"
+    ensureArrayStringOffsetsExist="true"
+    xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns="https://getpsalm.org/schema/config"
+    xsi:schemaLocation="https://getpsalm.org/schema/config vendor/vimeo/psalm/config.xsd"
+    hoistConstants="true"
+>
+    <projectFiles>
+        <directory name="src"/>
+        <directory name="tests"/>
+        <directory name="testkit-backend"/>
+        <ignoreFiles>
+            <directory name="vendor"/>
+        </ignoreFiles>
+    </projectFiles>
+    <issueHandlers>
+        <UnusedMethodCall>
+            <errorLevel type="suppress">
+                <directory name="tests"/>
+            </errorLevel>
+        </UnusedMethodCall>
+        <DeprecatedMethod>
+            <errorLevel type="suppress">
+                <directory name="tests"/>
+                <directory name="src"/>
+            </errorLevel>
+        </DeprecatedMethod>
+        <DeprecatedClass>
+            <errorLevel type="suppress">
+                <directory name="tests"/>
+                <directory name="src"/>
+            </errorLevel>
+        </DeprecatedClass>
+        <DeprecatedInterface>
+            <errorLevel type="suppress">
+                <directory name="tests"/>
+                <directory name="src"/>
+            </errorLevel>
+        </DeprecatedInterface>
+        <UnusedForeachValue>
+            <errorLevel type="suppress">
+                <directory name="tests"/>
+                <directory name="src"/>
+            </errorLevel>
+        </UnusedForeachValue>
+        <MissingConstructor>
+            <errorLevel type="suppress">
+                <directory name="tests"/>
+            </errorLevel>
+        </MissingConstructor>
+        <UncaughtThrowInGlobalScope>
+            <errorLevel type="suppress">
+                <file name="testkit-backend/index.php"/>
+            </errorLevel>
+        </UncaughtThrowInGlobalScope>
+    </issueHandlers>
+    <stubs>
+        <file name="./vendor/vimeo/psalm/stubs/ext-ds.phpstub"/>
+    </stubs>
+    <plugins>
+        <pluginClass class="Psalm\PhpUnitPlugin\Plugin"/>
+        <pluginClass class="Lctrs\PsalmPsrContainerPlugin\Plugin"/>
+    </plugins>
+</psalm>

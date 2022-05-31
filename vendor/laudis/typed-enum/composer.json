@@ -1,0 +1,37 @@
+{
+  "name": "laudis/typed-enum",
+  "description": "A small class allowing for typed enumerations.",
+  "type": "library",
+  "license": "MIT",
+  "authors": [
+    {
+      "name": "Ghlen Nagels",
+      "email": "ghlen@pm.me"
+    }
+  ],
+  "minimum-stability": "stable",
+  "require": {
+    "php": "^7.4 || ^8.0"
+  },
+  "require-dev": {
+    "phpunit/phpunit": "9.*",
+    "vimeo/psalm": "^4.12",
+    "friendsofphp/php-cs-fixer": "^3.3",
+    "psalm/plugin-phpunit": "^0.16"
+  },
+  "autoload": {
+    "psr-4": {
+      "Laudis\\TypedEnum\\": "src/"
+    }
+  },
+  "autoload-dev": {
+    "psr-4": {
+      "Laudis\\TypedEnum\\Tests\\": "tests"
+    }
+  },
+  "config": {
+    "allow-plugins": {
+      "composer/package-versions-deprecated": true
+    }
+  }
+}

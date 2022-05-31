@@ -1,0 +1,12 @@
+.php_cs.cache
+.php-cs-fixer.cache
+cache/
+vendor/
+phpunit.xml
+.phpunit.result.cache
+.idea/
+clover.xml
+cc-test-reporter
+/run-pipeline.sh
+composer.lock
+.env

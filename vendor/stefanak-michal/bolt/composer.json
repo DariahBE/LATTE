@@ -1,0 +1,55 @@
+{
+    "name": "stefanak-michal/bolt",
+    "description": "Bolt protocol library over TCP socket",
+    "keywords": ["neo4j", "bolt", "socket", "database"],
+    "homepage": "https://github.com/neo4j-php/Bolt",
+    "type": "library",
+    "readme": "README.md",
+    "license": "MIT",
+    "minimum-stability": "stable",
+    "require": {
+        "php": ">=7.1.0",
+        "ext-mbstring": "*"
+    },
+    "require-dev": {
+        "phpunit/phpunit": ">=7.5.0"
+    },
+    "support": {
+        "issues": "https://github.com/neo4j-php/Bolt/issues",
+        "source": "https://github.com/neo4j-php/Bolt"
+    },
+    "funding": [
+        {
+            "type": "paypal",
+            "url": "https://www.paypal.me/MichalStefanak"
+        }
+    ],
+    "authors": [
+        {
+            "name": "Michal Stefanak",
+            "role": "Developer",
+            "homepage": "https://www.linkedin.com/in/michalstefanak/"
+        }
+    ],
+    "autoload": {
+        "psr-4": {
+            "Bolt\\": "src/"
+        }
+    },
+    "autoload-dev": {
+        "psr-4": {
+            "Bolt\\tests\\": "tests/"
+        }
+    },
+    "suggest": {
+        "laudis/neo4j-php-client": "Neo4j-PHP-Client is the most advanced PHP Client for Neo4j",
+        "ext-sockets": "Needed when using the Bolt\\connection\\Socket"
+    },
+    "scripts": {
+        "test": [
+            "@putenv XDEBUG_MODE=debug",
+            "Composer\\Config::disableProcessTimeout",
+            "phpunit"
+        ]
+    }
+}

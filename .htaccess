@@ -1,0 +1,12 @@
+RewriteRule text/([0-9]+)$ /index.php?texid=$1 [L]
+RewriteRule entity/([0-9]+)$ /entity.php?id=$1 [L]
+
+
+
+#RewriteRule place/([0-9]+)/rdfe$ /dataservices/rdf/geo/extended_index.php?id=$1 [L]
+#RewriteRule place/([0-9]+)/rdf$ /dataservices/rdf/geo/index.php?id=$1 [L]
+#RewriteRule dataservices/geomatcher/(.*) /dataservices/georelations/$1 [L]
+#pseudo Chrysostomica rewrites:
+#RewriteRule pseudo-chrysostomica/author/([0-9]+) /pseudo-chrysostomica/detail.php?author=$1 [L]
+#RewriteRule pseudo-chrysostomica/item/([0-9]+) /pseudo-chrysostomica/detail.php?item=$1 [L]
+#RewriteRule pseudo-chrysostomica/language/([0-9]+) /pseudo-chrysostomica/languagedetail.php?id=$1 [L]

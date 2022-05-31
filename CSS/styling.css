@@ -1,0 +1,18 @@
+/* tailwind directives */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+.secondSpanElementOfEntity{
+  float: right;
+  font-weight: bold;
+}
+
+.anEntity{
+  padding: 3px;
+  margin: 3px;
+}
+
+.ignoreElementDepth{
+  pointer-events: none;
+}

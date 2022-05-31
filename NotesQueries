@@ -1,0 +1,58 @@
+QUERIES FOR NODE LOOKUP:
+  - Missing pagerank integration at this point
+
+  - Exact match Case sensitive:
+          OPTIONAL MATCH (p:Place {name:'Aigai'})
+          OPTIONAL MATCH (v:Variant {variant:'Aigai'})-[r1:same_as]-(q:Place)
+          OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
+          OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+          return p,v,q,r1,r2,r3,i,j
+          limit 10000
+
+  - Exact match Case insensitive:
+          OPTIONAL MATCH (p:Place) WHERE p.name =~ (?i)aigai
+          OPTIONAL MATCH (v:Variant)-[r1:same_as]-(q:Place) WHERE v.variant =~ (?i)aigai
+          OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
+          OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+          return p,v,q,r1,r2,r3,i,j
+          limit 10000
+
+  - Fuzzy matching apoc.text.distance (https://neo4j.com/labs/apoc/4.1/overview/apoc.text/apoc.text.distance/):
+
+          OPTIONAL MATCH (p:Place) WHERE apoc.text.distance(p.name, "Aiga")< 5
+          OPTIONAL MATCH (v:Variant)-[r1:same_as]-(q:Place) WHERE apoc.text.distance(v.variant, "Aiga") < 5
+          OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
+          OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+          return p,v,q,r1,r2,r3,i,j
+          limit 10000
+
+
+
+
+/// NODE PROJECTION:
+- Je moet in je statement: de IDs van nodes hebben die je in de projectie wilt
+- Je edges moet je definieren aan de hand van de start- en eind-nodes.
+- ZIE: https://neo4j.com/docs/graph-data-science/current/appendix-b/migration-cypher-projection/
+DUS:  1 query wordt:
+CALL gds.graph.create.cypher('testgraph',"OPTIONAL MATCH (p:Place {name:'Aigai'})
+OPTIONAL MATCH (v:Variant {variant:'Aigai'})-[r1:same_as]-(q:Place)
+OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
+OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+WITH [p,v,q,i,j] AS nodes
+UNWIND nodes AS processedNodes
+WITH DISTINCT processedNodes
+return id(processedNodes) AS id",
+"OPTIONAL MATCH (p:Place {name:'Aigai'})
+OPTIONAL MATCH (v:Variant {variant:'Aigai'})-[r1:same_as]-(q:Place)
+OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
+OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+with [r1, r2, r3] AS edges
+UNWIND edges AS processedEdges
+WITH DISTINCT processedEdges
+return id(startNode(processedEdges)) AS source, id(endNode(processedEdges)) AS target);
+
+Dan voer je de algo's uit:
+
+
+vervolgens drop je de graph ook weer uit de DB:
+CALL gds.graph.drop('testgraph')    /drop graphname

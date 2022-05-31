@@ -1,0 +1,8 @@
+- Sommige teksten zijn te lang om als argument naar de Pythonbackend te sturen:
+  http://localhost/clariah%202021_2025/V1/index.php?texid=9463
+  er is een maximum van 8192 Bytes om als command line argument te gebruiken!
+
+    --> theoretisch opgelost:
+      python .\entity_extractor_dbconn.py --uri=neo4j://localhost:7687 --nodeid=92641 --lang=el
+      python .\detect_language_dbconn.py --uri=neo4j://localhost:7687 --nodeid=92641
+________________________________
