@@ -1,3 +1,38 @@
+function performBasicSearch(){
+  //get the nodeLabel:
+  var nodeLabel = false;
+  var labels = document.getElementById('nodeTypes').getElementsByClassName('subbox')[0].getElementsByTagName('input');
+  for (var i = 0; i < labels.length; i++){
+    var label = labels[i];
+    if(label.checked){
+      nodeLabel = label.value;
+      //console.log(label.value);
+      continue;
+    }
+  }
+  //get the filled out properties:
+  var properties = document.getElementById('nodeProperties').getElementsByClassName('subbox')[0].getElementsByTagName('input');
+  console.log(properties);
+  var propdict = {};
+  for (var i = 0; i < properties.length; i++){
+    var prop = properties[i];
+    if (prop.value){
+      propdict[prop.name] = prop.value;
+    }
+  }
+  searchDict = {
+    'nodes':{
+      'node_1':{
+        'label':nodeLabel,
+        'property':propdict
+      }
+    },
+    'edges':{}
+  }
+  sessionStorage.setItem("mySearchCommand", JSON.stringify(searchDict));
+  window.location = 'results.php';
+}
+
 function labelSelected(){
   console.log('selected');
   var source = event.source||event.target;
@@ -8,6 +43,9 @@ function labelSelected(){
     .then(data => {
       console.log(data);
       var form = document.createElement('form');
+      form.classList.add('w-full');
+      var maindiv = document.createElement('div');
+      maindiv.classList.add('items-center', 'mb-6', 'w-full');
       for(var i = 0; i < data.length; i++){
         var keyData = data[i];
         var keyDB = keyData[0];
@@ -15,17 +53,32 @@ function labelSelected(){
         if (!(keyHR)){
           keyHR = keyDB;
         }
+        var grp = document.createElement('div');
+        grp.classList.add('input-group', 'p-2', 'm-2', 'w-full');
         var input = document.createElement('input');
         input.setAttribute('name', keyDB);
+        input.classList.add('border-2', 'rounded', 'md:w-2/3', 'float-right' );
         var label = document.createElement('label');
         label.setAttribute('for', keyDB);
+        label.classList.add('md:w-1/3', 'float-left');
         var labelTex = document.createTextNode(keyHR);
         label.appendChild(labelTex);
-        form.appendChild(label);
-        form.appendChild(input);
+        grp.appendChild(label);
+        grp.appendChild(input);
+        maindiv.appendChild(grp);
       }
+      form.appendChild(maindiv);
       target.innerHTML = '';
       target.appendChild(form);
+      var searchButton = document.createElement('button');
+      var searchButtonTex = document.createTextNode('Search');
+      searchButton.appendChild(searchButtonTex);
+      searchButton.classList.add('shrink');
+      searchButton.addEventListener('click', function(){
+        performBasicSearch();
+      })
+      target.appendChild(searchButton);
+
     });
 }
 
