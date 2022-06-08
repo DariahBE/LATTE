@@ -8,9 +8,7 @@ include_once('../includes/search.inc.php');
 try{
   $request = file_get_contents("php://input");
   $request = mb_convert_encoding($request, 'UTF-8', mb_detect_encoding($request, 'UTF-8, ISO-8859-1', true));
-  var_dump($request);
   $data = json_decode($request, true)['searchdata'];
-  var_dump($data);
 }catch(Exception $e){
   throw new \Exception("Request rejected.", 1);
   die();
@@ -33,13 +31,9 @@ if (boolval($data)){
   //converts the searchdict to a set of subinstructions to generate the cypher statement:
   $search->makeNodes();
   $search->makeEdges();
-  $search->makeWhere();
+  $search->makeWhere(1,1);
   //merges the subinstructions into a cypther statement:
   $search->mergeCypher();
-
-
-
-
 
 
 

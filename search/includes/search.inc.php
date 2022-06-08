@@ -15,7 +15,9 @@ class Search {
     $this->raw_nodes = $nodes;
     $this->raw_edges = $edges;
     $this->identifiers = array();
-
+    $this->nodes = array();
+    $this->edges = array();
+    $this->preparedPlaceholders = array();
   }
 
   function validateSearchInstruction(){
@@ -57,35 +59,67 @@ class Search {
   private function generateIdentifier(){
     $str = 'abcdefghijklmnopqrstuvwxyz';
     $rtn = '';
-    for(var $i = 0; $i < 5; $i++){
+    for($i = 0; $i < 5; $i++){
       $rtn .= $str[rand(0, strlen($str)-1)];
     }
-    $this->identifiers[] = $rtn;
-    if(!(in_array($rtn, $this->identifiers))){
-      return $rtn;
-    }else{
-
-    }
+    return $rtn;
   }
 
+  function valuePlaceholders(){
+    $str = 'abcdefghijklmnopqrstuvwxyz';
+    $ph = 'PH_'.'';
+    for($i = 0; $i < 5; $i++){
+      $ph .= $str[rand(0, strlen($str)-1)];
+    }
+    while(in_array($ph, array_keys($this->preparedPlaceholders))){
+      $ph .= $str[rand(0, strlen($str)-1)];
+    }
+    return $ph;
+  }
 
   function makeNodes(){
-    $nodeId = generateIdentifier();
+    foreach($this->raw_nodes as $key => $chosenNode){
 
+      $nodeId = $this->generateIdentifier();
+      while(in_array($nodeId, $this->identifiers)){
+        $nodeId = generateIdentifier();
+      }
+      $this->identifiers[] = $nodeId;
+      $nodeLabel = $chosenNode['label'];
+      $nodeProperties = $chosenNode['property'];
+      $definedNodeProperties = array();
+      foreach($nodeProperties as $propKey => $propValue){
+        $placeHolder = $this->valuePlaceholders();
+        $definedNodeProperties[] = $propKey.':$'.$placeHolder;
+        $this->preparedPlaceholders[$placeHolder] = $propValue;
+      }
+      if(boolval(count($definedNodeProperties))){
+        $definedNodeProperties = '{'.implode(', ', $definedNodeProperties).'}';
+      }else{
+        $definedNodeProperties = '';
+      }
 
-    return true;
+      $this->nodes[] = "($nodeId:$nodeLabel $definedNodeProperties)";
+
+      return true;
+    }
   }
 
   function makeEdges(){
     return true;
   }
 
-  function makeWhere(){
+  function makeWhere($forID, $withConditions){
+
     return true;
   }
 
   function mergeCypher(){
-    return true;
+    $matchStatement = implode(', ', array(implode(', ', $this->nodes), implode(', ', $this->edges)));
+    $query = 'MATCH '.$matchStatement.' ';
+    $query .= ' RETURN '.implode(', ', $this->identifiers);
+    echo $query;
+    return $query;
   }
 }
 ?>
