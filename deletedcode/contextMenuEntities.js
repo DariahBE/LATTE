@@ -1,3 +1,5 @@
+console.log('contextMenuEnitites still required? ');
+
 function closeEntityOnSelectDiv(){
   var boxes = document.getElementsByClassName('entityBySelectBox');
   for (var i = 0; i < boxes.length; i++ ){

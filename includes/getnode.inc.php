@@ -176,9 +176,6 @@ class Node{
     $edgeLabel = $ofOptionalType ? ":$ofOptionalType" :  '';
     $matchOnCoreNodeID = 'MATCH (n)-[r'.$edgeLabel.']-(b) WHERE ID(n) = $nodeId RETURN n,r,b';
     $result = $this->client->run($matchOnCoreNodeID, ['nodeId'=>(int)$nodeId]);
-    foreach ($result as $record){
-      //var_dump($record);
-    }
     return($result);
   }
 
@@ -187,9 +184,12 @@ class Node{
   function getEntities($entityType, $entityValue, $caseSensitive=false, $limit=100, $offset=0){
     if($caseSensitive){
       //case sensitive ==> Very Fast:
+      if(boolval($entityType)){
+        $entityType = ':'.$entityType;
+      }
       $cypherQuery = '
-          OPTIONAL MATCH (p:'.$entityType.' {name:$nameValue1})
-          OPTIONAL MATCH (v:Variant {variant:$nameValue2})-[r1:same_as]-(q:'.$entityType.')
+          OPTIONAL MATCH (p'.$entityType.' {name:$nameValue1})
+          OPTIONAL MATCH (v:Variant {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
           OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
           OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
           return p,v,q,r1,r2,r3,i,j
@@ -202,8 +202,8 @@ class Node{
       //case Insensitive ==> using regex
       $entityValueCleaned = ignoreRegex($entityValue);
       $cypherQuery = '
-          OPTIONAL MATCH (p:'.$entityType.') WHERE p.name =~ $nameValue1
-          OPTIONAL MATCH (v:Variant)-[r1:same_as]-(q:'.$entityType.') WHERE v.variant =~ $nameValue2
+          OPTIONAL MATCH (p'.$entityType.') WHERE p.name =~ $nameValue1
+          OPTIONAL MATCH (v:Variant)-[r1:same_as]-(q'.$entityType.') WHERE v.variant =~ $nameValue2
           OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
           OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
           return p,v,q,r1,r2,r3,i,j

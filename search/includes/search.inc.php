@@ -9,6 +9,7 @@ class Search {
   private $raw_nodes;
   private $raw_edges;
   private $identifiers;
+  private $statement;
 
   function __construct($graph, $nodes, $edges){
     $this->graph = $graph;
@@ -18,6 +19,7 @@ class Search {
     $this->nodes = array();
     $this->edges = array();
     $this->preparedPlaceholders = array();
+    $this->statement = '';
   }
 
   function validateSearchInstruction(){
@@ -109,17 +111,17 @@ class Search {
     return true;
   }
 
-  function makeWhere($forID, $withConditions){
-
-    return true;
-  }
-
   function mergeCypher(){
     $matchStatement = implode(', ', array(implode(', ', $this->nodes), implode(', ', $this->edges)));
     $query = 'MATCH '.$matchStatement.' ';
     $query .= ' RETURN '.implode(', ', $this->identifiers);
-    echo $query;
-    return $query;
+    $this->statement = $query;
+  }
+
+  function executeCypherStatement(){
+    $result = $this->graph->run($this->statement, $this->preparedPlaceholders);
+    $data = array();
+    var_dump($result);
   }
 }
 ?>

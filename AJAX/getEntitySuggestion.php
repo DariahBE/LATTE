@@ -5,7 +5,7 @@ include_once("../config/config.inc.php");
 include_once(ROOT_DIR."\includes\getnode.inc.php");
 $graph = new Node($client);
 
-$approvedEntities = array('Person', 'Place');
+$approvedEntities = array('Person', 'Place', '');
 $caseSensitive = isset($_GET['casesensitive'])? $_GET['casesensitive']: false;
 $caseSensitive = (strtolower($caseSensitive)=='true')? true : false;
 $findEntityByType = $_GET['type'];

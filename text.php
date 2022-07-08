@@ -2,16 +2,22 @@
 //include_once('includes/getnode.inc.php');
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
+include_once(ROOT_DIR.'/includes/multibyte_iter.inc.php');
 if(isset($_GET['texid'])){
   $propId = (int)$_GET['texid'];
   $propKey = 'texid';
   $nodeType = 'Text';
 }else{
-  die('provide a valid texid over GET with key "texid".');
+  header('Location: /error.php?type=textmissing');
+  die();
 }
 
 $node = new Node($client);
 $text = $node->matchSingleNode($nodeType, $propKey, $propId);
+if(!boolval($text)){
+  header('Location: /error.php?type=text&id='.$propId);
+  die();
+}
 $nodeId = $text['coreID'];
 $relations = $node->getEdges($nodeId);
 ?>
@@ -27,38 +33,54 @@ $relations = $node->getEdges($nodeId);
     <script src="/JS/getEntities.js"></script>
     <script src="/JS/setPositions.js"></script>
     <script src="/JS/getEntityInfo.js"></script>
-    <script src="/JS/contextMenuEntities.js"></script>
+    <!--<script src="/JS/contextMenuEntities.js"></script> -->
     <script src="/JS/showSingleEntityInfo.js"></script>
-    <script src="https://cdn.tailwindcss.com"></script>
+    <script src="/JS/rangy/rangy-core.js"></script>
+    <script src="/JS/selectInText.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
-    <link rel="stylesheet" href="/CSS/styling.css">
+    <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   </head>
-  <body>
+  <body class="bg-neutral-200">
     <div class="">
       <!-- navbar-->
 
     </div>
     <!-- content-->
 
-<div class="top flex flex-row">
-  <div id='normalizationDialogue' class="flex-row">
-    <h3 class='h3'>Normalization Options: </h3>
+<div class="top ">
+  <div id='normalizationDialogue' class="w-full">
+    <h3 class='text-xl'>Normalization Options: </h3>
     <p>Normalization improves the pickup of entities. When enabled the Named entity returned by the NER-tool is modified by removing a list of specific characters.</p>
     <div id='normalizationOptions'>
-      <div class="">
-        <label for="normalization_On_Off">Enable Normalization: </label>
-        <input type="checkbox" id="useNormalization" name="normalization_On_Off" onchange="normalize_all()" >
+      <div class="flex flex-initialize">
+        <label for="normalization_On_Off" class="relative flex justify-between items-center p-2">
+          Enable Normalization:
+          <input type="checkbox" name="normalization_On_Off" class="absolute left-1/2 -translate-x-1/2 w-full h-full peer appearance-none rounded-md" />
+          <span class="w-16 h-10 flex items-center flex-shrink-0 ml-4 p-1 bg-gray-300 rounded-full duration-300 ease-in-out peer-checked:bg-green-400 after:w-8 after:h-8 after:bg-white after:rounded-full after:shadow-md after:duration-300 peer-checked:after:translate-x-6"></span>
+        </label>
       </div>
       <div>
         <p>Provide a comma (,) separated list of symbols to be normalized: </p>
         <label for="normalization_list">Normalize these symbols: </label>
-        <input type="text" id="normalizationList" name="normalization_list">
+        <input type="text" id="normalizationList" name="normalization_list" class="p-2 border-2 border-black border-solid rounded-md">
       </div>
     </div>
+    <br>
+    <!-- strip spaces when selecting in text: -->
+    <div class="">
+
+    </div>
+    <!-- strip accents from texts. -->
+    <div class="">
+
+    </div>
+
   </div>
-  <div class="flex-row">
+  <div id="explorationDialogue"
+   class="w-full">
+    <h3 class="text-xl">Node Exploration: </h3>
     <!-- automatic exploration of the retrieved entities-->
     <label for="autoexplore">Fetch recognized entities: </label>
     <input type="checkbox" name="autoexplore" value="">
@@ -72,9 +94,14 @@ $relations = $node->getEdges($nodeId);
     <?php
       $textString = $text['data']['properties']['text'];
       $textLanguage = isset($text['data']['properties']['language']) ? $text['data']['properties']['language']: False;
-      echo nl2br($textString);
-
+      //echo nl2br($textString);
+      $i = 0;
+      foreach(new MbStrIterator($textString) as $c) {
+        echo "<span class='ltr' data-itercounter=$i>".nl2br($c)."</span>";
+        $i++;
+      }
     ?>
+
     </div>
     <script>
       var languageOptions = {
@@ -107,11 +134,24 @@ $relations = $node->getEdges($nodeId);
         </div>
       </div>
   </div>
+  <div class="extended" id="rightExtensionPanel">
+    https://tailwindui.com/components/application-ui/overlays/slide-overs
+    <div class="base">
+      <!-- What is shown by default in the right extension panel. -->
+
+    </div>
+    <div class="full">
+      <!-- Extra slideOut panel-->
+
+    </div>
+
+  </div>
 </div>
 <div id='setNodeDetailOverlay' class='hiddenOverlay'> </div>
   <script>
-    <?php echo "const coreNodeRelations = ". json_encode($relations); ?> ;
-    attachSelectController(); //attaches select event to text ==> allows user to select words and perform lookup. 
+    <?php echo "const coreNodeRelations = ". json_encode($relations); ?>;
+    <?php echo "const nodeDefinitions = ".json_encode($nodes); ?>;
+    //attachSelectController(); //attaches select event to text ==> allows user to select words and perform lookup.
   </script>
 </body>
 </html>
