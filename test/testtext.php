@@ -1,4 +1,6 @@
 <?php
+//temporary file - delete when done.
+
 
 header('Content-Type: application/json; charset=utf-8');
 

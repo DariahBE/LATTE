@@ -101,4 +101,15 @@ define("SCRIPTROOT", $scripts);
 
 /*system environment: where's the default folder.*/
 define( 'ROOT_DIR', $_SERVER["DOCUMENT_ROOT"] );
+
+/*Registration set up:
+  0 = closed: no new registrations possible.
+  1 = invite only.
+  2 = open: public frontend will allow users to regiser.
+*/
+
+$registration_policy = 0;
+define('REGISTRATIONPOLICY', $registration_policy);
+
+
 ?>

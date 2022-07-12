@@ -2,6 +2,7 @@
 //include_once('includes/getnode.inc.php');
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
+include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/multibyte_iter.inc.php');
 if(isset($_GET['texid'])){
   $propId = (int)$_GET['texid'];
@@ -11,6 +12,8 @@ if(isset($_GET['texid'])){
   header('Location: /error.php?type=textmissing');
   die();
 }
+
+$user = new User();
 
 $node = new Node($client);
 $text = $node->matchSingleNode($nodeType, $propKey, $propId);
@@ -144,7 +147,6 @@ $relations = $node->getEdges($nodeId);
       <!-- Extra slideOut panel-->
 
     </div>
-
   </div>
 </div>
 <div id='setNodeDetailOverlay' class='hiddenOverlay'> </div>
