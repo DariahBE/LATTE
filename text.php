@@ -13,7 +13,7 @@ if(isset($_GET['texid'])){
   die();
 }
 
-$user = new User();
+$user = new User($client);
 
 $node = new Node($client);
 $text = $node->matchSingleNode($nodeType, $propKey, $propId);

@@ -30,7 +30,7 @@ function process_relationshipNodes($nodeIn){
     'label'=>'LINK',
     'name'=>$nodeIn['properties']['partner'],
     'id'=>$nodeIn['properties']['partner_id'],
-    'uri'=>$nodeIn['properties']['partner_uri']
+    'uri'=>$nodeIn['properties']['partner_uri'],
   );
   return array($id, $label, $data);
 }
@@ -41,7 +41,8 @@ function process_variant($nodeIn){
   $variant = $nodeIn['properties']['variant'];
   $data = array(
     'label'=>'VARIANT',
-    'name'=>$variant
+    'name'=>$variant,
+    'uuid'=>$nodeIn['properties']['uid']
   );
   return array($id, $label, $data);
 }
@@ -62,10 +63,12 @@ function process_entityNodes($nodeIn){
     $data['sex'] = valueExtract($nodeIn['properties'], 'sex');
     $data['min_date'] = valueExtract($nodeIn['properties'], 'mindate');
     $data['max_date'] = valueExtract($nodeIn['properties'], 'maxdate');
+    $data['uuid']=valueExtract($nodeIn['properties'], 'uid');
   }else if($label == "Place"){
     $data['label'] = "PLACE";
     $data['name'] = valueExtract($nodeIn['properties'], 'name');
     $data['region'] = valueExtract($nodeIn['properties'], 'region');
+    $data['uuid']=valueExtract($nodeIn['properties'], 'uid');
   }
   return(array($id, $label, $data));
 }

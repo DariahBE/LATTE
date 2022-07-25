@@ -60,7 +60,7 @@ function makeSuggestionBox(){
   document.body.appendChild(div);
 }
 
-function loadIntoSuggestionBox(data){
+function loadIntoSuggestionBox(data, from, to){
   console.log(data);
   document.getElementById('suggestionbox_saveButton').disabled = false;
   var datadiv = document.createElement('div');
@@ -82,14 +82,21 @@ function loadIntoSuggestionBox(data){
   var retrievedCoreElements = data.nodes.filter(node => coreNodes.includes(node[1]));
   var valueSpanEdge = document.createTextNode(data.edges.length);
   var valueSpanNode = document.createTextNode(data.nodes.length+' | '+retrievedCoreElements.length);
+  var positionBox = document.createElement('p');
+  positionBox.appendChild(document.createTextNode('Start: '));
+  positionBox.appendChild(document.createTextNode(from));
+  positionBox.appendChild(document.createTextNode(' || '));
+  positionBox.appendChild(document.createTextNode('End: '));
+  positionBox.appendChild(document.createTextNode(to));
   nodesInfo.appendChild(keySpanNode);
   nodesInfo.appendChild(valueSpanNode);
   edgesInfo.appendChild(keySpanEdge);
   edgesInfo.appendChild(valueSpanEdge);
 
+
   metadataOnSearch.appendChild(nodesInfo);
   metadataOnSearch.appendChild(edgesInfo);
-
+  metadataOnSearch.appendChild(positionBox);
   datadiv.appendChild(metadataOnSearch);
   datadiv.appendChild(dataOnSearch);
   document.getElementById("suggestionboxspinner").parentNode.insertBefore(datadiv, document.getElementById('suggestionboxspinner'));
@@ -103,18 +110,16 @@ function scanForOtherOccurences(normalization){
 }
 
 function getTextSelection(){
-    var startOfSelection, endOfSelection = false;
     var text = rangy.getSelection().toString().trim();
     //you need a map filter on selection based on length of childnodes!
     var selection = rangy.getSelection().getRangeAt(0).getNodes().filter(s => s.childNodes.length == 0);
     //get first and last selection elements to extract data attribute:
-    var startOfSelection = parseInt(selection[0].parentElement.dataset.itercounter);
-    var endOfSelection = parseInt(selection[selection.length-1].parentElement.dataset.itercounter);
-    return [text, startOfSelection, endOfSelection];
+    var startOfEntitySelection = parseInt(selection[0].parentElement.dataset.itercounter);
+    var endOfEntitySelection = parseInt(selection[selection.length-1].parentElement.dataset.itercounter);
+    return [text, startOfEntitySelection, endOfEntitySelection];
 }
 
 function triggerSelection(){
-    console.log(event.target || event.srcElement);
     var selectedTextProperties = getTextSelection();
     var selectedText = selectedTextProperties[0];
     var selectedTextStart = selectedTextProperties[1];
@@ -133,7 +138,7 @@ function triggerSelection(){
       makeSuggestionBox();
       getInfoFromBackend($sendTo)
       .then((data)=>{
-        loadIntoSuggestionBox(data);
+        loadIntoSuggestionBox(data, selectedTextStart, selectedTextEnd);
       })
     }
 }

@@ -6,6 +6,19 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/client.inc.php');
 $user = new User($client);
 
+/*
+testing purposes:
+*/
+
+$mail = 'frederic.pietowski@kuleuven.be';
+$name = 'test';
+
+$user->createUser($mail, $name);
+
+
+
+//testing ends
+
 if (isset($_POST['mail']) AND isset($_POST['password'])){
     $repl = $user->login($_POST['mail'], $_POST['password']);
     switch ($repl[0]) {
