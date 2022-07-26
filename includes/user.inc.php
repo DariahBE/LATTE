@@ -21,7 +21,7 @@ class User{
       $nodeId = $result[0]['nodeid'];
       $hash = $result[0]['pw'];
       $attempts = $result[0]['att'];
-      $userid = $result[0]['uid'];
+      $userid = $result[0]['userid'];
       //if 1 record returned: User exists;
       //check max login attempts:
       if($attempts <= 5){
@@ -45,20 +45,28 @@ class User{
   }
 
 
-  public function createUser($mail, $name){
+  public function createUser($mail, $name, $role, $password){
     //check if user with mail already exists:
-    $checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email';
+    $checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email RETURN count(n) as count';
     $exists = $this->client->run($checkQuery, ['email'=>$mail]);
-    var_dump(count($exists));
-    die();
-
-    $query = 'CREATE (n:priv_user {userid: apoc.create.uuid(), mail: $email, name: $username})';
-    $this->client->run($query, ['email'=>$mail, 'username'=>$name]);
+    if ($exists[0]['count'] > 0){
+      return array('error', 'user already exists.');
+    }else{
+      $query = 'CREATE (n:priv_user {userid: apoc.create.uuid(), mail: $email, name: $username, role: $role, logon_attempts: 0, password: $password})';
+      $this->client->run($query, ['email'=>$mail, 'username'=>$name, 'role'=>$role, 'password'=>password_hash($password, PASSWORD_DEFAULT)]);
+      return array('ok', 'user created');
+    }
   }
 
 
-
-
+  public function checkSession(){
+    if(isset($_SESSION['user_uuid'])){
+      return $_SESSION['user_uuid'];
+    }else{
+      return false;
+    }
+  }
+  
 }
 
 

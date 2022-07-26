@@ -4,6 +4,7 @@ include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/multibyte_iter.inc.php');
+include_once(ROOT_DIR.'/includes/annotation.inc.php');
 if(isset($_GET['texid'])){
   $propId = (int)$_GET['texid'];
   $propKey = 'texid';
@@ -14,6 +15,12 @@ if(isset($_GET['texid'])){
 }
 
 $user = new User($client);
+
+$user_uuid = $user->checkSession();
+
+$annotations = new Annotation($client);
+
+$existingAnnotation = $annotations->getExistingAnnotationsInText($propId, $user_uuid);
 
 $node = new Node($client);
 $text = $node->matchSingleNode($nodeType, $propKey, $propId);
@@ -36,10 +43,10 @@ $relations = $node->getEdges($nodeId);
     <script src="/JS/getEntities.js"></script>
     <script src="/JS/setPositions.js"></script>
     <script src="/JS/getEntityInfo.js"></script>
-    <!--<script src="/JS/contextMenuEntities.js"></script> -->
     <script src="/JS/showSingleEntityInfo.js"></script>
     <script src="/JS/rangy/rangy-core.js"></script>
     <script src="/JS/selectInText.js"></script>
+    <script src="/JS/showStoredAnnotations.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
@@ -155,5 +162,12 @@ $relations = $node->getEdges($nodeId);
     <?php echo "const nodeDefinitions = ".json_encode($nodes); ?>;
     //attachSelectController(); //attaches select event to text ==> allows user to select words and perform lookup.
   </script>
+  <?php echo "<script> var storedAnnotations = ".json_encode($existingAnnotation)."</script>";
+  if(count($existingAnnotation['relations']) > 0){
+    echo "<script>visualizeStoredAnnotations();</script>";
+  }
+
+  ?>
+
 </body>
 </html>

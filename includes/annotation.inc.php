@@ -10,7 +10,6 @@
     - Read annotation
     - Update annotation
     - Delete annotation
-
 */
 
 
@@ -40,14 +39,50 @@ class Annotation{
   }
 
 
-  public function getExistingAnnotationsInText($texid){
-    $query = 'MATCH (t:Text {texid: $texid})-[r]-(a:Annotation)-[l]-(p) return t,a,r,l,p;';
+  public function getExistingAnnotationsInText($texid, $user = false){
+    //when user is false ==> only show public annotations.
+    // when user is set to a matching priv_user.userid ==> show all public annotation + private annotations by $user
+    //user parameter to determine if a node is private or not
+    $query = 'MATCH (t:Text {texid: $texid})-[r]-(a:Annotation)-[l]-(p) return t,a,p;';
     $result = $this->client->run($query, ['texid'=>$texid]);
-    if(boolval(count($result))){
-      foreach ($result as $key => $value) {
-        //var_dump($value);
-      }
+    $data = array();
+    $data['user'] = $user;
+    $annotationData = array();
+    foreach ($result as $key => $annotationRecord) {
+        //print_r($annotationRecord->get('n')); // nodes returned are automatically hydrated to Node objects
+
+        //echo $annotationRecord->labels() . PHP_EOL;
+        foreach($annotationRecord as $subkey => $node){
+          //var_dump($node->labels());
+          //var_dump($node);
+          if($node->labels()[0] === 'Annotation'){
+            //echo $node->getProperty('uid');
+            $anno_uuid = $node->getProperty('uid');
+            $isPrivate = $node->getProperty('private');
+            $creator_uuid = $node->getProperty('creator');
+            $annotationStart = $node->getProperty('starts');
+            $annotationStop = $node->getProperty('stops');
+            $map = array(
+              'annotation' => $anno_uuid,
+              'creator' => $creator_uuid,
+              'private' => $isPrivate,
+              'start' => $annotationStart,
+              'stop' => $annotationStop
+            );
+            if($isPrivate){
+              //echo "USER IS: ".$user.PHP_EOL;
+              //echo "OWNER IS: ".$creator_uuid.PHP_EOL;
+              if($user and $creator_uuid === $user){
+                $annotationData[$anno_uuid] = $map;
+              }
+            }else{
+              $annotationData[$anno_uuid] = $map;
+            }
+          }
+        }
     }
+    $data['relations'] = $annotationData;
+    return $data;
   }
 
 }
