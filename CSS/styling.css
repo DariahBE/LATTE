@@ -16,3 +16,7 @@
 .ignoreElementDepth{
   pointer-events: none;
 }
+
+.markedAnnotation{
+  color: red;
+}

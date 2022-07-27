@@ -113,10 +113,14 @@ function getTextSelection(){
     var text = rangy.getSelection().toString().trim();
     //you need a map filter on selection based on length of childnodes!
     var selection = rangy.getSelection().getRangeAt(0).getNodes().filter(s => s.childNodes.length == 0);
-    //get first and last selection elements to extract data attribute:
-    var startOfEntitySelection = parseInt(selection[0].parentElement.dataset.itercounter);
-    var endOfEntitySelection = parseInt(selection[selection.length-1].parentElement.dataset.itercounter);
-    return [text, startOfEntitySelection, endOfEntitySelection];
+    if(selection.length > 0){
+      //get first and last selection elements to extract data attribute:
+      var startOfEntitySelection = parseInt(selection[0].parentElement.dataset.itercounter);
+      var endOfEntitySelection = parseInt(selection[selection.length-1].parentElement.dataset.itercounter);
+      return [text, startOfEntitySelection, endOfEntitySelection];
+    }else{
+      return false;
+    }
 }
 
 function triggerSelection(){

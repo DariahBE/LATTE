@@ -100,8 +100,8 @@ function displayEntities(entities){
     var clickForInfo = function(e){
       getInfoByClick(e);
     }
-    console.log('ENTITY: ');
-    console.log($singleEntity);
+    //console.log('ENTITY: ');
+    //console.log($singleEntity);
     //$($singleEntity).removeEventListener('click', clickForInfo);
     $($singleEntity).click(clickForInfo);
     $entitiesDisplay.appendChild($singleEntity);

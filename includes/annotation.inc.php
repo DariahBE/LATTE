@@ -43,20 +43,15 @@ class Annotation{
     //when user is false ==> only show public annotations.
     // when user is set to a matching priv_user.userid ==> show all public annotation + private annotations by $user
     //user parameter to determine if a node is private or not
-    $query = 'MATCH (t:Text {texid: $texid})-[r]-(a:Annotation)-[l]-(p) return t,a,p;';
+    $query = 'MATCH (t:Text {texid: $texid})-[r]->(a:Annotation)-[l]->(p) return t,a,p;';
     $result = $this->client->run($query, ['texid'=>$texid]);
     $data = array();
     $data['user'] = $user;
     $annotationData = array();
     foreach ($result as $key => $annotationRecord) {
-        //print_r($annotationRecord->get('n')); // nodes returned are automatically hydrated to Node objects
-
-        //echo $annotationRecord->labels() . PHP_EOL;
+      $targetNodeType = $annotationRecord['p']->getLabels()[0];
         foreach($annotationRecord as $subkey => $node){
-          //var_dump($node->labels());
-          //var_dump($node);
           if($node->labels()[0] === 'Annotation'){
-            //echo $node->getProperty('uid');
             $anno_uuid = $node->getProperty('uid');
             $isPrivate = $node->getProperty('private');
             $creator_uuid = $node->getProperty('creator');
@@ -67,11 +62,10 @@ class Annotation{
               'creator' => $creator_uuid,
               'private' => $isPrivate,
               'start' => $annotationStart,
-              'stop' => $annotationStop
+              'stop' => $annotationStop,
+              'type' => $targetNodeType
             );
             if($isPrivate){
-              //echo "USER IS: ".$user.PHP_EOL;
-              //echo "OWNER IS: ".$creator_uuid.PHP_EOL;
               if($user and $creator_uuid === $user){
                 $annotationData[$anno_uuid] = $map;
               }
