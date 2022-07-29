@@ -44,7 +44,10 @@ function makeSuggestionBox(){
   save.addEventListener('click', function(){saveSuggestion();});
   var savetext = document.createTextNode('Save');
   var dismiss = document.createElement('button');
-  dismiss.addEventListener('click', function(){console.log('detect');ignoreSuggestion();});
+  dismiss.addEventListener('click', function(){
+    console.log('Close open box');
+    ignoreSuggestion();
+  });
   var dismisstext = document.createTextNode('Dismiss');
   buttonsBottom.classList.add('w-full', 'mt-auto', 'p-2');
   save.disabled = true;
@@ -153,6 +156,7 @@ $(document).ready(function() {
     triggerpoints[i].addEventListener('mouseup', function(){triggerSelection()});
     triggerpoints[i].addEventListener('keyup', function(){triggerSelection()});
   }
+  //document.getElementById('textcontent').addEventListener('mouseup', function(){triggerSelection()});
   //use esc key to delete the suggestionbox:
   document.addEventListener('keyup', function(event) {
    if (event.keyCode === 27) {

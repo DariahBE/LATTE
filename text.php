@@ -41,7 +41,7 @@ $relations = $node->getEdges($nodeId);
     <script src="/JS/initiate.js"></script>
     <script src="/JS/getLang.js"></script>
     <script src="/JS/getEntities.js"></script>
-    <script src="/JS/setPositions.js"></script>
+    <!-- <script src="/JS/setPositions.js"></script> -->
     <script src="/JS/getEntityInfo.js"></script>
     <script src="/JS/showSingleEntityInfo.js"></script>
     <script src="/JS/rangy/rangy-core.js"></script>
@@ -128,6 +128,12 @@ $relations = $node->getEdges($nodeId);
           <p><span class='font-bold key'>Language ISO: </span><span class='value italic' id='detectedLanguageCode'></span></p>
           <p><span class='font-bold key'>Language: </span><span class='value italic' id='detectedLanguage'></span></p>
           <p><span class='font-bold key'>Certainty: </span><span class='value italic' id='detectedLanguageCertainty'></span></p>
+        </div>
+        <div class="options" id="entityMatchOptions">
+          <div class="hideMatches">
+            <input onclick="hideUnhideEntities()" id='hideUnhideEntities' type="checkbox" name="hideMatchingEntities" value=true>
+            <label for="hideMatchingEntities">Hide <span id='overlapcount'></span>annotated entities(s)</label>
+          </div>
         </div>
         <div class="entities">
           <p><span class='font-bold key'>Nr. of entities: </span><span class='value italic' id='amountOfEntities'></span></p>

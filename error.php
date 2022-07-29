@@ -13,6 +13,12 @@ $fullErrMsg = '';
     case 'textmissing':
       $title = 'No text identifier has been provided.';
       $fullErrMsg = 'Your search request did not contain a valid text identifier. The link you followed may have been broken.';
+    case 'node':
+      $title = 'Invalid nodetype.';
+      $fullErrMsg = 'Your request does not contain a valid node identifier. The link you followed may bave been broken.';
+    case 'uuid':
+      $title = 'Invalid identifier.';
+      $fullErrMsg = 'The provided UUID does not seem to match the expected pattern as defined in the UUID(V4)-specs.';
     default:
       // code...
       break;

@@ -10,7 +10,11 @@ function markBasedOnId(id){
   console.log(id);
   letters = document.getElementsByClassName('ltr');
   for (var l = 0; l < letters.length; l++){
-    if (letters[l].dataset.annotation  && (1==1 || id in letters[l].dataset.annotation.split(',')) ){
+    if (letters[l].dataset.annotation){
+      console.log(letters[l].dataset.annotation.split(',')[0]);
+      console.log(id, id in letters[l].dataset.annotation.split(','))
+    }
+    if (letters[l].dataset.annotation  && (id in letters[l].dataset.annotation.split(',')) ){
       letters[l].classList.add('markedAnnotation');
     }
   }
@@ -41,7 +45,7 @@ function visualizeStoredAnnotations(){
   //Add the annotation UUID to a new data-attribute.
   //cases: 0, 1, > 1;
   var letters = document.getElementsByClassName('ltr');
-  for(var l in letters){
+  for(var l = 0; l < letters.length; l++){
     var ltr = letters[l];
     if(ltr.dataset.itercounter && ltr.dataset.itercounter in positions){
       ltr.classList.add('linked', 'underline');
@@ -49,7 +53,6 @@ function visualizeStoredAnnotations(){
       ltr.dataset.annotationCount = positions[ltr.dataset.itercounter][0].length;
       ltr.classList.add(positions[ltr.dataset.itercounter][1])
       ltr.addEventListener('click', function(){
-        console.log('hot');
         var origin = event.source || event.target;
         var countOfRelatedAnnotations = origin.dataset.annotationCount;
         var relatedAnnotationIDS = origin.dataset.annotation;

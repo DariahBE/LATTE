@@ -35,8 +35,13 @@ $edges_translate = array(
   'knows' => 'Knows'
 );
 $nodes_translate = array(
-  'See_Also' => 'Knowledgebase record',
-  'Variant' => 'Synonym'
+  'Person' => 'People',
+  'See_Also' => 'External Links',
+  'Variant' => 'Spelling variants',
+  'Place' => 'Places',
+  'Text' => 'Texts',
+  'Annotation' => 'Annotations',
+  'priv_user' => 'Users',
 );
 $nodeKeys_translate = array(
   'Person' => array(

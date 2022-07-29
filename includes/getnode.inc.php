@@ -131,7 +131,11 @@ class Node{
     foreach ($result as $record){
       $count = $record->get('f');
       $label = $record->get('label')[0];
-      $data[$label] = $count;
+      if(boolval(NODETRANSLATIONS) AND array_key_exists($label, NODETRANSLATIONS)){
+        $data[NODETRANSLATIONS[$label]] = $count;
+      }else{
+        $data[$label] = $count;
+      }
       $total +=$count;
     }
     $data['total'] = $total;
@@ -168,6 +172,15 @@ class Node{
         );
     }
     return $node;
+  }
+
+  function getNeighbours($id){
+    //use the built in node ID (not the UUID) to extract neighbouring nodes from a core node.
+    //query is undirected!!
+    $result = $this->client->run('MATCH (n)-[r]-(t) WHERE id(n) = $providedID RETURN n,r,t', ['providedID'=>$id]);
+    foreach($result as $record){
+      var_dump($record);
+    }
   }
 
   function getEdges($nodeId, $ofOptionalType=''){

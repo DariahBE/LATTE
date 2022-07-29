@@ -33,7 +33,7 @@ for p in parse.ents:
             'label': p.label,
             'labelTex':labelLookup[p.label_],
             'startPos': p.start_char,
-            'endPos': p.end_char
+            'endPos': p.end_char-1
         }
         result.append(subresult)
 print(json.dumps({'meta': {'found_entities_number': total, 'used_model': usedModel}, 'data':result}))

@@ -23,6 +23,37 @@ function getEntities(options){
 var dropToNormalize = [];
 var useNormalization = false;
 
+//function to hide / unhide entities identified by the NER-tool that are already linked in the graph database.
+//Event is attached to the hideUnhideEntities element in the DOM.
+function hideUnhideEntities(){
+  var count = 0;
+  var state = document.getElementById('hideUnhideEntities').checked;
+  //console.log(count, state);
+  var ignore = [];
+  if(state){
+    for (key in storedAnnotations['relations']){
+      var uqpos = storedAnnotations['relations'][key]['start']+'-'+storedAnnotations['relations'][key]['stop'];
+      ignore.push(uqpos);
+    }
+    var ets = document.getElementsByClassName('anEntity');
+    for (var et = 0; et < ets.length; et++){
+      var entity = ets[et];
+      var etstart = entity.dataset.start;
+      var etstop = entity.dataset.end;
+      if (ignore.includes(etstart+"-"+etstop)){
+        entity.classList.add('hidden');
+        count++;
+      }
+      document.getElementById('overlapcount').innerHTML = count+' ';
+    }
+  }else{
+    var ets = document.getElementsByClassName('anEntity');
+    for (var et = 0; et < ets.length; et++){
+      ets[et].classList.remove('hidden');
+    }
+  }
+}
+
 //update the global dropToNormalize variable.
 //function should return a list of every character(sequence) to be ignored in a sanitized string.
 function update_NormalizationList(){
@@ -100,12 +131,8 @@ function displayEntities(entities){
     var clickForInfo = function(e){
       getInfoByClick(e);
     }
-    //console.log('ENTITY: ');
-    //console.log($singleEntity);
-    //$($singleEntity).removeEventListener('click', clickForInfo);
     $($singleEntity).click(clickForInfo);
     $entitiesDisplay.appendChild($singleEntity);
-    //console.log($foundEntities[i]);
   }
 
 
