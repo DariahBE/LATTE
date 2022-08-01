@@ -20,3 +20,9 @@
 .markedAnnotation{
   color: red;
 }
+
+hr.vertical{
+  height:100%; /* you might need some positioning for this to work, see other questions about 100% height */
+  width:0;
+  border: solid;
+}

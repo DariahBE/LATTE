@@ -163,6 +163,7 @@ class Node{
     //$result = $this->client->run("MATCH (node:".$type."{".$key.":".$value."}) RETURN node, id(node) AS ID LIMIT 1");
     $result = $this->client->run('MATCH (node:'.$type.'{'.$key.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
     // A row is a \Laudis\Neo4j\Types\CypherMap
+    $node = false;
     foreach ($result as $record) {
         // Returns a \Laudis\Neo4j\Types\Node
         $node = array(
@@ -178,9 +179,7 @@ class Node{
     //use the built in node ID (not the UUID) to extract neighbouring nodes from a core node.
     //query is undirected!!
     $result = $this->client->run('MATCH (n)-[r]-(t) WHERE id(n) = $providedID RETURN n,r,t', ['providedID'=>$id]);
-    foreach($result as $record){
-      var_dump($record);
-    }
+    return $result;
   }
 
   function getEdges($nodeId, $ofOptionalType=''){
@@ -192,7 +191,8 @@ class Node{
     $edgeLabel = $ofOptionalType ? ":$ofOptionalType" :  '';
     $matchOnCoreNodeID = 'MATCH (n)-[r'.$edgeLabel.']-(b) WHERE ID(n) = $nodeId RETURN n,r,b';
     $result = $this->client->run($matchOnCoreNodeID, ['nodeId'=>(int)$nodeId]);
-    return($result);
+    //return($result);
+    return $result;
   }
 
 

@@ -499,11 +499,11 @@ Ensure the default browser behavior of the `hidden` attribute.
 .m-auto {
   margin: auto;
 }
-.m-0 {
-  margin: 0px;
-}
 .m-2 {
   margin: 0.5rem;
+}
+.m-0 {
+  margin: 0px;
 }
 .mx-auto {
   margin-left: auto;
@@ -648,11 +648,11 @@ Ensure the default browser behavior of the `hidden` attribute.
 .h-6 {
   height: 1.5rem;
 }
-.h-8 {
-  height: 2rem;
-}
 .h-4 {
   height: 1rem;
+}
+.h-8 {
+  height: 2rem;
 }
 .h-\[calc\(100\%-theme\(\'spacing\.1\'\)\)\] {
   height: calc(100% - 0.25rem);
@@ -684,14 +684,14 @@ Ensure the default browser behavior of the `hidden` attribute.
 .w-6 {
   width: 1.5rem;
 }
+.w-4 {
+  width: 1rem;
+}
 .w-8 {
   width: 2rem;
 }
 .w-3\/4 {
   width: 75%;
-}
-.w-4 {
-  width: 1rem;
 }
 .max-w-sm {
   max-width: 24rem;
@@ -1403,6 +1403,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .border-2 {
   border-width: 2px;
 }
+.border-4 {
+  border-width: 4px;
+}
 .border {
   border-width: 1px;
 }
@@ -1451,6 +1454,10 @@ Ensure the default browser behavior of the `hidden` attribute.
 .border-gray-200 {
   --tw-border-opacity: 1;
   border-color: rgb(229 231 235 / var(--tw-border-opacity));
+}
+.border-violet-800 {
+  --tw-border-opacity: 1;
+  border-color: rgb(91 33 182 / var(--tw-border-opacity));
 }
 .border-gray-300 {
   --tw-border-opacity: 1;
@@ -1784,6 +1791,10 @@ Ensure the default browser behavior of the `hidden` attribute.
   font-size: 1.125rem;
   line-height: 1.75rem;
 }
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+}
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
@@ -1791,10 +1802,6 @@ Ensure the default browser behavior of the `hidden` attribute.
 .text-3xl {
   font-size: 1.875rem;
   line-height: 2.25rem;
-}
-.text-sm {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
 }
 .font-bold {
   font-weight: 700;
@@ -2232,6 +2239,12 @@ Ensure the default browser behavior of the `hidden` attribute.
 
 .markedAnnotation{
   color: red;
+}
+
+hr.vertical{
+  height:100%; /* you might need some positioning for this to work, see other questions about 100% height */
+  width:0;
+  border: solid;
 }
 
 .after\:h-8::after {
