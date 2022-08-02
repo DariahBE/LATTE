@@ -160,6 +160,9 @@ class Node{
   }
 
   function matchSingleNode($type, $key, $value){
+    if (is_numeric($value)){
+      $value = $value + 0;   //can be float too . adding +0 will allow php to automatically set the correct type. 
+    }
     //$result = $this->client->run("MATCH (node:".$type."{".$key.":".$value."}) RETURN node, id(node) AS ID LIMIT 1");
     $result = $this->client->run('MATCH (node:'.$type.'{'.$key.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
     // A row is a \Laudis\Neo4j\Types\CypherMap
@@ -167,10 +170,12 @@ class Node{
     foreach ($result as $record) {
         // Returns a \Laudis\Neo4j\Types\Node
         $node = array(
-          'data'=>$record->get('node'),
           'coreID'=>$record->get('ID'),
           'model'=>NODES[$type]
         );
+    }
+    if(boolval($result)){
+      $node['data'][]=$result;
     }
     return $node;
   }

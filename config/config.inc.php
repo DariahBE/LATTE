@@ -24,6 +24,13 @@ $nodes = array(
   'Place' => array("geoid", "name", "region")
 );
 
+/*set the primary keys for your nodes. If No primary key is set, the database will revert to using UUID.*/
+$primaryKeys = array(
+  'Person' => 'perid',
+  'Text' => 'texid',
+  'Place' => false
+);
+
 /*Provide an optional translation for edges.
 Edgelabels may use another name in the database than in the tool's GUI.
 This allows for more intuitive names.
@@ -76,6 +83,8 @@ $languageDetectionEngine =    'langid';
 define("LANGEXTRACTOR", $languageDetectionEngine);
 ######################
 
+//provide the base URL of the website. This should match the pattern: http://example.com
+$baseURI = 'http://entitylinker.test';
 
 /*Make constants*/
 //// IDEA:
@@ -92,6 +101,8 @@ define("EDGETRANSLATIONS", $edges_translate);
 define("NODETRANSLATIONS", $nodes_translate);
 define("NODEKEYSTRANSLATIONS", $nodeKeys_translate);
 define("URI", $URI);
+define("WEBURL", $baseURI);
+define("PRIMARIES", $primaryKeys);
 
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL

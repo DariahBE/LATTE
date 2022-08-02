@@ -16,9 +16,7 @@ if(!($typeOK)){
 
 if(isset($_GET['uuid'])){
   $uuid = $_GET['uuid'];
-  if(!(preg_match('/^[0-9A-Fa-f]{8}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{4}-[0-9A-Fa-f]{12}$/', $uuid)) ){
-    $uuid = false;
-  }
+
 }
 
 
@@ -33,9 +31,15 @@ include_once(ROOT_DIR.'/includes/entityviews.inc.php');
 
 
 $graph = new Node($client);
-//getnode that matches the provided UUID:
-//var_dump($type, $uuid);
-$core = $graph->matchSingleNode($type, 'uid', $uuid);
+//getnode that matches the provided UUID or primary key as defined in the configfile:
+
+//if the config file has a PK defined for the given type, use that.
+//otherwise: retain the original uid (UUIDV4)
+$propertyWithPK = 'uid';
+if (array_key_exists($type, PRIMARIES) && boolval(PRIMARIES[$type])){
+  $propertyWithPK = PRIMARIES[$type];
+}
+$core = $graph->matchSingleNode($type, $propertyWithPK, $uuid);
 $coreId = $core['coreID'];
 
 $neighbours = $graph->getNeighbours($coreId);
