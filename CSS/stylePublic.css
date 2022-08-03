@@ -499,6 +499,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .m-auto {
   margin: auto;
 }
+.m-8 {
+  margin: 2rem;
+}
 .m-1 {
   margin: 0.25rem;
 }
@@ -932,6 +935,10 @@ Ensure the default browser behavior of the `hidden` attribute.
   -webkit-appearance: none;
      -moz-appearance: none;
           appearance: none;
+}
+.columns-2 {
+  -moz-columns: 2;
+       columns: 2;
 }
 .break-before-auto {
   -moz-column-break-before: auto;
@@ -1495,6 +1502,10 @@ Ensure the default browser behavior of the `hidden` attribute.
   --tw-bg-opacity: 1;
   background-color: rgb(255 255 255 / var(--tw-bg-opacity));
 }
+.bg-slate-300 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(203 213 225 / var(--tw-bg-opacity));
+}
 .bg-inherit {
   background-color: inherit;
 }
@@ -1651,6 +1662,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 .p-1 {
   padding: 0.25rem;
+}
+.p-8 {
+  padding: 2rem;
 }
 .p-3 {
   padding: 0.75rem;
@@ -2283,6 +2297,16 @@ hr.vertical{
   transition-duration: 300ms;
 }
 
+.odd\:bg-slate-200:nth-child(odd) {
+  --tw-bg-opacity: 1;
+  background-color: rgb(226 232 240 / var(--tw-bg-opacity));
+}
+
+.even\:bg-slate-100:nth-child(even) {
+  --tw-bg-opacity: 1;
+  background-color: rgb(241 245 249 / var(--tw-bg-opacity));
+}
+
 .checked\:border-blue-600:checked {
   --tw-border-opacity: 1;
   border-color: rgb(37 99 235 / var(--tw-border-opacity));
@@ -2491,9 +2515,6 @@ hr.vertical{
   }
   .lg\:w-48 {
     width: 12rem;
-  }
-  .lg\:w-1\/3 {
-    width: 33.333333%;
   }
   .lg\:w-6\/12 {
     width: 50%;

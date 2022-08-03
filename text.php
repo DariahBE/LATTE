@@ -102,8 +102,9 @@ $relations = $node->getEdges($nodeId);
     <div class="subbox leftsubbox" id="textcontent">
 
     <?php
-      $textString = $text['data']['properties']['text'];
-      $textLanguage = isset($text['data']['properties']['language']) ? $text['data']['properties']['language']: False;
+    //var_dump($text);
+      $textString = $text['data'][0]->first()['node']['properties']['text'];
+      $textLanguage = isset($text['data'][0]->first()['node']['properties']['language']) ? $text['data']['properties']['language']: False;
       //echo nl2br($textString);
       $i = 0;
       foreach(new MbStrIterator($textString) as $c) {

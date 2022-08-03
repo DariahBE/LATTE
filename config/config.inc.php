@@ -21,7 +21,9 @@ $URI = 'neo4j://localhost:7687';
 $nodes = array(
   'Person' => array("perid", "mindate", "maxdate", "namid", "sex"),
   'Text' => array("texid", "text", "language"),
-  'Place' => array("geoid", "name", "region")
+  'Place' => array("geoid", "name", "region"),
+  'Variant' => array("variant", "remark"),
+  'See_Also' => array("partner", "partner_id", "partner_uri")
 );
 
 /*set the primary keys for your nodes. If No primary key is set, the database will revert to using UUID.*/

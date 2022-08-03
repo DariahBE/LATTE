@@ -1,0 +1,6 @@
+1) inexisting nodes are not caught properly in the Text portal:
+  - e.g.: http://entitylinker.test/text/518105
+  ==> VAR BUG:
+  1A: inexisting node is not caught properly when relying on the coreID return value
+    -e.g.: http://entitylinker.test/API/place/bf3861df-78ef-4b2e-b0c3-3e639287a7a ((should be: http://entitylinker.test/API/place/bf3861df-78ef-4b2e-b0c3-3e639287a7ae))
+2) nodes of the type: Annotation with property private set to True are not matched against cyptherstatements!

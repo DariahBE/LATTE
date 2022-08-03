@@ -16,9 +16,9 @@ $fullErrMsg = '';
     case 'node':
       $title = 'Invalid nodetype.';
       $fullErrMsg = 'Your request does not contain a valid node identifier. The link you followed may bave been broken.';
-    case 'uuid':
+    case 'id':
       $title = 'Invalid identifier.';
-      $fullErrMsg = 'The provided UUID does not seem to match the expected pattern as defined in the UUID(V4)-specs.';
+      $fullErrMsg = 'The provided ID does not seem to have a maching record. The node is probably deleted or never existed.';
     default:
       // code...
       break;

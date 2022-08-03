@@ -10,6 +10,9 @@ class View {
   private $viewtype;
   private $data;
   public $header;
+  public $variants;
+  public $relatedText;
+  public $datasilos;
 
 
   function __construct($type, $data){
@@ -39,6 +42,9 @@ class View {
 
   function buildPlace(){
     $this->makeHeader($this->data['egoNode']);
+    $this->relatedVariants(true);
+    $this->relatedDataSiloEntries(true);
+    $this->relatedAnnotations(true);
     $this->showDataInNetwork();
   }
 
@@ -52,12 +58,12 @@ class View {
   }
 
   function makeTable($keyValuePairs, $alternatingStyle=true){
-    $table = "<table class='table-auto'><thead><tr><td>Property</td><td>Value</td></tr></thead>";
+    $table = "<table class='table-auto w-full m-8 p-8'><thead class='font-bold bg-slate-300'><tr><td>Property</td><td>Value</td></tr></thead>";
     for($i=0; $i<count($keyValuePairs); $i++){
       $rowData = $keyValuePairs[$i];
       $key = $rowData[0];
       $value = $rowData[1];
-      $table .= '<tr><td>'.$key.'</td><td>'.$value.'</td></tr>';
+      $table .= '<tr class="odd:bg-slate-200 even:bg-slate-100"><td class="font-bold">'.$key.'</td><td>'.$value.'</td></tr>';
     }
     $table .= '<table>';
     return $table;
@@ -85,9 +91,9 @@ class View {
         $dataPairsForTable[] = [$keyTranslation, $value];
       }
     }
-    $boxOne = "<div class='w-1/2'>".$this->makeTable($dataPairsForTable)."</div>"; //Box with metadata attributes.
+    $boxOne = "<div class='w-full'>".$this->makeTable($dataPairsForTable)."</div>"; //Box with metadata attributes.
 
-    //Box where the sharelink is generated - including even triggers.
+    //Box where the sharelink is generated - including event triggers.
 
     //iconsource: https://heroicons.com/
     $fingerprintIcon = '<svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -101,21 +107,102 @@ class View {
       </svg></div>';
     $stableLink = $_SERVER['SERVER_NAME'].'/'.$this->viewtype.'/'.$egoID;
     $copy2clipboard = "<div onclick=\"clippy('headerURIContent', 'temp_copy_ok')\" class='flex flex-row'>{$clipBoardIcon}<p id='headerURIContent' class='text-sm'>{$stableLink}</p><p id='temp_copy_ok' class='hidden text-sm'></p></div>";
-    $share2socials = "<div id='socialsBox'></div>";
-    //$shareBox = "<div class='m-1 p-1 top-0 left-0  bg-inherit'></div>";
-    $boxTwo = "<div class='lg:w-1/3 w-1/2 rounded-md border-2 border-violet-800 border-solid flex-shrink justify-center justify-content'><div class='flex flex-row w-full justify-center'>{$fingerprintIcon}<h3 class='text-lg'>Stable link</h3></div><p class='text-xs'>This node has a stable identifier; you can use it to share it with your peers, as long as this node exists, anyone with this link will be able to identify public enitities by its UUID and see connected components.</p>{$copy2clipboard}{$share2socials}</div>"; //stable ID box with sharing integrated.
+    $boxTwo = "<div class='rounded-md border-2 border-violet-800 border-solid flex-shrink justify-center justify-content'><div class='flex flex-row w-full justify-center'>{$fingerprintIcon}<h3 class='text-lg'>Stable link</h3></div><p class='text-xs'>This node has a stable identifier; you can use it to share it with your peers, as long as this node exists, anyone with this link will be able to identify public enitities by its UUID and see connected components.</p>{$copy2clipboard}</div>"; //stable ID box with sharing integrated.
 
-    $this->header = "<div class='flex flex-row'>{$boxOne}<hr class='vertical'>{$boxTwo}</div>";
+    $this->header = "<div class='container row mx-auto px-4 columns-2 gap-4'>{$boxOne}<hr class='vertical'>{$boxTwo}</div>";
   }
 
 
   function showDataInNetwork(){
 //    var_dump($this->data);
   //DO NOT DUMP THE DATA STRAIGHT AWAY: CLEAN SENSITIVE DATA FROM IT (querystring, connectorsettings....)
-    echo json_encode($this->data);
+    //echo json_encode($this->data);
 
   }
 
+  public function relatedDataSiloEntries($useNEO=true){
+    $data = $this->data['neighbours'];
+    $siloData = [];
+    foreach ($data as $record) {
+      $label = $record->get('t')['labels'][0];
+      if($label === 'See_Also'){
+        $props = $record->get('t');
+        $recordFormatted = [];
+        foreach(NODES[$label] as $p){
+          try {
+              $v = $props->getProperty($p);
+          }
+          catch (Exception $e) {
+              $v = null;
+          }
+          $recordFormatted[$p] = $v;
+        }
+        if($useNEO){
+          $recordFormatted['neoID'] = $record->get('t')['id'];
+        }
+        $siloData[] = $recordFormatted;
+      }
+    }
+    $this->datasilos = $siloData;
+  }
+
+  public function relatedVariants($useNEO=true){
+    /*
+      function reads the data set during class initiation; parses all neigbhouring nodes
+      if they have the Variant label set, they are parsed for all keys defined in the central config file.
+    */
+    //a variant is only present in one of the related records:
+    $data = $this->data['neighbours'];
+    //var_dump($data);
+    $variantData = [];
+    foreach ($data as $record) {
+      $label = $record->get('t')['labels'][0];
+      if ($label === 'Variant'){
+        //echo $record->get('t')['id'];
+        $props = $record->get('t');
+        //var_dump(array($props));
+        $recordFormatted = ['uuid'=>$props->getProperty('uid')];
+        foreach(NODES[$label] as $p){
+          //getProperty LAUDIS/Method does not handle non-existing properties: do it here with try-catch.
+          try {
+              $v = $props->getProperty($p);
+          }
+          catch (Exception $e) {
+              $v = null;
+          }
+          $recordFormatted[$p] = $v;
+
+        }
+        if($useNEO){
+          $recordFormatted['neoID'] = $record->get('t')['id'];
+        }
+        $variantData[] = $recordFormatted;
+      }
+    }
+    $this->variants = $variantData;
+  }
+
+  public function relatedAnnotations($useNEO = true){
+
+  }
+
+  public function textsMentioningEntity($useNEO = true){
+    $data = $this->data['relatedTexts'];
+    //var_dump($data);
+    $relatedTexts = array();
+    foreach ($data as $record) {
+      $relatedTexts[] = $record->get('t')->getProperty(PRIMARIES['Text']);
+    }
+    $relatedTexts = array_unique($relatedTexts);
+    $this->relatedText = $relatedTexts;
+  }
+
+  public function generateJSONOnly(){
+    $this->relatedVariants(false);
+    $this->relatedDataSiloEntries(false);
+    $this->relatedAnnotations(false);
+    $this->textsMentioningEntity(false);
+  }
 
 
   public function outputHeader(){

@@ -1,4 +1,9 @@
 <?php
+/*
+  same as stable.php but as JSON API:
+*/
+
+header('Content-Type: application/json; charset=utf-8');
 
 $typeOK = false;
 $uuid = false;
@@ -25,53 +30,47 @@ if(!($uuid)){
   die();
 }
 
+
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/entityviews.inc.php');
 
-
 $graph = new Node($client);
-//getnode that matches the provided UUID or primary key as defined in the configfile:
-
-//if the config file has a PK defined for the given type, use that.
-//otherwise: retain the original uid (UUIDV4)
 $propertyWithPK = 'uid';
 if (array_key_exists($type, PRIMARIES) && boolval(PRIMARIES[$type])){
   $propertyWithPK = PRIMARIES[$type];
 }
+
+//getting the data from the backend:
 $core = $graph->matchSingleNode($type, $propertyWithPK, $uuid);
-if(array_key_exists('coreID', $core)){
+if (array_key_exists('coreID', $core)){
   $coreId = $core['coreID'];
   $neighbours = $graph->getNeighbours($coreId);
   $textSharingEt = $graph->getTextsSharingEntity($coreId, true);
+
+  //sending it to the views-class:
   $view = new View($type, array('egoNode'=>$core, 'neighbours'=>$neighbours, 'relatedTexts'=>$textSharingEt));
+
+  $view->generateJSONOnly();
 }else{
-  header('Location:/error.php?type=id');
+  echo json_encode(array('error'=>'The provided ID does not have matching record. The related node may be deleted, or it never existed.'));
+
+  die();
 }
+
+
+
+//merging individual JSON-blocks built by the view-class
+
+echo json_encode(
+  array(
+    'egonode'=> array(),
+    'neighbours'=>array(
+      'projectRelations'=>$view->datasilos,
+      'variants' => $view->variants,
+      'related_texts' => $view->relatedText
+    )
+  )
+);
+
 ?>
-
-<!DOCTYPE html>
-<html lang="en" dir="ltr">
-  <head>
-    <meta charset="utf-8">
-    <title>Stable identifier: <?php echo htmlspecialchars($uuid, ENT_QUOTES, 'UTF-8');?></title>
-    <link rel="stylesheet" href="/CSS/style_entities.css">
-    <link rel="stylesheet" href="/CSS/stylePublic.css">
-    <link rel="stylesheet" href="/CSS/overlaystyling.css">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-    <script type="text/javascript" src="/JS/clipboardcopy.js"> </script>
-  </head>
-  <body class="bg-neutral-200">
-    <div class="">
-      <!-- navbar-->
-    </div>
-    <div class="container">
-      <!-- content -->
-      <div class="top">
-        <?php $view->outputHeader(); ?>
-      </div>
-
-    </div>
-
-  </body>
-</html>

@@ -161,7 +161,7 @@ class Node{
 
   function matchSingleNode($type, $key, $value){
     if (is_numeric($value)){
-      $value = $value + 0;   //can be float too . adding +0 will allow php to automatically set the correct type. 
+      $value = $value + 0;   //can be float too . adding +0 will allow php to automatically set the correct type.
     }
     //$result = $this->client->run("MATCH (node:".$type."{".$key.":".$value."}) RETURN node, id(node) AS ID LIMIT 1");
     $result = $this->client->run('MATCH (node:'.$type.'{'.$key.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
@@ -197,6 +197,24 @@ class Node{
     $matchOnCoreNodeID = 'MATCH (n)-[r'.$edgeLabel.']-(b) WHERE ID(n) = $nodeId RETURN n,r,b';
     $result = $this->client->run($matchOnCoreNodeID, ['nodeId'=>(int)$nodeId]);
     //return($result);
+    return $result;
+  }
+
+
+  function getTextsSharingEntity($nodeId, $publicOnly=true){
+    /*
+      Method that takes as an input the internal NEO ID entity (Place/Person/Event)
+      And outputs all texts that have the given entity as a related annotation.
+      Entities and texts are two hops away in the datamodel. Query can be sped up by making it directional:
+      a laudis/summarizedresult databag is returned
+    */
+    $nodeId = (int)$nodeId;
+    $constraintOnAnnotationLevel = '';
+    if ($publicOnly){
+      $constraintOnAnnotationLevel = '{private:false}';
+    }
+    $query = "MATCH (n)<-[q:references]-(a:Annotation{$constraintOnAnnotationLevel})<-[s:contains]-(t:Text) where id(n)=$nodeId return t";
+    $result = $this->client->run($query, [$nodeId]);
     return $result;
   }
 
