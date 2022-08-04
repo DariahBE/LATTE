@@ -183,7 +183,14 @@ class Node{
   function getNeighbours($id){
     //use the built in node ID (not the UUID) to extract neighbouring nodes from a core node.
     //query is undirected!!
-    $result = $this->client->run('MATCH (n)-[r]-(t) WHERE id(n) = $providedID RETURN n,r,t', ['providedID'=>$id]);
+    $result = $this->client->run('MATCH (n)-[r]-(t) WHERE id(n) = $providedID RETURN n,r,t', ['providedID'=>(int)$id]);
+    return $result;
+  }
+
+  function crossreferenceSilo($id){
+    //uses the built in node ID from ONE See_Also node to find all other See_Also nodes that share the same entity.
+    //query is directed!
+    $result = $this->client->run('MATCH (n:See_Also)<--(b)-->(t:See_Also) WHERE id(n) = $providedID RETURN t ', ['providedID'=>(int)$id]);
     return $result;
   }
 

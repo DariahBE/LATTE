@@ -49,11 +49,11 @@ if (array_key_exists('coreID', $core)){
   $textSharingEt = $graph->getTextsSharingEntity($coreId, true);
 
   //sending it to the views-class:
-  $view = new View($type, array('egoNode'=>$core, 'neighbours'=>$neighbours, 'relatedTexts'=>$textSharingEt));
+  $view = new View($type, array('egoNode' => $core, 'neighbours' => $neighbours, 'relatedTexts' => $textSharingEt));
 
   $view->generateJSONOnly();
 }else{
-  echo json_encode(array('error'=>'The provided ID does not have matching record. The related node may be deleted, or it never existed.'));
+  echo json_encode(array('error' => 'The provided ID does not have matching record. The related node may be deleted, or it never existed.'));
 
   die();
 }
@@ -64,9 +64,9 @@ if (array_key_exists('coreID', $core)){
 
 echo json_encode(
   array(
-    'egonode'=> array(),
-    'neighbours'=>array(
-      'projectRelations'=>$view->datasilos,
+    'egonode' => array(),
+    'neighbours' => array(
+      'projectRelations' => $view->datasilos,
       'variants' => $view->variants,
       'related_texts' => $view->relatedText
     )

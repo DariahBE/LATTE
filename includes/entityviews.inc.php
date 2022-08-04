@@ -31,9 +31,30 @@ class View {
       case 'Event':
         $this->buildEvent();
         break;
+      case 'Silos':
+        $this->buildSilos();
+        break;
       default:
         throw new \Exception("The requested view is not implemented. Quitting.", 1);
     }
+  }
+
+  function buildSilos(){
+    //var_dump($this->data);
+    $siloData = array();
+    foreach ($this->data as $record) {
+      $row = array();
+      foreach (NODES['See_Also'] as $p){
+        try{
+          $v = $record->get('t')->getProperty($p);
+        }catch(e){
+          $v = null;
+        }
+        $row[$p] = $v;
+      }
+      $siloData[] = $row;
+    }
+    $this->datasilos = $siloData;
   }
 
   function buildAnnotation(){
@@ -108,7 +129,6 @@ class View {
     $stableLink = $_SERVER['SERVER_NAME'].'/'.$this->viewtype.'/'.$egoID;
     $copy2clipboard = "<div onclick=\"clippy('headerURIContent', 'temp_copy_ok')\" class='flex flex-row'>{$clipBoardIcon}<p id='headerURIContent' class='text-sm'>{$stableLink}</p><p id='temp_copy_ok' class='hidden text-sm'></p></div>";
     $boxTwo = "<div class='rounded-md border-2 border-violet-800 border-solid flex-shrink justify-center justify-content'><div class='flex flex-row w-full justify-center'>{$fingerprintIcon}<h3 class='text-lg'>Stable link</h3></div><p class='text-xs'>This node has a stable identifier; you can use it to share it with your peers, as long as this node exists, anyone with this link will be able to identify public enitities by its UUID and see connected components.</p>{$copy2clipboard}</div>"; //stable ID box with sharing integrated.
-
     $this->header = "<div class='container row mx-auto px-4 columns-2 gap-4'>{$boxOne}<hr class='vertical'>{$boxTwo}</div>";
   }
 
@@ -183,6 +203,13 @@ class View {
   }
 
   public function relatedAnnotations($useNEO = true){
+    //annotation is non-configurable node. DO NOT read user definitions for this.
+    $data = $this->data['neighbours'];
+    $relatedAnnotations = array();
+    foreach($data as $record){
+      $row = array();
+      var_dump($record->get('t')['labels']);
+    }
 
   }
 
@@ -191,7 +218,21 @@ class View {
     //var_dump($data);
     $relatedTexts = array();
     foreach ($data as $record) {
-      $relatedTexts[] = $record->get('t')->getProperty(PRIMARIES['Text']);
+      $row = array();
+      foreach(NODES['Text'] as $textproperty){
+        //var_dump($textproperty);
+        try {
+            $v = $record->get('t')->getProperty($textproperty);
+        }
+        catch (Exception $e) {
+            $v = null;
+        }
+        $row[$textproperty] = $v;
+      }
+      if($useNEO){
+        $row['neoID'] = $record->get('t')['id'];
+      }
+      $relatedTexts[] = $row;
     }
     $relatedTexts = array_unique($relatedTexts);
     $this->relatedText = $relatedTexts;

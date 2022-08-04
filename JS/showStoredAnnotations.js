@@ -1,25 +1,18 @@
 function unmark(){
   var marked = document.getElementsByClassName('markedAnnotation');
-  for(var i = 0; i < marked.length; i++){
+  for(var i = marked.length-1; i >= 0; i--){
     marked[i].classList.remove('markedAnnotation');
   }
 }
 
 function markBasedOnId(id){
   unmark();
-  console.log(id);
-  letters = document.getElementsByClassName('ltr');
+  var letters = document.getElementsByClassName('ltr');
   for (var l = 0; l < letters.length; l++){
-    if (letters[l].dataset.annotation){
-      console.log(letters[l].dataset.annotation.split(',')[0]);
-      console.log(id, id in letters[l].dataset.annotation.split(','))
-    }
-    if (letters[l].dataset.annotation  && (id in letters[l].dataset.annotation.split(',')) ){
+    if (letters[l].dataset.annotation  && (letters[l].dataset.annotation.split(',').includes(id)) ){
       letters[l].classList.add('markedAnnotation');
     }
   }
-
-
 }
 
 
@@ -28,7 +21,7 @@ function visualizeStoredAnnotations(){
   for (const [key, properties] of Object.entries(storedAnnotations['relations'])) {
     var starts = properties['start'];
     var stops = properties['stop'];
-    var type = properties['type']
+    var type = properties['type'];
     for(var i = starts; i <= stops; i++){
       var j = i.toString();
       if(!(j in positions)){
