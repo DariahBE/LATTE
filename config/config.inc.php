@@ -23,7 +23,8 @@ $nodes = array(
   'Text' => array("texid", "text", "language"),
   'Place' => array("geoid", "name", "region"),
   'Variant' => array("variant", "remark"),
-  'See_Also' => array("partner", "partner_id", "partner_uri")
+  'See_Also' => array("partner", "partner_id", "partner_uri"),
+  'Annotation' => array("starts", "stops", "private", "uid", "note", "extra")
 );
 
 /*set the primary keys for your nodes. If No primary key is set, the database will revert to using UUID.*/

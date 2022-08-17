@@ -47,6 +47,7 @@ $relations = $node->getEdges($nodeId);
     <script src="/JS/rangy/rangy-core.js"></script>
     <script src="/JS/selectInText.js"></script>
     <script src="/JS/showStoredAnnotations.js"></script>
+    <script src="/JS/interactWithEntities.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">

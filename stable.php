@@ -65,11 +65,30 @@ if(array_key_exists('coreID', $core)){
     <div class="">
       <!-- navbar-->
     </div>
-    <div class="container">
+    <div class="container row">
       <!-- content -->
       <div class="top">
         <?php $view->outputHeader(); ?>
       </div>
+
+    </div>
+    <div class="container row">
+      <div class="content row-span-2 md:row-span-3" id="tableTarget">
+        <script>
+          <?php
+            $view->generateJSONOnly(true);
+            //output of JSON data:
+            echo "var variants = ".json_encode($view->variants).";";
+            echo "var silos = ".json_encode($view->datasilos).";";
+            echo "var texts = ".json_encode($view->relatedText).";";
+            //echo "var annotations = ". json_encode($view->)
+          ?>
+        </script>
+      </div>
+
+    </div>
+
+    <div class="h-full w-full" id="visualizeWindow">
 
     </div>
 

@@ -16,6 +16,9 @@ class View {
 
 
   function __construct($type, $data){
+    $this->dataSilos = null;
+    $this->variants = null;
+    $this->relatedText = null;
     $this->viewtype = $type;
     $this->data = $data;
     switch ($this->viewtype) {
@@ -208,7 +211,7 @@ class View {
     $relatedAnnotations = array();
     foreach($data as $record){
       $row = array();
-      var_dump($record->get('t')['labels']);
+      //var_dump($record->get('t')['labels']);
     }
 
   }
@@ -234,15 +237,15 @@ class View {
       }
       $relatedTexts[] = $row;
     }
-    $relatedTexts = array_unique($relatedTexts);
+    $relatedTexts = array_unique($relatedTexts, SORT_REGULAR);
     $this->relatedText = $relatedTexts;
   }
 
-  public function generateJSONOnly(){
-    $this->relatedVariants(false);
-    $this->relatedDataSiloEntries(false);
-    $this->relatedAnnotations(false);
-    $this->textsMentioningEntity(false);
+  public function generateJSONOnly($withNeoID){
+    $this->relatedVariants($withNeoID);
+    $this->relatedDataSiloEntries($withNeoID);
+    //$this->relatedAnnotations($withNeoID);  // discuss: Is this even required?
+    $this->textsMentioningEntity($withNeoID);
   }
 
 

@@ -15,8 +15,31 @@
 
 class Annotation{
   private $client;
+  private $protectedKeys = array('starts', 'stops', 'uid', 'private');
   function __construct($client){
     $this->client = $client;
+  }
+
+  public function isProtectedKey($key){
+    //protected Keys are immutable.
+    return in_array($key, $this->protectedKeys);
+  }
+
+  public function getAnnotationInfo($nodeId){
+    //takes the nodeId of a node with label Annotation and generates all information about it.
+    //1: Information about the author of the annotation:
+    $queryAuthor = 'MATCH (a:Annotation)<-[r:created]-(u:priv_user) WHERE id(a) = $ego RETURN u,a';
+    $resultAuthor = $this->client->run($queryAuthor, ['ego'=>(int)$nodeId]);
+    //////
+    $queryEntity = 'MATCH (a:Annotation)-[r:references]-(b) WHERE id(a)= $ego RETURN b';
+    $resultEntity = $this->client->run($queryEntity, ['ego'=>(int)$nodeId]);
+    //////
+
+    return array(
+      'author'=>$resultAuthor[0]->get('u'),
+      'annotation' =>$resultAuthor[0]->get('a'),
+      'entity'=>$resultEntity
+    );
   }
 
   public function createAnnotation($texid, $start, $stop, $user, $targetNode, $hidden=false){

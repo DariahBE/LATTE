@@ -81,8 +81,9 @@ function loadIntoSuggestionBox(data, from, to){
   keySpanNode.appendChild(nodesKey);
   keySpanNode.classList.add('font-bold');
   keySpanEdge.classList.add('font-bold');
-  var coreNodes = Object.keys(nodeDefinitions);
+  var coreNodes = ['Place', 'Person', 'Event'];
   var retrievedCoreElements = data.nodes.filter(node => coreNodes.includes(node[1]));
+  console.log(retrievedCoreElements);
   var valueSpanEdge = document.createTextNode(data.edges.length);
   var valueSpanNode = document.createTextNode(data.nodes.length+' | '+retrievedCoreElements.length);
   var positionBox = document.createElement('p');
@@ -106,11 +107,7 @@ function loadIntoSuggestionBox(data, from, to){
   document.getElementById('suggestionboxspinner').remove();
 }
 
-function scanForOtherOccurences(normalization){
-  if(normalization){
 
-  }
-}
 
 function getTextSelection(){
     var text = rangy.getSelection().toString().trim();

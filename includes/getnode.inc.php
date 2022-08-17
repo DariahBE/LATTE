@@ -171,7 +171,7 @@ class Node{
         // Returns a \Laudis\Neo4j\Types\Node
         $node = array(
           'coreID'=>$record->get('ID'),
-          'model'=>NODES[$type]
+          'model'=>array_key_exists($type, NODES) ? NODES[$type] : null
         );
     }
     if(boolval($result)){
@@ -190,8 +190,10 @@ class Node{
   function crossreferenceSilo($id){
     //uses the built in node ID from ONE See_Also node to find all other See_Also nodes that share the same entity.
     //query is directed!
-    $result = $this->client->run('MATCH (n:See_Also)<--(b)-->(t:See_Also) WHERE id(n) = $providedID RETURN t ', ['providedID'=>(int)$id]);
-    return $result;
+    $result = $this->client->run('MATCH (n:See_Also)<--(b) WHERE id(n) = $providedID RETURN id(b) AS id', ['providedID'=>(int)$id]);
+    //var_dump($result);
+    $result2 = $this->client->run('MATCH (n)-->(t:See_Also) WHERE id(n) = $providedID2 RETURN t',['providedID2' => (int)$result->first()->get('id')]);
+    return $result2;
   }
 
   function getEdges($nodeId, $ofOptionalType=''){
