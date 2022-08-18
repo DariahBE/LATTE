@@ -15,7 +15,7 @@
 
 class Annotation{
   private $client;
-  private $protectedKeys = array('starts', 'stops', 'uid', 'private');
+  private $protectedKeys = array('starts', 'stops', 'uid', 'creator');
   function __construct($client){
     $this->client = $client;
   }
@@ -25,20 +25,25 @@ class Annotation{
     return in_array($key, $this->protectedKeys);
   }
 
+  private function getAnnotationModel(){
+    return NODES['Annotation'];
+  }
+
   public function getAnnotationInfo($nodeId){
     //takes the nodeId of a node with label Annotation and generates all information about it.
     //1: Information about the author of the annotation:
-    $queryAuthor = 'MATCH (a:Annotation)<-[r:created]-(u:priv_user) WHERE id(a) = $ego RETURN u,a';
+    $queryAuthor = 'MATCH (a:Annotation)<-[r:created]-(u:priv_user) WHERE id(a) = $ego RETURN u.role AS role, u.name AS name';
     $resultAuthor = $this->client->run($queryAuthor, ['ego'=>(int)$nodeId]);
     //////
-    $queryEntity = 'MATCH (a:Annotation)-[r:references]-(b) WHERE id(a)= $ego RETURN b';
+    $queryEntity = 'MATCH (a:Annotation)-[r:references]-(b) WHERE id(a)= $ego RETURN b, a';
     $resultEntity = $this->client->run($queryEntity, ['ego'=>(int)$nodeId]);
     //////
 
     return array(
-      'author'=>$resultAuthor[0]->get('u'),
-      'annotation' =>$resultAuthor[0]->get('a'),
-      'entity'=>$resultEntity
+      'author'=>$resultAuthor[0],
+      'annotation' =>$resultEntity[0]->get('a'),
+      'annotationModel' => $this->getAnnotationModel(),
+      'entity'=>$resultEntity[0]->get('b'),
     );
   }
 

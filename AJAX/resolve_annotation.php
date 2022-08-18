@@ -18,9 +18,14 @@ $egoId = $egodata['coreID'];
 $neighbours = $annotation->getAnnotationInfo($egoId);
 
 $annotationInformation = $neighbours['annotation'];
-//echo json_encode($annotationInformation);
+$formattedResponse['annotationFields'] = $neighbours['annotationModel']; 
 foreach ($annotationInformation['properties'] as $key => $value) {
-  $formattedResponse['annotation']['properties'][] = array($key, $value, $annotation->isProtectedKey($key));
+  $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key));
+}
+
+$authorInformation = $neighbours['author'];
+foreach ($authorInformation as $key => $value) {
+  $formattedResponse['author']['properties'][$key] = array($key, $value, true);
 }
 
 
