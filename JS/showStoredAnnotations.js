@@ -32,7 +32,6 @@ function visualizeStoredAnnotations(){
       }
     }
   }
-  console.log(positions);
 
   //Mark the positions where the index matches the data-attribute.
   //Add the annotation UUID to a new data-attribute.

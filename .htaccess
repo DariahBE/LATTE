@@ -1,9 +1,7 @@
-RewriteRule text/([0-9]+)$ /text.php?texid=$1 [NC,L]
-RewriteRule entity/([0-9]+)$ /entity.php?id=$1 [NC,L]
+RewriteRule text/([^/]*)$ /text.php?texid=$1 [NC,L]
 RewriteRule API/place/([^/]*)$ /API/identify.php?type=place&uuid=$1 [NC,L]
 RewriteRule API/person/([^/]*)$ /API/identify.php?type=person&uuid=$1 [NC,L]
 RewriteRule API/event/([^/]*)$ /API/identify.php?type=event&uuid=$1 [NC,L]
 RewriteRule place/([^/]*)$ /stable.php?type=place&uuid=$1 [NC,L]
 RewriteRule person/([^/]*)$ /stable.php?type=person&uuid=$1 [NC,L]
 RewriteRule event/([^/]*)$ /stable.php?type=event&uuid=$1 [NC,L]
-#RewriteRule API/silo/([^/]*) /API/resolve.php?partneruri=$1 [NE,L] #does not work!

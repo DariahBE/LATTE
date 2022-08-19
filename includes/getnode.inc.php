@@ -114,8 +114,8 @@ class Node{
     $data = array();
     foreach($result as $record){
       $key = $record['keys'];
-      if(boolval(NODEKEYSTRANSLATIONS) AND array_key_exists($key, NODEKEYSTRANSLATIONS[$ofLabel])){
-        $keyTranslation = NODEKEYSTRANSLATIONS[$ofLabel][$key];
+      if(array_key_exists($key, NODEMODEL[$ofLabel])){
+        $keyTranslation = NODEMODEL[$ofLabel][$key][0];
       }else{
         $keyTranslation = false;
       }
@@ -230,11 +230,11 @@ class Node{
 
 
   function getEntities($entityType, $entityValue, $caseSensitive=false, $limit=100, $offset=0){
+    //case sensitive ==> Very Fast:
+    if(boolval($entityType)){
+      $entityType = ':'.$entityType;
+    }
     if($caseSensitive){
-      //case sensitive ==> Very Fast:
-      if(boolval($entityType)){
-        $entityType = ':'.$entityType;
-      }
       $cypherQuery = '
           OPTIONAL MATCH (p'.$entityType.' {name:$nameValue1})
           OPTIONAL MATCH (v:Variant {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')

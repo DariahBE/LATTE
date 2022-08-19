@@ -110,10 +110,14 @@ class View {
 
     foreach ($ego['data'][0]->first()['node']['properties'] as $key => $value) {
       //metadata only shows keys that hold translations:
+      if(array_key_exists($key, NODEMODEL)){
+        $keyTranslation = NODEMODEL[$key][0];
+        $dataPairsForTable[] = [$keyTranslation, $value];
+      }/*
       if(array_key_exists($key, NODEKEYSTRANSLATIONS[$this->viewtype])){
         $keyTranslation = NODEKEYSTRANSLATIONS[$this->viewtype][$key];
         $dataPairsForTable[] = [$keyTranslation, $value];
-      }
+      }*/
     }
     $boxOne = "<div class='w-full'>".$this->makeTable($dataPairsForTable)."</div>"; //Box with metadata attributes.
 

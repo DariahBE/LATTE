@@ -42,7 +42,7 @@ $nodesDatamodel = array(
     "language" => ["Document language", "string", false]
   ],
   'Place' => [
-    "geoid" => ["Trismegistos Place ID", "int", true],
+    "geoid" => ["Trismegistos Place ID", "int", false],
     "name" => ["Placename", "string", false],
     "region" => ["Regionname", "string", false]
   ],
@@ -74,11 +74,14 @@ foreach(array_keys($nodesDatamodel) as $node){
 }
 
 /*set the primary keys for your nodes. If No primary key is set, the database will revert to using UUID.*/
-$primaryKeys = array(
-  'Person' => 'perid',
-  'Text' => 'texid',
-  'Place' => false
-);
+$primaryKeys = array_map(function ($ar){
+  foreach ($ar as $key => $value) {
+    if($value[2]){
+      return $key;
+    }
+  }
+  return false;
+}, $nodesDatamodel);
 
 /*Provide an optional translation for edges.
 Edgelabels may use another name in the database than in the tool's GUI.
@@ -99,6 +102,18 @@ $nodes_translate = array(
   'Annotation' => 'Annotations',
   'priv_user' => 'Users',
 );
+/*
+$nodeKeys_translate  = array_map(function ($ar){
+  foreach ($ar as $key => $value) {
+    $nodeKeys_translate[];
+    return $key[] = $value[1];
+    if($value[2]){
+      return $key;
+    }
+  }
+}, $nodesDatamodel);
+
+var_dump($nodeKeys_translate);
 $nodeKeys_translate = array(
   'Person' => array(
     'perid' => 'Trismegistos Person ID',
@@ -124,7 +139,7 @@ $nodeKeys_translate = array(
     '' => '',
   )
 );
-
+*/
 ########### WHICH ENGINE SHOULD BE USED TO DETECT THE LANGUAGE OF A GIVEN TEXT?
 #                             spacy
 #                             langid
@@ -148,7 +163,8 @@ define("DEFAULTDRIVER", $defaultdriver);
 define("NODES", $nodes);
 define("EDGETRANSLATIONS", $edges_translate);
 define("NODETRANSLATIONS", $nodes_translate);
-define("NODEKEYSTRANSLATIONS", $nodeKeys_translate);
+//define("NODEKEYSTRANSLATIONS", $nodeKeys_translate);
+define("NODEMODEL", $nodesDatamodel);
 define("URI", $URI);
 define("WEBURL", $baseURI);
 define("PRIMARIES", $primaryKeys);
@@ -174,6 +190,5 @@ define( 'ROOT_DIR', $_SERVER["DOCUMENT_ROOT"] );
 */
 $registration_policy = 0;
 define('REGISTRATIONPOLICY', $registration_policy);
-
 
 ?>

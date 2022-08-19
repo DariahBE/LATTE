@@ -6,9 +6,14 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/multibyte_iter.inc.php');
 include_once(ROOT_DIR.'/includes/annotation.inc.php');
 if(isset($_GET['texid'])){
-  $propId = (int)$_GET['texid'];
-  $propKey = 'texid';
+  $propId = $_GET['texid'];
   $nodeType = 'Text';
+  $propKey = PRIMARIES[$nodeType];
+  //cast the propID to int if type is set:
+  $typeOfId = NODEMODEL[$nodeType][$propKey][1];
+  if($typeOfId === "int"){
+    $propId = (int)$propId;
+  }
 }else{
   header('Location: /error.php?type=textmissing');
   die();

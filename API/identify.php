@@ -18,7 +18,6 @@ if(!($typeOK)){
 
 if(isset($_GET['uuid'])){
   $uuid = $_GET['uuid'];
-
 }
 
 //NOTE: if the nodetype is configured to have another PK than the UUID; it should accept that too!
