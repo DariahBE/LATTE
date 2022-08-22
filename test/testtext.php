@@ -15,7 +15,6 @@ $node = new Node($client);
 $annotation = new Annotation($client);
 $user = new User($client);
 
-
 /*
 $annotation->createAnnotation(78, 1561, 1568, 'c42c4c15-b546-46c5-bdc5-23ea20c7c628','85541469-4a69-4732-b8fa-7e8e32487225');
 $annotation->createAnnotation(78, 211, 218, 'c42c4c15-b546-46c5-bdc5-23ea20c7c628','85541469-4a69-4732-b8fa-7e8e32487225');

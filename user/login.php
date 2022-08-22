@@ -84,13 +84,14 @@
                               mail: document.getElementById('mailfield').value,
                               password: document.getElementById('pwfield').value
                             };
-                            console.log(logindata)
+                            //console.log(logindata)
                             $.ajax({
                               type: 'POST',
                               url: 'runlogin.php',
                               data: logindata,
                               success: function(data, status, xhttp){
                                 if ( data ){
+                                  console.log(data);
                                   $("#status").text(data['msg']);
                                   if(data['status'] == 1){
                                     $("#loginsquare").fadeOut();
