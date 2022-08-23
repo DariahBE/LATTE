@@ -18,21 +18,21 @@ $user = new User($client);
 $egodata = $graph->matchSingleNode('Annotation', 'uid', $annotationId);
 $egoId = $egodata['coreID'];
 $neighbours = $annotation->getAnnotationInfo($egoId);
-
-$annotationInformation = $neighbours['annotation'];
-$formattedResponse['annotationFields'] = $neighbours['annotationModel'];
-foreach ($annotationInformation['properties'] as $key => $value) {
-  //does the user OWN the records (is $user->name === $annotation->owner)
-  //what role does the user have. ($user->role;)
-  //if there's no owner/role set ==> by default assume false false.
-
-  $allowedToEdit = $user->hasEditRights();
-  $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key), $allowedToEdit);
+//annotation can be anonymous!
+if($neighbours['author']){
+  $owner = $neighbours['author']->get('name');
+  foreach ($neighbours['author'] as $key => $value) {
+    $formattedResponse['author']['properties'][$key] = array($key, $value, true);
+  }
+}else{
+  $owner = false;
 }
-
-$authorInformation = $neighbours['author'];
-foreach ($authorInformation as $key => $value) {
-  $formattedResponse['author']['properties'][$key] = array($key, $value, true);
+// end of dealing with the author of an annotation
+$annotationInformation = $neighbours['annotation'];
+$formattedResponse['annotationFields'] = NODEMODEL['Annotation'];
+foreach ($annotationInformation['properties'] as $key => $value) {
+  $allowedToEdit = $user->hasEditRights($user->myRole, $user->myName === $owner);
+  $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key), $allowedToEdit);
 }
 
 

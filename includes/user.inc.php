@@ -8,9 +8,16 @@ class User{
   private $client;
   function __construct($client)  {
     $this->client = $client;
-    $this->myRole = isset($_SESSION['role']) ? $_SESSION['role'] : False;
-    $this->myName = isset($_SESSION['name']) ? $_SESSION['name'] : False;
+    $this->myRole = isset($_SESSION['userrole']) ? $_SESSION['userrole'] : False;
+    $this->myName = isset($_SESSION['username']) ? $_SESSION['username'] : False;
+    $this->myId = isset($_SESSION['userid']) ? $_SESSION['userid'] : False;
   }
+
+public function checkForSession(){
+  if($this->myName){
+    header('Location: /user/mypage.php');
+  }
+}
 
   public function logout(){
     session_destroy();
@@ -63,20 +70,34 @@ class User{
   }
 
   public function hasEditRights($role, $isOwner){
+    /*
+      0 = Deny all
+      1 = Create New
+      2 = Create and update
+      3 = Create, update and delete
+      4 = SuperUser: allow all.
+    */
     if($isOwner){
-      //if you own the record, you can edit it.
-      return True;
+      //if you own the record, you can edit and update. - even when restricted to the contributor role.
+      return 2;
     }
     if($role === 'admin'){
       //if you're admin, you can edit it.
-      return True;
+      return 4;
+    }
+    if($role === 'projectlead'){
+      return 3;
     }
     if($role === 'researcher'){
       // you can edit nodes and edges.
-      return True;
+      return 2;
+    }
+    if($role === 'contributor'){
+      //user can add, but can not edit
+      return 1;
     }
     else{
-      return False;
+      return 0;
     }
   }
 

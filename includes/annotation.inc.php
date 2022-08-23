@@ -29,18 +29,29 @@ class Annotation{
     return NODES['Annotation'];
   }
 
+  public function loadPersonalAnnotations($userid){
+    $query = ('MATCH (a:Annotation)<-[r:created]-(u:priv_user) WHERE u.userid = $userid RETURN a');
+    $result = $this->client->run($query, ['userid'=>$userid]);
+    var_dump($result);
+  }
+
   public function getAnnotationInfo($nodeId){
     //takes the nodeId of a node with label Annotation and generates all information about it.
     //1: Information about the author of the annotation:
     $queryAuthor = 'MATCH (a:Annotation)<-[r:created]-(u:priv_user) WHERE id(a) = $ego RETURN u.role AS role, u.name AS name';
     $resultAuthor = $this->client->run($queryAuthor, ['ego'=>(int)$nodeId]);
+    if(boolval(count($resultAuthor))){
+      $resultAuthor = $resultAuthor[0];
+    }else{
+      $resultAuthor = false;
+    }
     //////
     $queryEntity = 'MATCH (a:Annotation)-[r:references]-(b) WHERE id(a)= $ego RETURN b, a';
     $resultEntity = $this->client->run($queryEntity, ['ego'=>(int)$nodeId]);
     //////
 
     return array(
-      'author'=>$resultAuthor[0],
+      'author'=>$resultAuthor,
       'annotation' =>$resultEntity[0]->get('a'),
       'annotationModel' => $this->getAnnotationModel(),
       'entity'=>$resultEntity[0]->get('b'),

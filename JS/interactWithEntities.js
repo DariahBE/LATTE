@@ -26,7 +26,7 @@ function frameWorkBase(){
   title.classList.add('font-bold','flex', 'items-center', 'justify-center');
   var titleTex = document.createTextNode('Annotation: ');
   title.appendChild(titleTex);
-  maindiv.appendChild(title)
+  maindiv.appendChild(title);
   //under title add a DIV with variable metadata on Annotation Node:
   var annotationDiv = document.createElement('div');
   annotationDiv.setAttribute('id', 'annotationContainerAjax');
@@ -45,15 +45,27 @@ function frameWorkBase(){
   insertHere.appendChild(maindiv);
 }
 
+function decideOnEdit(protected, level){
+  console.log(protected, level);
+  if(protected){
+    return false;
+  }
+  else if (level > 1 ){
+    return true;
+  }else{
+    return false;
+  }
+}
+
 function showdata(data){
   frameWorkBase();
   var annotationTarget = document.getElementById('annotationContainerAjax');
   var authorData = data['author'];
   var annotationData = data['annotation']['properties'];
-  var annotationExtraFields = data['annotationFields'] || false;
-  function writeField(key, data, protected){
-    console.log(key, data, protected);
-    if(protected){
+  var annotationExtraFields = Object.keys(data['annotationFields']) || false;
+  function writeField(key, data, protected, rights){
+    console.log(key, data, protected, rights);
+    if(!(decideOnEdit(protected, rights))){
       console.log('A');
       var field = document.createElement('p');
       var fieldkey = document.createElement('span');
@@ -64,6 +76,7 @@ function showdata(data){
       fieldkey.appendChild(fieldkeyString);
       field.appendChild(fieldkey);
       field.appendChild(fieldvalue);
+      //console.log(field);
     }else{
       console.log('B');
       var field = document.createElement('div');
@@ -80,23 +93,25 @@ function showdata(data){
     return field;
   }
   //work with the Annotations:
+  var rightsLevel = 0;
   Object.keys(annotationData).forEach(key => {
     var row = annotationData[key];
     var rowkey = row[0];
     var rowdata = row[1];
     var protected = row[2];
+    rightsLevel = row[3];
     if (annotationExtraFields){
       var idx = annotationExtraFields.indexOf(rowkey);  //-1 if not exists.
       if(idx>=0){
         annotationExtraFields.splice(idx,1);
       }
     }
-    var fieldFormatted = writeField(rowkey, rowdata, protected);
+    var fieldFormatted = writeField(rowkey, rowdata, protected, rightsLevel);
     annotationTarget.appendChild(fieldFormatted);
   });
   //for all annotationExtraFields create a new editable field:
   for (var i = 0; i < annotationExtraFields.length; i++){
-    annotationTarget.appendChild(writeField(annotationExtraFields[i], '', false));
+    annotationTarget.appendChild(writeField(annotationExtraFields[i], '', false, rightsLevel));
   }
   //work with the Author of the annotation:
   Object.keys(authorData).forEach(key => {
