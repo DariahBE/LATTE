@@ -62,6 +62,7 @@ function showdata(data){
   var annotationTarget = document.getElementById('annotationContainerAjax');
   var authorData = data['author'];
   var annotationData = data['annotation']['properties'];
+  var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
   function writeField(key, data, protected, rights){
     console.log(key, data, protected, rights);
@@ -70,22 +71,46 @@ function showdata(data){
       var field = document.createElement('p');
       var fieldkey = document.createElement('span');
       var fieldvalue = document.createElement('span');
-      var fieldkeyString = document.createTextNode(key);
+      var keytex = annotationStructure[key] !== undefined ? annotationStructure[key][0] : key;
+      var fieldkeyString = document.createTextNode(keytex);
       var fieldvalueString = document.createTextNode(data);
       fieldvalue.appendChild(fieldvalueString);
       fieldkey.appendChild(fieldkeyString);
       field.appendChild(fieldkey);
       field.appendChild(fieldvalue);
-      //console.log(field);
     }else{
+      //if a field is write enabled. you need to type the field accordinly:
       console.log('B');
+      console.log(annotationStructure[key]);
       var field = document.createElement('div');
       var fieldkey = document.createElement('p');
-      var fieldkeyString = document.createTextNode(key);
+      var keytex = annotationStructure[key] !== undefined ? annotationStructure[key][0] : key;
+      var fieldType = annotationStructure[key] !== undefined ? annotationStructure[key][1] : 'string';
+      var fieldkeyString = document.createTextNode(keytex);
       fieldkey.appendChild(fieldkeyString);
       field.appendChild(fieldkey);
       var fieldvalue = document.createElement('input');
-      fieldvalue.setAttribute('type', 'text');
+        fieldvalue.setAttribute('pattern', '^[-0-9][0-9]+$');
+        var prevVal = '';
+        fieldvalue.addEventListener('keyup', function(e){
+          if (this.value === '-'){
+            prevVal = '-';
+          }
+          if(this.checkValidity()){
+            prevVal = this.value;
+          } else {
+            this.value = prevVal;
+          }
+        });
+        //numberfields should have a live function on them to strip all non-numeric values.
+      } else if(fieldType === 'bool'){
+        fieldvalue.setAttribute('type', 'boolean');
+        alert('Bool field should be dropdown');
+      }else if(fieldType === 'uri'){
+        fieldvalue.setAttribute('type', 'url');
+      }else{
+        fieldvalue.setAttribute('type', 'text');
+      }
       fieldvalue.value = data;
       field.appendChild(fieldvalue);
       console.log('created textfield', field);
@@ -119,7 +144,6 @@ function showdata(data){
     var rowkey = row[0];
     var rowdata = row[1];
     var protected = row[2];
-
   });
 }
 

@@ -60,7 +60,7 @@ $nodesDatamodel = array(
     "stops" => ["AnnotationEnd", "int", false],
     "private" => ["Private Annotation", "bool", false],
     "note" => ["Note", "string", false],
-    "extra" => ["Extra", "string", false]
+    "extra" => ["Extra", "int", false]
   ]
 );
 
