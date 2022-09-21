@@ -169,8 +169,10 @@ class Node{
     $node = false;
     foreach ($result as $record) {
         // Returns a \Laudis\Neo4j\Types\Node
+        $core = $primaryKeys[$type];
         $node = array(
-          'coreID'=>$record->get('ID'),
+          //get the name of the text PK:
+          'coreID'=>$record->get($core),
           'model'=>array_key_exists($type, NODES) ? NODES[$type] : null
         );
     }

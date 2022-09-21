@@ -33,6 +33,7 @@ if(!boolval($text)){
   header('Location: /error.php?type=text&id='.$propId);
   die();
 }
+var_dump($text);
 $nodeId = $text['coreID'];
 $relations = $node->getEdges($nodeId);
 ?>

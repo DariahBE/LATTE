@@ -4,3 +4,15 @@
   1A: inexisting node is not caught properly when relying on the coreID return value
     -e.g.: http://entitylinker.test/API/place/bf3861df-78ef-4b2e-b0c3-3e639287a7a ((should be: http://entitylinker.test/API/place/bf3861df-78ef-4b2e-b0c3-3e639287a7ae))
 2) nodes of the type: Annotation with property private set to True are not matched against cyptherstatements!
+
+
+________________________
+
+3) Texts should receive a UUIDv4Identifier.
+  - As a general rule ANY AND ALL nodes need UUIDv4Identifiers!
+  - Should receive a default attribute: private set to false!
+  - Should receive an optional texid (recommended!)
+
+4) Annotation.inc.php
+  - you need to figure a way out to deal with non-existing properties of a node
+  

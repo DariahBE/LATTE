@@ -89,10 +89,17 @@ class Annotation{
     $annotationData = array();
     foreach ($result as $key => $annotationRecord) {
       $targetNodeType = $annotationRecord['p']->getLabels()[0];
+      /*
+        // BUG:21/9/22
+        
+        there's an issue with the getProperty() method: it does not
+        return null when a property is not set!!!
+        In other words it must exist for the code to work :(
+      */
         foreach($annotationRecord as $subkey => $node){
           if($node->labels()[0] === 'Annotation'){
             $anno_uuid = $node->getProperty('uid');
-            $isPrivate = $node->getProperty('private');
+            $isPrivate = $node->getProperty('private') ?: False;
             $creator_uuid = $node->getProperty('creator');
             $annotationStart = $node->getProperty('starts');
             $annotationStop = $node->getProperty('stops');

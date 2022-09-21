@@ -8,7 +8,7 @@ $hostname = 'localhost';    //where's the DB hosted
 $hostport = 7687;           //Port used by the DB
 $userName = '';
 $userPaswrd = '';
-$databaseName = 'hipe.db'; //database hosted on the graph DB instance.
+$databaseName = 'people.db'; //database hosted on the graph DB instance.
 $URI = 'neo4j://localhost:7687';
 
 
@@ -37,7 +37,7 @@ $nodesDatamodel = array(
     "sex" =>["Gender", "string", false]
   ],
   'Text' => [
-    "texid" => ["Text ID", "int", true],
+    "texid" => ["Trismegistos Text ID", "int", true],
     "text" => ["Text", "string", false],
     "language" => ["Document language", "string", false]
   ],
