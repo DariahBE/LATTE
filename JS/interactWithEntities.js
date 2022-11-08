@@ -64,6 +64,7 @@ function showdata(data){
   var annotationData = data['annotation']['properties'];
   var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
+
   function writeField(key, data, protected, rights){
     console.log(key, data, protected, rights);
     if(!(decideOnEdit(protected, rights))){
@@ -90,20 +91,21 @@ function showdata(data){
       fieldkey.appendChild(fieldkeyString);
       field.appendChild(fieldkey);
       var fieldvalue = document.createElement('input');
-        fieldvalue.setAttribute('pattern', '^[-0-9][0-9]+$');
-        var prevVal = '';
-        fieldvalue.addEventListener('keyup', function(e){
-          if (this.value === '-'){
-            prevVal = '-';
-          }
-          if(this.checkValidity()){
-            prevVal = this.value;
-          } else {
-            this.value = prevVal;
-          }
-        });
-        //numberfields should have a live function on them to strip all non-numeric values.
-      } else if(fieldType === 'bool'){
+      fieldvalue.setAttribute('pattern', '^[-0-9][0-9]+$');
+      var prevVal = '';
+      fieldvalue.addEventListener('keyup', function(e){
+        if (this.value === '-'){
+          prevVal = '-';
+        }
+        if(this.checkValidity()){
+          prevVal = this.value;
+        } else {
+          this.value = prevVal;
+        }
+      });
+      //numberfields should have a live function on them to strip all non-numeric values.
+      }
+      if(fieldType === 'bool'){
         fieldvalue.setAttribute('type', 'boolean');
         alert('Bool field should be dropdown');
       }else if(fieldType === 'uri'){
@@ -114,7 +116,7 @@ function showdata(data){
       fieldvalue.value = data;
       field.appendChild(fieldvalue);
       console.log('created textfield', field);
-    }
+    
     return field;
   }
   //work with the Annotations:

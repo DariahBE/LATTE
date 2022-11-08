@@ -28,7 +28,9 @@ function buildSelectController(){
 
 }
 
+
 function attachSelectController(){
+  alert('still required in attachSelectController()');
   $("#textcontent").on('mouseup', function(){
     buildSelectController();
   })

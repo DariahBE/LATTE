@@ -8,7 +8,8 @@ include_once(ROOT_DIR.'/includes/annotation.inc.php');
 if(isset($_GET['texid'])){
   $propId = $_GET['texid'];
   $nodeType = 'Text';
-  $propKey = PRIMARIES[$nodeType];
+  $propKey = helper_extractPrimary($nodeType);
+  //$propKey = PRIMARIES[$nodeType];
   //cast the propID to int if type is set:
   $typeOfId = NODEMODEL[$nodeType][$propKey][1];
   if($typeOfId === "int"){
@@ -33,7 +34,6 @@ if(!boolval($text)){
   header('Location: /error.php?type=text&id='.$propId);
   die();
 }
-var_dump($text);
 $nodeId = $text['coreID'];
 $relations = $node->getEdges($nodeId);
 ?>

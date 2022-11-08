@@ -74,12 +74,19 @@ foreach(array_keys($nodesDatamodel) as $node){
 }
 
 /*set the primary keys for your nodes. If No primary key is set, the database will revert to using UUID.*/
+/*The UUID key is shortened as 'uid' */
+// // BUG: HOW to get to defaulted uid key!!!?
 $primaryKeys = array_map(function ($ar){
+  /*
+    You should have all the keys of nodesDatamodel here and default them to uid.
+    only then let them be overridden!
+  */
   foreach ($ar as $key => $value) {
     if($value[2]){
       return $key;
     }
   }
+  //return 'uid';
   return false;
 }, $nodesDatamodel);
 
@@ -100,7 +107,7 @@ $nodes_translate = array(
   'Place' => 'Places',
   'Text' => 'Texts',
   'Annotation' => 'Annotations',
-  'priv_user' => 'Users',
+  'priv_user' => 'Users'
 );
 /*
 $nodeKeys_translate  = array_map(function ($ar){

@@ -11,6 +11,22 @@ DOCS:
 // https://neo4j.com/developer-blog/connect-to-neo4j-with-php/
 // https://github.com/neo4j-php/neo4j-php-client
 */
+
+/*
+  this is a program wide default; if there's no key defined to be the primary key of a node;
+  the app is going to fall back to the uid-property present in all nodes. That key is autoamtically
+  generated and of the UUIDV4-type.
+*/
+
+function helper_extractPrimary($keyName){
+  if(array_key_exists($keyName, PRIMARIES)){
+    return PRIMARIES[$keyName];
+  }else{
+    return 'uid';
+  }
+}
+
+
 function ignoreRegex($strIn){
   $strOut = str_replace('[', '\[', $strIn);
   $strOut = str_replace('(', '\(', $strOut);
@@ -167,12 +183,15 @@ class Node{
     $result = $this->client->run('MATCH (node:'.$type.'{'.$key.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
     // A row is a \Laudis\Neo4j\Types\CypherMap
     $node = false;
+    //var_dump($result);
     foreach ($result as $record) {
         // Returns a \Laudis\Neo4j\Types\Node
-        $core = $primaryKeys[$type];
+        //$core = PRIMARIES[$type];
+        $core = helper_extractPrimary($type);
         $node = array(
           //get the name of the text PK:
-          'coreID'=>$record->get($core),
+          //'coreID'=>$record->get($core),
+          'coreID'=>$record['node']->getProperty($core),
           'model'=>array_key_exists($type, NODES) ? NODES[$type] : null
         );
     }
