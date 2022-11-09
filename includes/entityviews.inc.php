@@ -38,18 +38,52 @@ class View {
         $this->buildSilos();
         break;
       default:
-        throw new \Exception("The requested view is not implemented. Quitting.", 1);
+        //the fallback view just shows the properties of the node as they are defined in the config file.
+        //A list of nodes is provided to which the node is connected.
+        $this->buildFallback();
+        break;
+        //throw new \Exception("The requested view is not implemented. Quitting.", 1);
     }
   }
 
+  function buildFallback(){
+    $fallBackDataModel = array();
+    $primaryKey = $this->data["egoNode"]["coreID"];
+    $nodeProperties = $this->data["egoNode"]["model"];
+    $fallBackDataModel["id"] = $primaryKey;
+    $fallBackDataModel["properties"] = array();//$nodeProperties;
+    $fallBackDataModel["relations"] = array();
+    foreach ($nodeProperties as $key => $prop){
+      try {
+        $fallBackDataModel["properties"][$prop] = $this->data["egoNode"]["data"][0][0]["node"]["properties"][$prop];
+      } catch (\Exception $e) {
+        $fallBackDataModel["properties"][$prop] = NULL;
+      }
+    }
+    foreach($this->data["neighbours"] as $key => $record){
+      $relationType = $record["r"];
+      $relatedNode = $record["t"];
+      if(!array_key_exists($relationType["type"], $fallBackDataModel["relations"])){
+        $fallBackDataModel["relations"][$relationType["type"]]=array();
+      }
+      $modelview = NODEMODEL[$relatedNode["labels"][0]];
+      $arr = array();
+      foreach ($modelview as $key => $value) {
+        $arr[$key] = isset($relatedNode['properties'][$key]) ? $relatedNode['properties'][$key] : NULL;
+      }
+      $fallBackDataModel["relations"][$relationType["type"]][$relatedNode["labels"][0]][] = $arr;
+    }
+    echo json_encode($fallBackDataModel);
+    die();
+  }
+
   function buildSilos(){
-    //var_dump($this->data);
     $siloData = array();
     foreach ($this->data as $record) {
       $row = array();
-      foreach (NODES['See_Also'] as $p){
+      foreach (NODES["See_Also"] as $p){
         try{
-          $v = $record->get('t')->getProperty($p);
+          $v = $record->get("t")->getProperty($p);
         }catch(e){
           $v = null;
         }
@@ -65,7 +99,7 @@ class View {
   }
 
   function buildPlace(){
-    $this->makeHeader($this->data['egoNode']);
+    $this->makeHeader($this->data["egoNode"]);
     $this->relatedVariants(true);
     $this->relatedDataSiloEntries(true);
     $this->relatedAnnotations(true);

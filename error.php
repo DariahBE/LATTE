@@ -13,12 +13,15 @@ $fullErrMsg = '';
     case 'textmissing':
       $title = 'No text identifier has been provided.';
       $fullErrMsg = 'Your search request did not contain a valid text identifier. The link you followed may have been broken.';
+      break;
     case 'node':
       $title = 'Invalid nodetype.';
-      $fullErrMsg = 'Your request does not contain a valid node identifier. The link you followed may bave been broken.';
+      $fullErrMsg = 'Your request does not contain a valid node identifier. This nodetype probably never existed. The link you followed may bave been broken..';
+      break;
     case 'id':
       $title = 'Invalid identifier.';
       $fullErrMsg = 'The provided ID does not seem to have a maching record. The node is probably deleted or never existed.';
+      break;
     default:
       // code...
       break;
