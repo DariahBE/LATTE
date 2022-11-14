@@ -30,7 +30,7 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($propId, $user_
 
 $node = new Node($client);
 $text = $node->matchSingleNode($nodeType, $propKey, $propId);
-if(!boolval($text)){
+if(!boolval($text) or !array_key_exists('coreID', $text)){
   header('Location: /error.php?type=text&id='.$propId);
   die();
 }

@@ -19,11 +19,13 @@ DOCS:
 */
 
 function helper_extractPrimary($keyName){
+  return PRIMARIES[$keyName] ? PRIMARIES[$keyName] : 'uid';
+  /*
   if(array_key_exists($keyName, PRIMARIES)){
     return PRIMARIES[$keyName];
   }else{
     return 'uid';
-  }
+  }*/
 }
 
 
@@ -212,7 +214,6 @@ class Node{
     //uses the built in node ID from ONE See_Also node to find all other See_Also nodes that share the same entity.
     //query is directed!
     $result = $this->client->run('MATCH (n:See_Also)<--(b) WHERE id(n) = $providedID RETURN id(b) AS id', ['providedID'=>(int)$id]);
-    //var_dump($result);
     $result2 = $this->client->run('MATCH (n)-->(t:See_Also) WHERE id(n) = $providedID2 RETURN t',['providedID2' => (int)$result->first()->get('id')]);
     return $result2;
   }
@@ -282,6 +283,7 @@ class Node{
           'nameValue2'=>'(?i)'.$entityValueCleaned
       );
     }
+    //var_dump($cypherQuery);
     $resultRaw = $this->client->run($cypherQuery,$placeholders);
     $formattedResults = array(
       'nodes'=>array(),

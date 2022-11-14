@@ -38,11 +38,8 @@ class View {
         $this->buildSilos();
         break;
       default:
-        //the fallback view just shows the properties of the node as they are defined in the config file.
-        //A list of nodes is provided to which the node is connected.
         $this->buildFallback();
         break;
-        //throw new \Exception("The requested view is not implemented. Quitting.", 1);
     }
   }
 
@@ -60,17 +57,22 @@ class View {
         $fallBackDataModel["properties"][$prop] = NULL;
       }
     }
+    //for every neighbour: find the associated PK of uid-value!
     foreach($this->data["neighbours"] as $key => $record){
       $relationType = $record["r"];
       $relatedNode = $record["t"];
       if(!array_key_exists($relationType["type"], $fallBackDataModel["relations"])){
         $fallBackDataModel["relations"][$relationType["type"]]=array();
       }
+      $primaryKeyProp = helper_extractPrimary($relatedNode["labels"][0]);
       $modelview = NODEMODEL[$relatedNode["labels"][0]];
       $arr = array();
       foreach ($modelview as $key => $value) {
-        $arr[$key] = isset($relatedNode['properties'][$key]) ? $relatedNode['properties'][$key] : NULL;
+        //look for the public label:
+        $publicLabel = $value[0];
+        $arr[$publicLabel] = isset($relatedNode['properties'][$key]) ? $relatedNode['properties'][$key] : NULL;
       }
+      $arr['primarykey'] = isset($relatedNode['properties'][$primaryKeyProp]) ? $relatedNode['properties'][$primaryKeyProp] : NULL;
       $fallBackDataModel["relations"][$relationType["type"]][$relatedNode["labels"][0]][] = $arr;
     }
     echo json_encode($fallBackDataModel);
@@ -95,6 +97,13 @@ class View {
   }
 
   function buildAnnotation(){
+    $annotationData = array();
+    $ego = $this->data['egoNode']['coreID'];
+    //var_dump($ego);
+
+    echo json_encode($this->data);
+    die();
+    //throw new \Exception("method not implemented", 1);
 
   }
 
@@ -107,6 +116,8 @@ class View {
   }
 
   function buildPerson(){
+    throw new \Exception("method not implemented", 1);
+
 
   }
 

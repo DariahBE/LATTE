@@ -41,7 +41,7 @@ if (array_key_exists($type, PRIMARIES) && boolval(PRIMARIES[$type])){
 $core = $graph->matchSingleNode($type, $propertyWithPK, $uuid);
 if (array_key_exists('coreID', $core)){
   $coreId = $core['coreID'];
-  $neighbours = $graph->getNeighbours($coreId);
+  $neighbours = $graph->getNeighbours($core['data'][0][0]['ID']);
   $textSharingEt = $graph->getTextsSharingEntity($coreId, true);
 
   //sending it to the views-class:
@@ -51,7 +51,6 @@ if (array_key_exists('coreID', $core)){
   echo json_encode(array('error' => 'The provided ID does not have matching record. The related node may be deleted, or it never existed.'));
   die();
 }
-
 
 
 //merging individual JSON-blocks built by the view-class

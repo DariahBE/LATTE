@@ -25,15 +25,21 @@ function detectLanguage(options){
       }
     });
   }
-
 })
-  //_callback();
 }
 
 
 function displayLanguage(langdetect){
-  $("#detectedLanguage").text(langdetect['language']);
-  $("#detectedLanguageCode").text(langdetect['languageCode']);
-  $("#detectedLanguageCertainty").text(langdetect['certainty']);
-  languageOptions.ISO_code = langdetect['languageCode'];
+  if (!langdetect){
+    console.log('nullable');
+    $("#detectedLanguage").text("N/A");
+    $("#detectedLanguageCode").text("N/A");
+    $("#detectedLanguageCertainty").text(0);
+    languageOptions.ISO_code = false;
+  }else{
+    $("#detectedLanguage").text(langdetect['language']);
+    $("#detectedLanguageCode").text(langdetect['languageCode']);
+    $("#detectedLanguageCertainty").text(langdetect['certainty']);
+    languageOptions.ISO_code = langdetect['languageCode'];
+  }
 }
