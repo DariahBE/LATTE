@@ -1,4 +1,7 @@
 <?php
+
+  die('useless page. Evaluate new config.inc codebase and helper_parseEntityStyle functions.');
+  /*
   include_once("../config/styleConfig.php");
 
 
@@ -9,5 +12,5 @@
   fwrite($cssFile, '.Place{background-color: '.$placeNodesColorBG.'; color:'.$placeNodesColorTex.';}');
   fwrite($cssFile, '.Person{background-color: '.$personNodesColorBG.'; color:'.$personNodesColorTex.';}');
   fclose($cssFile);
-
+*/
 ?>

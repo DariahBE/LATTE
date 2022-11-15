@@ -28,6 +28,13 @@ function helper_extractPrimary($keyName){
   }*/
 }
 
+function helper_parseEntityStyle(){
+  var_dump(CORENODES);
+  foreach (CORENODES as $key => $value) {
+    echo '.'.$key.'{background-color:'.$value.';}';
+  }
+}
+
 
 function ignoreRegex($strIn){
   $strOut = str_replace('[', '\[', $strIn);
@@ -42,6 +49,12 @@ function ignoreRegex($strIn){
 
 function process_relationshipNodes($nodeIn){
   //data is controlled: only a single node.
+  // BUG:
+  /*
+      Flawed datamodel: code should use dynamic properties as they are set by
+      the config.inc.php file. Do not rely on static hardcoded models!
+      SAME bugfix as in ghet process_entityNodes method!
+  */
   $id = $nodeIn['id'];
   $label = $nodeIn['labels'][0];
   $data = array(
@@ -54,6 +67,15 @@ function process_relationshipNodes($nodeIn){
 }
 
 function process_variant($nodeIn){
+  /*
+      // BUG:  PATCH OKAY ==> Method call has been replaced by standard process_entityNodes!
+
+      poor implementation of dynamic labels. Code should handle
+      changes to the datastructure as defined in the config.inc.php file
+      label-names should not be hardcoded!
+
+      Can variants be processed by the default process_entityNodes function?
+  */
   $id = $nodeIn['id'];
   $label = $nodeIn['labels'][0];
   $variant = $nodeIn['properties']['variant'];
@@ -74,9 +96,25 @@ function valueExtract($node, $key){
 }
 
 function process_entityNodes($nodeIn){
+  // BUG: patch ok!!
+  /*
+      poor design implementation, this function has to work
+      based on the config.inc.php config settings; not based
+      on hardcoded key/value pairs in backend code!
+  */
+
   $id = $nodeIn['id'];
-  $label = $nodeIn['labels'][0];    //Person or Place?
+  $label = $nodeIn['labels'][0];
   $data = array();
+  $model = NODEMODEL[$label];
+  foreach ($model as $key => $value) {
+    $data[$key] = array(
+      'value' => valueExtract($nodeIn['properties'], $key),
+      'DOMString' => $value[0]
+    );
+    //$data[$key] = [valueExtract($nodeIn['properties'], $key), $value[0]];
+  }
+  /*
   if($label == "Person"){
     $data['sex'] = valueExtract($nodeIn['properties'], 'sex');
     $data['min_date'] = valueExtract($nodeIn['properties'], 'mindate');
@@ -87,7 +125,7 @@ function process_entityNodes($nodeIn){
     $data['name'] = valueExtract($nodeIn['properties'], 'name');
     $data['region'] = valueExtract($nodeIn['properties'], 'region');
     $data['uuid']=valueExtract($nodeIn['properties'], 'uid');
-  }
+  }*/
   return(array($id, $label, $data));
 }
 
@@ -258,7 +296,7 @@ class Node{
     }
     if($caseSensitive){
       $cypherQuery = '
-          OPTIONAL MATCH (p'.$entityType.' {name:$nameValue1})
+          OPTIONAL MATCH (p'.$entityType.' {label:$nameValue1})
           OPTIONAL MATCH (v:Variant {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
           OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
           OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
@@ -272,7 +310,7 @@ class Node{
       //case Insensitive ==> using regex
       $entityValueCleaned = ignoreRegex($entityValue);
       $cypherQuery = '
-          OPTIONAL MATCH (p'.$entityType.') WHERE p.name =~ $nameValue1
+          OPTIONAL MATCH (p'.$entityType.') WHERE p.label =~ $nameValue1
           OPTIONAL MATCH (v:Variant)-[r1:same_as]-(q'.$entityType.') WHERE v.variant =~ $nameValue2
           OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
           OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
@@ -313,7 +351,7 @@ class Node{
           }
         }
         if(!(is_null($result['v']))){
-          $variant = process_variant($result['v']);
+          $variant = process_entityNodes($result['v']);
           if(!(in_array($variant[0], $registeredNodes))){
             $registeredNodes[] = $variant[0];
             $formattedResults['nodes'][] = $variant;

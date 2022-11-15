@@ -30,10 +30,7 @@ $nodes = array(
 
 $nodesDatamodel = array(
   'Person' => [
-    "perid" => ["Trismegistos Person ID", "int", true],
-    "mindate" => ["Earliest attestation", "string", false],
-    "maxdate" => ["Latest attestation", "string", false],
-    "namid" => ["Trismegistos Name ID", "int", false],
+    "label" => ["Wikidata Label", "string", false],
     "sex" =>["Gender", "string", false]
   ],
   'Text' => [
@@ -43,7 +40,7 @@ $nodesDatamodel = array(
   ],
   'Place' => [
     "geoid" => ["Trismegistos Place ID", "int", false],
-    "name" => ["Placename", "string", false],
+    "label" => ["Wikidata Label", "string", false],
     "region" => ["Regionname", "string", false]
   ],
   'Variant' => [
@@ -61,10 +58,24 @@ $nodesDatamodel = array(
     "private" => ["Private Annotation", "bool", false],
     "note" => ["Note", "string", false],
     "extra" => ["Extra", "int", false]
+  ],
+  'Dog' => [
+    "breed" => ["Breed", "string", false],
+    "age" => ["Age", "int", false],
+    "label" => ["Name", "string", false]
   ]
 );
 
 //////////////////////////////////////////////////////
+
+//which nodes should the entitylinking tool look for in the database? Repeat the keys as they are in the
+// config object above; Asign the color value to them you want to use in the DOM.
+$matchOnNodes = array(
+  'Person' => 'rgba(39, 123, 245, 0.6)',
+  'Place' => 'rgba(245, 178, 39, 0.6)',
+  'Event' => 'rgba(39, 245, 123, 0.6)',
+  'Dog' => 'rgba(255, 255, 255, 0.6)'
+);
 
 //automatically fill out below config based on nodesDatamodel:
 //$nodes = array_keys($nodesDatamodel);
@@ -170,6 +181,7 @@ define("DEFAULTDRIVER", $defaultdriver);
 define("NODES", $nodes);
 define("EDGETRANSLATIONS", $edges_translate);
 define("NODETRANSLATIONS", $nodes_translate);
+define("CORENODES", $matchOnNodes);
 //define("NODEKEYSTRANSLATIONS", $nodeKeys_translate);
 define("NODEMODEL", $nodesDatamodel);
 define("URI", $URI);

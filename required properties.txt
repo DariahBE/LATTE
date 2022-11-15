@@ -13,3 +13,9 @@ Variant:
 
 Text:
   - uid       STR V4 UUID generated for the Text! Acts as PK in case nothing else is selected
+
+
+Every Searchable Node: e.g.:
+  - label IS A MANDATED PROPERTY FOR EACH ENTITY!!
+  - Should have a property "label" ==> that is the primary string used to identify and look for a node.
+  - Spelling variations are linked to the node by Variant-nodes.

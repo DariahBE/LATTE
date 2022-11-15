@@ -122,6 +122,7 @@ $relations = $node->getEdges($nodeId);
 
     </div>
     <script>
+      var coreNodes = <?php echo json_encode(array_keys(CORENODES)); ?>;
       var languageOptions = {
         'text': <?php echo json_encode($textString)?>,
         'ISO_code': <?php echo json_encode($textLanguage)?>,
@@ -129,6 +130,13 @@ $relations = $node->getEdges($nodeId);
         'nodeid': <?php echo json_encode((int)$nodeId)?>
       };
     </script>
+    <style>
+      <?php
+        //load style settings from config fyle, parse them as inline CSS:
+
+        helper_parseEntityStyle();
+      ?>
+    </style>
   </div>
   <div class="right" id="rightMainPanel">
       <div class="meta" id="topmeta">

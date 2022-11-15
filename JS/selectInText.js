@@ -81,7 +81,7 @@ function loadIntoSuggestionBox(data, from, to){
   keySpanNode.appendChild(nodesKey);
   keySpanNode.classList.add('font-bold');
   keySpanEdge.classList.add('font-bold');
-  var coreNodes = ['Place', 'Person', 'Event'];
+  //var coreNodes = ['Place', 'Person', 'Event'];
   var retrievedCoreElements = data.nodes.filter(node => coreNodes.includes(node[1]));
   console.log(retrievedCoreElements);
   var valueSpanEdge = document.createTextNode(data.edges.length);
@@ -96,12 +96,12 @@ function loadIntoSuggestionBox(data, from, to){
   nodesInfo.appendChild(valueSpanNode);
   edgesInfo.appendChild(keySpanEdge);
   edgesInfo.appendChild(valueSpanEdge);
-
-
   metadataOnSearch.appendChild(nodesInfo);
   metadataOnSearch.appendChild(edgesInfo);
   metadataOnSearch.appendChild(positionBox);
   datadiv.appendChild(metadataOnSearch);
+  //insert the search results here:
+
   datadiv.appendChild(dataOnSearch);
   document.getElementById("suggestionboxspinner").parentNode.insertBefore(datadiv, document.getElementById('suggestionboxspinner'));
   document.getElementById('suggestionboxspinner').remove();
