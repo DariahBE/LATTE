@@ -16,7 +16,6 @@ function getEntities(options){
       displayEntities(foundEntities);
     }
   });
-
 }
 
 //make this a global variable.

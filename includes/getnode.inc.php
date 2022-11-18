@@ -244,7 +244,16 @@ class Node{
   function getNeighbours($id){
     //use the built in node ID (not the UUID) to extract neighbouring nodes from a core node.
     //query is undirected!!
-    $result = $this->client->run('MATCH (n)-[r]-(t) WHERE id(n) = $providedID RETURN n,r,t', ['providedID'=>(int)$id]);
+    // UPDATED FOR PATCH:
+    /*
+      - do not return priv_user nodes
+      - patch for nodes that have no neighbours: (n)-[r]-(t) is an exact pattern match
+          ==> FIX: use optional match [r]-(t) for exact match (n)
+    */
+    $result = $this->client->run('
+    MATCH (n) WHERE id(n) = $providedID AND NOT n:priv_user
+    OPTIONAL MATCH (n)-[r]-(t)
+    RETURN n,r,t', ['providedID'=>(int)$id]);
     return $result;
   }
 
@@ -326,6 +335,7 @@ class Node{
     $formattedResults = array(
       'nodes'=>array(),
       'edges'=>array(),
+      'labelvariants'=>array(),
       'meta'=>array('entities'=>0)
     );
     $registeredNodes = array();
@@ -354,7 +364,7 @@ class Node{
           $variant = process_entityNodes($result['v']);
           if(!(in_array($variant[0], $registeredNodes))){
             $registeredNodes[] = $variant[0];
-            $formattedResults['nodes'][] = $variant;
+            $formattedResults['labelvariants'][] = $variant;
           }
         }
         if(!(is_null($result['p']))){

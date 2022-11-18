@@ -66,6 +66,15 @@ $nodesDatamodel = array(
 
 //////////////////////////////////////////////////////
 
+//which nodes should the entitylinking tool look for in the database? Repeat the keys as they are in the
+// config object above; Asign the color value to them you want to use in the DOM.
+$matchOnNodes = array(
+  'Person' => 'rgba(39, 123, 245, 0.6)',
+  'Place' => 'rgba(245, 178, 39, 0.6)',
+  'Event' => 'rgba(39, 245, 123, 0.6)',
+  'Dog' => 'rgba(255, 255, 255, 0.6)'
+);
+
 //automatically fill out below config based on nodesDatamodel:
 //$nodes = array_keys($nodesDatamodel);
 $nodes = array();

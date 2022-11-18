@@ -101,7 +101,9 @@ function loadIntoSuggestionBox(data, from, to){
   metadataOnSearch.appendChild(positionBox);
   datadiv.appendChild(metadataOnSearch);
   //insert the search results here:
-
+  console.log("research data to be shown in DOM: ");
+  console.log(data);
+  
   datadiv.appendChild(dataOnSearch);
   document.getElementById("suggestionboxspinner").parentNode.insertBefore(datadiv, document.getElementById('suggestionboxspinner'));
   document.getElementById('suggestionboxspinner').remove();
