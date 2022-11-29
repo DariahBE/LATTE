@@ -58,7 +58,7 @@ if(boolval($data->count())){
   }
   $edges = array();
   $neighbours = array();
-  foreach ($data as $key => $value) {
+  foreach ($data as $key => $value){
     $edges[]=$value['r'];
     $neighbours[]=array('data'=> $value['t'], 'model'=>array());
   }

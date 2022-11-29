@@ -74,7 +74,9 @@ $matchOnNodes = array(
   'Person' => 'rgba(39, 123, 245, 0.6)',
   'Place' => 'rgba(245, 178, 39, 0.6)',
   'Event' => 'rgba(39, 245, 123, 0.6)',
-  'Dog' => 'rgba(255, 255, 255, 0.6)'
+  'Dog' => 'rgba(255, 255, 255, 0.6)', 
+  'Text' => 'rgba(28, 200, 28, 0.6)', 
+  'Annotation' => 'rgba(200, 28, 28, 0.6)'
 );
 
 //automatically fill out below config based on nodesDatamodel:

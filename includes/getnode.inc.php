@@ -19,13 +19,12 @@ DOCS:
 */
 
 function helper_extractPrimary($keyName){
-  return PRIMARIES[$keyName] ? PRIMARIES[$keyName] : 'uid';
-  /*
+  //return PRIMARIES[$keyName] ? PRIMARIES[$keyName] : 'uid';   //ternary operator not working as it should
   if(array_key_exists($keyName, PRIMARIES)){
     return PRIMARIES[$keyName];
   }else{
     return 'uid';
-  }*/
+  }
 }
 
 function helper_parseEntityStyle(){
@@ -219,8 +218,11 @@ class Node{
     if (is_numeric($value)){
       $value = $value + 0;   //can be float too . adding +0 will allow php to automatically set the correct type.
     }
+    if(boolval($type)){
+      $type = ':'.$type;
+    }
     //$result = $this->client->run("MATCH (node:".$type."{".$key.":".$value."}) RETURN node, id(node) AS ID LIMIT 1");
-    $result = $this->client->run('MATCH (node:'.$type.'{'.$key.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
+    $result = $this->client->run('MATCH (node'.$type.'{'.$key.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
     // A row is a \Laudis\Neo4j\Types\CypherMap
     $node = false;
     //var_dump($result);

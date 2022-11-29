@@ -10,6 +10,19 @@ function ignoreSuggestion(){
   }
 }
 
+
+function toggleSlide(){
+  document.getElementById('slideover-container').classList.toggle('invisible');
+  document.getElementById('slideover-bg').classList.toggle('opacity-0');
+  document.getElementById('slideover-bg').classList.toggle('opacity-50');
+  document.getElementById('slideover').classList.toggle('translate-x-full');
+}
+
+function triggerSidePanelAction(entityData){
+  toggleSlide();
+}
+
+
 function makeSuggestionBox(){
   ignoreSuggestion();
   var topDst = rangy.getSelection().anchorNode.parentElement.offsetTop;
@@ -103,7 +116,7 @@ function loadIntoSuggestionBox(data, from, to){
   //insert the search results here:
   console.log("research data to be shown in DOM: ");
   console.log(data);
-  
+  triggerSidePanelAction(data);
   datadiv.appendChild(dataOnSearch);
   document.getElementById("suggestionboxspinner").parentNode.insertBefore(datadiv, document.getElementById('suggestionboxspinner'));
   document.getElementById('suggestionboxspinner').remove();

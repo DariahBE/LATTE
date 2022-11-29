@@ -167,7 +167,6 @@ $relations = $node->getEdges($nodeId);
       </div>
   </div>
   <div class="extended" id="rightExtensionPanel">
-    https://tailwindui.com/components/application-ui/overlays/slide-overs
     <div class="base">
       <!-- What is shown by default in the right extension panel. -->
 
@@ -178,7 +177,15 @@ $relations = $node->getEdges($nodeId);
     </div>
   </div>
 </div>
-<div id='setNodeDetailOverlay' class='hiddenOverlay'> </div>
+<div id="slideover-container" class="right-0 w-1/2 h-full fixed top-0 invisible">
+  <div id="slideover-bg" class="w-full h-full duration-500 ease-out transition-all top-0 absolute bg-gray-900 opacity-0"></div>
+  <div id="slideover" class="w-96 bg-white h-full absolute left-0 duration-300 ease-out transition-all translate-x-full">
+      <div class="absolute cursor-pointer text-gray-600 top-0 w-8 h-8 flex items-center justify-center left-0 m-5 p-5">
+          <p>Hello world</p>
+      </div>
+  </div>
+</div>
+<div id='setNodeDetailOverlay' class='hiddenOverlay'><p>is this required?????</p></div>
   <script>
     <?php echo "const coreNodeRelations = ". json_encode($relations); ?>;
     <?php echo "const nodeDefinitions = ".json_encode($nodes); ?>;
