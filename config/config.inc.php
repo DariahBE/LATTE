@@ -17,52 +17,48 @@ $URI = 'neo4j://localhost:7687';
   For each nodeType you must define the allowed set of nodeProperties.
   Properties should be descriptive, do not simply declare an 'id' property as this is reserved for the database.
   Nodes are capitalized, properties aren't!
+  Every label is followed by an array of properties: 
+    - Human readable string: this string is used in the frontend.
+    - Type of variable: string, int or bool
+    - Boolean: Primary Key: is the value unique for this type of nodes? 
+    - Boolean: Visual Distinguishing: Is the value used in the dom to label the nodes. If the node does not have a visually distinguishable component, the nodelabel is used.
 */
-/*
-$nodes = array(
-  'Person' => array("perid", "mindate", "maxdate", "namid", "sex"),
-  'Text' => array("texid", "text", "language"),
-  'Place' => array("geoid", "name", "region"),
-  'Variant' => array("variant", "remark"),
-  'See_Also' => array("partner", "partner_id", "partner_uri"),
-  'Annotation' => array("starts", "stops", "private", "uid", "note", "extra")
-);*/
 
 $nodesDatamodel = array(
   'Person' => [
-    "label" => ["Wikidata Label", "string", false],
-    "sex" =>["Gender", "string", false]
+    "label" => ["Wikidata Label", "string", false, True],
+    "sex" =>["Gender", "string", false, false]
   ],
   'Text' => [
-    "texid" => ["Text ID", "int", true],
-    "text" => ["Text", "string", false],
-    "language" => ["Document language", "string", false]
+    "texid" => ["Text ID", "int", true, true],
+    "text" => ["Text", "string", false, false],
+    "language" => ["Document language", "string", false, false]
   ],
   'Place' => [
-    "geoid" => ["Trismegistos Place ID", "int", false],
-    "label" => ["Wikidata Label", "string", false],
-    "region" => ["Regionname", "string", false]
+    "geoid" => ["Trismegistos Place ID", "int", false, false],
+    "label" => ["Wikidata Label", "string", false, true],
+    "region" => ["Regionname", "string", false, false]
   ],
   'Variant' => [
-    "variant" => ["Label", "string", false],
-    "remark" => ["Remark", "string", false]
+    "variant" => ["Label", "string", false, true],
+    "remark" => ["Remark", "string", false, false]
   ],
   'See_Also' => [
-    "partner" => ["Projectname", "string", false],
-    "partner_id" => ["External ID", "string", false],
-    "partner_uri" => ["Link", "uri", false]
+    "partner" => ["Projectname", "string", false, false],
+    "partner_id" => ["External ID", "string", false, true],
+    "partner_uri" => ["Link", "uri", false, false]
   ],
   'Annotation' => [
-    "starts" => ["AnnotionStart", "int", false],
-    "stops" => ["AnnotationEnd", "int", false],
-    "private" => ["Private Annotation", "bool", false],
-    "note" => ["Note", "string", false],
-    "extra" => ["Extra", "int", false]
+    "starts" => ["AnnotionStart", "int", false, false],
+    "stops" => ["AnnotationEnd", "int", false, false],
+    "private" => ["Private Annotation", "bool", false, false],
+    "note" => ["Note", "string", false, false],
+    "extra" => ["Extra", "int", false, false]
   ],
   'Dog' => [
-    "breed" => ["Breed", "string", false],
-    "age" => ["Age", "int", false],
-    "label" => ["Name", "string", false]
+    "breed" => ["Breed", "string", false, false],
+    "age" => ["Age", "int", false, false],
+    "label" => ["Name", "string", false, true]
   ]
 );
 

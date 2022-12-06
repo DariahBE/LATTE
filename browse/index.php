@@ -33,7 +33,7 @@ unset($node);
       var options = [];
     </script>
     <div class="container w-full h-full">
-      <div class="top-0 left-0 fixed" id="top">
+      <div class="top-0 left-0 fixed z-50 w-full" id="top">
 
       </div>
       <div class="h-full w-full" id="viz">
@@ -45,6 +45,22 @@ unset($node);
 
     </div>
 
+<!-- slide over panel for node attributes trigger --> 
+<div id="slideover-container" class="right-0 w-1/3 h-full fixed top-0 invisible z-50">
+  <div id="slideover" class="w-full bg-white h-full absolute left-0 duration-300 ease-out transition-all translate-x-full">
+    <div class="w-full absolute cursor-pointer text-gray-600 top-0 flex items-center justify-center left-0 m-3 p-3 flex-col">
+      <h1 class='w-full text-xl'>Node information: </h1>
+      <div id='defaultExplain'><p>test</p></div>
+      <h2 class='w-full text-lg'>Statistics: </h2>
+      <div id='nodestatisticsBox'><p>test</p></div>
+      <h2 class='w-full text-lg'>URI: </h2>
+      <div id='nodeLinkBox'></div>
+      <h2 class='w-full text-lg'>Metadata: </h2>
+      <div id='metadataboxGoesHere'></div>
+    </div>
+  </div>
+</div>
+<!-- end of slide over -->
   </body>
   <script>
     $( document ).ready(function() {
