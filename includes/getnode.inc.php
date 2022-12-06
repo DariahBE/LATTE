@@ -66,15 +66,6 @@ function process_relationshipNodes($nodeIn){
 }
 
 function process_variant($nodeIn){
-  /*
-      // BUG:  PATCH OKAY ==> Method call has been replaced by standard process_entityNodes!
-
-      poor implementation of dynamic labels. Code should handle
-      changes to the datastructure as defined in the config.inc.php file
-      label-names should not be hardcoded!
-
-      Can variants be processed by the default process_entityNodes function?
-  */
   $id = $nodeIn['id'];
   $label = $nodeIn['labels'][0];
   $variant = $nodeIn['properties']['variant'];
@@ -95,13 +86,6 @@ function valueExtract($node, $key){
 }
 
 function process_entityNodes($nodeIn){
-  // BUG: patch ok!!
-  /*
-      poor design implementation, this function has to work
-      based on the config.inc.php config settings; not based
-      on hardcoded key/value pairs in backend code!
-  */
-
   $id = $nodeIn['id'];
   $label = $nodeIn['labels'][0];
   $data = array();
@@ -111,20 +95,7 @@ function process_entityNodes($nodeIn){
       'value' => valueExtract($nodeIn['properties'], $key),
       'DOMString' => $value[0]
     );
-    //$data[$key] = [valueExtract($nodeIn['properties'], $key), $value[0]];
   }
-  /*
-  if($label == "Person"){
-    $data['sex'] = valueExtract($nodeIn['properties'], 'sex');
-    $data['min_date'] = valueExtract($nodeIn['properties'], 'mindate');
-    $data['max_date'] = valueExtract($nodeIn['properties'], 'maxdate');
-    $data['uuid']=valueExtract($nodeIn['properties'], 'uid');
-  }else if($label == "Place"){
-    $data['label'] = "PLACE";
-    $data['name'] = valueExtract($nodeIn['properties'], 'name');
-    $data['region'] = valueExtract($nodeIn['properties'], 'region');
-    $data['uuid']=valueExtract($nodeIn['properties'], 'uid');
-  }*/
   return(array($id, $label, $data));
 }
 
@@ -409,11 +380,7 @@ class Node{
         }
       }
     }
-    //return $resultRaw;
-    //echo json_encode($resultRaw['result']);
-
     $formattedResults['meta']['entities'] = $entities;
-
     return $formattedResults;
     //$result should be processed in a NODE ; EDGE list
   }
@@ -422,9 +389,39 @@ class Node{
 
   }
 
-  function generateURIBox($type, $id){
-
+  function generateURI($id){
+    //finds the node by it's NEO-id, returns a stable identifier;
+    $query = 'MATCH (n) WHERE id(n) = $providedID return n';
+    $result = $this->client->run($query, ['providedID'=>(int)$id]); 
+    //if the resultset has at least one row; get the row ==> the first row is also the only row!!
+    if(boolval($result->count())){
+      $result = $result->first()->get('n');
+      //var_dump($result);
+      $label = $result['labels'][0]; 
+      $model = NODEMODEL[$label];
+      //look for access to the primary key data. What key in the returned NODE type is the Primary Key.
+      //var_dump(array_column($model, 2));
+      $found_key = array_search(true, array_column($model, 2), true);
+      //var_dump($found_key); // can be 0, but 0 does not equal false. Do a type sensitive comparison: 
+      if ($found_key === false){
+        //there's no primary key defined: so fallback to the default uid property: 
+        $primaryKeyName = 'uid';
+      }else{
+        $keys = array_keys($model);
+        $primaryKeyName = $keys[$found_key];
+      }
+      //var_dump($result['properties'][$primaryKeyName]);
+      $URLString = trim(WEBURL, '/').'/'.$label.'/'.$result['properties'][$primaryKeyName];
+      $result = array($URLString); 
+      //die();
+    }else{
+      //if the id requested is not in the DB: return an empty array. 
+      $result = array();
+    }
+    //var_dump($result['labels'][0]);
+    return $result; 
   }
+
 
 
 }
