@@ -17,6 +17,7 @@ function zoom(to){
       break;
     default:
       network.fit();
+      network.redraw();
       break;
   }
 }
@@ -33,22 +34,17 @@ function restoreNodeColor(){
 }
 
 
-//BUG: 
-//  when a node's color has to be restored where there's no color property set. the application crashes
-//  e.g. node ID 15
-//check again tomorrow defaulted color nodes need to be reset properly!
-function neighbourhoodHighlight(core) {
+function neighbourhoodHighlight(core){
   restoreNodeColor();
-  var connectedNodes = network.getConnectedNodes(core); 
-  var connectedEdges = network.getConnectedEdges(core); 
-  connectedNodes.push(core); 
+  var connectedNodes = network.getConnectedNodes(core);
+  var connectedEdges = network.getConnectedEdges(core);
+  connectedNodes.push(core);
   // for every node not in connectedNodes: take away the color: 
   var allNodes = network.body.nodes;
   for(let [key, value] of Object.entries(allNodes)){
     if (!(connectedNodes.includes(parseInt(key)))){
-      optionColorRecovery[key] = network.body.nodes[key].options.color.background; 
+      optionColorRecovery[key] = network.body.nodes[key].options.color.background;
       network.body.nodes[key].options.color.background='rgba(225,225,225,0.6)';
-      //network.body.nodes.get(key).setOptions({'color': 'rgba(255,255,255,0.6)'})
     }
   }
   network.redraw();
@@ -64,6 +60,19 @@ function toggleSlide(show){
   }
 }
 
+/* when a node has a property that's too long for the dom; it's shrunk. Clicking it 
+toggles the full text to show/hid */
+function clickToExpand(){
+  var source = event.target || event.srcElement;
+  if (source.dataset.toggleto == 0){
+    source.dataset.toggleto = 1; 
+    source.textContent = source.dataset.long;
+  }else{
+    source.dataset.toggleto = 0;
+    source.textContent = source.dataset.short;
+  }
+}
+
 function showNodeMetadata(metadata, nodeId){
   //uncollapse the side-slideOver panel: 
   toggleSlide(true);
@@ -71,11 +80,23 @@ function showNodeMetadata(metadata, nodeId){
   //underneath each generated link; show the node properties:
   const metadataBox = document.createElement('div'); 
   for (var[label,value] of Object.entries(metadata)){
+    value = value[0];
     var metadataDisplay = document.createElement('p');
     var metadataLabel = document.createElement('span');
+    metadataLabel.classList.add('font-bold');
     var metadataValue = document.createElement('span'); 
+    metadataValue.setAttribute('data-original', value);
+    if (value.length > 256){
+      var shortValue = value.substring(0,256)+' ((see more...))'; 
+      metadataValue.setAttribute('data-short', shortValue);
+      metadataValue.setAttribute('data-long', value); 
+      metadataValue.setAttribute('data-toggleto', 0);
+      metadataValue.addEventListener('click', function(){clickToExpand();});
+      metadataValue.appendChild(document.createTextNode(shortValue));
+    }else{
+      metadataValue.appendChild(document.createTextNode(value)); 
+    }
     metadataLabel.appendChild(document.createTextNode(label+': '));
-    metadataValue.appendChild(document.createTextNode(value[0])); 
     metadataDisplay.appendChild(metadataLabel);
     metadataDisplay.appendChild(metadataValue);
     metadataBox.appendChild(metadataDisplay); 
@@ -234,7 +255,7 @@ function preProcess(newNodes, newEdges){
   //preprocess Edges: 
   for (var m = 0; m < newEdges.length; m++) {
     var edge = newEdges[m];
-    var edgeId = edge['from']+'_'+edge['to'];//+'_'+toString(c);
+    var edgeId = edge['from']+'_'+edge['to'];
     if(allEdges.indexOf(edgeId) === -1){
       addTheseEdges.push(edge);
       allEdges.push(edgeId);

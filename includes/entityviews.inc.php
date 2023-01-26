@@ -46,7 +46,13 @@ class View {
   function buildFallback(){
     $fallBackDataModel = array();
     $primaryKey = $this->data["egoNode"]["coreID"];
-    $nodeProperties = $this->data["egoNode"]["model"];
+    //$nodeProperties = $this->data["egoNode"]["model"];
+    //BUG in some cases the model is empty! It should have the NODEMODEL constant here. 
+    $nodeProperties = NODEMODEL['Variant']; 
+    var_dump($this->data["egoNode"]["labels"]); 
+    die();
+    var_dump($this->data["egoNode"]);
+    var_dump($nodeProperties);
     $fallBackDataModel["id"] = $primaryKey;
     $fallBackDataModel["properties"] = array();//$nodeProperties;
     $fallBackDataModel["relations"] = array();

@@ -1,10 +1,16 @@
 <?php
 
+include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+include_once(ROOT_DIR.'/includes/getnode.inc.php');
+include_once(ROOT_DIR.'/includes/entityviews.inc.php');
+
+
+
 $typeOK = false;
 $uuid = false;
 if(isset($_GET['type'])){
   $type = ucfirst($_GET['type']);
-  $approvedTypes = array('Place', 'Person', 'Event', 'Annotation');
+  $approvedTypes = array_keys(NODEMODEL);
   if(in_array($type, $approvedTypes)){
     $typeOK = true;
   }
@@ -24,10 +30,6 @@ if(!($uuid)){
   header('Location: /error.php?type=uuid');
   die();
 }
-
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/entityviews.inc.php');
 
 
 $graph = new Node($client);

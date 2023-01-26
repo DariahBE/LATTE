@@ -8,7 +8,6 @@ $user = new User($client);
 
 if (isset($_POST['mail']) AND isset($_POST['password'])){
     $repl = $user->login($_POST['mail'], $_POST['password']);
-    //var_dump($repl);
     switch ($repl[0]) {
       case 0:
         // code...  ==> email not found. or PW incorrect.

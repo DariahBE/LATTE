@@ -5,7 +5,7 @@ session_start();
  *
  */
 class User{
-  private $client;
+  protected $client;
   function __construct($client)  {
     $this->client = $client;
     $this->myRole = isset($_SESSION['userrole']) ? $_SESSION['userrole'] : False;
@@ -35,6 +35,7 @@ public function checkForSession(){
     $result = $this->client->run($query, array('email'=>$email));
     if(count($result) === 0){
       // if 0 records returned = NO user with this email:
+        return array(0, false);
     }else{
       $nodeId = $result[0]['nodeid'];
       $hash = $result[0]['pw'];
@@ -77,10 +78,7 @@ public function checkForSession(){
       3 = Create, update and delete
       4 = SuperUser: allow all.
     */
-    if($isOwner){
-      //if you own the record, you can edit and update. - even when restricted to the contributor role.
-      return 2;
-    }
+
     if($role === 'admin'){
       //if you're admin, you can edit it.
       return 4;
@@ -90,6 +88,10 @@ public function checkForSession(){
     }
     if($role === 'researcher'){
       // you can edit nodes and edges.
+      return 2;
+    }
+    if($isOwner){
+      //if you own the record, you can edit and update. - even when restricted to the contributor role.
       return 2;
     }
     if($role === 'contributor'){
@@ -120,6 +122,22 @@ public function checkForSession(){
       return $_SESSION['user_uuid'];
     }else{
       return false;
+    }
+  }
+
+  public function checkUniqueness($mail, $username){
+    if($mail){
+      $result = $this->client->run('MATCH (n:priv_user) WHERE n.mail= $mail',['mail'=>$mail]);
+    }
+    if($username){
+      $result = $this->client->run('MATCH (n:priv_user) WHERE n.username= $username', ['username'=>$username]);
+    }
+    if(boolval(count($result))){
+      //already exists 
+      return false; 
+    }else{
+      //not taken yet!
+      return true;
     }
   }
 

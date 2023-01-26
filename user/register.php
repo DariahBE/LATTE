@@ -16,12 +16,8 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
         integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
         crossorigin="anonymous">
     </script>
-    <script src="https://cdn.tailwindcss.com"></script>
-    <script
-			  src="https://code.jquery.com/jquery-3.6.0.min.js"
-			  integrity="sha256-/xUj+3OJU5yExlq6GSYGSHk7tPXikynS7ogEvDej/m4="
-			  crossorigin="anonymous">
-    </script>
+        <link rel="stylesheet" href="/CSS/stylePublic.css">
+
     <title>Become a member</title>
   </head>
   <body>
@@ -86,7 +82,7 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
                             type="text"
                             class="block border border-grey-light w-full p-3 rounded mb-4"
                             name="solvedCaptcha"
-                            placeholder="Please prove you're not after Sarah Connor."
+                            placeholder="Please prove you're human."
                           >
                           </input>
                           <input

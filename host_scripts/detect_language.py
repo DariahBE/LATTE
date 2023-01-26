@@ -30,7 +30,8 @@ elif implement == 'langid':
 lookup= {
     'el': 'Greek',
     'grc': 'Ancient Greek',
-    'la': 'Latin'
+    'la': 'Latin', 
+    'en': 'English'
 }
 langString = lookup[lang]
 print(json.dumps({'languageCode':lang, 'language': langString, 'certainty':certainty}))

@@ -4,23 +4,89 @@ function saveSuggestion(){
 
 function ignoreSuggestion(){
   var isOpen = document.getElementById("suggestionOnSelect");
-  //console.log(rangy.getWindow([1]));
   if (isOpen){
     isOpen.remove();
   }
 }
 
 
-function toggleSlide(){
-  document.getElementById('slideover-container').classList.toggle('invisible');
-  document.getElementById('slideover-bg').classList.toggle('opacity-0');
-  document.getElementById('slideover-bg').classList.toggle('opacity-50');
-  document.getElementById('slideover').classList.toggle('translate-x-full');
+function toggleSlide(dir = 0){
+  // 0 closes the sidepanel; 1 opens it. Better than the original .toggle() functions
+  if(dir === 0){
+    document.getElementById('slideover-container').classList.add('invisible');
+    document.getElementById('slideover-bg').classList.add('opacity-0');
+    document.getElementById('slideover-bg').classList.remove('opacity-50');
+    document.getElementById('slideover').classList.add('translate-x-full');
+  }else{
+    document.getElementById('slideover-container').classList.remove('invisible');
+    document.getElementById('slideover-bg').classList.add('opacity-50');
+    document.getElementById('slideover-bg').classList.remove('opacity-0');
+    document.getElementById('slideover').classList.remove('translate-x-full');
+  }
 }
 
 function triggerSidePanelAction(entityData){
-  toggleSlide();
+  toggleSlide(1);
+  console.log(entityData);
+  let = dataDictionary = {};
+  const targetOfInfo = document.getElementById('slideover-dynamicContent'); 
+  targetOfInfo.innerHTML = ''; 
+  if(entityData['nodes'].length){
+    //create a title that show the information about the matching entities: 
+    let topbox = document.createElement('div'); 
+    topbox.classList.add('w-full');
+    let topTex = document.createElement('h3'); 
+    topTex.classList.add('w-full'); 
+    topTex.appendChild(document.createTextNode("Found "+entityData['nodes'].length+" nodes.")); 
+    topbox.appendChild(topTex);
+    targetOfInfo.appendChild(topbox);
+    //create a box notice where the information is shown: 
+    //find a way of attaching variants to the nodes!!
+    //start with interpreting the edges: connect the entitynode with the variants once you know that!
+    for(let j = 0; j < entityData['edges'].length; j++){
+      let startnodeid = entityData['edges'][j]['startNodeId'];  // = id of the Entity
+      let endnodeid = entityData['edges'][j]['endNodeId'];      // = id of the Variant. 
+      //this has to be tested with multiple relations!!!
+      let startnode = entityData['nodes'].find(node => node[0] = startnodeid);
+      let endnode = entityData['labelvariants'].find(node => node[2]['variantOfEntity'].includes(endnodeid));
+      //dataDictionary ==> you have to put the startnode in and assign all related variantnodes!
+      if(!(Object.keys(dataDictionary).includes(startnodeid))){
+        dataDictionary[startnodeid] = startnode;
+        dataDictionary[startnodeid]['variants']= []; 
+      }
+      dataDictionary[startnodeid]['variants'].push(endnode);
+      //ideally you should sort the nodes according to their importance. Backend still needs to receive an update to make this possible. 
+      //console.log(startnode);
+      dataDictionary[startnodeid]['weight']=entityData['weights'][endnodeid];     //score attribute: Node with the highest weight. 
+      //append(dataDictionary[startnodeid]['variants']);
+      //datadictionary[startnodeid];
+      //console.log(startnode, endnode);
+    }
+    //console.log(dataDictionary); 
+    //sort the entities according to their score coming from the backend: 
+    let sortedEntityKeys = []; 
+    //console.log(Object.keys(dataDictionary)); //OK
+    Object.keys(dataDictionary).sort(score);
+    function score(a, b){
+      console.log(a,b);
+      return dataDictionary[a]['weight'] - dataDictionary[b]['weight'];
+    }
+    console.log('here');
+    console.log(dataDictionary);
+    //now iterate over dataDictionary according to the sortedEntityKeys order; 
+    sortedEntityKeys.forEach(element => {
+      console.log('ET: '); 
+      console.log(dataDictionary[element]);
+    });
+    //console.log(dataDictionary);
+    let midbox = document.createElement('div'); 
+    midbox.classList.add('w-full'); 
+  }else{
+    console.log('no nodes found');
+    //add code to create a node from selection!
+  }
 }
+
 
 
 function makeSuggestionBox(){
@@ -43,7 +109,7 @@ function makeSuggestionBox(){
   div.appendChild(texheader);
   div.appendChild(spinner);
   div.classList.add('suggestionBox', 'bg-white');
-  div.style.position =  'absolute';
+  div.style.position = 'absolute';
   div.style.top = topDst+height+'px';
   div.style.left = leftDst+'px';
   div.style.minWidth = '250px';
@@ -77,7 +143,6 @@ function makeSuggestionBox(){
 }
 
 function loadIntoSuggestionBox(data, from, to){
-  console.log(data);
   document.getElementById('suggestionbox_saveButton').disabled = false;
   var datadiv = document.createElement('div');
   var metadataOnSearch = document.createElement('div');
@@ -86,11 +151,11 @@ function loadIntoSuggestionBox(data, from, to){
   dataOnSearch.classList.add('suggestionData');
   var edgesInfo = document.createElement('p');
   var keySpanEdge = document.createElement('span');
-  var edgesKey = document.createTextNode('Edges: ')
+  var edgesKey = document.createTextNode('Edges: ');
   keySpanEdge.appendChild(edgesKey);
   var nodesInfo = document.createElement('p');
   var keySpanNode = document.createElement('span');
-  var nodesKey = document.createTextNode('Nodes: ')
+  var nodesKey = document.createTextNode('Nodes: ');
   keySpanNode.appendChild(nodesKey);
   keySpanNode.classList.add('font-bold');
   keySpanEdge.classList.add('font-bold');
@@ -114,8 +179,6 @@ function loadIntoSuggestionBox(data, from, to){
   metadataOnSearch.appendChild(positionBox);
   datadiv.appendChild(metadataOnSearch);
   //insert the search results here:
-  console.log("research data to be shown in DOM: ");
-  console.log(data);
   triggerSidePanelAction(data);
   datadiv.appendChild(dataOnSearch);
   document.getElementById("suggestionboxspinner").parentNode.insertBefore(datadiv, document.getElementById('suggestionboxspinner'));
@@ -139,8 +202,10 @@ function getTextSelection(){
 }
 
 function triggerSelection(){
+
     var selectedTextProperties = getTextSelection();
     var selectedText = selectedTextProperties[0];
+    console.log('Properties: ', selectedTextProperties);
     var selectedTextStart = selectedTextProperties[1];
     var selectedTextEnd = selectedTextProperties[2];
     //fetch from BE:
@@ -165,13 +230,20 @@ function triggerSelection(){
 $(document).ready(function() {
   var triggerpoints = document.getElementsByClassName('ltr');
   for(var i = 0; i < triggerpoints.length; i++){
-    triggerpoints[i].addEventListener('mouseup', function(){triggerSelection()});
-    triggerpoints[i].addEventListener('keyup', function(){triggerSelection()});
+    if(triggerpoints[i].classList.contains('linked')){
+      /**do not add an event listener if the letter has the linked class (i.e. if it is part of an existing annotation) */
+      continue;
+    }
+    triggerpoints[i].addEventListener('mouseup', function(e){
+      triggerSelection();
+    });
+    triggerpoints[i].addEventListener('keyup', function(e){
+      triggerSelection();
+    });
   }
-  //document.getElementById('textcontent').addEventListener('mouseup', function(){triggerSelection()});
   //use esc key to delete the suggestionbox:
   document.addEventListener('keyup', function(event) {
-   if (event.keyCode === 27) {
+   if (event.key === 'Escape') {
      ignoreSuggestion();
    }
  });

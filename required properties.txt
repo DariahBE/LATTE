@@ -14,6 +14,8 @@ Variant:
 Text:
   - uid       STR V4 UUID generated for the Text! Acts as PK in case nothing else is selected
 
+See_Also: 
+  - partner_uri required URI string to match against in API endpoints. 
 
 Every Searchable Node: e.g.:
   - label IS A MANDATED PROPERTY FOR EACH ENTITY!!

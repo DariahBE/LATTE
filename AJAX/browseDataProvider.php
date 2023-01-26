@@ -9,7 +9,8 @@
 
   $user_uuid = $user->checkSession();
 
-  $value = $_GET['value'];
+
+  $value = $_GET['value'];    // DO NOT typecast, can be alfanumerical!
   //to identify a node use:
   if(isset($_GET['property'])){
     $keyname = $_GET['property'];
@@ -28,26 +29,31 @@
     // it should be done here. 
     // HOWEVER, the color of the node depends on the node type, so both values should be present in the output.
     $labels = $nodeCypherMap['labels'][0];
-    $valueForLabel = $labels; 
-    $found_key = array_search(true, array_column(NODEMODEL[$labels], 3), true);
-    //array_search can return 0, but that's the index; don't use falsy statements!!
-    if ($found_key !== false){
-      $nodeKeyName  = array_keys(NODEMODEL[$labels])[$found_key];
-      $valueForLabel = $nodeCypherMap['properties'][$nodeKeyName];
-    }
-    //get all node properties that have a translation in the config file and 
-    //add them here in the graph on the nodelevel.
-    $props = $nodeCypherMap['properties'];
-    $propSettings = NODEMODEL[$labels]; 
-    $showProperty= [];
-    foreach($props as $key => $value){
-      //var_dump($key, $propSettings[$key][0]);
-      if (array_key_exists($key, $propSettings)){
-        $showProperty[$propSettings[$key][0]][] = $value;
+    $excludeNodesOfType = array('priv_user');
+
+    if(!in_array($labels, $excludeNodesOfType)){
+      $valueForLabel = $labels; 
+      $found_key = array_search(true, array_column(NODEMODEL[$labels], 3), true);
+      //array_search can return 0, but that's the index; don't use falsy statements!!
+      if ($found_key !== false){
+        $nodeKeyName  = array_keys(NODEMODEL[$labels])[$found_key];
+        $valueForLabel = $nodeCypherMap['properties'][$nodeKeyName];
       }
+      //get all node properties that have a translation in the config file and 
+      //add them here in the graph on the nodelevel.
+      $props = $nodeCypherMap['properties'];
+      $propSettings = NODEMODEL[$labels]; 
+      $showProperty= [];
+      foreach($props as $key => $value){
+        //var_dump($key, $propSettings[$key][0]);
+        if (array_key_exists($key, $propSettings)){
+          $showProperty[$propSettings[$key][0]][] = $value;
+        }
+      }
+      
+      return ['id'=>$nodeId, 'label'=>strval($valueForLabel), 'nodetype'=>$labels, 'properties'=>$showProperty];
     }
-    
-    return ['id'=>$nodeId, 'label'=>strval($valueForLabel), 'nodetype'=>$labels, 'properties'=>$showProperty];
+
   }
 
   foreach($data as $key => $row){
@@ -55,11 +61,19 @@
     $edge = $row['r']; 
     $rightNode = $row['t'];
     $r = addAsNode($rightNode);
-    $nodes[$r['id']] = $r;
+    if(boolval($r)){
+      $nodes[$r['id']] = $r;
+    }
     $l = addAsNode($leftNode);
-    $nodes[$l['id']] = $l;
-    $edges[]= ['from'=>$edge['startNodeId'], 'to'=>$edge['endNodeId']];
-
+    if(boolval($l)){
+      $nodes[$l['id']] = $l;
+    }
+    //if there's a filter on the nodes, then don't return edges which connected to nodes that are missing from the graph.
+    $startEdge = $edge['startNodeId'];
+    $stopEdge = $edge['endNodeId'];
+    if((in_array($startEdge, array_keys($nodes))&&in_array($stopEdge, array_keys($nodes)))){
+      $edges[]= ['from'=>$startEdge, 'to'=>$stopEdge];
+    }
   }
 
 echo json_encode(array(

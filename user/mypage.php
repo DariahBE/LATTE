@@ -3,13 +3,17 @@ include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR."/includes/client.inc.php");
 include_once(ROOT_DIR."/includes/user.inc.php");
 include_once(ROOT_DIR."/includes/annotation.inc.php");
+include_once(ROOT_DIR."/includes/wikidata_user_prefs.inc.php");
 
-if(isset($_SESSION)){
+if(isset($_SESSION['userid'])){
   $user = new User($client);
   $annotation = new Annotation($client);
 }else{
   header('Location: /user/login.php');
 }
+
+$preferences = new Wikidata_user($client);
+$preferences->buildPreferences();
 
 ?>
 
@@ -45,6 +49,30 @@ if(isset($_SESSION)){
 
         </div>
 
+      </div>
+      <div class="container">
+        <div>
+          <h3>Preferences</h3>
+        </div>
+        <div>
+          <h4>Wikidata Preferences:</h4>
+          <div id="wikidataPrefContainer">
+            <p><span class='font-bold'>Labels: </span> If present in wikidata, select the properties to show:</p>
+            <div id="chosenWDProperties">
+              <?php
+                echo $preferences->generateForm('properties');
+              ?>              
+            </div>
+            <br>
+            <p><span class='font-bold'>Links: </span> If present, a link to the following wikipedia portals are shown: </p>
+            <div id="chosenWDLinks">
+              <?php 
+                echo $preferences->generateForm('links');
+              ?>
+            </div>
+          </div>
+
+        </div>
       </div>
     </div>
   </body>

@@ -13,21 +13,28 @@ $findEntityByType = $_GET['type'];
 $findEntityByValue = $_GET['value'];
 if(in_array($findEntityByType, $approvedEntities)){
   $data = $graph->getEntities($findEntityByType,$findEntityByValue,$caseSensitive);
-  $modifiedData = array();
+  //echo json_encode($data);
+  //die();
   /*
-    modify $data so that variants reference which entitity node they are part of.
+    returned data provides directives to connect the nodes to variants!.
   */
   foreach ($data['labelvariants'] as $key => $value) {
+    //var_dump($key);
     $variantNodeId = $value[0];
-    foreach ($data['edges'] as $key => $subvalue) {
+    foreach ($data['edges'] as $subkey => $subvalue) {
       if($subvalue['startNodeId']===$variantNodeId){
-        $data['labelvariants'][$key]['variantOfEntity'][]=$subvalue['endNodeId'];
+        //$data['labelvariants'][$key]['variantOfEntity'][]=$subvalue['endNodeId'];
+        if(!(array_key_exists('variantOfEntity',$data['labelvariants'][$key][2]))){
+          $data['labelvariants'][$key][2]['variantOfEntity'] = array();
+        }
+        //echo "pass";
+        array_push($data['labelvariants'][$key][2]['variantOfEntity'],$subvalue['endNodeId']);
       }
     }
   }
-  echo json_encode($data);
+  echo json_encode((array)$data);
 }else{
-  die(json_encode('Invalid request'));
+  die(json_encode(array('message'=>'Invalid request')));
 }
 
 die();

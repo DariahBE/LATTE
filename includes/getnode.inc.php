@@ -1,17 +1,6 @@
 <?php
 //include_once("../config/config.inc.php");
 include_once(ROOT_DIR."/includes/client.inc.php");
-
-/*// IDEA:
-  use GET statement to collect a tripple: Nodetype, NodeProperty, NodeValue.
-  Build a query of that which results in:
-  MATCH (n:<<Nodetype>> {<<NodeProperty>>:<<NodeValue>>}) RETURN n
-
-DOCS:
-// https://neo4j.com/developer-blog/connect-to-neo4j-with-php/
-// https://github.com/neo4j-php/neo4j-php-client
-*/
-
 /*
   this is a program wide default; if there's no key defined to be the primary key of a node;
   the app is going to fall back to the uid-property present in all nodes. That key is autoamtically
@@ -65,18 +54,6 @@ function process_relationshipNodes($nodeIn){
   return array($id, $label, $data);
 }
 
-function process_variant($nodeIn){
-  $id = $nodeIn['id'];
-  $label = $nodeIn['labels'][0];
-  $variant = $nodeIn['properties']['variant'];
-  $data = array(
-    'label'=>'VARIANT',
-    'name'=>$variant,
-    'uuid'=>$nodeIn['properties']['uid']
-  );
-  return array($id, $label, $data);
-}
-
 function valueExtract($node, $key){
   try {
     return $node[$key];
@@ -113,13 +90,13 @@ function process_edge($edgeIn){
 
 
 class Node{
-  private $client;
+  protected $client;
   function __construct($client)  {
     $this->client = $client;
   }
 
   function getDistinctLabels(){
-    $result = $this->client->run('MATCH (n) RETURN DISTINCT labels(n) AS label');
+    $result = $this->client->run('MATCH (n) WHERE NOT (n:priv_user) RETURN DISTINCT labels(n) AS label');
     //return a translated dict:
     $data = array();
     foreach ($result as $record){
@@ -140,18 +117,35 @@ class Node{
     $data = array();
     foreach($result as $record){
       $key = $record['keys'];
-      if(array_key_exists($key, NODEMODEL[$ofLabel])){
+      if(array_key_exists($key, NODEMODEL[$ofLabel]) && boolval(NODEMODEL[$ofLabel][$key][4])){
         $keyTranslation = NODEMODEL[$ofLabel][$key][0];
+        array_push($data, array($key, $keyTranslation));
       }else{
         $keyTranslation = false;
       }
-      array_push($data, array($key, $keyTranslation));
+    }
+    return $data;
+  } 
+
+  function getConnections($label){
+    $result = $this->client->run('MATCH(n:'.$label.')-[r]-() UNWIND(r) AS relations RETURN DISTINCT type(relations) AS relationtype'); 
+    $data = array();
+    foreach($result as $record){
+      $reltype = $record['relationtype'];
+      //var_dump(str_starts_with($reltype, 'priv_'));
+      if (!(str_starts_with($reltype, 'priv_'))){
+        $humanReadable = false; 
+        if (array_key_exists($reltype, EDGETRANSLATIONS)){
+          $humanReadable = EDGETRANSLATIONS[$reltype];
+        }
+        array_push($data, array($reltype, $humanReadable)); 
+      }
     }
     return $data;
   }
 
   function countNodesByLabel(){
-    $result = $this->client->run('MATCH (n) RETURN DISTINCT count(labels(n)) as f, labels(n) as label ORDER BY f DESC;');
+    $result = $this->client->run('MATCH (n) where not (n:priv_user) RETURN DISTINCT count(labels(n)) as f, labels(n) as label ORDER BY f DESC;');
     $data = array();
     $total = 0;
     foreach ($result as $record){
@@ -169,7 +163,7 @@ class Node{
   }
 
   function countEdgesByLabel(){
-    $result = $this->client->run("MATCH ()-[r]->() RETURN TYPE(r) AS label, COUNT(r) AS f ORDER BY f DESC;");
+    $result = $this->client->run("MATCH (n)-[r]-(a) where not (n)-[r:priv_created]-(a) RETURN TYPE(r) AS label, COUNT(r) AS f ORDER BY f DESC;");
     $data = array();
     $total = 0;
     foreach($result as $record){
@@ -199,13 +193,12 @@ class Node{
     //var_dump($result);
     foreach ($result as $record) {
         // Returns a \Laudis\Neo4j\Types\Node
-        //$core = PRIMARIES[$type];
         $core = helper_extractPrimary($type);
         $node = array(
           //get the name of the text PK:
-          //'coreID'=>$record->get($core),
           'coreID'=>$record['node']->getProperty($core),
-          'model'=>array_key_exists($type, NODES) ? NODES[$type] : null
+          'model'=>array_key_exists($type, NODES) ? NODES[$type] : null, 
+          'neoID'=>$record['ID']
         );
     }
     if(boolval($result)){
@@ -214,19 +207,29 @@ class Node{
     return $node;
   }
 
-  function getNeighbours($id){
+
+  function getNeighbours($id, $relation = false){
     //use the built in node ID (not the UUID) to extract neighbouring nodes from a core node.
     //query is undirected!!
     // UPDATED FOR PATCH:
     /*
-      - do not return priv_user nodes
-      - patch for nodes that have no neighbours: (n)-[r]-(t) is an exact pattern match
-          ==> FIX: use optional match [r]-(t) for exact match (n)
+     * - do not return priv_user nodes
+     * - patch for nodes that have no neighbours: (n)-[r]-(t) is an exact pattern match
+     *     ==> FIX: use optional match [r]-(t) for exact match (n)
     */
-    $result = $this->client->run('
-    MATCH (n) WHERE id(n) = $providedID AND NOT n:priv_user
-    OPTIONAL MATCH (n)-[r]-(t)
-    RETURN n,r,t', ['providedID'=>(int)$id]);
+    if(!boolval($relation)){
+      $result = $this->client->run('
+      MATCH (n) WHERE id(n) = $providedID AND NOT n:priv_user
+      OPTIONAL MATCH (n)-[r]-(t)
+      RETURN n,r,t', ['providedID'=>(int)$id]);  
+    }else{
+      $result = $this->client->run('
+      MATCH (n) WHERE id(n) = $providedID AND NOT n:priv_user
+      OPTIONAL MATCH (n)-[r:'.$relation.']-(t) 
+      RETURN n,r,t', ['providedID'=>(int)$id]);
+
+    }
+
     return $result;
   }
 
@@ -272,6 +275,11 @@ class Node{
 
 
   function getEntities($entityType, $entityValue, $caseSensitive=false, $limit=100, $offset=0){
+    $lim = (int)$limit; 
+    $offset = (int)$offset;   // intended to bese used as pagination!!! So multiply with $limit. 
+    boolval($offset) ? $extraOffset = ' SKIP '.$lim*$offset : $extraOffset = '';
+    $limString = ' ORDER BY collectiveScore '.  $extraOffset.' LIMIT '.$lim; 
+    //$extraOffset = ''
     //case sensitive ==> Very Fast:
     if(boolval($entityType)){
       $entityType = ':'.$entityType;
@@ -282,8 +290,9 @@ class Node{
           OPTIONAL MATCH (v:Variant {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
           OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
           OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
-          return p,v,q,r1,r2,r3,i,j
-          limit 10000';
+          WITH COALESCE(size((p)--()), 0)+COALESCE(size((q)--()), 0) as collectiveScore, p as p, v as v, q as q, r1 as r1, r2 as r2, r3 as r3, i as i, j as j
+          return p,v,q,r1,r2,r3,i,j, size((p)--()) as pcount, size((q)--())as qcount, collectiveScore
+           '.$limString;
       $placeholders = array(
           'nameValue1'=>$entityValue,
           'nameValue2'=>$entityValue
@@ -296,8 +305,9 @@ class Node{
           OPTIONAL MATCH (v:Variant)-[r1:same_as]-(q'.$entityType.') WHERE v.variant =~ $nameValue2
           OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
           OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
-          return p,v,q,r1,r2,r3,i,j
-          limit 10000';
+          WITH COALESCE(size((p)--()), 0)+COALESCE(size((q)--()), 0) as collectiveScore, p as p, v as v, q as q, r1 as r1, r2 as r2, r3 as r3, i as i, j as j
+          return p,v,q,r1,r2,r3,i,j, size((p)--()) as pcount, size((q)--())as qcount, collectiveScore
+           '.$limString;
       $placeholders = array(
           'nameValue1'=>'(?i)'.$entityValueCleaned,
           'nameValue2'=>'(?i)'.$entityValueCleaned
@@ -309,7 +319,8 @@ class Node{
       'nodes'=>array(),
       'edges'=>array(),
       'labelvariants'=>array(),
-      'meta'=>array('entities'=>0)
+      'meta'=>array('entities'=>0), 
+      'weights'=>array()
     );
     $registeredNodes = array();
     $registeredEdges = array();
@@ -317,17 +328,19 @@ class Node{
     foreach ($resultRaw as $result){
       //nodes:
         //      $result =>p, v = entity
-        //      $result =>q = entity: link to external project
-        //      $result =>i,j
+        //      $result =>q = entity: equals P when matchted against a label variant.
+        //      $result =>i,j entity that link to external project
         if(!(is_null($result['i']))){
-          $iPartner = process_relationshipNodes($result['i']);
+          //$iPartner = process_relationshipNodes($result['i']);
+          $iPartner = process_entityNodes($result['i']);
           if(!(in_array($iPartner[0], $registeredNodes))){
             $registeredNodes[] = $iPartner[0];
             $formattedResults['nodes'][] = $iPartner;
           }
         }
         if(!(is_null($result['j']))){
-          $jPartner = process_relationshipNodes($result['j']);
+          //$jPartner = process_relationshipNodes($result['j']);
+          $jPartner = process_entityNodes($result['j']);
           if(!(in_array($jPartner[0], $registeredNodes))){
             $registeredNodes[] = $jPartner[0];
             $formattedResults['nodes'][] = $jPartner;
@@ -342,7 +355,9 @@ class Node{
         }
         if(!(is_null($result['p']))){
           $entity = process_entityNodes($result['p']);
+          $etWeight = $result['pcount'];
           if(!(in_array($entity[0], $registeredNodes))){
+            $formattedResults['weights'][$entity[0]] = $etWeight; 
             $registeredNodes[] = $entity[0];
             $entities+=1;
             $formattedResults['nodes'][] = $entity;
@@ -350,7 +365,9 @@ class Node{
         }
         if(!(is_null($result['q']))){
           $entity = process_entityNodes($result['q']);
+          $etWeight = $result['qcount'];
           if(!(in_array($entity[0], $registeredNodes))){
+            $formattedResults['weights'][$entity[0]] = $etWeight; 
             $registeredNodes[] = $entity[0];
             $entities+=1;
             $formattedResults['nodes'][] = $entity;
@@ -391,6 +408,7 @@ class Node{
 
   function generateURI($id){
     //finds the node by it's NEO-id, returns a stable identifier;
+    //The NEO-id is unstable and should not be used in the frontend to identify a node.
     $query = 'MATCH (n) WHERE id(n) = $providedID return n';
     $result = $this->client->run($query, ['providedID'=>(int)$id]); 
     //if the resultset has at least one row; get the row ==> the first row is also the only row!!
@@ -398,6 +416,7 @@ class Node{
       $result = $result->first()->get('n');
       //var_dump($result);
       $label = $result['labels'][0]; 
+      if(!in_array($label, array_keys(NODEMODEL))){return array();}
       $model = NODEMODEL[$label];
       //look for access to the primary key data. What key in the returned NODE type is the Primary Key.
       //var_dump(array_column($model, 2));
@@ -410,8 +429,14 @@ class Node{
         $keys = array_keys($model);
         $primaryKeyName = $keys[$found_key];
       }
-      //var_dump($result['properties'][$primaryKeyName]);
-      $URLString = trim(WEBURL, '/').'/'.$label.'/'.$result['properties'][$primaryKeyName];
+      //TEXT is the core component: make this unique.
+      //any other node should be prefixed with /URI/
+      if(strtolower($label)==='text'){
+        $insert = '';
+      }else{
+        $insert = 'URI/';
+      }
+      $URLString = trim(WEBURL, '/').'/'.$insert.$label.'/'.$result['properties'][$primaryKeyName];
       $result = array($URLString); 
       //die();
     }else{
@@ -422,6 +447,41 @@ class Node{
     return $result; 
   }
 
+
+  public function findEntityAndVariants($id){
+    $result = array('entity'=> array(), 'labelVariants'=>array());
+    $query = 'match(n)-[r:references]-(p) where n.uid = $graphid return p, id(p) as entityID'; 
+    $data = $this->client->run($query, ['graphid'=>$id]); 
+    //var_dump($data[0]['entityID']);
+    //in $data there is at most one entry!
+    //also get the model to show in DOM: 
+    $result['entity']['neoID'] = $data[0]['entityID'];
+    foreach($data as $row){
+      $node = $row['p']; 
+      $nodeType = $node['labels'][0];
+      $model = NODEMODEL[$nodeType]; 
+      $showAs = array();
+      foreach($node['properties'] as $property => $value){
+        if(array_key_exists($property, $model)){
+          $showAs = array($model[$property][0], $node['properties'][$property]);
+          $result['entity']['properties'][] = $showAs;
+        }
+      }
+    }
+    $query2 = 'match(v)-[r:same_as]-(n) where id(n) = $entityid return v' ;
+    $data2 = $this->client->run($query2, ['entityid'=> $data[0]['entityID']]);
+    $variantModel = NODEMODEL['Variant'];
+    foreach($data2 as $labelvariant){
+      $variantRow = $labelvariant['v'];
+      foreach($variantRow['properties'] as $property => $value){
+        if(array_key_exists($property, $variantModel)){
+          $showAs = array($variantModel[$property][0], $value);
+          $result['labelVariants'][] = $showAs;
+        }
+      }
+    }
+    return $result; 
+  }
 
 
 }

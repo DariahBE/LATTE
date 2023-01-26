@@ -9,14 +9,16 @@ $annotationId = $_GET['annotation'];    //should be a UUIDV4 ID.
 
 $formattedResponse = array(
   'annotation' => array(),
-  'author' => array()
+  'author' => array(), 
+  'entity' => array(),
+  'variants' => array()
 );
 
 $graph = new Node($client);
 $annotation = new Annotation($client);
 $user = new User($client);
 $egodata = $graph->matchSingleNode('Annotation', 'uid', $annotationId);
-$egoId = $egodata['coreID'];
+$egoId = $egodata['neoID'];
 $neighbours = $annotation->getAnnotationInfo($egoId);
 //annotation can be anonymous!
 if($neighbours['author']){
@@ -35,6 +37,11 @@ foreach ($annotationInformation['properties'] as $key => $value) {
   $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key), $allowedToEdit);
 }
 
+//Find the connecting entity that is linked to the annotation and labelvariants associated with this entity: 
+$etData = $graph->findEntityAndVariants($annotationId); 
+//var_dump($etData['labelVariants']);
+$formattedResponse['variants'][]=$etData['labelVariants']; 
+$formattedResponse['entitity'][]=$etData['entity'];
 
 echo json_encode($formattedResponse);
 

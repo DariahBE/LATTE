@@ -12,7 +12,7 @@ function getInfoFromBackend(url){
   })
   return myPromise;
 }
-
+/*
 function frameWorkBase(){
   var insertHere = document.getElementById('rightExtensionPanel');
   insertHere.innerHTML = '';
@@ -43,7 +43,7 @@ function frameWorkBase(){
   variantDiv.classList.add('font-small');
   maindiv.appendChild(variantDiv);
   insertHere.appendChild(maindiv);
-}
+}*/ 
 
 function decideOnEdit(protected, level){
   console.log(protected, level);
@@ -58,13 +58,16 @@ function decideOnEdit(protected, level){
 }
 
 function showdata(data){
-  frameWorkBase();
-  var annotationTarget = document.getElementById('annotationContainerAjax');
+  //frameWorkBase();
+  console.log('showdata call: ');
+  console.log(data);
+  toggleSlide(1);
+  var annotationTarget = document.getElementById('slideover-dynamicContent');
+  annotationTarget.innerHTML = ''; 
   var authorData = data['author'];
   var annotationData = data['annotation']['properties'];
   var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
-
   function writeField(key, data, protected, rights){
     console.log(key, data, protected, rights);
     if(!(decideOnEdit(protected, rights))){
@@ -104,10 +107,11 @@ function showdata(data){
         }
       });
       //numberfields should have a live function on them to strip all non-numeric values.
-      }
+    }
       if(fieldType === 'bool'){
         fieldvalue.setAttribute('type', 'boolean');
-        alert('Bool field should be dropdown');
+        console.log('work required in interactWithEntities.js line 108');
+        //alert('Bool field should be dropdown');
       }else if(fieldType === 'uri'){
         fieldvalue.setAttribute('type', 'url');
       }else{
@@ -150,7 +154,9 @@ function showdata(data){
 }
 
 function handleError(){
-  frameWorkBase();
+  alert('handleError function needs to be rewritten for a more uniform layout. '); 
+  return;
+  //frameWorkBase();
   var target = document.getElementById('annotationContainerAjax');
   target.classList.add('bg-red-100', 'rounded-lg', 'py-5', 'px-6', 'mb-3', 'text-base', 'text-red-700', 'inline-flex', 'items-center');
   var errtitle = document.createElement('h4');
@@ -170,10 +176,12 @@ function handleError(){
 
 function loadAnnotationData(){
   var eventsource = event.source || event.target;
+  //event.preventDefault();
   //console.log(eventsource);
   var annotationID = eventsource.dataset.annotation;
   getInfoFromBackend("/AJAX/resolve_annotation.php?annotation="+annotationID)
     .then((data)=>{
+      console.log('interactWithEntities.js: rewrite loadAnnotationData, handeError & showdata functions'); 
       showdata(data);
     })
     .catch(err => handleError() );

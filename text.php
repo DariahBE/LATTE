@@ -54,12 +54,17 @@ $relations = $node->getEdges($nodeId);
     <script src="/JS/selectInText.js"></script>
     <script src="/JS/showStoredAnnotations.js"></script>
     <script src="/JS/interactWithEntities.js"></script>
+    <!-- wikidata SDK and custom code! SDK docs: https://github.com/maxlath/wikibase-sdk-->
+    <script src="/JS/wikidata_SDK/wikibase-sdk.js"></script>
+    <script src="/JS/wikidata_SDK/wikidata-sdk.js"></script>
+    <script src="/JS/wikidata.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   </head>
-  <body class="bg-neutral-200">
+  <body class="bg-neutral-200 w-full">
+    <div class=" 2xl:w-1/2 xl:w-2/3 items-center m-auto"> 
     <div class="">
       <!-- navbar-->
 
@@ -95,8 +100,7 @@ $relations = $node->getEdges($nodeId);
     </div>
 
   </div>
-  <div id="explorationDialogue"
-   class="w-full">
+  <div id="explorationDialogue" class="w-full py-4 my-4">
     <h3 class="text-xl">Node Exploration: </h3>
     <!-- automatic exploration of the retrieved entities-->
     <label for="autoexplore">Fetch recognized entities: </label>
@@ -104,15 +108,15 @@ $relations = $node->getEdges($nodeId);
   </div>
 </div>
 
-<div class="main flex flex-row">
+<div class="main flex flex-row py-4 my-4">
   <div class="left" id="leftMainPanel">
+  <h3 class="text-xl">Text: </h3>
+
     <div class="subbox leftsubbox" id="textcontent">
 
     <?php
-    //var_dump($text);
       $textString = $text['data'][0]->first()['node']['properties']['text'];
       $textLanguage = isset($text['data'][0]->first()['node']['properties']['language']) ? $text['data']['properties']['language']: False;
-      //echo nl2br($textString);
       $i = 0;
       foreach(new MbStrIterator($textString) as $c) {
         echo "<span class='ltr' data-itercounter=$i>".nl2br($c)."</span>";
@@ -166,37 +170,36 @@ $relations = $node->getEdges($nodeId);
         </div>
       </div>
   </div>
-  <div class="extended" id="rightExtensionPanel">
+  <!--<div class="extended" id="rightExtensionPanel">
     <div class="base">
-      <!-- What is shown by default in the right extension panel. -->
+      <! -- What is shown by default in the right extension panel. - ->
 
     </div>
     <div class="full">
-      <!-- Extra slideOut panel-->
+      <! -- Extra slideOut panel- ->
 
     </div>
-  </div>
+  </div> -->
 </div>
 <div id="slideover-container" class="right-0 w-1/2 h-full fixed top-0 invisible">
   <div id="slideover-bg" class="w-full h-full duration-500 ease-out transition-all top-0 absolute bg-gray-900 opacity-0"></div>
   <div id="slideover" class="w-96 bg-white h-full absolute left-0 duration-300 ease-out transition-all translate-x-full">
-      <div class="absolute cursor-pointer text-gray-600 top-0 w-8 h-8 flex items-center justify-center left-0 m-5 p-5">
-          <p>Hello world</p>
-      </div>
+  <svg onclick='toggleSlide(0)' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+    <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+
+      <div id="slideover-dynamicContent" class="absolute cursor-pointer text-gray-600 top-0 w-full h-full justify-center left-0 m-5 p-5">
+        <!-- with xhr data loaded: put the response here!-->
+    </div>
   </div>
 </div>
 <div id='setNodeDetailOverlay' class='hiddenOverlay'><p>is this required?????</p></div>
-  <script>
-    <?php echo "const coreNodeRelations = ". json_encode($relations); ?>;
-    <?php echo "const nodeDefinitions = ".json_encode($nodes); ?>;
-    //attachSelectController(); //attaches select event to text ==> allows user to select words and perform lookup.
-  </script>
   <?php echo "<script> var storedAnnotations = ".json_encode($existingAnnotation)."</script>";
   if(count($existingAnnotation['relations']) > 0){
     echo "<script>visualizeStoredAnnotations();</script>";
   }
 
   ?>
-
+</div>
 </body>
 </html>

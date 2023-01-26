@@ -19,48 +19,77 @@ $URI = 'neo4j://localhost:7687';
   Nodes are capitalized, properties aren't!
   Every label is followed by an array of properties: 
     - Human readable string: this string is used in the frontend.
-    - Type of variable: string, int or bool
+    - Type of variable: string, int, bool OR wikidata.
+        - the wikidata datatype expects a Q-identifier and returns live data from an API call. 
     - Boolean: Primary Key: is the value unique for this type of nodes? 
     - Boolean: Visual Distinguishing: Is the value used in the dom to label the nodes. If the node does not have a visually distinguishable component, the nodelabel is used.
+    - Boolean: Can the interface search on this? 
+  
 */
 
 $nodesDatamodel = array(
   'Person' => [
-    "label" => ["Wikidata Label", "string", false, True],
-    "sex" =>["Gender", "string", false, false]
+    "label" => ["Wikidata Label", "string", false, true, true],
+    "sex" =>["Gender", "string", false, false, true]
   ],
   'Text' => [
-    "texid" => ["Text ID", "int", true, true],
-    "text" => ["Text", "string", false, false],
-    "language" => ["Document language", "string", false, false]
+    "texid" => ["Text ID", "int", true, true, true],
+    "text" => ["Text", "string", false, false, false],
+    "language" => ["Document language", "string", false, false, true],
+    "publication" => ["Publisher", "string", false, false, true],
+    "place" => ["Publishing Place", "string", false, false, true],
   ],
   'Place' => [
-    "geoid" => ["Trismegistos Place ID", "int", false, false],
-    "label" => ["Wikidata Label", "string", false, true],
-    "region" => ["Regionname", "string", false, false]
+    "geoid" => ["Trismegistos Place ID", "int", false, false, true],
+    "label" => ["Label", "string", false, true, true],
+    "region" => ["Regionname", "string", false, false, true], 
+    "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
   ],
   'Variant' => [
-    "variant" => ["Label", "string", false, true],
-    "remark" => ["Remark", "string", false, false]
+    "variant" => ["Label", "string", false, true, true],
+    "remark" => ["Remark", "string", false, false, true]
   ],
   'See_Also' => [
-    "partner" => ["Projectname", "string", false, false],
-    "partner_id" => ["External ID", "string", false, true],
-    "partner_uri" => ["Link", "uri", false, false]
+    "partner" => ["Projectname", "string", false, false, true],
+    "partner_uri" => ["Link", "uri", false, false, true]
   ],
   'Annotation' => [
-    "starts" => ["AnnotionStart", "int", false, false],
-    "stops" => ["AnnotationEnd", "int", false, false],
-    "private" => ["Private Annotation", "bool", false, false],
-    "note" => ["Note", "string", false, false],
-    "extra" => ["Extra", "int", false, false]
+    "starts" => ["AnnotionStart", "int", false, false, false],
+    "stops" => ["AnnotationEnd", "int", false, false, false],
+    "private" => ["Private Annotation", "bool", false, false, false],
+    "note" => ["Note", "string", false, false, true],
+    "extra" => ["Extra", "int", false, false, true]
   ],
   'Dog' => [
-    "breed" => ["Breed", "string", false, false],
-    "age" => ["Age", "int", false, false],
-    "label" => ["Name", "string", false, true]
+    "breed" => ["Breed", "string", false, false, true],
+    "age" => ["Age", "int", false, false, false],
+    "label" => ["Name", "string", false, true, true]
+  ], 
+  'Organization' => [
+    "label" => ["Label", "string", true, false, true]
   ]
 );
+
+
+/**Feed the edges to the application: 
+ * each key in the model is an edgename 
+ * the value for each key is an array.
+ * In that array the first two arguments are two separate arrays of nodes the edge connects.
+ * The third argument is a boolean True/False is accepted here. If True the 
+ * edge is directed (node1)->(node2) and goes from your first argument to your second argument
+ * If False, the edge is not-directed and goes back and forth. (node1)--(node2)
+ */
+$edgesDatamodel = array(
+  'contains' => [array('Text'), array('Annotation'), True],
+  'references' => [array('Annotation'), array('Person', 'Dog', 'Place'), True],
+  'same_as' => [array('Variant'), array('Person', 'Dog', 'Place'), True], 
+  'see_also' => [array('Person', 'Dog', 'Place'), array('See_Also'), True]
+);
+
+
+
+//node properties that are protected by the application and automatically generated. 
+$privateProperties = array('uid');
 
 //////////////////////////////////////////////////////
 
@@ -118,44 +147,6 @@ $nodes_translate = array(
   'Annotation' => 'Annotations',
   'priv_user' => 'Users'
 );
-/*
-$nodeKeys_translate  = array_map(function ($ar){
-  foreach ($ar as $key => $value) {
-    $nodeKeys_translate[];
-    return $key[] = $value[1];
-    if($value[2]){
-      return $key;
-    }
-  }
-}, $nodesDatamodel);
-
-var_dump($nodeKeys_translate);
-$nodeKeys_translate = array(
-  'Person' => array(
-    'perid' => 'Trismegistos Person ID',
-    'mindate' => 'Earliest attestation',
-    'maxdate' => 'Latest attestation',
-    'namid' => 'Trismegistos Nam ID',
-    'sex' => 'Gender'
-  ),
-  'Text' => array(
-    'texid' => 'Trismegistos Text ID',
-    'text' => 'Textcontent',
-    'language' => 'Language'
-  ),
-  'Place' => array(
-    'geoid' => 'Trismegistos Geo ID',
-    'name' => 'Placename',
-    'region' => 'Trismegistos region'
-  ),
-  'See_Also' => array(
-    '' => '',
-  ),
-  'Variant' => array(
-    '' => '',
-  )
-);
-*/
 ########### WHICH ENGINE SHOULD BE USED TO DETECT THE LANGUAGE OF A GIVEN TEXT?
 #                             spacy
 #                             langid
@@ -185,6 +176,8 @@ define("NODEMODEL", $nodesDatamodel);
 define("URI", $URI);
 define("WEBURL", $baseURI);
 define("PRIMARIES", $primaryKeys);
+define("PRIVATEPROPERTIES", $privateProperties); 
+define("EDGEMODEL", $edgesDatamodel);
 
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL

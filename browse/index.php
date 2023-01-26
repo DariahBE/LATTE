@@ -24,6 +24,10 @@ unset($node);
     <script type="text/javascript" src="../JS/vis-network.min.js"></script>
     <script type="text/javascript" src="../JS/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" src="../JS/browse_viz.js"></script>
+    <!-- wikidata SDK and custom code! SDK docs: https://github.com/maxlath/wikibase-sdk-->
+    <script src="/JS/wikidata_SDK/wikibase-sdk.js"></script>
+    <script src="/JS/wikidata_SDK/wikidata-sdk.js"></script>
+    <script src="/JS/wikidata.js"></script> <!-- Last wikidata file!-->
     <link rel="stylesheet" href="/CSS/stylePublic.css">
 
     <link rel="stylesheet" href="../CSS/browse.css">
