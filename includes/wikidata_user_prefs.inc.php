@@ -45,16 +45,47 @@
     //used for the label returned by the wikidata api: 
     private $wikidataPreferedLanguages = array(
       'en' => 'English',
-      'fr' => 'French',
-      'de' => 'German'
+      'fr' => 'Français',
+      'de' => 'Deutsch', 
+      'nl' => 'Nederlands', 
+      'pl' => 'Polski',
+      'ru' => 'русский язык', 
+      'pt' => 'Português', 
+      'es' => 'Español', 
+      'it' => 'Italiano', 
+      'hu' => 'magyar nyelv', 
+      'uk' => 'українська мова',
     );
 
     public $customPreferences = array(
         'shownProperties' => false,
         'fallbackLanguage' => 'en',
         'preferredLanguage' => false,
-        'showWikipediaLinksTo' => false
+        'showWikipediaLinksTo' => false,
+        'stringmatchWikipediaTitles' =>false
     ); 
+
+    /**helper function reads and validates data coming from the database. If it matches expectations, data is stored in memory, later it is stored in a cookie! */
+  private  function read_validate_and_store_settings($data, $settings){
+    if(boolval($data)){
+      //data is a comma separated string: 
+      $retrievedData = explode(',', $data);
+      $saveto = $settings[0];
+      $checkAgainst = $settings[1];
+      //vallidate that every value in $retrievedData is allowed by the backend!
+      $trustedOutput = array(); 
+      foreach($retrievedData as $choice){
+        if (array_key_exists($choice, $checkAgainst)){
+          array_push($trustedOutput, $choice);
+        }
+      }
+      if(boolval(count($trustedOutput))){
+        $this->customPreferences[$saveto] = $trustedOutput;
+      }
+    }else{
+      return false;
+    }
+  }
 
     public function buildPreferences(){
       /**Preferences dominance order: 
@@ -64,27 +95,7 @@
        *    If neither a cookie, nor preferences apply to the session => use defaultvalues. 
       */
 
-      /**helper function reads and validates data coming from the database. If it matches expectations, data is stored in memory, later it is stored in a cookie! */
-      function read_validate_and_store_settings($data, $settings){
-        if(boolval($data)){
-          //data is a comma separated string: 
-          $retrievedData = explode(',', $data);
-          $saveto = $settings[0];
-          $checkAgainst = $settings[1];
-          //vallidate that every value in $retrievedData is allowed by the backend!
-          $trustedOutput = array(); 
-          foreach($retrievedData as $choice){
-            if (array_key_exists($choice, $checkAgainst)){
-              array_push($trustedOutput, $choice);
-            }
-          }
-          if(boolval(count($trustedOutput))){
-            $this->customPreferences[$saveto] = $trustedOutput;
-          }
-        }else{
-          return false;
-        }
-      }
+
   
       //
       //      LOADING COOKIES: VALIDATE THEM!!
@@ -92,8 +103,11 @@
       $cookies = array(
         'wd_properties' => array('shownProperties', $this->wikidataProperties),
         'wd_pref_lang' => array('preferredLanguage', $this->wikidataPreferedLanguages),
-        'wd_wikilinks' => array('showWikipediaLinksTo', $this->wikidataPrefixToWikipediaLinks)
+        'wd_wikilinks' => array('showWikipediaLinksTo', $this->wikidataPrefixToWikipediaLinks), 
+        'wd_wikipedia_titles' =>array('stringmatchWikipediaTitles', $this->wikidataPrefixToWikipediaLinks)
       ); 
+
+
       foreach($cookies as $cookiename => $cookieHandle){
         if(isset($_COOKIE[$cookiename])){
           $saveto = $cookieHandle[0];
@@ -115,34 +129,36 @@
         }
       }
       //cookies are parse and checked: look for user preferences if any of the optional items are still false AND a session is set!
-      if(!($this->customPreferences['shownProperties'] && $this->customPreferences['preferredLanguage'] && $this->customPreferences['showWikipediaLinksTo'])){
+      if(!($this->customPreferences['shownProperties'] && $this->customPreferences['preferredLanguage'] && $this->customPreferences['showWikipediaLinksTo'] && $this->customPreferences['stringmatchWikipediaTitles'])){
         if(isset($_SESSION['userid'])){
-          echo "One or more preferences are still false: accessing graph";
           $result = $this->client->run('
             MATCH (n:priv_user) 
             WHERE n.userid = $uid 
             RETURN
               n.wd_property_preferences as wd_properties,
               n.wd_wikilink_preferences as wd_wikilinks,
-              n.wd_language_preferences as wd_pref_lang
+              n.wd_language_preferences as wd_pref_lang, 
+              n.wd_titlestring_preferences as wd_wikipedia_titles
             ', array('uid'=>$_SESSION['userid']));
           foreach($result as $row){
             if(!$this->customPreferences['shownProperties']){
-              read_validate_and_store_settings($row['wd_properties'], $cookies['wd_properties']);
+              $this->read_validate_and_store_settings($row['wd_properties'], $cookies['wd_properties']);
             }
             if (!$this->customPreferences['preferredLanguage']){
-              read_validate_and_store_settings($row['wd_pref_lang'], $cookies['wd_pref_lang']);
+              $this->read_validate_and_store_settings($row['wd_pref_lang'], $cookies['wd_pref_lang']);
             }
             if(!$this->customPreferences['showWikipediaLinksTo']){
-              read_validate_and_store_settings($row['wd_wikilinks'], $cookies['wd_wikilinks']);
+              $this->read_validate_and_store_settings($row['wd_wikilinks'], $cookies['wd_wikilinks']);
+            }
+            if(!$this->customPreferences['stringmatchWikipediaTitles']){
+              $this->read_validate_and_store_settings($row['wd_wikipedia_titles'], $cookies['wd_wikipedia_titles']);
             }
           }
         }
       }
 
       //cookies and static user preferences are checked: Look for whatever is defaulted and set that to items that are still false: 
-      if(!($this->customPreferences['shownProperties'] && $this->customPreferences['preferredLanguage'] && $this->customPreferences['showWikipediaLinksTo'])){
-        echo "One or more preferences are still false: resolving defaults";
+      if(!($this->customPreferences['shownProperties'] && $this->customPreferences['preferredLanguage'] && $this->customPreferences['showWikipediaLinksTo'] && $this->customPreferences['stringmatchWikipediaTitles'])){
         //properties (P-tags)
         if(!$this->customPreferences['shownProperties']){
           $defaultProperties = array(); 
@@ -167,25 +183,40 @@
           }
           $this->customPreferences['showWikipediaLinksTo'] = $defaultLinks;
         }
+        //lookup string based matches in the following wikis: A wiki is a 2letter language code followed by 'wiki'
+        //e.g. enwiki ==> english Wikipedia; nlwiki, dewiki, frwiki....
+        if(!$this->customPreferences['stringmatchWikipediaTitles']){
+          $defaultLinks = array();
+          foreach($this->wikidataPrefixToWikipediaLinks as $k=>$v){
+            if($v[2]){
+              array_push($defaultLinks, $k); 
+            }
+          }
+          $this->customPreferences['stringmatchWikipediaTitles'] = $defaultLinks;
+        }
       //$customPreferences now has it's settings!
       }
       //end of building preferences is reached ==> store whatever comes out in cookies!
-      $cleanedCookieString_properties = implode(',',$this->customPreferences['shownProperties']);
+      //this is done every time the method is called, that way unwanted/unsupported properties get filtered out in case of tampering.
+      $cleanedCookieString_properties = implode(',', $this->customPreferences['shownProperties']);
       $cleanedCookieString_links = implode(',', $this->customPreferences['showWikipediaLinksTo']);
       $cleanedCookieString_language = implode(',', $this->customPreferences['preferredLanguage']); 
+      $cleanedCookieString_titleLookup = implode(',', $this->customPreferences['stringmatchWikipediaTitles']);
       setcookie('wd_properties', $cleanedCookieString_properties, time()+3600*24*365, $path="/");
       setcookie('wd_wikilinks', $cleanedCookieString_links, time()+3600*24*365, $path="/");
       setcookie('wd_pref_lang', $cleanedCookieString_language, time()+3600*24*365, $path="/");
-
+      setcookie('wd_wikipedia_titles', $cleanedCookieString_language, time()+3600*24*365, $path="/");
       }
 
       private function getUserSettingsForKey($key){
         //no need to check here; input is validated in this->generateForm: 
         $query = 'MATCH (n:priv_user) WHERE n.userid = $uid RETURN '; 
         if($key === 'properties'){
-          $query.= 'n.wd_property_preferences' ;  
+          $query.= ' n.wd_property_preferences ' ;  
         }elseif($key === 'links'){
-          $query .= 'n.wd_wikilink_preferences';
+          $query .= ' n.wd_wikilink_preferences ';
+        }elseif($key === 'titles'){
+          $query .= ' n.wd_titlestring_preferences ';
         }
         $query .= ' AS data '; 
         $data = $this->client->run($query, array('uid'=>$_SESSION['userid'])); 
@@ -197,13 +228,15 @@
           $data = $this->wikidataProperties;
         }elseif($formname === 'links'){
           $data = $this->wikidataPrefixToWikipediaLinks;
+        }elseif($formname === 'titles'){
+          $data = $this->wikidataPrefixToWikipediaLinks;
         }else{
           throw new Exception('Invalid form');
         }
         //what is chosen by the user: 
         $userChoice = $this->getUserSettingsForKey($formname);
         //generate HTML here: 
-        $output = '<div class=""><form method="POST" action="profileUpdate.php">'; 
+        $output = '<div class=""><form method="POST" action="profileUpdate.php" class="grid lg:grid-cols-4 lg:gap-4 md:grid-cols-3 md:gap:3 sm:grid-cols-1 sm:gap-4" >'; 
         foreach($data as $key => $value){
           if(in_array($key, $userChoice)){
             $checked = ' checked '; 
@@ -211,16 +244,74 @@
             $checked = ''; 
           }
           $output .= 
-          '<div>
+          '<div class="">
             <input type="checkbox" id="'.$key.'" name="'.$key.'" '.$checked.'  >
             <label for="'.$key.'">'.$value[1].'</label>
           </div>'; 
         }
-        $output .= '</form></div>';
+        $output .= '<input class="hidden" name="form_type_setting_application_value" value="'.$formname.'"><input type="submit" value = "Submit"></form></div>';
         return $output; 
       }
 
+
+  public function storeProfileSettings($formname, $keys){
+    //vallidate the formname: 
+    $validForms = array(
+      'properties' => array($this->wikidataProperties, 'wd_property_preferences'),
+      'links' => array($this->wikidataPrefixToWikipediaLinks, 'wd_wikilink_preferences'), 
+      'titles' => array($this->wikidataPrefixToWikipediaLinks, 'wd_titlestring_preferences')
+    ); 
+    if(!(in_array($formname, array_keys($validForms)))){die("Invalid form detected.");}
+    //validate the keys: Do this in such a way that only whitelisted items are approved: 
+    $validatedKeys = array(); 
+    foreach($keys as $key){
+      if(array_key_exists($key, $validForms[$formname][0])){
+        array_push($validatedKeys, $key);
+      }
+    }
+    //if one or more valid keys are detected: 
+    if(count($validatedKeys)>0){
+      //update the settings: 
+      $userid = $_SESSION['userid'];
+      $validData = implode(',',$validatedKeys); 
+      $updateWDsettingsQuery = 'MATCH (n:priv_user) WHERE n.userid = $uid SET n.'.$validForms[$formname][1].' = $prefString  return n; ';
+      $updateAction = $this->client->run($updateWDsettingsQuery, array('uid'=>$userid, 'prefString'=>$validData)); 
+      if(boolval($updateAction->getSummary()['counters']['propertiesSet'])){
+        return True; 
+      }
+    }
+    return False; 
+  }
+
+  public function makeSettingsDictionary(){
+    //only call this after the buildPreferences() method has been called!
+    $outputdictionary = array(
+      'fallbackLanguage' => $this->customPreferences['fallbackLanguage'],
+    ); 
+    $link = array(
+      'shownProperties' => array($this->wikidataProperties), 
+      'showWikipediaLinksTo' => array($this->wikidataPrefixToWikipediaLinks), 
+      'preferredLanguage' => array($this->wikidataPreferedLanguages),
+      'stringmatchWikipediaTitles' => array($this->wikidataPrefixToWikipediaLinks)
+    );
+    foreach($this->customPreferences as $prefName => $prefValue){
+      //add the key to the public dictionary if it does not exist!: 
+      if(!(array_key_exists($prefName, $outputdictionary))){
+        $outputdictionary[$prefName] = array(); 
+        //php based dict with settings: 
+        $codedSettings = $link[$prefName][0];
+        //public dict key is created, now fill with values!
+        foreach($prefValue as $choice){
+          $valueForChoice = $codedSettings[$choice];
+          $outputdictionary[$prefName][$choice] = $valueForChoice; 
+        }
+        
+      }
+
+    }
+
+    return $outputdictionary;
+  }
+
 }
-
-
 ?>

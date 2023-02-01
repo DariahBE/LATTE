@@ -23,18 +23,25 @@ $preferences->buildPreferences();
   <head>
     <meta charset="utf-8">
     <title>My user page.</title>
-  </head>
-  <body>
-    <div class="body container">
-      <div class="top navbar">
+    <script src="/JS/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="/CSS/style_entities.css">
+    <link rel="stylesheet" href="/CSS/stylePublic.css">
+    <link rel="stylesheet" href="/CSS/overlaystyling.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
 
-      </div>
+
+  </head>
+  <body class="bg-neutral-200 w-full">
+    <div class="top navbar">
+
+    </div>
+    <div class="body container 2xl:w-1/2 xl:w-2/3 items-center m-auto">
       <div class="container data cols-3">
         <div class="col">
           <h2>My Annotations</h2>
           <div class="colDynamic">
             <?php
-              $annotation->loadPersonalAnnotations($user->myId);
+              //$annotation->loadPersonalAnnotations($user->myId);
             ?>
           </div>
         </div>
@@ -68,6 +75,13 @@ $preferences->buildPreferences();
             <div id="chosenWDLinks">
               <?php 
                 echo $preferences->generateForm('links');
+              ?>
+            </div>
+            <br>
+            <p><span class='font-bold'>Stringmatching: </span> Match strings against Wikipedia titles in the following languages: </p>
+            <div id="chosenStringMatches">
+              <?php 
+                echo $preferences->generateForm('titles');
               ?>
             </div>
           </div>

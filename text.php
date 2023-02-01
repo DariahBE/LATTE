@@ -3,6 +3,7 @@
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
+include_once(ROOT_DIR.'/includes/wikidata_user_prefs.inc.php');
 include_once(ROOT_DIR.'/includes/multibyte_iter.inc.php');
 include_once(ROOT_DIR.'/includes/annotation.inc.php');
 if(isset($_GET['texid'])){
@@ -25,9 +26,10 @@ $user = new User($client);
 $user_uuid = $user->checkSession();
 
 $annotations = new Annotation($client);
-
 $existingAnnotation = $annotations->getExistingAnnotationsInText($propId, $user_uuid);
 
+$wikidata = new Wikidata_user($client);
+$wikidata->buildPreferences();
 $node = new Node($client);
 $text = $node->matchSingleNode($nodeType, $propKey, $propId);
 if(!boolval($text) or !array_key_exists('coreID', $text)){
@@ -133,6 +135,8 @@ $relations = $node->getEdges($nodeId);
         'textid': <?php echo json_encode((int)$propId)?>,
         'nodeid': <?php echo json_encode((int)$nodeId)?>
       };
+      var wdProperties = <?php echo json_encode($wikidata->makeSettingsDictionary()); ?>;
+
     </script>
     <style>
       <?php
