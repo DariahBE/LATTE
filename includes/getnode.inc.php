@@ -460,10 +460,11 @@ class Node{
       $node = $row['p']; 
       $nodeType = $node['labels'][0];
       $model = NODEMODEL[$nodeType]; 
+      $result['entity']['type'] = $nodeType;
       $showAs = array();
       foreach($node['properties'] as $property => $value){
         if(array_key_exists($property, $model)){
-          $showAs = array($model[$property][0], $node['properties'][$property]);
+          $showAs = array($model[$property][0], $node['properties'][$property], $model[$property][1]);
           $result['entity']['properties'][] = $showAs;
         }
       }

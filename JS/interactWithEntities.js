@@ -119,8 +119,7 @@ function showdata(data){
       }
       fieldvalue.value = data;
       field.appendChild(fieldvalue);
-      console.log('created textfield', field);
-    
+      console.log('created textfield', field);    
     return field;
   }
   //work with the Annotations:
@@ -151,6 +150,23 @@ function showdata(data){
     var rowdata = row[1];
     var protected = row[2];
   });
+  //show the type of the annotation as an enlarged entry: 
+  var etType = document.createElement('h3'); 
+  var etTypeText = document.createTextNode(data['entity'][0]['type']); 
+  etType.appendChild(etTypeText);
+  annotationTarget.appendChild(etType);
+  //With the type known: look up if there's a wikidata attribute: 
+  var qidArr = data['entity'][0]['properties'].filter(ar => ar[2]== 'wikidata');
+  if (qidArr.length === 1){
+    var qid = qidArr[0][1];
+    console.log(qid); 
+    var wd = new wikibaseEntry(qid, wdProperties, 'qid');
+    wd.getWikidata()
+      .then(function(){wd.renderEntities(qid)}); 
+      //console.log(x);
+
+  }
+
 }
 
 function handleError(){
@@ -184,7 +200,7 @@ function loadAnnotationData(){
       console.log('interactWithEntities.js: rewrite loadAnnotationData, handeError & showdata functions'); 
       showdata(data);
     })
-    .catch(err => handleError() );
+    //.catch(err => handleError() );
 }
 
 function addInteractionToEntities(){

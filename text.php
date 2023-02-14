@@ -137,6 +137,7 @@ $relations = $node->getEdges($nodeId);
       };
       var wdProperties = <?php echo json_encode($wikidata->makeSettingsDictionary()); ?>;
 
+      var wikidataIndication = <?php echo json_encode($wikidata->labelIndicator()); ?>;
     </script>
     <style>
       <?php
@@ -193,7 +194,9 @@ $relations = $node->getEdges($nodeId);
   </svg>
 
       <div id="slideover-dynamicContent" class="absolute cursor-pointer text-gray-600 top-0 w-full h-full justify-center left-0 m-5 p-5">
-        <!-- with xhr data loaded: put the response here!-->
+        <!-- with xhr data loaded: put the response here!
+          this panel serves as the target for showing data in the NEO database as well as wikidata responses. 
+      -->
     </div>
   </div>
 </div>

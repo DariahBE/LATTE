@@ -25,21 +25,22 @@
     ); 
 
     private $wikidataProperties = array(
-      //Add whatever properties you want!! NOTICE for every added property, update the relevant JS code to handle these new proprties!!!
-      // THe value is an array, 
+      //Add whatever properties you want!! NOTICE for every added property, set the appropriate data type to use in the frontend (4th parameter) !!!
+      // The value is an array, 
       //      THe first part is the label to be used in the DOM: 
       //      The second part is the category the data is part of; JS code should group properties together!! (i.e. put all external identfiers close together....)
       //      The third part is a boolean: True indicates the property is part of the default display. 
+      //      The Fourth is the type of data used in the User Frontend: Choose between: geo, uri, img, str
 
-      'P625' => array('Coordinates', 'Geography', True),
-      'P18' => array('Image', 'Media', False), 
-      'P214' => array('VIAF ID', 'Identifier', True), 
-      'P244' => array('Library of Congress ID', 'Identifier', False), 
-      'P1566' => array('Geonames ID', 'Identifier', True), 
-      'P21' => array('Gender', 'Biography', True), 
-      'P569' => array('Date of Birth', 'Biography', True), 
-      'P106' => array('Occupation', 'Biography', False ), 
-      'P2671' => array('Google Knowledge Graph ID', 'Identifier', False), 
+      'P625' => array('Coordinates', 'Geography', True, 'geo'),
+      'P18' => array('Image', 'Media', False, 'img'), 
+      'P214' => array('VIAF ID', 'Identifier', True, 'uri'), 
+      'P244' => array('Library of Congress ID', 'Identifier', False, 'str'), 
+      'P1566' => array('Geonames ID', 'Identifier', True, 'uri'), 
+      'P21' => array('Gender', 'Biography', True, 'str'), 
+      'P569' => array('Date of Birth', 'Biography', True, 'str'), 
+      'P106' => array('Occupation', 'Biography', False, 'str'), 
+      'P2671' => array('Google Knowledge Graph ID', 'Identifier', False, 'str'), 
     ); 
 
     //used for the label returned by the wikidata api: 
@@ -311,6 +312,21 @@
     }
 
     return $outputdictionary;
+  }
+
+  public function labelIndicator(){
+    /**
+     * renders a kv-array indicating which property holds the dedicate Q-label for a given entitytype. 
+     */
+    $indicator = array(); 
+    foreach(NODEMODEL as $key => $value){
+      foreach (NODEMODEL[$key] as $property => $propsettings){
+        if($propsettings[1] === 'wikidata'){
+          $indicator[$key] = $property;
+        }
+      }
+    }
+    return $indicator;
   }
 
 }

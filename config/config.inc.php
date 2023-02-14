@@ -30,7 +30,8 @@ $URI = 'neo4j://localhost:7687';
 $nodesDatamodel = array(
   'Person' => [
     "label" => ["Wikidata Label", "string", false, true, true],
-    "sex" =>["Gender", "string", false, false, true]
+    "sex" =>["Gender", "string", false, false, true], 
+    "wikidata" => ["Wikidata Label", 'wikidata', false, false, false]
   ],
   'Text' => [
     "texid" => ["Text ID", "int", true, true, true],
@@ -63,7 +64,8 @@ $nodesDatamodel = array(
   'Dog' => [
     "breed" => ["Breed", "string", false, false, true],
     "age" => ["Age", "int", false, false, false],
-    "label" => ["Name", "string", false, true, true]
+    "label" => ["Name", "string", false, true, true],
+    "doggoIndicator" => ["Wikidata Label", 'wikidata', false, false, false]
   ], 
   'Organization' => [
     "label" => ["Label", "string", true, false, true]
