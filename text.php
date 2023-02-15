@@ -60,6 +60,8 @@ $relations = $node->getEdges($nodeId);
     <script src="/JS/wikidata_SDK/wikibase-sdk.js"></script>
     <script src="/JS/wikidata_SDK/wikidata-sdk.js"></script>
     <script src="/JS/wikidata.js"></script>
+    <!-- extra script for wikidata images: -->
+    <script src="/JS/caroussel.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">

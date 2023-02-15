@@ -34,6 +34,9 @@
 
       'P625' => array('Coordinates', 'Geography', True, 'geo'),
       'P18' => array('Image', 'Media', False, 'img'), 
+      'P94' => array('Coat of Arms', 'Media', False, 'img'), 
+      'P1801' => array('Commemorative Plaque', 'Media', False, 'img'), 
+      'P158' => array('Seal', 'Media', False, 'img'), 
       'P214' => array('VIAF ID', 'Identifier', True, 'uri'), 
       'P244' => array('Library of Congress ID', 'Identifier', False, 'str'), 
       'P1566' => array('Geonames ID', 'Identifier', True, 'uri'), 
@@ -227,10 +230,13 @@
       public function generateForm($formname){
         if($formname === 'properties'){
           $data = $this->wikidataProperties;
+          $position = 0;
         }elseif($formname === 'links'){
           $data = $this->wikidataPrefixToWikipediaLinks;
+          $position = 1;
         }elseif($formname === 'titles'){
           $data = $this->wikidataPrefixToWikipediaLinks;
+          $position = 1;
         }else{
           throw new Exception('Invalid form');
         }
@@ -247,7 +253,7 @@
           $output .= 
           '<div class="">
             <input type="checkbox" id="'.$key.'" name="'.$key.'" '.$checked.'  >
-            <label for="'.$key.'">'.$value[1].'</label>
+            <label for="'.$key.'">'.$value[$position].'</label>
           </div>'; 
         }
         $output .= '<input class="hidden" name="form_type_setting_application_value" value="'.$formname.'"><input type="submit" value = "Submit"></form></div>';
