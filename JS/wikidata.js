@@ -174,6 +174,7 @@ class wikibaseEntry {
       const target = document.getElementById('slideover-dynamicContent'); 
       let dataDivMain = document.createElement('div'); 
       dataDivMain.setAttribute('id', 'handyLittleThingyForWDStuff');
+      dataDivMain.classList.add('overflow-y-scroll');
       if (this.searchMode === 'qid'){
         for (const [key, value] of Object.entries(this.OutputFormattedDataBlocks[qid])) {
           console.log(`${key}: ${value}`);
@@ -246,8 +247,11 @@ class wikibaseEntry {
     var into = this.OutputFormattedDataBlocks[q]['img'];
     //let's assume that the image variable can hold 2 or more images, we need a for loop and caroussel to display this. 
     var carousselDiv = document.createElement('div'); 
-    var labelDiv = document.createElement('p');
+    var labelDiv = document.createElement('a');
+    labelDiv.setAttribute('href', 'https://www.wikidata.org/wiki/Property_talk:'+property); 
+    labelDiv.setAttribute('target', '_blank');
     labelDiv.appendChild(document.createTextNode(label));
+    labelDiv.classList.add('font-bold');
     carousselDiv.classList.add('caroussel_for_wikidata_images'); 
     carousselDiv.setAttribute('id', property); 
     carousselDiv.setAttribute('data-content', JSON.stringify(image)); 
@@ -262,34 +266,67 @@ class wikibaseEntry {
   }
 
   async displayURI (parent, identifierOfEntity, q, p){
+    /**
+     * Be carefull, you have one to many relations where one wikidatad Q-id matches multiple remote identifiers of a single project!
+     */
     var into = this.OutputFormattedDataBlocks[q]['uri'];
     // get the P1630Property of the element: Needs the parent element
+    if (identifierOfEntity.length > 1){
+      var oneToMany = 1;
+    }else{
+      var oneToMany = 0
+    }
     var urlForPatternRequest = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+p+"&props=claims&format=json&origin=*"
     // combine that with the identifierOfEntity
     return await fetch(urlForPatternRequest)
       .then(response => response.json())
       .then(response => {
         //according to docs: https://www.wikidata.org/wiki/Property:P1630 there's only one paramter to be updated: $1
-        // Ask TOM!
         var urlPattern = response.entities[p].claims.P1630[0].mainsnak.datavalue.value;
-        var URI = urlPattern.replace('$1', identifierOfEntity ); 
         //generate HTML: 
-        var URLString = document.createElement('p'); 
-        var URLLabel = document.createElement('span');
-        var URLLink = document.createElement('span'); 
-        var URLAnchor = document.createElement('a'); 
-        var URLAnchorText = document.createTextNode(identifierOfEntity); 
-        URLLabel.classList.add('font-bold'); 
-        URLLabel.appendChild(document.createTextNode(parent+': '));
-        URLAnchor.setAttribute('href', URI); 
-        URLAnchor.setAttribute('target', '_blank'); 
-        URLAnchor.appendChild(URLAnchorText); 
-        URLLink.appendChild(URLAnchor);
-        //add output: 
-        URLString.appendChild(URLLabel);
-        URLString.appendChild(URLLink);
-        into.push(URLString);
-        console.log('processed '+ p);
+        if(oneToMany === 0){
+          var URI = urlPattern.replace('$1', identifierOfEntity ); 
+          var URLString = document.createElement('p'); 
+          var URLLabel = document.createElement('span');
+          var URLLink = document.createElement('span'); 
+          var URLAnchor = document.createElement('a'); 
+          var URLAnchorText = document.createTextNode(identifierOfEntity); 
+          URLLabel.classList.add('font-bold'); 
+          URLLabel.appendChild(document.createTextNode(parent+': '));
+          URLAnchor.setAttribute('href', URI); 
+          URLAnchor.setAttribute('target', '_blank'); 
+          URLAnchor.appendChild(URLAnchorText); 
+          URLLink.appendChild(URLAnchor);
+          //add output: 
+          URLString.appendChild(URLLabel);
+          URLString.appendChild(URLLink);
+          into.push(URLString);
+        }else{
+          var URLDiv= document.createElement('div');
+          var DIVHeader = document.createElement('p');
+          var DIVHeaderLabel = document.createElement('span');
+          var DIVHeaderText = document.createTextNode(parent+': '); 
+          DIVHeaderLabel.classList.add('font-bold'); 
+          DIVHeaderLabel.appendChild(DIVHeaderText);
+          DIVHeader.appendChild(DIVHeaderLabel); 
+          URLDiv.appendChild(DIVHeader); 
+          DIVHeaderLabel.classList.add('fond-bold'); 
+          var LinksInUL = document.createElement('ul'); 
+          for (var n = 0; n < identifierOfEntity.length; n++){
+            var URI = urlPattern.replace('$1', identifierOfEntity[n] ); 
+            var listItem = document.createElement('li'); 
+            listItem.classList.add('wdToMany'); 
+            var URLAnchor = document.createElement('a'); 
+            var URLAnchorText = document.createTextNode(identifierOfEntity[n]); 
+            URLAnchor.setAttribute('href', URI); 
+            URLAnchor.setAttribute('target', '_blank'); 
+            URLAnchor.appendChild(URLAnchorText); 
+            listItem.appendChild(URLAnchor);
+            LinksInUL.appendChild(listItem); 
+          }
+          URLDiv.appendChild(LinksInUL);
+          into.push(URLDiv);
+        }
       });
 }
 
