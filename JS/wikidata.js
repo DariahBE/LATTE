@@ -149,8 +149,6 @@ class wikibaseEntry {
         if (Object.keys(this.usersettings['shownProperties']).includes(e)){
           var wikidata_response = this.rawData[qid].claims[e]; 
           var userSelected = this.usersettings['shownProperties'][e];
-          console.log('Matching property: ', e);
-          console.log(wikidata_response, userSelected);
           let wdPropLabel = userSelected[0]; 
           let wdGroup = userSelected[1];
           let wdProcessAs = userSelected[3];
@@ -158,7 +156,7 @@ class wikibaseEntry {
           if(wdProcessAs === 'uri'){
             promisses.push(this.displayURI(wdPropLabel, wikidata_response, qid, e));
           }else if(wdProcessAs === 'geo'){
-            this.displayCoordinateData(wikidata_response[0], wikidata_response[1], qid, e);
+            this.displayCoordinateData(wikidata_response, qid, e);
           }else if(wdProcessAs === 'img'){
             //var wikidata_response = this.rawData[qid].claims[e]; 
             this.displayImageData(wdPropLabel,wikidata_response, qid, e);
@@ -170,16 +168,20 @@ class wikibaseEntry {
     }
     Promise.all(promisses).then((values)=> {
       console.log('promisses completed'); 
+      var keyToTitle = {'uri': 'External Identifiers', 'geo': 'Maps', 'img': 'Images', 'str': 'Whatevervalues'};
       // output the OutputFormattedDataBlocks to DOM. 
       const target = document.getElementById('slideover-dynamicContent'); 
       let dataDivMain = document.createElement('div'); 
       dataDivMain.setAttribute('id', 'handyLittleThingyForWDStuff');
-      dataDivMain.classList.add('overflow-y-scroll');
       if (this.searchMode === 'qid'){
         for (const [key, value] of Object.entries(this.OutputFormattedDataBlocks[qid])) {
-          console.log(`${key}: ${value}`);
+          if(value.length === 0){continue;}
           let dataDivCategory = document.createElement('div'); 
-          let categoryTitle = document.createElement('h4').appendChild(document.createTextNode(key)); 
+          console.log(keyToTitle[key]);
+          let categoryTitle = document.createElement('h4');
+          categoryTitle.appendChild(document.createTextNode(keyToTitle[key])); 
+          console.log(categoryTitle);
+          categoryTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');
           dataDivCategory.appendChild(categoryTitle); 
           for(var n = 0; n < value.length; n++){
             dataDivCategory.appendChild(value[n]); 
@@ -189,6 +191,7 @@ class wikibaseEntry {
       }
       target.appendChild(dataDivMain); 
       buildCaroussel(); 
+      buildMaps(); 
     })
 
   }
@@ -222,21 +225,28 @@ class wikibaseEntry {
    *    - String => a simple string based value
    *    - URI => if present an uri to the object referenced by the P property!
    */ 
-  displayCoordinateData(lat, long, q, property){
+  displayCoordinateData(wdresponse, q, property){
+    //console.log(wdresponse); 
     var into = this.OutputFormattedDataBlocks[q]['geo'];
     //if claims contain a key 'P625' then there's coordinate Data for the returned XHR call: show it. 
     //DO NOT use wikimedia tileserver: usage policy does not support intended use. In stead use OSM:
     //https://operations.osmfoundation.org/policies/tiles/
     //response['claims']['P625'] ==> WGS84 coordinating system !!
+    // https://www.wikidata.org/wiki/Property_talk:P625  
+    /**can be one to many! In that case the first record is the preferred record. Show both, but with separate marker!*/
     var geoDiv = document.createElement('div'); 
     geoDiv.classList.add('geocontainer_for_wikidata_coords'); 
     geoDiv.setAttribute('id', property); 
-    geoDiv.setAttribute('data-latitude', lat);
-    geoDiv.setAttribute('data-longitude', long);
+    geoDiv.setAttribute('data-coordinates', JSON.stringify(wdresponse));
+    geoDiv.setAttribute('data-wdprop', property);
+    var targetDivForMap = document.createElement('div'); 
+    targetDivForMap.classList.add('h-full', 'w-full'); 
+    targetDivForMap.setAttribute('id', property+'_map'); 
+    geoDiv.appendChild(targetDivForMap);
+    into.push(geoDiv); 
   }
 
   displayImageData(label, image, q, property){
-    // TOM: 
     //image => https://www.wikidata.org/wiki/Property_talk:P18 
     //    P18: formatter: https://commons.wikimedia.org/wiki/File:$1 
     //Coat of arms => https://www.wikidata.org/wiki/Property_talk:P154 
@@ -256,7 +266,7 @@ class wikibaseEntry {
     carousselDiv.setAttribute('id', property); 
     carousselDiv.setAttribute('data-content', JSON.stringify(image)); 
     carousselDiv.appendChild(labelDiv);
-    console.log(label, image); 
+    //console.log(label, image); 
     into.push(carousselDiv); 
     //A separate caroussel JS file handles the actual display of data. 
   }

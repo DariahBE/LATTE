@@ -60,8 +60,10 @@ $relations = $node->getEdges($nodeId);
     <script src="/JS/wikidata_SDK/wikibase-sdk.js"></script>
     <script src="/JS/wikidata_SDK/wikidata-sdk.js"></script>
     <script src="/JS/wikidata.js"></script>
-    <!-- extra script for wikidata images: -->
+    <!-- extra script for wikidata content: -->
     <script src="/JS/caroussel.js"></script>
+    <script src="/JS/makeMap.js"></script>
+    <script src="/JS/leaflet/leaflet.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
@@ -190,7 +192,7 @@ $relations = $node->getEdges($nodeId);
 </div>
 <div id="slideover-container" class="right-0 w-1/2 h-full fixed top-0 invisible">
   <div id="slideover-bg" class="w-full h-full duration-500 ease-out transition-all top-0 absolute bg-gray-900 opacity-0"></div>
-  <div id="slideover" class="w-96 bg-white h-full absolute left-0 duration-300 ease-out transition-all translate-x-full">
+  <div id="slideover" class="w-96 bg-white h-full absolute left-0 duration-300 ease-out transition-all translate-x-full overflow-y-scroll overflow-x-hidden">
   <svg onclick='toggleSlide(0)' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
