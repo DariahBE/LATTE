@@ -28,22 +28,22 @@
       //Add whatever properties you want!! NOTICE for every added property, set the appropriate data type to use in the frontend (4th parameter) !!!
       // The value is an array, 
       //      THe first part is the label to be used in the DOM: 
-      //      The second part is the category the data is part of; JS code should group properties together!! (i.e. put all external identfiers close together....)
-      //      The third part is a boolean: True indicates the property is part of the default display. 
-      //      The Fourth is the type of data used in the User Frontend: Choose between: geo, uri, img, str
+      //      The second part is a boolean: True indicates the property is part of the default display. 
+      //      The third is the type of data used in the User Frontend: Choose between: geo, uri, img, str
 
-      'P625' => array('Coordinates', 'Geography', True, 'geo'),
-      'P18' => array('Image', 'Media', False, 'img'), 
-      'P94' => array('Coat of Arms', 'Media', False, 'img'), 
-      'P1801' => array('Commemorative Plaque', 'Media', False, 'img'), 
-      'P158' => array('Seal', 'Media', False, 'img'), 
-      'P214' => array('VIAF ID', 'Identifier', True, 'uri'), 
-      'P244' => array('Library of Congress ID', 'Identifier', False, 'str'), 
-      'P1566' => array('Geonames ID', 'Identifier', True, 'uri'), 
-      'P21' => array('Gender', 'Biography', True, 'str'), 
-      'P569' => array('Date of Birth', 'Biography', True, 'str'), 
-      'P106' => array('Occupation', 'Biography', False, 'str'), 
-      'P2671' => array('Google Knowledge Graph ID', 'Identifier', False, 'str'), 
+      'P625' => array('Coordinates', True, 'geo'),
+      'P18' => array('Image', False, 'img'), 
+      'P94' => array('Coat of Arms', False, 'img'), 
+      'P1801' => array('Commemorative Plaque', False, 'img'), 
+      'P158' => array('Seal', False, 'img'), 
+      'P214' => array('VIAF ID', True, 'uri'), 
+      'P244' => array('Library of Congress ID', False, 'uri'), 
+      'P1566' => array('Geonames ID', True, 'uri'), 
+      'P21' => array('Gender', True, 'str'), 
+      'P569' => array('Date of Birth', True, 'str'), 
+      'P106' => array('Occupation', False, 'str'), 
+      'P2671' => array('Google Knowledge Graph ID', False, 'uri'), 
+      'P1449' => array('Nickname', False, 'str')
     ); 
 
     //used for the label returned by the wikidata api: 
@@ -167,7 +167,7 @@
         if(!$this->customPreferences['shownProperties']){
           $defaultProperties = array(); 
           foreach($this->wikidataProperties as $k=>$v){
-            if($v[2]){
+            if($v[1]){
               array_push($defaultProperties, $k); 
             }
           }
@@ -206,10 +206,10 @@
       $cleanedCookieString_links = implode(',', $this->customPreferences['showWikipediaLinksTo']);
       $cleanedCookieString_language = implode(',', $this->customPreferences['preferredLanguage']); 
       $cleanedCookieString_titleLookup = implode(',', $this->customPreferences['stringmatchWikipediaTitles']);
-      setcookie('wd_properties', $cleanedCookieString_properties, time()+3600*24*365, $path="/");
-      setcookie('wd_wikilinks', $cleanedCookieString_links, time()+3600*24*365, $path="/");
-      setcookie('wd_pref_lang', $cleanedCookieString_language, time()+3600*24*365, $path="/");
-      setcookie('wd_wikipedia_titles', $cleanedCookieString_language, time()+3600*24*365, $path="/");
+      setcookie('wd_properties', $cleanedCookieString_properties, time()+3600*24*365, "/");
+      setcookie('wd_wikilinks', $cleanedCookieString_links, time()+3600*24*365, "/");
+      setcookie('wd_pref_lang', $cleanedCookieString_language, time()+3600*24*365, "/");
+      setcookie('wd_wikipedia_titles', $cleanedCookieString_language, time()+3600*24*365, "/");
       }
 
       private function getUserSettingsForKey($key){

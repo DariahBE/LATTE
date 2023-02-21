@@ -358,29 +358,47 @@ Ensure the default browser behavior of the `hidden` attribute.
 .container {
   width: 100%;
 }
+.\!container {
+  width: 100% !important;
+}
 @media (min-width: 640px) {
   .container {
     max-width: 640px;
+  }
+  .\!container {
+    max-width: 640px !important;
   }
 }
 @media (min-width: 768px) {
   .container {
     max-width: 768px;
   }
+  .\!container {
+    max-width: 768px !important;
+  }
 }
 @media (min-width: 1024px) {
   .container {
     max-width: 1024px;
+  }
+  .\!container {
+    max-width: 1024px !important;
   }
 }
 @media (min-width: 1280px) {
   .container {
     max-width: 1280px;
   }
+  .\!container {
+    max-width: 1280px !important;
+  }
 }
 @media (min-width: 1536px) {
   .container {
     max-width: 1536px;
+  }
+  .\!container {
+    max-width: 1536px !important;
   }
 }
 .sr-only {
@@ -2321,6 +2339,14 @@ hr.vertical{
   height:100%; /* you might need some positioning for this to work, see other questions about 100% height */
   width:0;
   border: solid;
+}
+
+.miniMap{
+  height: 300px;
+  width: 250px;
+  border: black;
+  border-style: solid;
+  word-width: 2px;
 }
 
 .after\:h-8::after {

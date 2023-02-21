@@ -26,3 +26,11 @@ hr.vertical{
   width:0;
   border: solid;
 }
+
+.miniMap{
+  height: 300px;
+  width: 250px;
+  border: black;
+  border-style: solid;
+  border-width: 2px;
+}

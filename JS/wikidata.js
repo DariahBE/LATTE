@@ -76,10 +76,7 @@ class wikibaseEntry {
       if(wikiLangLinks.length > 1){
         url = url.replace('&normalize=true',''); 
       }
-  }else{
-    console.log('not valid');
   }
-  //console.log(url);
     return await fetch(url)
       .then(response => response.json())
       // Turns the response in an array of simplified entities
@@ -150,9 +147,8 @@ class wikibaseEntry {
           var wikidata_response = this.rawData[qid].claims[e]; 
           var userSelected = this.usersettings['shownProperties'][e];
           let wdPropLabel = userSelected[0]; 
-          let wdGroup = userSelected[1];
-          let wdProcessAs = userSelected[3];
-          console.log(wdPropLabel, wdProcessAs);
+          let wdProcessAs = userSelected[2];
+          //console.log(wdPropLabel, wdProcessAs);
           if(wdProcessAs === 'uri'){
             promisses.push(this.displayURI(wdPropLabel, wikidata_response, qid, e));
           }else if(wdProcessAs === 'geo'){
@@ -161,13 +157,12 @@ class wikibaseEntry {
             //var wikidata_response = this.rawData[qid].claims[e]; 
             this.displayImageData(wdPropLabel,wikidata_response, qid, e);
           }else if(wdProcessAs === 'str'){
-            this.displayStringData(wdPropLabel, '', qid, e);
+            this.displayStringData(wdPropLabel, wikidata_response, qid, e);
           }
         }        
       } );
     }
     Promise.all(promisses).then((values)=> {
-      console.log('promisses completed'); 
       var keyToTitle = {'uri': 'External Identifiers', 'geo': 'Maps', 'img': 'Images', 'str': 'Whatevervalues'};
       // output the OutputFormattedDataBlocks to DOM. 
       const target = document.getElementById('slideover-dynamicContent'); 
@@ -177,10 +172,8 @@ class wikibaseEntry {
         for (const [key, value] of Object.entries(this.OutputFormattedDataBlocks[qid])) {
           if(value.length === 0){continue;}
           let dataDivCategory = document.createElement('div'); 
-          console.log(keyToTitle[key]);
           let categoryTitle = document.createElement('h4');
           categoryTitle.appendChild(document.createTextNode(keyToTitle[key])); 
-          console.log(categoryTitle);
           categoryTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');
           dataDivCategory.appendChild(categoryTitle); 
           for(var n = 0; n < value.length; n++){
@@ -226,7 +219,6 @@ class wikibaseEntry {
    *    - URI => if present an uri to the object referenced by the P property!
    */ 
   displayCoordinateData(wdresponse, q, property){
-    //console.log(wdresponse); 
     var into = this.OutputFormattedDataBlocks[q]['geo'];
     //if claims contain a key 'P625' then there's coordinate Data for the returned XHR call: show it. 
     //DO NOT use wikimedia tileserver: usage policy does not support intended use. In stead use OSM:
@@ -239,8 +231,8 @@ class wikibaseEntry {
     geoDiv.setAttribute('id', property); 
     geoDiv.setAttribute('data-coordinates', JSON.stringify(wdresponse));
     geoDiv.setAttribute('data-wdprop', property);
+    geoDiv.classList.add('miniMap');
     var targetDivForMap = document.createElement('div'); 
-    targetDivForMap.classList.add('h-full', 'w-full'); 
     targetDivForMap.setAttribute('id', property+'_map'); 
     geoDiv.appendChild(targetDivForMap);
     into.push(geoDiv); 
@@ -258,21 +250,22 @@ class wikibaseEntry {
     //let's assume that the image variable can hold 2 or more images, we need a for loop and caroussel to display this. 
     var carousselDiv = document.createElement('div'); 
     var labelDiv = document.createElement('a');
-    labelDiv.setAttribute('href', 'https://www.wikidata.org/wiki/Property_talk:'+property); 
+    labelDiv.setAttribute('href', 'https://www.wikidata.org/wiki/Property_talk:'+property);
     labelDiv.setAttribute('target', '_blank');
     labelDiv.appendChild(document.createTextNode(label));
     labelDiv.classList.add('font-bold');
-    carousselDiv.classList.add('caroussel_for_wikidata_images'); 
-    carousselDiv.setAttribute('id', property); 
-    carousselDiv.setAttribute('data-content', JSON.stringify(image)); 
+    carousselDiv.classList.add('caroussel_for_wikidata_images');
+    carousselDiv.setAttribute('id', property);
+    carousselDiv.setAttribute('data-content', JSON.stringify(image));
     carousselDiv.appendChild(labelDiv);
-    //console.log(label, image); 
-    into.push(carousselDiv); 
+    into.push(carousselDiv);
     //A separate caroussel JS file handles the actual display of data. 
   }
 
   displayStringData(label, value, q, property){
     var into = this.OutputFormattedDataBlocks[q]['str'];
+    console.log(label, value, property);
+
   }
 
   async displayURI (parent, identifierOfEntity, q, p){
@@ -284,7 +277,7 @@ class wikibaseEntry {
     if (identifierOfEntity.length > 1){
       var oneToMany = 1;
     }else{
-      var oneToMany = 0
+      var oneToMany = 0;
     }
     var urlForPatternRequest = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+p+"&props=claims&format=json&origin=*"
     // combine that with the identifierOfEntity
@@ -339,9 +332,5 @@ class wikibaseEntry {
         }
       });
 }
-
-
-
-
 
 };
