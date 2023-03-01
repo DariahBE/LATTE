@@ -537,6 +537,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .m-4 {
   margin: 1rem;
 }
+.m-1 {
+  margin: 0.25rem;
+}
 .m-0 {
   margin: 0px;
 }
@@ -729,9 +732,6 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 .w-16 {
   width: 4rem;
-}
-.w-96 {
-  width: 24rem;
 }
 .w-6 {
   width: 1.5rem;
@@ -1461,6 +1461,9 @@ Ensure the default browser behavior of the `hidden` attribute.
   border-top-width: 1px;
   border-bottom-width: 1px;
 }
+.border-t-2 {
+  border-top-width: 2px;
+}
 .border-b {
   border-bottom-width: 1px;
 }
@@ -1562,6 +1565,10 @@ Ensure the default browser behavior of the `hidden` attribute.
 .bg-blue-100 {
   --tw-bg-opacity: 1;
   background-color: rgb(219 234 254 / var(--tw-bg-opacity));
+}
+.bg-amber-100 {
+  --tw-bg-opacity: 1;
+  background-color: rgb(254 243 199 / var(--tw-bg-opacity));
 }
 .bg-teal-300 {
   --tw-bg-opacity: 1;
@@ -2341,12 +2348,21 @@ hr.vertical{
   border: solid;
 }
 
-.miniMap{
+.wdminidiv{
   height: 300px;
   width: 250px;
   border: black;
   border-style: solid;
-  word-width: 2px;
+  border-width: 2px;
+}
+
+.xsbinicon{
+  background-image: url("/images/trash-bin-xs.png");
+  min-width: 25px;
+  max-width: 25px;
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position-x: center;
 }
 
 .after\:h-8::after {

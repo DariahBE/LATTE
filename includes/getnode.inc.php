@@ -17,7 +17,6 @@ function helper_extractPrimary($keyName){
 }
 
 function helper_parseEntityStyle(){
-  var_dump(CORENODES);
   foreach (CORENODES as $key => $value) {
     echo '.'.$key.'{background-color:'.$value.';}';
   }

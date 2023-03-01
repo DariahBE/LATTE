@@ -14,13 +14,13 @@ function toggleSlide(dir = 0){
   // 0 closes the sidepanel; 1 opens it. Better than the original .toggle() functions
   if(dir === 0){
     document.getElementById('slideover-container').classList.add('invisible');
-    document.getElementById('slideover-bg').classList.add('opacity-0');
-    document.getElementById('slideover-bg').classList.remove('opacity-50');
+    //document.getElementById('slideover-bg').classList.add('opacity-0');
+    //document.getElementById('slideover-bg').classList.remove('opacity-50');
     document.getElementById('slideover').classList.add('translate-x-full');
   }else{
     document.getElementById('slideover-container').classList.remove('invisible');
-    document.getElementById('slideover-bg').classList.add('opacity-50');
-    document.getElementById('slideover-bg').classList.remove('opacity-0');
+    //document.getElementById('slideover-bg').classList.add('opacity-50');
+    //document.getElementById('slideover-bg').classList.remove('opacity-0');
     document.getElementById('slideover').classList.remove('translate-x-full');
   }
 }
@@ -83,7 +83,123 @@ function triggerSidePanelAction(entityData){
     midbox.classList.add('w-full'); 
   }else{
     console.log('no nodes found');
+
+    function binVariant(e){
+      e.parentElement.remove();
+    }
+
+
+    var createNodeDiv = document.createElement('div'); 
+    createNodeDiv.classList.add('w-full'); 
+    var topTex = document.createElement('h3'); 
+    topTex.appendChild(document.createTextNode('Create a new annotation'));
+    createNodeDiv.appendChild(topTex); 
     //add code to create a node from selection!
+
+    //append newly created Div to the DOM: 
+    targetOfInfo.appendChild(createNodeDiv);
+    //dropdown: select the entity type ==> use the color dict available.
+    var entityTypeDiv = document.createElement('div');
+    var entityTypePrompt = document.createElement('p');
+    entityTypePrompt.appendChild(document.createTextNode('1) Set entity type: ')); 
+    entityTypeDiv.appendChild(entityTypePrompt); 
+    var setEntityType = document.createElement('select'); 
+    var entityTypeOptionPrompt = document.createElement('option'); 
+    entityTypeOptionPrompt.appendChild(document.createTextNode('Entities: '));
+    entityTypeOptionPrompt.setAttribute('selected', true);
+    entityTypeOptionPrompt.setAttribute('disabled', true); 
+    setEntityType.appendChild(entityTypeOptionPrompt); 
+    for (var c = 0; c < coreNodes.length; c++){
+      var o = document.createElement('option'); 
+      o.appendChild(document.createTextNode(coreNodes[c]));
+      o.setAttribute('value', coreNodes[c]);
+      setEntityType.appendChild(o); 
+    }
+    createNodeDiv.appendChild(entityTypeDiv);
+    createNodeDiv.appendChild(setEntityType);
+    //Dropdown added: Show positional info: 
+    var text = getTextSelection();
+    var startPositionInText = text[1];
+    var endPositionInText = text[2];
+    var selectedString = text[0];
+    var positionDiv = document.createElement('div'); 
+    var positionTitle = document.createElement('h3'); 
+    positionTitle.appendChild(document.createTextNode('Annotation information: ')); 
+    //      startposition
+    var positionStart = document.createElement('p');
+    var positionStartSpan = document.createElement('span');
+    var startData = document.createElement('span');
+    startData.appendChild(document.createTextNode(startPositionInText));
+    positionStartSpan.appendChild(document.createTextNode('Starts: '));
+    positionStartSpan.classList.add('font-bold'); 
+    positionStart.appendChild(positionStartSpan);
+    positionStart.appendChild(startData);
+    //      endposition
+    var positionEnd = document.createElement('p');
+    var positionEndSpan = document.createElement('span');
+    var endData = document.createElement('span'); 
+    endData.appendChild(document.createTextNode(endPositionInText)); 
+    positionEndSpan.appendChild(document.createTextNode('Stops: '));
+    positionEndSpan.classList.add('font-bold');
+    positionEnd.appendChild(positionEndSpan); 
+    positionEnd.appendChild(endData); 
+    //    selection
+    var selectedText = document.createElement('p');
+    var selectedTextSpan = document.createElement('span');
+    var textData = document.createElement('span'); 
+    textData.appendChild(document.createTextNode(selectedString));
+    selectedTextSpan.appendChild(document.createTextNode('Text: '));
+    selectedTextSpan.classList.add('font-bold');
+    selectedText.appendChild(selectedTextSpan); 
+    selectedText.appendChild(textData); 
+    //    add it to the block: 
+    positionDiv.appendChild(positionTitle);
+    positionDiv.appendChild(positionStart);
+    positionDiv.appendChild(positionEnd);
+    positionDiv.appendChild(selectedText);
+    //positional info added: show spellingvariantbox: 
+    //    allow the user to generate a list of spelling variants: 
+    var spellingVariantTracker = [];
+    var spellingVariantMainBox = document.createElement('div');
+    var spellingVariantTitle = document.createElement('h3'); 
+    spellingVariantTitle.appendChild(document.createTextNode('Naming variants: '));
+    spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'); 
+    var spellingVariantCreation = document.createElement('input'); 
+    spellingVariantCreation.setAttribute('id', 'variantInputBox'); 
+    spellingVariantCreation.classList.add('border-solid', 'border-2')
+    var spellingVariantSubBox = document.createElement('div');
+    spellingVariantSubBox.setAttribute('id', 'variantStorageBox'); 
+    spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex');
+    var addToStorageBox = document.createElement('button'); 
+    addToStorageBox.appendChild(document.createTextNode('Add')); 
+    addToStorageBox.addEventListener('click', function(){
+      var writtenValue = document.getElementById('variantInputBox').value; 
+      document.getElementById('variantInputBox').value = ''; 
+      if(spellingVariantTracker.includes(writtenValue)){
+        return;
+      }
+      spellingVariantTracker.push(writtenValue);
+      var storeIn = document.getElementById('variantStorageBox'); 
+      var variantDisplayDiv = document.createElement('div'); 
+      variantDisplayDiv.classList.add('m-1','p-1','spellingvariantbox', 'bg-amber-100', 'flex');
+      var variantDisplayTex = document.createElement('p');
+      variantDisplayTex.appendChild(document.createTextNode(writtenValue));
+      var variantDisplayBin = document.createElement('p');
+      variantDisplayBin.classList.add('xsbinicon', 'bg-amber-200', 'm-1','p-1', 'rounded-full'); 
+      variantDisplayBin.addEventListener('click', function(){binVariant(this);});
+      variantDisplayDiv.appendChild(variantDisplayTex);
+      variantDisplayDiv.appendChild(variantDisplayBin);
+      storeIn.appendChild(variantDisplayDiv);
+    }); 
+    spellingVariantMainBox.appendChild(spellingVariantCreation);
+    spellingVariantMainBox.appendChild(addToStorageBox);
+    spellingVariantMainBox.appendChild(spellingVariantSubBox);
+
+    //add all boxes to the DOM: 
+    createNodeDiv.appendChild(positionDiv);
+    createNodeDiv.appendChild(spellingVariantMainBox);
+    //done with spelling variants: 
+
   }
 }
 

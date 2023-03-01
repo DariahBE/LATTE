@@ -96,14 +96,15 @@ $privateProperties = array('uid');
 //////////////////////////////////////////////////////
 
 //which nodes should the entitylinking tool look for in the database? Repeat the keys as they are in the
-// config object above; Asign the color value to them you want to use in the DOM.
+// config object above; Asign the color value to them you want to use in the DOM. The keys used in this 
+//dictionary should match the names of entitytypes which are part of the researchproject!
 $matchOnNodes = array(
   'Person' => 'rgba(39, 123, 245, 0.6)',
   'Place' => 'rgba(245, 178, 39, 0.6)',
   'Event' => 'rgba(39, 245, 123, 0.6)',
   'Dog' => 'rgba(255, 255, 255, 0.6)', 
-  'Text' => 'rgba(28, 200, 28, 0.6)', 
-  'Annotation' => 'rgba(200, 28, 28, 0.6)'
+  //'Text' => 'rgba(28, 200, 28, 0.6)', 
+  //'Annotation' => 'rgba(200, 28, 28, 0.6)'
 );
 
 //automatically fill out below config based on nodesDatamodel:

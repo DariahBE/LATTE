@@ -231,7 +231,7 @@ class wikibaseEntry {
     geoDiv.setAttribute('id', property); 
     geoDiv.setAttribute('data-coordinates', JSON.stringify(wdresponse));
     geoDiv.setAttribute('data-wdprop', property);
-    geoDiv.classList.add('miniMap');
+    geoDiv.classList.add('wdminidiv');
     var targetDivForMap = document.createElement('div'); 
     targetDivForMap.setAttribute('id', property+'_map'); 
     geoDiv.appendChild(targetDivForMap);
@@ -254,7 +254,7 @@ class wikibaseEntry {
     labelDiv.setAttribute('target', '_blank');
     labelDiv.appendChild(document.createTextNode(label));
     labelDiv.classList.add('font-bold');
-    carousselDiv.classList.add('caroussel_for_wikidata_images');
+    carousselDiv.classList.add('caroussel_for_wikidata_images', 'wdminidiv');
     carousselDiv.setAttribute('id', property);
     carousselDiv.setAttribute('data-content', JSON.stringify(image));
     carousselDiv.appendChild(labelDiv);
@@ -270,7 +270,7 @@ class wikibaseEntry {
 
   async displayURI (parent, identifierOfEntity, q, p){
     /**
-     * Be carefull, you have one to many relations where one wikidatad Q-id matches multiple remote identifiers of a single project!
+     * Be carefull, you have one to many relations where one wikidata Q-id matches multiple remote identifiers of a single project!
      */
     var into = this.OutputFormattedDataBlocks[q]['uri'];
     // get the P1630Property of the element: Needs the parent element
