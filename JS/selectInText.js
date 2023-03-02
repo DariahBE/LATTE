@@ -82,13 +82,9 @@ function triggerSidePanelAction(entityData){
     let midbox = document.createElement('div'); 
     midbox.classList.add('w-full'); 
   }else{
-    console.log('no nodes found');
-
     function binVariant(e){
       e.parentElement.remove();
     }
-
-
     var createNodeDiv = document.createElement('div'); 
     createNodeDiv.classList.add('w-full'); 
     var topTex = document.createElement('h3'); 
@@ -169,7 +165,7 @@ function triggerSidePanelAction(entityData){
     spellingVariantCreation.classList.add('border-solid', 'border-2')
     var spellingVariantSubBox = document.createElement('div');
     spellingVariantSubBox.setAttribute('id', 'variantStorageBox'); 
-    spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex');
+    spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex', 'flex-wrap');
     var addToStorageBox = document.createElement('button'); 
     addToStorageBox.appendChild(document.createTextNode('Add')); 
     addToStorageBox.addEventListener('click', function(){
@@ -194,10 +190,34 @@ function triggerSidePanelAction(entityData){
     spellingVariantMainBox.appendChild(spellingVariantCreation);
     spellingVariantMainBox.appendChild(addToStorageBox);
     spellingVariantMainBox.appendChild(spellingVariantSubBox);
+    //wikidataPrompt: 
+    var wikidataQLabel = document.createElement('div');
+    wikidataQLabel.setAttribute('readonly', true);
+    wikidataQLabel.setAttribute('id', 'chosenQID');
+    var wikidataPromptMainbox = document.createElement('div');
+    var wikidataInputBox = document.createElement('input');
+    wikidataInputBox.setAttribute('id', 'wikidataInputPrompter');
+    wikidataInputBox.value = selectedString;
+    var searchButtonForWDPrompt = document.createElement('button'); 
+    var searchButtonForWDPromptText = document.createTextNode('Search!'); 
+    searchButtonForWDPrompt.appendChild(searchButtonForWDPromptText); 
+    searchButtonForWDPrompt.addEventListener('click', function(){
+      wdprompt(wikidataInputBox.value, 'en', 0);
+    });
+    var wikidataResultsBox = document.createElement('div');
+    wikidataResultsBox.setAttribute('id', 'wdpromptBox');
+    wikidataPromptMainbox.appendChild(wikidataQLabel);
+    wikidataPromptMainbox.appendChild(wikidataInputBox);
+    wikidataPromptMainbox.appendChild(searchButtonForWDPrompt);
+    wikidataPromptMainbox.appendChild(wikidataResultsBox); 
+
 
     //add all boxes to the DOM: 
     createNodeDiv.appendChild(positionDiv);
     createNodeDiv.appendChild(spellingVariantMainBox);
+    //add a WD Promptbox and trigger the function for wikidata_prompting from here:
+    createNodeDiv.appendChild(wikidataPromptMainbox); 
+    searchButtonForWDPrompt.click();
     //done with spelling variants: 
 
   }

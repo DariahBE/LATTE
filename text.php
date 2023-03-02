@@ -64,6 +64,7 @@ $relations = $node->getEdges($nodeId);
     <script src="/JS/caroussel.js"></script>
     <script src="/JS/makeMap.js"></script>
     <script src="/JS/leaflet/leaflet.js"></script>
+    <script src="/JS/wikidata_prompt.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
