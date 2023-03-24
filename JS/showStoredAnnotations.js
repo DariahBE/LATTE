@@ -1,3 +1,9 @@
+/**
+ *  this is to visualize whatever is stored int he DB and show it to the USER
+ *  Not intended for interaction!!!
+ * 
+ */
+
 function unmark(){
   var marked = document.getElementsByClassName('markedAnnotation');
   for(var i = marked.length-1; i >= 0; i--){
@@ -45,6 +51,7 @@ function visualizeStoredAnnotations(){
       ltr.dataset.annotationCount = positions[ltr.dataset.itercounter][0].length;
       ltr.classList.add(positions[ltr.dataset.itercounter][1])
       ltr.addEventListener('click', function(){
+        console.log('letterBasedEntry');
         var origin = event.source || event.target;
         var countOfRelatedAnnotations = origin.dataset.annotationCount;
         var relatedAnnotationIDS = origin.dataset.annotation;

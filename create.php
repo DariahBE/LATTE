@@ -1,0 +1,63 @@
+<?php
+//include_once('includes/getnode.inc.php');
+include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+include_once(ROOT_DIR.'/includes/getnode.inc.php');
+include_once(ROOT_DIR.'/includes/user.inc.php');
+include_once(ROOT_DIR.'/includes/navbar.inc.php');
+
+
+if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
+    //creating new data is only allowed if a user is logged in: 
+    //die($user_uuid);
+    header('Location: /user/login.php');
+    die();
+}
+?>
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+  <head>
+    <meta charset="utf-8">
+    <title><?php echo PROJECTNAME ?></title>
+    <link rel="stylesheet" href="/CSS/style_entities.css">
+    <link rel="stylesheet" href="/CSS/stylePublic.css">
+    <link rel="stylesheet" href="/CSS/overlaystyling.css">
+    <link rel="stylesheet" href="/CSS/leaflet/leaflet.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src = "/JS/creation.js"></script>
+  </head>
+  <body class="bg-neutral-200 w-full">
+    
+    <?php
+        $navbar = new Navbar(); 
+        echo $navbar->nav;  
+        echo '<script>var core = '.json_encode(array_keys(CORENODES)).';</script>';
+    ?>
+    <div class= "2xl:w-1/2 xl:w-2/3 items-center m-auto">
+
+      <h3>extend graph</h3>
+      <div>
+        <h4>Nodetype: </h4>
+        <div id='nodeTypeSelection'>
+
+        </div>
+      </div>
+      <div id='propertySection' class='hidden'>
+        <h4>Node properties: </h4>
+        <div id='propertyInputSection'>
+
+        </div>
+      </div>
+      <div id='saveSection' class='hidden'>
+        <h4>Save and review: </h4>
+        <div id='saveConfirmation'>
+
+        </div>
+      </div>
+    </div>
+
+  <script>
+    var creator = new nodeCreator(core); 
+
+  </script>
+  </body>
+</html>

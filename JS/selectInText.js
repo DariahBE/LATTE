@@ -29,7 +29,7 @@ function triggerSidePanelAction(entityData){
   toggleSlide(1);
   console.log(entityData);
   let = dataDictionary = {};
-  const targetOfInfo = document.getElementById('slideover-dynamicContent'); 
+  const targetOfInfo = document.getElementById('slideoverDynamicContent'); 
   targetOfInfo.innerHTML = ''; 
   if(entityData['nodes'].length){
     //create a title that show the information about the matching entities: 

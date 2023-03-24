@@ -50,7 +50,7 @@ class wikibaseEntry {
 
 
   async getWikidata(){
-    console.log(this.searchMode);
+    //console.log(this.searchMode);
     let url = '';
     if (this.searchMode === 'qid'){
       url = wdk.getEntities({
@@ -129,7 +129,7 @@ class wikibaseEntry {
         this.classifier[highestScore].push(element); 
       }
     });
-    console.log(this.classifier);
+    //console.log(this.classifier);
   }
   renderEntities(qid){
     //with all the entities categorized by the classify() call:
@@ -148,35 +148,35 @@ class wikibaseEntry {
           var userSelected = this.usersettings['shownProperties'][e];
           let wdPropLabel = userSelected[0]; 
           let wdProcessAs = userSelected[2];
-          //console.log(wdPropLabel, wdProcessAs);
           if(wdProcessAs === 'uri'){
             promisses.push(this.displayURI(wdPropLabel, wikidata_response, qid, e));
           }else if(wdProcessAs === 'geo'){
             this.displayCoordinateData(wikidata_response, qid, e);
           }else if(wdProcessAs === 'img'){
-            //var wikidata_response = this.rawData[qid].claims[e]; 
             this.displayImageData(wdPropLabel,wikidata_response, qid, e);
           }else if(wdProcessAs === 'str'){
             this.displayStringData(wdPropLabel, wikidata_response, qid, e);
           }
-        }        
-      } );
+        }
+      });
     }
     Promise.all(promisses).then((values)=> {
-      var keyToTitle = {'uri': 'External Identifiers', 'geo': 'Maps', 'img': 'Images', 'str': 'Whatevervalues'};
+      var keyToTitle = {'uri': 'External Identifiers', 'geo': 'Maps', 'img': 'Images', 'str': 'Literals'};
       // output the OutputFormattedDataBlocks to DOM. 
-      const target = document.getElementById('slideover-dynamicContent'); 
+      const target = document.getElementById('slideoverDynamicContent'); 
       let dataDivMain = document.createElement('div'); 
       dataDivMain.setAttribute('id', 'handyLittleThingyForWDStuff');
       if (this.searchMode === 'qid'){
         for (const [key, value] of Object.entries(this.OutputFormattedDataBlocks[qid])) {
           if(value.length === 0){continue;}
           let dataDivCategory = document.createElement('div'); 
+          dataDivCategory.classList.add('my-2', 'py-2'); 
           let categoryTitle = document.createElement('h4');
           categoryTitle.appendChild(document.createTextNode(keyToTitle[key])); 
           categoryTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');
           dataDivCategory.appendChild(categoryTitle); 
           for(var n = 0; n < value.length; n++){
+            console.log(value[n]);
             dataDivCategory.appendChild(value[n]); 
           }
           dataDivMain.appendChild(dataDivCategory); 
@@ -227,7 +227,7 @@ class wikibaseEntry {
     // https://www.wikidata.org/wiki/Property_talk:P625  
     /**can be one to many! In that case the first record is the preferred record. Show both, but with separate marker!*/
     var geoDiv = document.createElement('div'); 
-    geoDiv.classList.add('geocontainer_for_wikidata_coords'); 
+    geoDiv.classList.add('geocontainer_for_wikidata_coords', 'm-auto'); 
     geoDiv.setAttribute('id', property); 
     geoDiv.setAttribute('data-coordinates', JSON.stringify(wdresponse));
     geoDiv.setAttribute('data-wdprop', property);
@@ -254,7 +254,7 @@ class wikibaseEntry {
     labelDiv.setAttribute('target', '_blank');
     labelDiv.appendChild(document.createTextNode(label));
     labelDiv.classList.add('font-bold');
-    carousselDiv.classList.add('caroussel_for_wikidata_images', 'wdminidiv');
+    carousselDiv.classList.add('caroussel_for_wikidata_images', 'wdminidiv', 'm-auto');
     carousselDiv.setAttribute('id', property);
     carousselDiv.setAttribute('data-content', JSON.stringify(image));
     carousselDiv.appendChild(labelDiv);
@@ -264,8 +264,12 @@ class wikibaseEntry {
 
   displayStringData(label, value, q, property){
     var into = this.OutputFormattedDataBlocks[q]['str'];
-    console.log(label, value, property);
-
+    //show this as: user provided string with embedded link to wikidata where te property is explained: value. 
+    var pelement = document.createElement('p');
+    var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+value+"</span>"; 
+    pelement.innerHTML = showAs; 
+    //pelement.innerHTML= '<span>TEST</span>'; 
+    into.push(pelement); 
   }
 
   async displayURI (parent, identifierOfEntity, q, p){

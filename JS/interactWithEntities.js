@@ -12,38 +12,20 @@ function getInfoFromBackend(url){
   })
   return myPromise;
 }
-/*
-function frameWorkBase(){
-  var insertHere = document.getElementById('rightExtensionPanel');
-  insertHere.innerHTML = '';
-  //main container:
-  var maindiv = document.createElement('div');
-  maindiv.setAttribute('id', 'maindiv');
-  maindiv.classList.add('container');
-  //add title to maincontainer:
-  var title = document.createElement('h3');
-  title.setAttribute('id', 'annotationTitle');
-  title.classList.add('font-bold','flex', 'items-center', 'justify-center');
-  var titleTex = document.createTextNode('Annotation: ');
-  title.appendChild(titleTex);
-  maindiv.appendChild(title);
-  //under title add a DIV with variable metadata on Annotation Node:
-  var annotationDiv = document.createElement('div');
-  annotationDiv.setAttribute('id', 'annotationContainerAjax');
-  annotationDiv.classList.add('font-small');
-  maindiv.appendChild(annotationDiv);
-  //add a DIV with author information:
-  var authorDiv = document.createElement('div');
-  authorDiv.setAttribute('id', 'authorContainerAjax');
-  authorDiv.classList.add('font-small');
-  maindiv.appendChild(authorDiv);
-  //add a DIV with variants:
-  var variantDiv = document.createElement('div');
-  variantDiv.setAttribute('id', 'variantContainerAjax');
-  variantDiv.classList.add('font-small');
-  maindiv.appendChild(variantDiv);
-  insertHere.appendChild(maindiv);
-}*/ 
+
+function findRelatedTexts(neoID){
+  //do an AJAX-call and COUNT() to how many TEXT-nodes this ET is connected: 
+  function isPlural(input){
+    if(input != 1){return 's'}else{return ''}
+  }
+  fetch("/AJAX/connected_texts.php?id="+neoID)
+  .then((response) => response.json())
+  .then((data)=>{
+    var showToUser = `Mentioned ${data.Annotations} time${isPlural(data.Annotations)} in ${data.Texts} text${isPlural(data.Texts)}`; 
+    document.getElementById("relatedTextStats").innerHTML=`<p>${showToUser}</p>`;
+    console.log(showToUser);
+  });
+}
 
 function decideOnEdit(protected, level){
   console.log(protected, level);
@@ -62,10 +44,20 @@ function showdata(data){
   console.log('showdata call: ');
   console.log(data);
   toggleSlide(1);
-  var annotationTarget = document.getElementById('slideover-dynamicContent');
-  annotationTarget.innerHTML = ''; 
+  var annotationTarget = document.getElementById('slideoverDynamicContent');
+  //superimpose the slideover on top of the nabar: 
+  annotationTarget.classList.add("z-50");
+  var gateWay = document.createElement('div');
+  var statsTarget = document.createElement('div');
+  statsTarget.setAttribute('id', 'relatedTextStats');
+  statsTarget.classList.add('text-gray-600', 'w-full',  'm-5', 'p-5', 'left-0');
+  gateWay.setAttribute('id', 'applicationGateway');
+  annotationTarget.innerHTML = '';
+  gateWay.appendChild(statsTarget);
   var authorData = data['author'];
   var annotationData = data['annotation']['properties'];
+  //sends the node neoID (unstable, do not use for identifying purposes on exposed API's):
+  findRelatedTexts(data['entity'][0]['neoID']); 
   var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
   function writeField(key, data, protected, rights){
@@ -155,18 +147,26 @@ function showdata(data){
   var etTypeText = document.createTextNode(data['entity'][0]['type']); 
   etType.appendChild(etTypeText);
   annotationTarget.appendChild(etType);
+  var linkToGraphExplorer = '/explore/'+data['entity'][0]['neoID']; 
+  var linkElement = document.createElement('a'); 
+  linkElement.setAttribute('href', linkToGraphExplorer); 
+  linkElement.setAttribute('target', '_blank');
+  imgElement = document.createElement('img');
+  imgElement.src = '/images/graphExplore.png';
+  linkElement.appendChild(imgElement);
+  gateWay.appendChild(linkElement);
+  annotationTarget.appendChild(gateWay);
+
   //With the type known: look up if there's a wikidata attribute: 
   var qidArr = data['entity'][0]['properties'].filter(ar => ar[2]== 'wikidata');
   if (qidArr.length === 1){
     var qid = qidArr[0][1];
-    console.log(qid); 
+    //console.log(qid);
     var wd = new wikibaseEntry(qid, wdProperties, 'qid');
     wd.getWikidata()
       .then(function(){wd.renderEntities(qid)}); 
       //console.log(x);
-
   }
-
 }
 
 function handleError(){
@@ -191,6 +191,7 @@ function handleError(){
 }
 
 function loadAnnotationData(){
+  console.log('Normal Entry!');
   var eventsource = event.source || event.target;
   //event.preventDefault();
   //console.log(eventsource);

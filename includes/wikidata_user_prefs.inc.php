@@ -35,6 +35,7 @@
       'P18' => array('Image', False, 'img'), 
       'P94' => array('Coat of Arms', False, 'img'), 
       'P1801' => array('Commemorative Plaque', False, 'img'), 
+      'P1082' => array('Population count', False, 'str'), 
       'P158' => array('Seal', False, 'img'), 
       'P214' => array('VIAF ID', True, 'uri'), 
       'P244' => array('Library of Congress ID', False, 'uri'), 

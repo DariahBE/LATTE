@@ -3,6 +3,7 @@
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/entityviews.inc.php');
+include_once(ROOT_DIR.'/includes/navbar.inc.php');
 
 
 
@@ -64,9 +65,10 @@ if(array_key_exists('coreID', $core)){
     <script type="text/javascript" src="/JS/clipboardcopy.js"> </script>
   </head>
   <body class="bg-neutral-200">
-    <div class="">
-      <!-- navbar-->
-    </div>
+    <?php
+      $navbar = new Navbar(); 
+      echo $navbar->nav;
+    ?>
     <div class="container row">
       <!-- content -->
       <div class="top">

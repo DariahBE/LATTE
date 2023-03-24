@@ -3,6 +3,7 @@ function wdprompt(string, language='en', offset = 0){
   let promptURL = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search="+string+"&origin=*&format=json&errorformat=plaintext&type=item&language="+language+"&strictlanguage=false&limit="+by+"&continue="+offset; 
   const target = document.getElementById('wdpromptBox');
   let table = document.createElement('table'); 
+  table.classList.add('table-auto'); 
   fetch(promptURL)
   .then((response) => response.json())
   .then((data) => {
@@ -26,12 +27,26 @@ function wdprompt(string, language='en', offset = 0){
       }
       if(qid){
         let row = table.insertRow();
+        row.classList.add('even:bg-gray-200', 'odd:bg-gray-100', 'hover:bg-sky-200'); 
+        let pickThisCell = row.insertCell(); 
+        pickThisCell.textContent = '✓'; 
+        pickThisCell.addEventListener('click', function(){pickThisQID(qid)}); 
         let qidcell = row.insertCell();
-        qidcell.textContent = qid;
+        let qidlink = "https://www.wikidata.org/wiki/"+qid; 
+        let qidAnchor = document.createElement('a'); 
+        qidAnchor.setAttribute('href', qidlink); 
+        qidAnchor.setAttribute('target', '_blank');
+        qidAnchor.classList.add('externalURILogo'); 
+        qidAnchor.appendChild(document.createTextNode(qid)); 
+        qidcell.appendChild(qidAnchor); 
         let titlecell = row.insertCell();
         titlecell.textContent = title;
         let descrcell = row.insertCell();
         descrcell.textContent = descr;
+        qidcell.classList.add('m-1', 'p-1');
+        titlecell.classList.add('m-1', 'p-1');
+        pickThisCell.classList.add('m-1', 'p-1', 'hover:bg-green-200'); 
+        descrcell.classList.add('m-1', 'p-1'); 
       }
     }
     //navigate offsets: 
@@ -53,8 +68,8 @@ function wdprompt(string, language='en', offset = 0){
       //there's more than 'by'-results;
       let nextPage = document.createElement('p');
       nextPage.appendChild(document.createTextNode('>>')); 
-      nextPage.classList.add('font-bold', 'rounded-full', 'text-2xl', 'bg-sky-400', 'text-center'); 
-      nextPage.addEventListener('click', function(){wdprompt(string, language, nextOffset)});   
+      nextPage.classList.add('font-bold', 'rounded-full', 'text-2xl', 'bg-sky-400', 'text-center');
+      nextPage.addEventListener('click', function(){wdprompt(string, language, nextOffset)});
       navigateReply.appendChild(nextPage); 
     }
     target.innerHTML = ''; 
@@ -63,10 +78,36 @@ function wdprompt(string, language='en', offset = 0){
   });
 }
 
-function acceptThisQID(qid){
+function acceptQID(){
+
+}
+
+function pickThisQID(qid){
+  console.log(qid); 
   //clear the promptbox:
-
+  document.getElementById('wdpromptBox').remove();
   //load the wikidata.js class and set qidmode on qid!
-
-  //put qid in field - make it non-editable. 
+  var wd = new wikibaseEntry(qid, wdProperties, 'qid');
+  wd.getWikidata()
+    .then(function(){wd.renderEntities(qid)});
+    //console.log(x);  //put qid in field - make it non-editable. 
+  //if the user is unsure, allow them to go back to the selector layout: 
+  //if the user is SURE ==> provide a save button which sends the request to the server! 
+  let rejectButton = document.createElement('button');
+  let acceptButton = document.createElement('button');
+  let rejectText = document.createTextNode('Reject');
+  let acceptText = document.createTextNode('Accept');
+  rejectButton.addEventListener('click', function(){
+    console.log('reject');
+    wd = null; //destroy wikidataObject
+    console.log(wd); 
+  });
+  const displayWDtarget = document.getElementById('handyLittleThingyForWDStuff');
+  console.log(displayWDtarget);
+  rejectButton.appendChild(rejectText);
+  acceptButton.appendChild(acceptText);
+  let confirmationDiv = document.createElement('div');
+  confirmationDiv.appendChild(acceptButton);
+  confirmationDiv.appendChild(rejectButton);
+  document.getElementById('slideoverDynamicContent').insertBefore(confirmationDiv, displayWDtarget);
 }

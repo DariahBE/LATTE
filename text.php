@@ -6,6 +6,7 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/wikidata_user_prefs.inc.php');
 include_once(ROOT_DIR.'/includes/multibyte_iter.inc.php');
 include_once(ROOT_DIR.'/includes/annotation.inc.php');
+include_once(ROOT_DIR.'/includes/navbar.inc.php');
 if(isset($_GET['texid'])){
   $propId = $_GET['texid'];
   $nodeType = 'Text';
@@ -72,11 +73,12 @@ $relations = $node->getEdges($nodeId);
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   </head>
   <body class="bg-neutral-200 w-full">
-    <div class=" 2xl:w-1/2 xl:w-2/3 items-center m-auto"> 
-    <div class="">
-      <!-- navbar-->
+  <?php
+        $navbar = new Navbar(); 
+        echo $navbar->nav;  
+    ?>
 
-    </div>
+    <div class=" 2xl:w-1/2 xl:w-2/3 items-center m-auto"> 
     <!-- content-->
 
 <div class="top ">
@@ -192,14 +194,14 @@ $relations = $node->getEdges($nodeId);
     </div>
   </div> -->
 </div>
-<div id="slideover-container" class="right-0 w-1/2 h-full fixed top-0 invisible">
+<div id="slideover-container" class="right-0 w-1/2 h-full fixed top-0 invisible z-50">
   <!--<div id="slideover-bg" class="w-full h-full duration-500 ease-out transition-all top-0 absolute bg-gray-900 opacity-0"></div>-->
   <div id="slideover" class="w-full bg-white h-full absolute left-0 duration-300 ease-out transition-all translate-x-full overflow-y-scroll overflow-x-hidden">
   <svg onclick='toggleSlide(0)' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 
-      <div id="slideover-dynamicContent" class="absolute cursor-pointer text-gray-600 top-0 w-full h-full justify-center left-0 m-5 p-5">
+      <div id="slideoverDynamicContent" class="absolute text-gray-600 top-0 w-full h-full justify-center left-0 m-5 p-5">
         <!-- with xhr data loaded: put the response here!
           this panel serves as the target for showing data in the NEO database as well as wikidata responses. 
       -->

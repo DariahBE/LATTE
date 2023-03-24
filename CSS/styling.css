@@ -28,7 +28,7 @@ hr.vertical{
 }
 
 .wdminidiv{
-  height: 300px;
+  min-height: 300px;
   width: 250px;
   border: black;
   border-style: solid;
@@ -42,4 +42,8 @@ hr.vertical{
   background-size: contain;
   background-repeat: no-repeat;
   background-position-x: center;
+}
+
+.externalURILogo::before{
+  content: '\01F517'; 
 }

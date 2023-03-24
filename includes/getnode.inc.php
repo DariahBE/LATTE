@@ -23,6 +23,7 @@ function helper_parseEntityStyle(){
 }
 
 
+
 function ignoreRegex($strIn){
   $strOut = str_replace('[', '\[', $strIn);
   $strOut = str_replace('(', '\(', $strOut);
@@ -90,8 +91,25 @@ function process_edge($edgeIn){
 
 class Node{
   protected $client;
-  function __construct($client)  {
+  function __construct($client) {
     $this->client = $client;
+  }
+
+  function countTextsConnectedToEntityWithID($value){
+    //this function starts from the automatically generated UUID and counts all TEXT nodes that are related to it. 
+    $connectedAnnotations = $this->client->run('MATCH (x)--(n:Annotation) WHERE id(x) = $nodeval RETURN COUNT(n) AS result', ['nodeval'=>$value]);
+    //echo $connectedAnnotations[0]->get('result');
+    //var_dump($connectedAnnotations);
+    $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:Text) WHERE id(x) = $nodeval RETURN COUNT(DISTINCT t) AS result', ['nodeval'=>$value]);
+    //b7ba61b4-0985-489f-86af-6d60c206ac5e
+    return array('Annotations'=> (int)$connectedAnnotations[0]->get('result'), 'Texts'=>(int)$connectedTexts[0]->get('result'));
+  }
+  function listTextsConnectedToEntityWithID($value){
+    //this function start form the automatically generated UUID and lists all TEXT nodes that are related to it.
+    $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:Text) WHERE id(x) = $nodeval RETURN DISTINCT id(t) AS result', ['nodeval'=>$value]);
+    $result = array(); 
+
+    return $connectedTexts;
   }
 
   function getDistinctLabels(){

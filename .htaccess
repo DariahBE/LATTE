@@ -1,6 +1,8 @@
 RewriteRule API/([\w-]+)/([^/]*)$ /API/identify.php?type=$1&uuid=$2 [NC,L]
 RewriteRule text/([^/]*)$ /text.php?texid=$1 [NC,L]
 RewriteRule URI/([^/]*)/([^/]*)$ /stable.php?type=$1&uuid=$2 [NC,L]
+RewriteRule explore/([^/]*)$ /browse/index.php?value=$1 [NC,L]                          #Graph explorer of nodes in the database. 
+
 #RewriteRule place/([^/]*)$ /stable.php?type=place&uuid=$1 [NC,L]
 #RewriteRule person/([^/]*)$ /stable.php?type=person&uuid=$1 [NC,L]
 #RewriteRule event/([^/]*)$ /stable.php?type=event&uuid=$1 [NC,L]
