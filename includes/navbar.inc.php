@@ -28,22 +28,20 @@
           '.$this->sessiontoggle().'
         </ul>
       </div>
-
     </div>
   </div>
 </nav>
 <div id="navbufferHeight" class= "relative h-8 sm:h-12 py-8 w-full -z-10"></div>
-
 '; 
 
   }
 
   function sessiontoggle(){
     $logout = '<li><a href="user/logout.php" class="text-gray-900" dark:text-white hover:underline">Logout</a></li>'; 
-    if(isset($_SESSION)){
+    if(isset($_SESSION['userid'])){
       return $logout; 
     }
-    return '';
+     return '';
   }
 }
 

@@ -9,7 +9,8 @@ include_once(ROOT_DIR.'/includes/navbar.inc.php');
 if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
     //creating new data is only allowed if a user is logged in: 
     //die($user_uuid);
-    header('Location: /user/login.php');
+    $redir = '?redir=/create.php';
+    header('Location: /user/login.php'.$redir);
     die();
 }
 ?>
@@ -24,6 +25,7 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
     <link rel="stylesheet" href="/CSS/leaflet/leaflet.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script src = "/JS/creation.js"></script>
+    <script src = "/JS/vallidator.js"></script>
   </head>
   <body class="bg-neutral-200 w-full">
     

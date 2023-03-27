@@ -13,9 +13,11 @@ class User{
     $this->myId = isset($_SESSION['userid']) ? $_SESSION['userid'] : False;
   }
 
-public function checkForSession(){
+public function checkForSession($redir="/user/mypage.php"){
   if($this->myName){
-    header('Location: /user/mypage.php');
+    //var_dump($redir); 
+    header("Location: $redir");
+    die(); 
   }
 }
 
@@ -23,8 +25,9 @@ public function checkForSession(){
     session_destroy();
     if (filter_var(WEBURL, FILTER_VALIDATE_URL) !== FALSE) {
       header('Location: '.WEBURL);
+      die(); 
     }
-    die("Log out completed.");
+    //die("Log out completed.");
   }
 
 

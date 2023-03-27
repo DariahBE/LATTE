@@ -2,7 +2,13 @@
   include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
   include_once(ROOT_DIR.'/includes/user.inc.php');
   $user = new User(false);
-  $user->checkForSession();
+  if(isset($_GET['redir'])){
+    $redir = $_GET['redir']; 
+    $path = filter_var($redir, FILTER_SANITIZE_URL);
+    $user->checkForSession(htmlspecialchars($path)); 
+  }else{
+    $user->checkForSession(); 
+  }
   $user = null;
 
 ?>
@@ -12,12 +18,10 @@
     <meta charset="utf-8">
     <title>Login</title>
     <script src="/JS/jquery-3.6.0.min.js"></script>
-
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
-
   </head>
   <body>
     <div class="">
@@ -34,7 +38,7 @@
 
                     </div>
                     <div class="text-center">
-                      <h4 class="text-xl font-semibold mt-1 mb-12 pb-1">Welcome to <?php echo PROJECTNAME ?></h4>
+                      <h4 class="text-xl font-semibold mt-1 mb-12 pb-1">Welcome to <?php echo PROJECTNAME; ?></h4>
                     </div>
                     <form>
                       <p class="mb-4">Please login to your account</p>
@@ -93,12 +97,13 @@
                               data: logindata,
                               success: function(data, status, xhttp){
                                 if ( data ){
-                                  console.log(data);
                                   $("#status").text(data['msg']);
                                   if(data['status'] == 1){
                                     $("#loginsquare").fadeOut();
                                     $("#loginsquare").promise().done(function(){
-                                      location.reload(); //forces reload of logn page ==> will redirect to account page if session is valid.
+                                      //forces reload of logn page ==> will redirect to account page if session is valid or follow the redir parameter if provided!
+                                      var url=window.location.href;   
+                                      window.location.href=url;
                                     });
                                   }
                                 }else{ // if false, show some sort of message with errors

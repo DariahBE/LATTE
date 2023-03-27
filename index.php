@@ -1,5 +1,7 @@
 <?php
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+include_once(ROOT_DIR.'/includes/navbar.inc.php');
+include_once(ROOT_DIR.'/includes/user.inc.php');
 ?>
 
 <!DOCTYPE html>
@@ -11,7 +13,14 @@ include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
     <script src="/JS/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" src="JS/homepage.js"></script>
   </head>
-  <body>
+  <body class=bg-amber-200>
+    <div>
+      <?php
+        $navbar = new Navbar(); 
+        echo $navbar->nav; 
+      ?>
+
+    </div>
     <div class="relative scroll-smooth">
         <div class="sticky top-0 h-screen flex flex-col items-center justify-center bg-amber-200">
             <h1 class="text-4xl"><?php echo PROJECTNAME;?></h1>
