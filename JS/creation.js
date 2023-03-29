@@ -11,36 +11,50 @@ class nodeCreator{
 
   createFormForType(eventhandle){
     var formTarget = document.getElementById('propertySection');
+    formTarget.innerHTML = ''; 
     formTarget.classList.remove('hidden'); 
     var type = eventhandle.srcElement.value
-    console.log(type);
-    var form = document.createElement('form'); 
+    var form = document.createElement('form');
+    form.setAttribute('id', 'inputformSecondStage'); 
+    var formGrid = document.createElement('div'); 
+    formGrid.classList.add('grid','gap-6', 'mb-6', 'md:grid-cols-2'); 
+    console.log('Unused html dom code: saveSection!'); 
     form.classList.add('inputFormForData'); 
     fetch('/AJAX/get_structure.php?type='+type)
       .then((response) => response.json())
       .then((data) =>{
         var keys = Object.keys(data); 
         for(var i=0; i<keys.length; i++){
+          var fieldName = 'field_name_'+toString(i); 
           console.log(keys[i]); 
           var attributes = data[keys[i]]; 
           console.log(data[keys[i]]);
-          var oneRowToDOM = document.createElement('div'); 
-          //label associated with the input field:
-          var labelForOneRow = document.createElement('p'); 
+          var oneRowToDOM = document.createElement('div');
+          oneRowToDOM.classList.add('form-group');
+          var labelForOneRow = document.createElement('label'); 
           var labelText = document.createTextNode(attributes[0]); 
+          //label associated with the input field:
           labelForOneRow.appendChild(labelText); 
           //input field: where user is allowed to enter data. 
           var inputField = document.createElement('input'); 
-          inputField.classList.add('validateAs_'+toString(attributes[1]).toLowerCase(), 'attachVallidator'); 
+          inputField.classList.add('form-control');
+          inputField.classList.add('attachValidator')
+          inputField.classList.add('validateAs_'+attributes[1].toLowerCase()); 
           inputField.dataset.name=keys[i];
           oneRowToDOM.appendChild(labelForOneRow);
           oneRowToDOM.appendChild(inputField);
-          form.appendChild(oneRowToDOM);
+          formGrid.appendChild(oneRowToDOM);
         }
+        var submit = document.createElement('input');
+        submit.setAttribute('type', 'submit');
+        formGrid.appendChild(submit)
+        form.appendChild(formGrid); 
         formTarget.appendChild(form);
         //attach the vallidator: 
-
+        const vallidation = new Vallidator();
+        vallidation.pickup();
       });
+
   }
 
   createNodeTypeSelector(){
@@ -62,7 +76,4 @@ class nodeCreator{
     selectBlock.addEventListener('click', event => this.createFormForType(event));
     target.appendChild(selectBlock); 
   }
-
-
-
 }
