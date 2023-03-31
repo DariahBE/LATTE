@@ -138,12 +138,14 @@ class wikibaseEntry {
     //    cases can go from 0 to multiple entities!
     //in Q-mode:
     //    One entity only; 
+    var madeAtLeastOneMatch = false;
     var baseBlock = {'uri':[], 'geo':[], 'img':[], 'str':[]}; 
     var promisses = []; 
     if(this.searchMode === 'qid'){
       this.OutputFormattedDataBlocks[qid]= baseBlock; 
       Object.keys(this.rawData[qid].claims).forEach(e => {
         if (Object.keys(this.usersettings['shownProperties']).includes(e)){
+          madeAtLeastOneMatch = true;
           var wikidata_response = this.rawData[qid].claims[e]; 
           var userSelected = this.usersettings['shownProperties'][e];
           let wdPropLabel = userSelected[0]; 
@@ -185,6 +187,9 @@ class wikibaseEntry {
       target.appendChild(dataDivMain); 
       buildCaroussel(); 
       buildMaps(); 
+      if(!(madeAtLeastOneMatch)){
+        document.getElementById('handyLittleThingyForWDStuff').innerHTML = '<p>Wikidata returned no property tags which are in the project scope.</p>'; 
+      }
     })
 
   }

@@ -161,6 +161,12 @@ class Node{
     return $data;
   }
 
+  function findEntitiesWithVariantValue($entityLabel, $variantValue) {
+    $query = "OPTIONAL MATCH (e:$entityLabel)-[]-(v:Variant {variant: '$variantValue'}) RETURN e";
+    $results = $this->client->run($query);
+    return $results;
+}
+
   function countNodesByLabel(){
     $result = $this->client->run('MATCH (n) where not (n:priv_user) RETURN DISTINCT count(labels(n)) as f, labels(n) as label ORDER BY f DESC;');
     $data = array();

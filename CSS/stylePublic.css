@@ -528,6 +528,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .m-auto {
   margin: auto;
 }
+.m-2 {
+  margin: 0.5rem;
+}
 .m-5 {
   margin: 1.25rem;
 }
@@ -545,9 +548,6 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 .m-0 {
   margin: 0px;
-}
-.m-2 {
-  margin: 0.5rem;
 }
 .my-4 {
   margin-top: 1rem;
@@ -1762,11 +1762,14 @@ Ensure the default browser behavior of the `hidden` attribute.
   -o-object-fit: scale-down;
      object-fit: scale-down;
 }
-.p-4 {
-  padding: 1rem;
+.p-8 {
+  padding: 2rem;
 }
 .p-2 {
   padding: 0.5rem;
+}
+.p-4 {
+  padding: 1rem;
 }
 .p-1 {
   padding: 0.25rem;
@@ -1776,9 +1779,6 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 .p-3 {
   padding: 0.75rem;
-}
-.p-8 {
-  padding: 2rem;
 }
 .py-4 {
   padding-top: 1rem;
@@ -1911,6 +1911,10 @@ Ensure the default browser behavior of the `hidden` attribute.
   font-size: 1.25rem;
   line-height: 1.75rem;
 }
+.text-lg {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+}
 .text-base {
   font-size: 1rem;
   line-height: 1.5rem;
@@ -1922,10 +1926,6 @@ Ensure the default browser behavior of the `hidden` attribute.
 .text-2xl {
   font-size: 1.5rem;
   line-height: 2rem;
-}
-.text-lg {
-  font-size: 1.125rem;
-  line-height: 1.75rem;
 }
 .text-sm {
   font-size: 0.875rem;
@@ -2089,6 +2089,12 @@ Ensure the default browser behavior of the `hidden` attribute.
 .decoration-wavy {
   -webkit-text-decoration-style: wavy;
           text-decoration-style: wavy;
+}
+.decoration-4 {
+  text-decoration-thickness: 4px;
+}
+.underline-offset-2 {
+  text-underline-offset: 2px;
 }
 .antialiased {
   -webkit-font-smoothing: antialiased;

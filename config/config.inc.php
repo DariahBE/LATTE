@@ -29,7 +29,7 @@ $URI = 'neo4j://localhost:7687';
 
 $nodesDatamodel = array(
   'Person' => [
-    "label" => ["Wikidata Label", "string", false, true, true],
+    "label" => ["Name", "string", false, true, true],
     "sex" =>["Gender", "string", false, false, true], 
     "wikidata" => ["Wikidata Label", 'wikidata', false, false, false]
   ],

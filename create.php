@@ -32,26 +32,29 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
     <?php
         $navbar = new Navbar(); 
         echo $navbar->nav;  
-        echo '<script>var core = '.json_encode(array_keys(CORENODES)).';</script>';
+        //DO NOT add annotations in this environment (nodename: Annotation) !
+        echo '<script>var core = '.json_encode(array_diff(array_keys(CORENODES), array('Annotation'))).';</script>';
     ?>
-    <div class= "2xl:w-1/2 xl:w-2/3 items-center m-auto">
+    <div class= "2xl:w-1/2 xl:w-2/3 items-center m-auto p-8">
 
-      <h3>extend graph</h3>
+      <h3 class="uppercase text-xl underline decoration-4 underline-offset-2">extend graph</h3>
       <div>
-        <h4>Nodetype: </h4>
-        <div id='nodeTypeSelection'>
+        <h4 class="text-lg p-2 m-2">Nodetype: </h4>
+        <div class="p-4 m-4" id='nodeTypeSelection'>
 
         </div>
       </div>
-      <div id='propertySection' class='hidden'>
-        <h4>Node properties: </h4>
-        <div id='propertyInputSection'>
+      <hr>
+      <div id='propertySection' class='hidden w-full'>
+        <h4 class="text-lg p-2 m-2">Node properties: </h4>
+        <div class="p-4 m-4" id='propertyInputSection'>
 
         </div>
       </div>
+      <hr>
       <div id='saveSection' class='hidden'>
-        <h4>Save and review: </h4>
-        <div id='saveConfirmation'>
+        <h4 class="text-lg p-2 m-2">Save and review: </h4>
+        <div class="p-4 m-4" id='saveConfirmation'>
 
         </div>
       </div>

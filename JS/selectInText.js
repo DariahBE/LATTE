@@ -25,6 +25,31 @@ function toggleSlide(dir = 0){
   }
 }
 
+function loadPropertiesOfSelectedType(selectedString){
+  var selector = document.getElementById('entityTypeSelector'); 
+  var selected = selector.value; //dropdown value selected. 
+  //load properties for selected: 
+  //start by testing if a variant exists for the given string: all string values are stored as variants; Variant should be connected to an entity of type == selected. 
+  fetch('/AJAX/match_variant.php?value='+selectedString+'&connectedto='+selected)
+  .then((response) => response.json())
+  .then((data) =>{
+    console.log(data);
+  })
+
+
+  //create a dual display: one with the option to add a new entity, one with the option to attach the annotation to an existing annotation. 
+  
+
+  
+  console.log(selectedString); 
+  fetch('/AJAX/get_structure.php?type='+selected)
+  .then((response) => response.json())
+  .then((data) =>{
+    console.log(data);
+  })
+  console.log(selected);
+}
+
 function triggerSidePanelAction(entityData){
   toggleSlide(1);
   console.log(entityData);
@@ -88,6 +113,7 @@ function triggerSidePanelAction(entityData){
     var createNodeDiv = document.createElement('div'); 
     createNodeDiv.classList.add('w-full'); 
     var topTex = document.createElement('h3'); 
+    topTex.classList.add('uppercase', 'text-xl', 'underline', 'decoration-4', 'underline-offset-2');
     topTex.appendChild(document.createTextNode('Create a new annotation'));
     createNodeDiv.appendChild(topTex); 
     //add code to create a node from selection!
@@ -97,9 +123,11 @@ function triggerSidePanelAction(entityData){
     //dropdown: select the entity type ==> use the color dict available.
     var entityTypeDiv = document.createElement('div');
     var entityTypePrompt = document.createElement('p');
+    entityTypePrompt.classList.add('text-lg', 'p-2', 'm-2'); 
     entityTypePrompt.appendChild(document.createTextNode('1) Set entity type: ')); 
     entityTypeDiv.appendChild(entityTypePrompt); 
     var setEntityType = document.createElement('select'); 
+    setEntityType.setAttribute('id','entityTypeSelector'); 
     var entityTypeOptionPrompt = document.createElement('option'); 
     entityTypeOptionPrompt.appendChild(document.createTextNode('Entities: '));
     entityTypeOptionPrompt.setAttribute('selected', true);
@@ -121,6 +149,9 @@ function triggerSidePanelAction(entityData){
     var positionDiv = document.createElement('div'); 
     var positionTitle = document.createElement('h3'); 
     positionTitle.appendChild(document.createTextNode('Annotation information: ')); 
+    setEntityType.addEventListener('change', function(){
+      loadPropertiesOfSelectedType(selectedString); 
+    })
     //      startposition
     var positionStart = document.createElement('p');
     var positionStartSpan = document.createElement('span');

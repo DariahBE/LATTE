@@ -1,7 +1,8 @@
 class Vallidator{
 
   intValidator(data){
-    if(Number.isInteger(data)){
+    var shouldBe = parseInt(data)+0; 
+    if(shouldBe == data){
       return [true];
     }else{
       return [false, 'The provided input is not a valid real number .'];
@@ -37,26 +38,30 @@ class Vallidator{
   pickup(){
     var elements = document.getElementsByClassName('attachValidator'); 
     console.log(elements); 
+    var mainclass = this;
     for(var n=0; n<elements.length; n++){
       var target = elements[n];
-      var mainclass = this;
+      //BUG: system evaluates everything as wikidata entry! // OKAY => new bug integer validator not working.
+      //eventlistener is stuck to the last object in the array!
       target.addEventListener('change', function(){
-        if(target.classList.contains('validateAs_string')){
-          var correct = ''; //not really required; strings are allowed to be empty anyway!
-        }else if(target.classList.contains('validateAs_wikidata')){
+        console.log(target);
+        if(this.classList.contains('validateAs_string')){
+          var correct = [true]; //not really required; strings are allowed to be empty anyway!
+        }else if(this.classList.contains('validateAs_wikidata')){
           var correct = mainclass.regexValidator(this.value);
-        }else if(target.classList.contains('validateAs_int')){
+        }else if(this.classList.contains('validateAs_int')){
           var correct = mainclass.intValidator(this.value);
-        }else if(target.classList.contains('validateAs_bool')){
+        }else if(this.classList.contains('validateAs_bool')){
           var correct = mainclass.boolValidator(this.value);
-        }else if(target.classList.contains('validateAs_float')){
+        }else if(this.classList.contains('validateAs_float')){
           var correct = mainclass.floatValidator(this.value);
         }
+        console.log(correct); 
+        var inFront = this.previousElementSibling; 
+        if(inFront.classList.contains('errorNotification')){
+          inFront.remove(); 
+        } 
         if (correct[0]){
-          var inFront = this.previousElementSibling; 
-          if(inFront.classList.contains('errorNotification')){
-            inFront.remove(); 
-          } 
           this.classList.add('bg-green-50', 'border', 'border-green-500');
           this.classList.remove('bg-red-50', 'border', 'border-red-500');
         }else{

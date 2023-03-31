@@ -9,6 +9,11 @@ class nodeCreator{
     this.createNodeTypeSelector();
   }
 
+  preSubmitCheck(eventhandle){
+    console.log(eventhandle); 
+    eventhandle.preventDefault(); 
+  }
+
   createFormForType(eventhandle){
     var formTarget = document.getElementById('propertySection');
     formTarget.innerHTML = ''; 
@@ -27,16 +32,17 @@ class nodeCreator{
         for(var i=0; i<keys.length; i++){
           var fieldName = 'field_name_'+toString(i); 
           console.log(keys[i]); 
-          var attributes = data[keys[i]]; 
+          var attributes = data[keys[i]];
           console.log(data[keys[i]]);
           var oneRowToDOM = document.createElement('div');
           oneRowToDOM.classList.add('form-group');
-          var labelForOneRow = document.createElement('label'); 
-          var labelText = document.createTextNode(attributes[0]); 
+          var labelForOneRow = document.createElement('label');
+          var labelText = document.createTextNode(attributes[0]);
           //label associated with the input field:
-          labelForOneRow.appendChild(labelText); 
-          //input field: where user is allowed to enter data. 
-          var inputField = document.createElement('input'); 
+          labelForOneRow.appendChild(labelText);
+          //textarea field: where user is allowed to enter data.
+          var inputField = document.createElement('textarea'); 
+          inputField.classList.add('w-full');
           inputField.classList.add('form-control');
           inputField.classList.add('attachValidator')
           inputField.classList.add('validateAs_'+attributes[1].toLowerCase()); 
@@ -47,6 +53,7 @@ class nodeCreator{
         }
         var submit = document.createElement('input');
         submit.setAttribute('type', 'submit');
+        submit.addEventListener('click', event => this.preSubmitCheck(event)); 
         formGrid.appendChild(submit)
         form.appendChild(formGrid); 
         formTarget.appendChild(form);
