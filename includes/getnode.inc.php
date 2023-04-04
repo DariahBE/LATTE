@@ -10,10 +10,11 @@ include_once(ROOT_DIR."/includes/client.inc.php");
 function helper_extractPrimary($keyName){
   //return PRIMARIES[$keyName] ? PRIMARIES[$keyName] : 'uid';   //ternary operator not working as it should
   if(array_key_exists($keyName, PRIMARIES)){
-    return PRIMARIES[$keyName];
-  }else{
-    return 'uid';
+    if(boolval(PRIMARIES[$keyName])){
+      return PRIMARIES[$keyName];
+    }
   }
+    return 'uid';
 }
 
 function helper_parseEntityStyle(){
@@ -106,10 +107,31 @@ class Node{
   }
   function listTextsConnectedToEntityWithID($value){
     //this function start form the automatically generated UUID and lists all TEXT nodes that are related to it.
-    $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:Text) WHERE id(x) = $nodeval RETURN DISTINCT id(t) AS result', ['nodeval'=>$value]);
-    $result = array(); 
-
-    return $connectedTexts;
+    $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:Text) WHERE id(x) = $nodeval RETURN x, t, n', ['nodeval'=>$value]);
+    $result = array(
+      'annotations'=>array(),
+      'entities'=>array(),
+      'texts'=>array()
+    ); 
+    $primaryForText = helper_extractPrimary('Text');
+    $primaryForAnnotation = helper_extractPrimary('Annotation'); 
+    //return the PK of each Text and Annotation. 
+    foreach($connectedTexts as $key => $value){
+      $primaryForEt = helper_extractPrimary($value['x']['labels'][0]);
+      $entitityValue = $value['x']->getProperty($primaryForEt);
+      if (!in_array($entitityValue, $result['entities'])){
+        $result['entities'][] = $entitityValue;
+      }
+      $textValue = $value['t']->getProperty($primaryForText);
+      if (!in_array($textValue, $result['texts'])){
+        $result['texts'][] = $textValue;
+      }
+      $annotationValue = $value['n']->getProperty($primaryForAnnotation);
+      if (!in_array($annotationValue, $result['annotations'])){
+        $result['annotations'][] = $annotationValue;
+      }
+    }
+    return $result;
   }
 
   function getDistinctLabels(){
@@ -161,7 +183,7 @@ class Node{
     return $data;
   }
 
-  function findEntitiesWithVariantValue($entityLabel, $variantValue) {
+  function findEntitiesWithVariantValue($entityLabel, $variantValue){
     $query = "OPTIONAL MATCH (e:$entityLabel)-[]-(v:Variant {variant: '$variantValue'}) RETURN e";
     $results = $this->client->run($query);
     return $results;
