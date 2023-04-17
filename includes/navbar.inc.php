@@ -1,6 +1,6 @@
 <?php
   class Navbar{
-    function __construct(){
+    function __construct($admin=False){
     $this->nav = '
 <nav class="fixed w-full bg-gray-50 dark:bg-gray-700 z-50">
   <div class="flex flex-wrap">
@@ -25,7 +25,9 @@
           <li>
             <a href="/search.php" class="text-gray-900 dark:text-white hover:underline">Search</a>
           </li>
-          '.$this->sessiontoggle().'
+          '.
+          $this->linkToAdmin($admin).
+          $this->sessiontoggle().'
         </ul>
       </div>
     </div>
@@ -37,12 +39,24 @@
   }
 
   function sessiontoggle(){
-    $logout = '<li><a href="user/logout.php" class="text-gray-900" dark:text-white hover:underline">Logout</a></li>'; 
+    $logout = '<li><a href="user/logout.php" class="text-gray-900 dark:text-white hover:underline">Logout</a></li>'; 
     if(isset($_SESSION['userid'])){
       return $logout; 
     }
      return '';
   }
+
+  function linkToAdmin($showAdmin){
+    $admin = '<li>
+    <a href="/admin/index.php" class="text-gray-900 dark:text-white hover:underline">Admin</a>
+  </li>'; 
+  if($showAdmin){
+    return $admin; 
+  }else{
+    return ''; 
+  }
+  }
+
 }
 
 

@@ -12,6 +12,9 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
     $redir = '?redir=/create.php';
     header('Location: /user/login.php'.$redir);
     die();
+}else{
+  $user = new User($client);
+  $adminMode = $user->myRole == 'Admin'; 
 }
 ?>
 <!DOCTYPE html>
@@ -30,7 +33,7 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
   <body class="bg-neutral-200 w-full">
     
     <?php
-        $navbar = new Navbar(); 
+        $navbar = new Navbar($adminMode); 
         echo $navbar->nav;  
         //DO NOT add annotations in this environment (nodename: Annotation) !
         echo '<script>var core = '.json_encode(array_diff(array_keys(CORENODES), array('Annotation'))).';</script>';

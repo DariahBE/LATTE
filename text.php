@@ -74,9 +74,9 @@ $relations = $node->getEdges($nodeId);
   </head>
   <body class="bg-neutral-200 w-full">
   <?php
-        $navbar = new Navbar(); 
-        echo $navbar->nav;  
-    ?>
+    $navbar = new Navbar(); 
+    echo $navbar->nav;  
+  ?>
 
     <div class=" 2xl:w-1/2 xl:w-2/3 items-center m-auto"> 
     <!-- content-->
@@ -89,9 +89,9 @@ $relations = $node->getEdges($nodeId);
       <div class="flex flex-initialize">
         <label for="normalization_On_Off" class="relative flex justify-between items-center p-2">
           Enable Normalization:
+        </label>
           <input type="checkbox" name="normalization_On_Off" class="absolute left-1/2 -translate-x-1/2 w-full h-full peer appearance-none rounded-md" />
           <span class="w-16 h-10 flex items-center flex-shrink-0 ml-4 p-1 bg-gray-300 rounded-full duration-300 ease-in-out peer-checked:bg-green-400 after:w-8 after:h-8 after:bg-white after:rounded-full after:shadow-md after:duration-300 peer-checked:after:translate-x-6"></span>
-        </label>
       </div>
       <div>
         <p>Provide a comma (,) separated list of symbols to be normalized: </p>
@@ -100,14 +100,6 @@ $relations = $node->getEdges($nodeId);
       </div>
     </div>
     <br>
-    <!-- strip spaces when selecting in text: -->
-    <div class="">
-
-    </div>
-    <!-- strip accents from texts. -->
-    <div class="">
-
-    </div>
 
   </div>
   <div id="explorationDialogue" class="w-full py-4 my-4">

@@ -21,7 +21,7 @@ $URI = 'neo4j://localhost:7687';
     - Human readable string: this string is used in the frontend.
     - Type of variable: string, int, bool OR wikidata.
         - the wikidata datatype expects a Q-identifier and returns live data from an API call. 
-    - Boolean: Primary Key: is the value unique for this type of nodes? 
+    - Boolean: Uniqe Key: is the value unique for this type of nodes? 
     - Boolean: Visual Distinguishing: Is the value used in the dom to label the nodes. If the node does not have a visually distinguishable component, the nodelabel is used.
     - Boolean: Can the interface search on this? 
   
