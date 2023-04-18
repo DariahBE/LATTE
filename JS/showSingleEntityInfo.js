@@ -3,6 +3,7 @@ function loadSigmaModules(){
 }
 
 function generateNodeOverlayWindow(e){
+  alert("triggered generateNodeOverlandWIndow!"); 
   var nodes = JSON.parse(e.target.parentElement.getAttribute('data-retrievednodes'));
   var edges = JSON.parse(e.target.parentElement.getAttribute('data-retrievededges'));
   console.log(nodes, edges);

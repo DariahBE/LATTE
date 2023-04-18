@@ -5,7 +5,7 @@ class Vallidator{
     if(shouldBe == data){
       return [true];
     }else{
-      return [false, 'The provided input is not a valid real number .'];
+      return [false, 'The provided input is not a valid real number.'];
     }
   }
 
@@ -21,7 +21,7 @@ class Vallidator{
     if(pattern.test(data)){
       return [true];
     }else{
-      return [false, 'The provided input is not a valid float e.g.: 3.14 .'];
+      return [false, 'The provided input is not a valid float e.g.: 3.14.'];
     }
   }
 
@@ -43,7 +43,7 @@ class Vallidator{
       var target = elements[n];
       //BUG: system evaluates everything as wikidata entry! // OKAY => new bug integer validator not working.
       //eventlistener is stuck to the last object in the array!
-      target.addEventListener('change', function(){
+      target.addEventListener('change', async function(){
         console.log(target);
         if(this.classList.contains('validateAs_string')){
           var correct = [true]; //not really required; strings are allowed to be empty anyway!
@@ -56,7 +56,29 @@ class Vallidator{
         }else if(this.classList.contains('validateAs_float')){
           var correct = mainclass.floatValidator(this.value);
         }
-        console.log(correct); 
+        if(this.classList.contains('validateAs_unique')){
+          var selectedNode = document.getElementById('nodeTypeSelection').firstChild.value;
+          var property = this.getAttribute('data-name');
+          var unique = await fetch('/AJAX/uniqueness.php?nodetype='+selectedNode+'&property='+property+'&value='+this.value)
+          .then((response) => response.json())
+          .then((data) =>{
+            var good = data;
+            if(good){
+              return [good];
+            }else{
+              return [false, 'The provided value does not pass the uniqueness constraint set on a database level.']; 
+            }
+          }); 
+          var correctMsg = [];
+          if(!correct[0]){
+            correctMsg.push(correct[1]); 
+          }
+          if(!unique[0]){
+            correctMsg.push(unique[1]); 
+          }
+          var correctMsg = correctMsg.join(' and ');
+          correct = [correct[0] && unique[0], correctMsg];
+        }
         var inFront = this.previousElementSibling; 
         if(inFront.classList.contains('errorNotification')){
           inFront.remove(); 
@@ -77,5 +99,4 @@ class Vallidator{
       })
     }
   }
-
 }

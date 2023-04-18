@@ -20,9 +20,6 @@
     die("Insufficient rights, forbidden access");
   }
 $lastMsg = ''; 
-
-// drop all constraints set on the database model: 
-
 $dropquery = "CALL apoc.schema.assert({}, {})"; 
 $client->run($dropquery); 
 $lastMsg = "All constraints dropped."; 
@@ -37,21 +34,22 @@ echo $lastMsg;
 foreach(NODEMODEL as $key => $value){
   foreach($value as $propName => $propertyList){
     //echo $propName;
-    $nameForConstraint = $key.'_'.$propName;
+    $nameForUQConstraint = $key.'_'.$propName.'_uq';
+    $nameForIXConstraint = $key.'_'.$propName.'_index';
     $addUniqueness = $propertyList[2]; 
     $addIndex = $propertyList[4];
     //cypher manual: 
     // https://neo4j.com/docs/cypher-manual/current/constraints/examples/#constraints-create-a-node-uniqueness-constraint
-    // but why book:Book???
-    $uniqueQuery = "CREATE CONSTRAINT $nameForConstraint IF NOT EXISTS FOR ($key:Book) REQUIRE $key.isbn2 IS UNIQUE"; 
-    var_dump($propertyList);
-    echo '<br>';
+    // https://neo4j.com/docs/cypher-manual/current/constraints/#_implications_on_indexes
+    $uniqueQuery = "CREATE CONSTRAINT $nameForUQConstraint IF NOT EXISTS ON (n:$key) ASSERT n.$propName IS UNIQUE;"; 
+    $indexQuery = "CREATE INDEX $nameForIXConstraint IF NOT EXISTS FOR (n:$key) on (n.$propName)"; 
+    if ($addUniqueness){
+      $client->run($uniqueQuery);
+    } else if($addIndex && !$addUniqueness){
+      $client->run($indexQuery);
+    }
+    
   }
-
-
 }
-
-$x = "whatever";
-$lastMsg = "Adding constraint: $x.";
 
 ?>

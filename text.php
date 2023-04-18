@@ -90,8 +90,7 @@ $relations = $node->getEdges($nodeId);
         <label for="normalization_On_Off" class="relative flex justify-between items-center p-2">
           Enable Normalization:
         </label>
-          <input type="checkbox" name="normalization_On_Off" class="absolute left-1/2 -translate-x-1/2 w-full h-full peer appearance-none rounded-md" />
-          <span class="w-16 h-10 flex items-center flex-shrink-0 ml-4 p-1 bg-gray-300 rounded-full duration-300 ease-in-out peer-checked:bg-green-400 after:w-8 after:h-8 after:bg-white after:rounded-full after:shadow-md after:duration-300 peer-checked:after:translate-x-6"></span>
+          <input type="checkbox" name="normalization_On_Off" class="p-2 border-2 border-black border-solid rounded-md" />
       </div>
       <div>
         <p>Provide a comma (,) separated list of symbols to be normalized: </p>
@@ -200,7 +199,7 @@ $relations = $node->getEdges($nodeId);
     </div>
   </div>
 </div>
-<div id='setNodeDetailOverlay' class='hiddenOverlay'><p>is this required?????</p></div>
+<!--<div id='setNodeDetailOverlay' class='hiddenOverlay'></div>-->
   <?php echo "<script> var storedAnnotations = ".json_encode($existingAnnotation)."</script>";
   if(count($existingAnnotation['relations']) > 0){
     echo "<script>visualizeStoredAnnotations();</script>";

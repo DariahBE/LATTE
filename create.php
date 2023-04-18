@@ -43,6 +43,7 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
       <h3 class="uppercase text-xl underline decoration-4 underline-offset-2">extend graph</h3>
       <div>
         <h4 class="text-lg p-2 m-2">Nodetype: </h4>
+        <div class="p-4 m-4" id='formMessageBox'></div>
         <div class="p-4 m-4" id='nodeTypeSelection'>
 
         </div>
@@ -55,12 +56,14 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
         </div>
       </div>
       <hr>
+      <!--
       <div id='saveSection' class='hidden'>
         <h4 class="text-lg p-2 m-2">Save and review: </h4>
         <div class="p-4 m-4" id='saveConfirmation'>
 
         </div>
       </div>
+      -->
     </div>
 
   <script>

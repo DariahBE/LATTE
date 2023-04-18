@@ -10,42 +10,60 @@ class nodeCreator{
   }
 
   preSubmitCheck(eventhandle){
-    console.log(eventhandle); 
-    eventhandle.preventDefault(); 
+    eventhandle.preventDefault();
+    //if everything is valid: submit to creation endpoint and create the node!
+    var errrormessagesOnScreen = document.getElementsByClassName('errorNotification'); 
+    if(errrormessagesOnScreen.length){
+      var notification = document.createElement('p'); 
+      var notificationText = document.createTextNode('One or more properties have an invalid value. Data was not submitted.');
+      notification.appendChild(notificationText); 
+      document.getElementById('formMessageBox').appendChild(notification);
+      return; 
+    }else{
+      document.getElementById('formMessageBox').innerHTML = ''; 
+    }
+    //presubmit check passed: send the form: 
+    //make it return the stable URI for the newly created node if possible. 
+    //backend should also validate the input!
+    var nodeType = document.getElementById('nodeTypeSelection').firstChild.value;
+    var form = document.getElementById('inputformSecondStage');
+    console.log(nodeType, form);
   }
 
   createFormForType(eventhandle){
     var formTarget = document.getElementById('propertySection');
     formTarget.innerHTML = ''; 
     formTarget.classList.remove('hidden'); 
-    var type = eventhandle.srcElement.value
+    var type = eventhandle.srcElement.value;
     var form = document.createElement('form');
     form.setAttribute('id', 'inputformSecondStage'); 
     var formGrid = document.createElement('div'); 
     formGrid.classList.add('grid','gap-6', 'mb-6', 'md:grid-cols-2'); 
-    console.log('Unused html dom code: saveSection!'); 
     form.classList.add('inputFormForData'); 
+    if(type == 'false'){return;}
     fetch('/AJAX/get_structure.php?type='+type)
       .then((response) => response.json())
       .then((data) =>{
         var keys = Object.keys(data); 
         for(var i=0; i<keys.length; i++){
-          var fieldName = 'field_name_'+toString(i); 
-          console.log(keys[i]); 
+          //var fieldName = 'field_name_'+toString(i); 
           var attributes = data[keys[i]];
-          console.log(data[keys[i]]);
           var oneRowToDOM = document.createElement('div');
           oneRowToDOM.classList.add('form-group');
           var labelForOneRow = document.createElement('label');
           var labelText = document.createTextNode(attributes[0]);
+          var uniqueness = attributes[2]; 
           //label associated with the input field:
           labelForOneRow.appendChild(labelText);
           //textarea field: where user is allowed to enter data.
           var inputField = document.createElement('textarea'); 
           inputField.classList.add('w-full');
           inputField.classList.add('form-control');
-          inputField.classList.add('attachValidator')
-          inputField.classList.add('validateAs_'+attributes[1].toLowerCase()); 
+          inputField.classList.add('attachValidator');
+          if(uniqueness){
+            inputField.classList.add('validateAs_unique');
+          }
+          inputField.classList.add('validateAs_'+attributes[1].toLowerCase());
           inputField.dataset.name=keys[i];
           oneRowToDOM.appendChild(labelForOneRow);
           oneRowToDOM.appendChild(inputField);
@@ -61,7 +79,6 @@ class nodeCreator{
         const vallidation = new Vallidator();
         vallidation.pickup();
       });
-
   }
 
   createNodeTypeSelector(){

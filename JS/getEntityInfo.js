@@ -33,7 +33,7 @@ function showInfoFromBackend(info, elem){
 function getInfoByString(string, nodetype){
   alert('called3');
   console.log(string, nodetype);
-  $baseURL = '/AJAX/getEntitySuggestion.php?';//?type=Place&value=constantinople&casesensitive=false'
+  $baseURL = '/AJAX/getEntitySuggestion.php?';
   $parameters = {
     'type':nodetype,
     'value':string,
@@ -58,7 +58,7 @@ function getInfoByClick(e){
   }else{
     var strValue = e.target.getAttribute('data-stringExact');
   }
-  $baseURL = '/AJAX/getEntitySuggestion.php?';//?type=Place&value=constantinople&casesensitive=false'
+  $baseURL = '/AJAX/getEntitySuggestion.php?';
   $parameters = {
     'type':nodetype,
     'value':strValue,
@@ -70,9 +70,3 @@ function getInfoByClick(e){
     showInfoFromBackend(data, e);
   })
 }
-/*
-function getInfoByID(id){
-
-
-}
-*/

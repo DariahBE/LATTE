@@ -529,6 +529,23 @@ class Node{
     return $result; 
   }
 
+  public function checkUniqueness($label, $property, $value, $castTo){
+    if($castTo == 'int'){
+      $value = (int)$value;
+    }elseif($castTo == 'bool'){
+      if(strtolower($value)=='true'){
+        $value = true;
+      }else{
+        $value = false;
+      }
+    }
+
+    $query = 'MATCH (n:'.$label.' {'.$property.': $value}) RETURN (n)';
+    $data = $this->client->run($query, ['value'=>$value]); 
+    return $data;
+
+  }
+
 
 }
 
