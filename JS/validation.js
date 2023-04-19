@@ -1,12 +1,32 @@
-class Vallidator{
+class Validator{
+//REMARK: 
+// leave the validator as a single mode system!
+// remove constructor from invoking points and class
+// remove modification in intValidator
+
+  constructor(mode){
+    const acceptedModes = ['dataEntry','dataSearch'];
+    if(mode in acceptedModes){
+      this.validationMode = mode; 
+    }else{
+      this.validationMode = 'dataEntry';    //fallback to most strict mode. 
+    }
+  }
 
   intValidator(data){
-    var shouldBe = parseInt(data)+0; 
-    if(shouldBe == data){
-      return [true];
+    const acceptedSearchMasks = ['>', '<', '<=', '>=', '|'];
+    if (this.validationMode == 'dataEntry'){
+      let shouldBe = parseInt(data)+0; 
+      if(shouldBe == data){
+        return [true];
+      }else{
+        return [false, 'The provided input is not a valid real number.'];
+      }
     }else{
-      return [false, 'The provided input is not a valid real number.'];
+      let modData = data.repl
     }
+
+
   }
 
   boolValidator(data){

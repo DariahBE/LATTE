@@ -75,9 +75,9 @@ class nodeCreator{
         formGrid.appendChild(submit)
         form.appendChild(formGrid); 
         formTarget.appendChild(form);
-        //attach the vallidator: 
-        const vallidation = new Vallidator();
-        vallidation.pickup();
+        //attach the validator: 
+        const validation = new Validator('dataEntry');
+        validation.pickup();
       });
   }
 
