@@ -1,32 +1,12 @@
 class Validator{
-//REMARK: 
-// leave the validator as a single mode system!
-// remove constructor from invoking points and class
-// remove modification in intValidator
-
-  constructor(mode){
-    const acceptedModes = ['dataEntry','dataSearch'];
-    if(mode in acceptedModes){
-      this.validationMode = mode; 
-    }else{
-      this.validationMode = 'dataEntry';    //fallback to most strict mode. 
-    }
-  }
 
   intValidator(data){
-    const acceptedSearchMasks = ['>', '<', '<=', '>=', '|'];
-    if (this.validationMode == 'dataEntry'){
-      let shouldBe = parseInt(data)+0; 
-      if(shouldBe == data){
-        return [true];
-      }else{
-        return [false, 'The provided input is not a valid real number.'];
-      }
+    let shouldBe = parseInt(data)+0; 
+    if(shouldBe == data){
+      return [true];
     }else{
-      let modData = data.repl
+      return [false, 'The provided input is not a valid real number.'];
     }
-
-
   }
 
   boolValidator(data){
@@ -100,7 +80,7 @@ class Validator{
           correct = [correct[0] && unique[0], correctMsg];
         }
         var inFront = this.previousElementSibling; 
-        if(inFront.classList.contains('errorNotification')){
+        if(inFront && inFront.classList.contains('errorNotification')){
           inFront.remove(); 
         } 
         if (correct[0]){

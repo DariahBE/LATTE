@@ -69,6 +69,15 @@ $nodesDatamodel = array(
   ], 
   'Organization' => [
     "label" => ["Label", "string", false, false, true]
+  ], 
+  'Test' =>[      //testing all datatypes:
+    "id" => ['ID', 'int', true, false, true], 
+    "minscore" => ['Lowest score', 'float', false, false, true], 
+    "highscore" => ['Highest score', 'float', false, false, true], 
+    "validated" => ['Validated', 'bool', false, false, true], 
+    "wikidata" => ['Wikdata ID', 'wikidata', true, false, true], 
+    "name" => ['Name', 'string', true, false, true], 
+    "link" => ['Link', 'uri', true, false, true]
   ]
 );
 
