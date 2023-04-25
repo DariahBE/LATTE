@@ -210,7 +210,6 @@ function loadPropertyBox(on){
     propDisplay.appendChild(fieldDiv);
     target.appendChild(propDisplay);
   }
-
   //attach validator here: Undo this constructor!
   validator.pickup();
 }

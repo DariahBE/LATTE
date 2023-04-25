@@ -224,6 +224,14 @@ class Node{
     return $data;
   }
 
+  function matchTextByNeo($id){
+    $neo = (int)$id; 
+    //var_dump($neo); 
+    $result = $this->client->run('MATCH (n:Text) WHERE id(n) = $nodeval RETURN n LIMIT 1', ['nodeval'=>$neo]);
+    //$this->$neoid = (int)$neo;  
+     return $result->first()['n']['properties'];
+  }
+
   function matchSingleNode($type, $key, $value){
     if (is_numeric($value)){
       $value = $value + 0;   //can be float too . adding +0 will allow php to automatically set the correct type.

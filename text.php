@@ -23,13 +23,12 @@ if(isset($_GET['texid'])){
 }
 
 $user = new User($client);
+$annotations = new Annotation($client);
+$wikidata = new Wikidata_user($client);
 
 $user_uuid = $user->checkSession();
 
-$annotations = new Annotation($client);
-$existingAnnotation = $annotations->getExistingAnnotationsInText($propId, $user_uuid);
 
-$wikidata = new Wikidata_user($client);
 $wikidata->buildPreferences();
 $node = new Node($client);
 $text = $node->matchSingleNode($nodeType, $propKey, $propId);
@@ -38,6 +37,8 @@ if(!boolval($text) or !array_key_exists('coreID', $text)){
   die();
 }
 $nodeId = $text['coreID'];
+$neoId = $text['neoID'];  
+$existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_uuid);
 $relations = $node->getEdges($nodeId);
 ?>
 
@@ -112,19 +113,27 @@ $relations = $node->getEdges($nodeId);
 <div class="main flex flex-row py-4 my-4">
   <div class="left" id="leftMainPanel">
   <h3 class="text-xl">Text: </h3>
+    <div class="subbox leftsubbox" >
+      <div class="flex h-12" id="exportBox">
+        <a class="object-contain h-10" href="/export.php?mode=xml&neoid=<?php echo (int)$neoId?>">
+          <img class="object-contain h-10 " src='/images/xml-export.png'/>
+        </a>
+        <a class="object-contain h-10" href="/export.php?mode=json&neoid=<?php echo (int)$neoId?>">
+          <img class="object-contain h-10" src='/images/json-export.png'/>
+        </a>
+      </div>
+      <div id="textcontent">
+      <?php
+        $textString = $text['data'][0]->first()['node']['properties']['text'];
+        $textLanguage = isset($text['data'][0]->first()['node']['properties']['language']) ? $text['data']['properties']['language']: False;
+        $i = 0;
+        foreach(new MbStrIterator($textString) as $c) {
+          echo "<span class='ltr' data-itercounter=$i>".nl2br($c)."</span>";
+          $i++;
+        }
+      ?>
 
-    <div class="subbox leftsubbox" id="textcontent">
-
-    <?php
-      $textString = $text['data'][0]->first()['node']['properties']['text'];
-      $textLanguage = isset($text['data'][0]->first()['node']['properties']['language']) ? $text['data']['properties']['language']: False;
-      $i = 0;
-      foreach(new MbStrIterator($textString) as $c) {
-        echo "<span class='ltr' data-itercounter=$i>".nl2br($c)."</span>";
-        $i++;
-      }
-    ?>
-
+      </div>
     </div>
     <script>
       var coreNodes = <?php echo json_encode(array_keys(CORENODES)); ?>;
@@ -135,7 +144,6 @@ $relations = $node->getEdges($nodeId);
         'nodeid': <?php echo json_encode((int)$nodeId)?>
       };
       var wdProperties = <?php echo json_encode($wikidata->makeSettingsDictionary()); ?>;
-
       var wikidataIndication = <?php echo json_encode($wikidata->labelIndicator()); ?>;
     </script>
     <style>

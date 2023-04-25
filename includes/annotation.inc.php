@@ -78,13 +78,13 @@ class Annotation{
   }
 
 
-  public function getExistingAnnotationsInText($texid, $user = false){
+  public function getExistingAnnotationsInText($neoid, $user = false){
     //when user is false ==> only show public annotations.
     // when user is set to a matching priv_user.userid ==> show all public annotation + private annotations by $user
     //user parameter to determine if a node is private or not
-    $query = 'MATCH (t:Text {texid: $texid})-[r]->(a:Annotation)-[l]->(p) return t,a,p;';
+    $query = 'MATCH (t:Text)-[r]->(a:Annotation)-[l]->(p) where id(t)=$neoid return t,a,p;';
     //patch: consider returning the property and extracting that; by default cypher will nullify non-existing properties.
-    $result = $this->client->run($query, ['texid'=>$texid]);
+    $result = $this->client->run($query, ['neoid'=>$neoid]);
     $data = array();
     $data['user'] = $user;
     $annotationData = array();
