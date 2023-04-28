@@ -38,7 +38,9 @@ $export->setIdentifiedText($identifiedText);
 $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_uuid);
 $export->setAnnotations($existingAnnotation); 
 //set document header depending on requested content. 
-//$export->outputHeaders(); 
-echo $export->generateAnnotatedText(); 
+$export->outputHeaders(); 
+$export->generateAnnotatedText();
+echo $export->outputContent(); 
+//var_dump($export->outputContent());
 
 ?>
