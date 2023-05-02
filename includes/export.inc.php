@@ -7,7 +7,6 @@
  *    Should be able to fetch annotations and encode them according to the mode. 
  */
 
-
 class Exporter {
   protected $client; 
   private $allowedModes; 
@@ -22,7 +21,6 @@ class Exporter {
     $this->client = $client; 
     if(in_array($mode, $this->allowedModes)){
       $this->mode = $mode; 
-      //$this->neoid = (int)$neo;  
     }else{
       die(); //reject the request. 
     }
@@ -38,10 +36,6 @@ class Exporter {
 
   public function setAnnotations($annotationArray){
     $this->annotations = $annotationArray; 
-    $annotationArray['relations']['startTest'] = array('start'=> 0, 'stop'=>11);
-    $annotationArray['relations']['testOverlap'] = array('start'=> 1000, 'stop'=>1123);
-    $annotationArray['relations']['copyOverlap2'] = array('start'=> 1011, 'stop'=>1021);
-    $annotationArray['relations']['endTest'] = array('start'=> 1812, 'stop'=>1816);
     $breakpoints = array(); 
     $annotations = $annotationArray['relations']; 
     foreach($annotations as $key=> $value){
@@ -72,7 +66,6 @@ class Exporter {
       $dom->encoding = 'utf-8';
       $dom->xmlVersion = '1.0';
       $dom->formatOutput = true;
-      //$xml_file_name = 'movies_list.xml'; 
       $root = $dom->createElement('Export');
       $metaNode = $dom->createElement('metadata');
       $texNode = $dom->createElement('text'); 
@@ -89,12 +82,12 @@ class Exporter {
       $texNode->appendChild($rawText); 
       foreach($this->XMLTaggedText as $key => $value){
         $e = $this->XMLTaggedText[$key]; 
-        if ($e[0]=='Annotation'){
-          $elem = $dom->createElement('annotation', $e[1]);
-          $elemAtr = new DOMAttr('id', $key); 
+        if ($e[1]=='annotation'){
+          $elem = $dom->createElement('annotation', $e[2]);
+          $elemAtr = new DOMAttr('id', $e[3]); 
           $elem->setAttributeNode($elemAtr); 
         }else{
-          $elem = $dom->createElement('unmarkedText', $e[1]);
+          $elem = $dom->createElement('unmarkedText', $e[2]);
         }
         $annoNode->appendChild($elem);
       }
@@ -110,46 +103,73 @@ class Exporter {
   }
 
   public function generateAnnotatedText(){
-    $prevAnnotKey = 0;
-    $inAnnotationMode = False; 
-    $annotatedText = ''; 
-    $oneAnnotation = '';
-    $baseString = ''; 
-    $xml = new DOMDocument('1.0', 'iso-8859-1');
+    $prevtype = False;
+    $baseString='';
     $this->XMLTaggedText = []; 
-    $rawTexkey = 0; 
-    $prevmode = False; 
-    $prevkeyList = False; 
-    $keyList = False;
-    //failure to detect overlapping annoations; text is duplicated!!
-    foreach($this->identified as $key=> $value){
-      if(array_key_exists($key, $this->breakpoints)){
-        $mode = 'annotation';
-        $keyList = implode(',', $this->breakpoints[$key]); 
-        if (!(array_key_exists($keyList, $this->XMLTaggedText))){
-          $this->XMLTaggedText[$keyList] = array('Annotation', ''); 
+    $blockKey = 0; 
+    $forceSwap = False; 
+    $prevAnnotationKey = ''; 
+    foreach($this->identified as $index=> $character){
+      if(array_key_exists($index, $this->breakpoints)){
+        //annotation: if $index exists as a breakpoint!
+        $type = "annotation";
+        $currentAnnotationKey = implode(',', $this->breakpoints[$index]);
+        //if two annotation follow each other, or have an overlap, detect it like this:
+        if ($prevAnnotationKey != '' && $prevAnnotationKey != $currentAnnotationKey){
+          $forceSwap = True;
         }
-        $this->XMLTaggedText[$keyList][1].=$value;
       }else{
-        $keyList = 'textBlock_'.$rawTexkey; 
-        $mode = 'text'; 
-        
-        if ($prevmode != 'text'){
-          //echo "switch";
-          $rawTexkey =$rawTexkey+1; 
-          $keyList = 'textBlock_'.$rawTexkey; 
-          $this->XMLTaggedText[$keyList] = array('Textblock', ''); 
-        }
-        //$this->XMLTaggedText[$keyList] = array('Annotation', ''); 
-        $this->XMLTaggedText[$keyList][1].=$value;
-
+        //text: 
+        $type = "text"; 
+        $currentAnnotationKey = ''; 
       }
-      $prevmode = $mode;
+      //when it switches between types or adjacent/overlapping breakpoints: 
+      if($prevtype != $type || $forceSwap){
+        if($baseString != ''){
+          $forceSwap=False;
+          $this->XMLTaggedText[$blockKey] = array($blockKey, $prevtype, $baseString, $prevAnnotationKey); 
+          $baseString = '';
+          $blockKey = $blockKey+1;  
+        }
+      }
+      //always do: 
+      $baseString.=$character;
+      $prevtype = $type; 
+      $prevAnnotationKey = $currentAnnotationKey; 
     }
+    //append the very last item!
+    $this->XMLTaggedText[$blockKey] = array($blockKey, $prevtype, $baseString, $prevAnnotationKey); 
   }
 
-  public function outputAnnotations(){
+  public function outputAnnotations($db){
+    //var_dump($this->annotations);
+    //var_dump($db);
+    echo "<pre>";
+    print_r($this->annotations['relations']);
+    echo "</pre>";
+    $keys = array_keys($this->annotations['relations']);
+    foreach($this->annotations['relations'] as $key =>$value){
+      $internalNeoId = $value['neoid'];
+      $data = $db->getAnnotationInfo($internalNeoId);
+      echo "<pre>";
+      $relatedMode = 'zoeken in config.';
+      $entityLabel = $data['entity']['labels'][0];
+      $entityProperties = $data['entity']['properties']; 
+      var_dump($entityProperties);
+      //print_r($data['entity']['labels']);
+      //print_r($data);
 
+      echo "</pre>";
+      echo "data done";
+    }
+    die();
+    if($this->mode == 'xml'){
+      //get annotationDetails for each annotation based on id!
+
+
+    }else if($this->mode == 'json'){
+
+    }
   }
 
 
