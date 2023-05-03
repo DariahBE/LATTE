@@ -15,3 +15,9 @@ ________________________
 
 4) Annotation.inc.php
   - you need to figure a way out to deal with non-existing properties of a node
+
+5) integration with entityview.inc.php:
+  - Static code!! what if node does not exist: 
+  - .htaccess has the same flaw: what if node does not exist. 
+      <-> Fixed by using URI prefix - already implemented. 
+      TODO: test /URI/ prefix in other views!!

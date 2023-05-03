@@ -112,13 +112,15 @@ class Annotation{
             $creator_uuid = controlledReply($node, 'creator', False);
             $annotationStart = $node->getProperty('starts');
             $annotationStop = $node->getProperty('stops');
+            $neoID = $node['id']; 
             $map = array(
               'annotation' => $anno_uuid,
               'creator' => $creator_uuid,
               'private' => $isPrivate,
               'start' => $annotationStart,
               'stop' => $annotationStop,
-              'type' => $targetNodeType
+              'type' => $targetNodeType,
+              'neoid' => $neoID
             );
             if($isPrivate){
               if($user and $creator_uuid === $user){

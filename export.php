@@ -8,7 +8,6 @@ include_once(ROOT_DIR.'/includes/multibyte_iter.inc.php');
 include_once(ROOT_DIR.'/includes/annotation.inc.php');
 include_once(ROOT_DIR.'/includes/export.inc.php');
 
-
 //mode and neoID as input ==> logic in export.inc.php
 
 $mode = $_GET['mode']; 
@@ -22,6 +21,10 @@ $user = new User($client);
 $user_uuid = $user->checkSession();
 //get text: set it to the exporter together with identified text.
 $text = $node->matchTextByNeo($neoId);
+if (!boolval($text)){
+    //todo: redirect to error page!
+    die();
+}
 $textString = $text['text'];
 //set raw text: 
 $export->setText($textString); 
@@ -40,6 +43,7 @@ $export->setAnnotations($existingAnnotation);
 //set document header depending on requested content. 
 $export->outputHeaders(); 
 $export->generateAnnotatedText();
+$export->outputAnnotations($annotations);
 echo $export->outputContent(); 
 //var_dump($export->outputContent());
 

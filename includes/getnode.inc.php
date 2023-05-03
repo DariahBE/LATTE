@@ -228,8 +228,9 @@ class Node{
     $neo = (int)$id; 
     //var_dump($neo); 
     $result = $this->client->run('MATCH (n:Text) WHERE id(n) = $nodeval RETURN n LIMIT 1', ['nodeval'=>$neo]);
+    if (count($result) == 0){return false;} 
     //$this->$neoid = (int)$neo;  
-     return $result->first()['n']['properties'];
+    return $result->first()['n']['properties'];
   }
 
   function matchSingleNode($type, $key, $value){
