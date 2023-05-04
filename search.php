@@ -1,7 +1,7 @@
 <?php
   include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
   include_once(ROOT_DIR.'/includes/getnode.inc.php');
-  include_once(ROOT_DIR.'/includes/entityviews.inc.php');
+  //include_once(ROOT_DIR.'/includes/entity.views.inc.donotuse.php');
   include_once(ROOT_DIR.'/includes/navbar.inc.php');
   include_once(ROOT_DIR.'/includes/user.inc.php');
   

@@ -101,19 +101,19 @@ class Node{
     $connectedAnnotations = $this->client->run('MATCH (x)--(n:Annotation) WHERE id(x) = $nodeval RETURN COUNT(n) AS result', ['nodeval'=>$value]);
     //echo $connectedAnnotations[0]->get('result');
     //var_dump($connectedAnnotations);
-    $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:Text) WHERE id(x) = $nodeval RETURN COUNT(DISTINCT t) AS result', ['nodeval'=>$value]);
+    $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:'.TEXNODE.') WHERE id(x) = $nodeval RETURN COUNT(DISTINCT t) AS result', ['nodeval'=>$value]);
     //b7ba61b4-0985-489f-86af-6d60c206ac5e
     return array('Annotations'=> (int)$connectedAnnotations[0]->get('result'), 'Texts'=>(int)$connectedTexts[0]->get('result'));
   }
   function listTextsConnectedToEntityWithID($value){
     //this function start form the automatically generated UUID and lists all TEXT nodes that are related to it.
-    $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:Text) WHERE id(x) = $nodeval RETURN x, t, n', ['nodeval'=>$value]);
+    $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:'.TEXNODE.') WHERE id(x) = $nodeval RETURN x, t, n', ['nodeval'=>$value]);
     $result = array(
       'annotations'=>array(),
       'entities'=>array(),
       'texts'=>array()
     ); 
-    $primaryForText = helper_extractPrimary('Text');
+    $primaryForText = helper_extractPrimary(TEXNODE);
     $primaryForAnnotation = helper_extractPrimary('Annotation'); 
     //return the PK of each Text and Annotation. 
     foreach($connectedTexts as $key => $value){
@@ -227,7 +227,7 @@ class Node{
   function matchTextByNeo($id){
     $neo = (int)$id; 
     //var_dump($neo); 
-    $result = $this->client->run('MATCH (n:Text) WHERE id(n) = $nodeval RETURN n LIMIT 1', ['nodeval'=>$neo]);
+    $result = $this->client->run('MATCH (n:'.TEXNODE.') WHERE id(n) = $nodeval RETURN n LIMIT 1', ['nodeval'=>$neo]);
     if (count($result) == 0){return false;} 
     //$this->$neoid = (int)$neo;  
     return $result->first()['n']['properties'];
@@ -238,10 +238,12 @@ class Node{
       $value = $value + 0;   //can be float too . adding +0 will allow php to automatically set the correct type.
     }
     if(boolval($type)){
-      $type = ':'.$type;
+      $typeQuery = ':'.$type;
+    }else{
+      $typeQuery = $type;
     }
     //$result = $this->client->run("MATCH (node:".$type."{".$key.":".$value."}) RETURN node, id(node) AS ID LIMIT 1");
-    $result = $this->client->run('MATCH (node'.$type.'{'.$key.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
+    $result = $this->client->run('MATCH (node'.$typeQuery.'{'.$key.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
     // A row is a \Laudis\Neo4j\Types\CypherMap
     $node = false;
     //var_dump($result);
@@ -321,7 +323,7 @@ class Node{
     if ($publicOnly){
       $constraintOnAnnotationLevel = '{private:false}';
     }
-    $query = "MATCH (n)<-[q:references]-(a:Annotation{$constraintOnAnnotationLevel})<-[s:contains]-(t:Text) where id(n)=$nodeId return t";
+    $query = "MATCH (n)<-[q:references]-(a:Annotation{$constraintOnAnnotationLevel})<-[s:contains]-(t:".TEXNODE.") where id(n)=$nodeId return t";
     $result = $this->client->run($query, [$nodeId]);
     return $result;
   }

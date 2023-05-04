@@ -8,7 +8,7 @@ $hostname = 'localhost';    //where's the DB hosted
 $hostport = 7687;           //Port used by the DB
 $userName = '';
 $userPaswrd = '';
-$databaseName = 'hipe.db'; //database hosted on the graph DB instance.
+$databaseName = 'daniel.db'; //database hosted on the graph DB instance.
 $URI = 'neo4j://localhost:7687';
 
 
@@ -21,31 +21,74 @@ $URI = 'neo4j://localhost:7687';
     - Human readable string: this string is used in the frontend.
     - Type of variable: string, int, bool OR wikidata.
         - the wikidata datatype expects a Q-identifier and returns live data from an API call. 
-    - Boolean: Unique Key: is the value unique for this type of nodes? 
+    - Boolean: Unique Key: is the value unique for this type of nodes? The first unique property will also act as the Primary Key!
     - Boolean: Visual Distinguishing: Is the value used in the dom to label the nodes. If the node does not have a visually distinguishable component, the nodelabel is used.
     - Boolean: Can the interface search on this? 
   
 */
 
 $nodesDatamodel = array(
-  'Person' => [
+  'PERSON' => [
     "label" => ["Name", "string", false, true, true],
     "sex" =>["Gender", "string", false, false, true], 
     "wikidata" => ["Wikidata Label", 'wikidata', false, false, false]
   ],
-  'Text' => [
+  'TEXT' => [
     "texid" => ["Text ID", "int", true, true, true],
+    "name" => ["Label", "string", false, true, true], 
+    "bhg" => ["BHG ID", 'int', true, false, true], 
     "text" => ["Text", "string", false, false, false],
-    "language" => ["Document language", "string", false, false, true],
-    "publication" => ["Publisher", "string", false, false, true],
-    "place" => ["Publishing Place", "string", false, false, true],
+    "edition" => ["Edition", "string", false, false, true], 
+    "translation" => ["Translation", "string", false, false, false]
   ],
-  'Place' => [
-    "geoid" => ["Trismegistos Place ID", "int", false, false, true],
-    "label" => ["Label", "string", false, true, true],
-    "region" => ["Regionname", "string", false, false, true], 
-    "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
+  'PLACE' => [
+    "subtype" =>["Subtype", "string", false, false, true], 
+    "label_gr" => ["Greek name", "string", false, true, true], 
+    "label_en" => ["English name", "string", false, true, true], 
+    "geonames" => ["GeoNames ID", "int", false, false, true],
+    "geonames_uri" => ["GeoNames URI", "uri", false, true, true],
+    "pleiades" => ["Pleiades ID", "int", false, false, true],
+    "pleiades_uri" => ["Pleiades URI", "uri", false, true, true],
+    "wikidata" => ["Wikidata Label", "wikidata", false, false, true], 
+    "wiki_uri" => ["Wikidata Link", "uri", false, false, true], 
+    "viaf" => ["VIAF ID", "int", false, false, true],
+    "viaf_uri" => ["VIAF URI", "uri", false, true, true],
+    "latitude" => ["Latitude", "float", false, false, false], 
+    "longitude" => ["Longitude", "float", false, false, false],
+    "uid" => ["UUID", "string", true, false, true] 
   ],
+  'EVENT' => [
+    "subtype" =>["Subtype", "string", false, false, true], 
+    "label_gr" => ["Greek name", "string", false, true, true], 
+    "label_en" => ["English name", "string", false, true, true], 
+    "geonames" => ["GeoNames ID", "int", false, false, true],
+    "geonames_uri" => ["GeoNames URI", "uri", false, true, true],
+    "pleiades" => ["Pleiades ID", "int", false, false, true],
+    "pleiades_uri" => ["Pleiades URI", "uri", false, true, true],
+    "wikidata" => ["Wikidata Label", "wikidata", false, false, true], 
+    "wiki_uri" => ["Wikidata Link", "uri", false, false, true], 
+    "viaf" => ["VIAF ID", "int", false, false, true],
+    "viaf_uri" => ["VIAF URI", "uri", false, true, true],
+    "latitude" => ["Latitude", "float", false, false, false], 
+    "longitude" => ["Longitude", "float", false, false, false],
+    "uid" => ["UUID", "string", true, false, true] 
+  ],
+  'TIME' => [
+    "subtype" =>["Subtype", "string", false, false, true], 
+    "label_gr" => ["Greek name", "string", false, true, true], 
+    "label_en" => ["English name", "string", false, true, true], 
+    "geonames" => ["GeoNames ID", "int", false, false, true],
+    "geonames_uri" => ["GeoNames URI", "uri", false, true, true],
+    "pleiades" => ["Pleiades ID", "int", false, false, true],
+    "pleiades_uri" => ["Pleiades URI", "uri", false, true, true],
+    "wikidata" => ["Wikidata Label", "wikidata", false, false, true], 
+    "wiki_uri" => ["Wikidata Link", "uri", false, false, true], 
+    "viaf" => ["VIAF ID", "int", false, false, true],
+    "viaf_uri" => ["VIAF URI", "uri", false, true, true],
+    "latitude" => ["Latitude", "float", false, false, false], 
+    "longitude" => ["Longitude", "float", false, false, false],
+    "uid" => ["UUID", "string", true, false, true] 
+  ], 
   'Variant' => [
     "variant" => ["Label", "string", false, true, true],
     "remark" => ["Remark", "string", false, false, true]
@@ -55,39 +98,21 @@ $nodesDatamodel = array(
     "partner_uri" => ["Link", "uri", false, false, true]
   ],
   'Annotation' => [
-    "starts" => ["AnnotionStart", "int", false, false, false],
-    "stops" => ["AnnotationEnd", "int", false, false, false],
+    "start" => ["AnnotionStart", "int", false, false, false],
+    "stop" => ["AnnotationEnd", "int", false, false, false],
     "private" => ["Private Annotation", "bool", false, false, false],
     "note" => ["Note", "string", false, false, true],
     "extra" => ["Extra", "int", false, false, true]
-  ],
-  'Dog' => [
-    "breed" => ["Breed", "string", false, false, true],
-    "age" => ["Age", "int", false, false, false],
-    "label" => ["Name", "string", false, true, true],
-    "doggoIndicator" => ["Wikidata Label", 'wikidata', false, false, false]
-  ], 
-  'Organization' => [
-    "label" => ["Label", "string", false, false, true]
-  ], 
-  'Test' =>[      //testing all datatypes:
-    "id" => ['ID', 'int', true, false, true], 
-    "minscore" => ['Lowest score', 'float', false, false, true], 
-    "highscore" => ['Highest score', 'float', false, false, true], 
-    "validated" => ['Validated', 'bool', false, false, true], 
-    "wikidata" => ['Wikdata ID', 'wikidata', true, false, true], 
-    "name" => ['Name', 'string', true, false, true], 
-    "link" => ['Link', 'uri', true, false, true]
   ]
 );
 
 //what is the property that indicates the startposition of an Annotation:
-$annotationStart = 'starts';
+$annotationStart = 'start';
 //what is the property that indicates the endposition of an Annotation:
-$annotationEnd = 'stops';
+$annotationEnd = 'stop';
 //What is the node label used for Text objects. Should match a Key used in your Nodesmodel.
-$nodeAsText = 'Text';
-
+$nodeAsText = 'TEXT';
+$propertyContainingText = 'text';   //Which property holds the text to show on the screen and to annotate into?
 
 /**Feed the edges to the application: 
  * each key in the model is an edgename 
@@ -115,11 +140,10 @@ $privateProperties = array('uid');
 // config object above; Asign the color value to them you want to use in the DOM. The keys used in this 
 //dictionary should match the names of entitytypes which are part of the researchproject!
 $matchOnNodes = array(
-  'Person' => 'rgba(39, 123, 245, 0.6)',
-  'Place' => 'rgba(245, 178, 39, 0.6)',
-  'Event' => 'rgba(39, 245, 123, 0.6)',
-  'Dog' => 'rgba(255, 255, 255, 0.6)',
-  'Text' => 'rgba(28, 200, 28, 0.6)',
+  'PERSON' => 'rgba(39, 123, 245, 0.6)',
+  'PLACE' => 'rgba(245, 178, 39, 0.6)',
+  'EVENT' => 'rgba(39, 245, 123, 0.6)',
+  'TEXT' => 'rgba(28, 200, 28, 0.6)',
   'Annotation' => 'rgba(200, 28, 28, 0.6)'
 );
 
@@ -200,7 +224,7 @@ define("EDGEMODEL", $edgesDatamodel);
 define("ANNOSTART", $annotationStart);
 define("ANNOSTOP", $annotationEnd);
 define("TEXNODE", $nodeAsText);
-
+define("TEXNODETEXT", $propertyContainingText);
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL
 define("ENTITYEXTRACTOR", $extractor);

@@ -8,12 +8,17 @@ include_once("../config/config.inc.php");
 include_once(ROOT_DIR."\includes\getnode.inc.php");
 include_once(ROOT_DIR."\includes\annotation.inc.php");
 include_once(ROOT_DIR."\includes\user.inc.php");
+include_once(ROOT_DIR."\includes\datasilo.inc.php");
 
 
 $texid = (int)$_GET['texid'];
 $node = new Node($client);
 $annotation = new Annotation($client);
 $user = new User($client);
+$silo = new Siloconnector($client); 
+
+$silo->getNeighboursConnectedBy(1528); 
+$silo->makeURIs(); 
 
 /*
 $annotation->createAnnotation(78, 1561, 1568, 'c42c4c15-b546-46c5-bdc5-23ea20c7c628','85541469-4a69-4732-b8fa-7e8e32487225');

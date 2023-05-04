@@ -9,7 +9,7 @@ include_once(ROOT_DIR.'/includes/annotation.inc.php');
 include_once(ROOT_DIR.'/includes/navbar.inc.php');
 if(isset($_GET['texid'])){
   $propId = $_GET['texid'];
-  $nodeType = 'Text';
+  $nodeType = TEXNODE;
   $propKey = helper_extractPrimary($nodeType);
   //$propKey = PRIMARIES[$nodeType];
   //cast the propID to int if type is set:
@@ -124,7 +124,7 @@ $relations = $node->getEdges($nodeId);
       </div>
       <div id="textcontent">
       <?php
-        $textString = $text['data'][0]->first()['node']['properties']['text'];
+        $textString = $text['data'][0]->first()['node']['properties'][TEXNODETEXT];
         $textLanguage = isset($text['data'][0]->first()['node']['properties']['language']) ? $text['data']['properties']['language']: False;
         $i = 0;
         foreach(new MbStrIterator($textString) as $c) {

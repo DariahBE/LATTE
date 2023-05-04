@@ -21,3 +21,18 @@ ________________________
   - .htaccess has the same flaw: what if node does not exist. 
       <-> Fixed by using URI prefix - already implemented. 
       TODO: test /URI/ prefix in other views!!
+
+6) annotatoin.inc.php ==> method:  createAnnotation:
+  - Uses static code, what if a property does not exist, rewrite!
+
+7) Python: extractTextFromDB:
+  - Assumes static text property for a static node Text;
+  - rewrite it so that you extract it from the DB based on the id()-attribute
+  - pass the name where the text is stored as an additional property!
+
+8) remove all use cases of entityviews.inc.php:
+  - the used architecture is not scalable!
+  - currently in: 
+    * stable.php
+    * identify.php
+    * resolve.php

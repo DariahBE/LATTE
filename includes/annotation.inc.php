@@ -59,6 +59,7 @@ class Annotation{
   }
 
   public function createAnnotation($texid, $start, $stop, $user, $targetNode, $hidden=false){
+    die("redo this, do not rely on static properties!!! (starts, texid.... bad idea)");
     //keep the $texid even though it is implied as part of the edge target!
     //DO NOT rely on id(): https://stackoverflow.com/questions/64796146/how-stable-are-the-neo4j-ids
     $query = 'CREATE (a:Annotation {uid: apoc.create.uuid(), starts: $start, stops: $stop, creator: $user, private:$hidden}) RETURN a.uid as uid;';
@@ -72,7 +73,7 @@ class Annotation{
       $connectToTargetNode = 'MATCH (a:Annotation {uid:$anno_uid}), (n{uid:$entity_uid}) CREATE (a)-[r:references]->(n) RETURN a,r,n';
       $result = $this->client->run($connectToTargetNode, ['anno_uid'=>$uqid, 'entity_uid'=>$targetNode]);
       //connect annotation to containing text:
-      $connectToContainingText = 'MATCH (a:Annotation {uid:$anno_uid}), (t:Text{texid:$texid}) CREATE (t)-[r:contains]->(a)';
+      $connectToContainingText = 'MATCH (a:Annotation {uid:$anno_uid}), (t:T'.TEXNODE.'{texid:$texid}) CREATE (t)-[r:contains]->(a)';
       $result = $this->client->run($connectToContainingText, ['anno_uid'=>$uqid, 'texid'=>$texid]);
     }
   }
@@ -82,7 +83,7 @@ class Annotation{
     //when user is false ==> only show public annotations.
     // when user is set to a matching priv_user.userid ==> show all public annotation + private annotations by $user
     //user parameter to determine if a node is private or not
-    $query = 'MATCH (t:Text)-[r]->(a:Annotation)-[l]->(p) where id(t)=$neoid return t,a,p;';
+    $query = 'MATCH (t:'.TEXNODE.')-[r]->(a:Annotation)-[l]->(p) where id(t)=$neoid return t,a,p;';
     //patch: consider returning the property and extracting that; by default cypher will nullify non-existing properties.
     $result = $this->client->run($query, ['neoid'=>$neoid]);
     $data = array();
@@ -110,8 +111,8 @@ class Annotation{
             $anno_uuid = $node->getProperty('uid');
             $isPrivate = controlledReply($node, 'private', False);
             $creator_uuid = controlledReply($node, 'creator', False);
-            $annotationStart = $node->getProperty('starts');
-            $annotationStop = $node->getProperty('stops');
+            $annotationStart = $node->getProperty(ANNOSTART);
+            $annotationStop = $node->getProperty(ANNOSTOP);
             $neoID = $node['id']; 
             $map = array(
               'annotation' => $anno_uuid,

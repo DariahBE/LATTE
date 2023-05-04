@@ -23,7 +23,6 @@ if(!($typeOK)){
 
 if(isset($_GET['uuid'])){
   $uuid = $_GET['uuid'];
-
 }
 
 
