@@ -1,6 +1,6 @@
 <?php
 /*GIVE THE PROJECT A NAME: */
-$projectName = 'ProjectName';
+$projectName = 'HIPE data';
 
 /*Connect to the NEO4Jdatabase:*/
 $defaultdriver = 'neo4j';   //neo4j or bolt
@@ -87,6 +87,8 @@ $annotationStart = 'starts';
 $annotationEnd = 'stops';
 //What is the node label used for Text objects. Should match a Key used in your Nodesmodel.
 $nodeAsText = 'Text';
+$propertyContainingText = 'text';   //Which property holds the text to show on the screen and to annotate into?
+
 
 
 /**Feed the edges to the application: 
@@ -200,6 +202,7 @@ define("EDGEMODEL", $edgesDatamodel);
 define("ANNOSTART", $annotationStart);
 define("ANNOSTOP", $annotationEnd);
 define("TEXNODE", $nodeAsText);
+define("TEXNODETEXT", $propertyContainingText);
 
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL
@@ -208,7 +211,7 @@ define("ENTITYEXTRACTOR", $extractor);
 /*PYTHON ENVIRONMENT:*/
 $pyenv = "C:/Users/u0118112/AppData/Local/Programs/Python/Python310/python.exe";
 $scripts = "C:/Users/u0118112/OneDrive - KU Leuven/DARIAH/2021 - 2025/webDevelopment/V1/host_scripts/";
-//$scripts = "C:/xampp/";
+
 define("PYTHON", $pyenv);
 define("SCRIPTROOT", $scripts);
 

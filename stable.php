@@ -2,8 +2,11 @@
 
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/entityviews.inc.php');
+include_once(ROOT_DIR.'/includes/entityviews.inc.php');   //get rid of this!
+include_once(ROOT_DIR.'/includes/preparedviews.inc.php'); //replaced entityviews!
 include_once(ROOT_DIR.'/includes/navbar.inc.php');
+include_once(ROOT_DIR.'/includes/datasilo.inc.php');
+
 
 
 
@@ -25,14 +28,14 @@ if(isset($_GET['uuid'])){
   $uuid = $_GET['uuid'];
 }
 
-
 if(!($uuid)){
   header('Location: /error.php?type=uuid');
   die();
 }
 
-
 $graph = new Node($client);
+$silo = new Siloconnector($client); 
+
 //getnode that matches the provided UUID or primary key as defined in the configfile:
 
 //if the config file has a PK defined for the given type, use that.
@@ -43,10 +46,14 @@ if (array_key_exists($type, PRIMARIES) && boolval(PRIMARIES[$type])){
 }
 $core = $graph->matchSingleNode($type, $propertyWithPK, $uuid);
 if(array_key_exists('coreID', $core)){
+  $coreNeoID = $core["neoID"]; 
   $coreId = $core['coreID'];
   $neighbours = $graph->getNeighbours($coreId);
   $textSharingEt = $graph->getTextsSharingEntity($coreId, true);
-  $view = new View($type, array('egoNode'=>$core, 'neighbours'=>$neighbours, 'relatedTexts'=>$textSharingEt));
+  $silo->getNeighboursConnectedBy($coreNeoID); 
+  $siloArray = $silo->makeURIs('html'); 
+  $block = new Blockfactory($type); 
+  //$view = new View($type, array('egoNode'=>$core, 'neighbours'=>$neighbours, 'relatedTexts'=>$textSharingEt));
 }else{
   header('Location:/error.php?type=id');
 }
@@ -68,29 +75,70 @@ if(array_key_exists('coreID', $core)){
       $navbar = new Navbar(); 
       echo $navbar->nav;
     ?>
-    <div class="container row">
-      <!-- content -->
-      <div class="top">
-        <?php $view->outputHeader(); ?>
-      </div>
+    <div class="container w-full m-4 p-2">
+
+        <?php 
+          echo $block->makeIDBox($core); 
+        ?>
 
     </div>
-    <div class="container row">
-      <div class="content row-span-2 md:row-span-3" id="tableTarget">
+    <?php
+
+    ?>
+    <div class="grid md:grid-cols-2 grid-cols-1">
+      <?php
+        //datasilo Knowledgebases:
+        if (count($siloArray) > 0){
+          echo "<div class='p-2 m-2'>";
+            echo "<h3>Connected knowledgebases:</h3>";
+            echo "<ul>";
+            foreach($siloArray as $urlBlock){
+              echo '<li class="kblink">'.$urlBlock.'</li>';
+
+            }
+            echo "</ul>";
+          echo "</div>";
+        }
+        if(True){
+          echo "<div class='p-2 m-2'>";
+          echo "<h3>Test block1; </h3>";
+          echo "</div>";
+        }
+        if(True){
+          echo "<div class='p-2 m-2'>";
+          echo "<h3>Test block2; </h3>";
+          echo "</div>";
+        }
+        if(True){
+          echo "<div class='p-2 m-2'>";
+          echo "<h3>Test block3; </h3>";
+          echo "</div>";
+        }
+        if(True){
+          echo "<div class='p-2 m-2'>";
+          echo "<h3>Test block4; </h3>";
+          echo "</div>";
+        }
+      
+      
+      
+      ?>
+
+<!--    todo!
+      <div class="" id="tableTarget">
         <script>
           <?php
-            $view->generateJSONOnly(true);
-            //output of JSON data:
-            echo "var variants = ".json_encode($view->variants).";";
-            echo "var silos = ".json_encode($view->datasilos).";";
-            echo "var texts = ".json_encode($view->relatedText).";";
-            //echo "var annotations = ". json_encode($view->)
+            //$view->generateJSONOnly(true);
+            //output of JSON data: get rid of the view construction!
+            //echo "var silos = ".json_encode($siloArray).";";
+            //!!!!!!!         TODO:::::
+            //echo "var variants = ".json_encode($view->variants).";";
+            //echo "var texts = ".json_encode($view->relatedText).";";
           ?>
         </script>
       </div>
-
-    </div>
-
+    </div> -->
+    <hr>
     <div class="h-full w-full" id="visualizeWindow">
 
     </div>
