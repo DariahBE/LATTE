@@ -8,6 +8,14 @@ function wdprompt(string, language='en', offset = 0){
   .then((response) => response.json())
   .then((data) => {
     var searchResults = data['search'];
+    if(searchResults.length === 0){
+      target.innerHTML = ''; 
+      const noresultmsg = document.createElement('p'); 
+      const noresulttext = document.createTextNode('No results found for the given search query.'); 
+      noresultmsg.appendChild(noresulttext); 
+      target.appendChild(noresultmsg); 
+      return;
+    }
     for(var s = 0; s < searchResults.length; s++){
       let qid, title, descr = ''; 
       try{

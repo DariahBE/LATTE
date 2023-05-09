@@ -61,11 +61,12 @@ $nodesDatamodel = array(
     "note" => ["Note", "string", false, false, true],
     "extra" => ["Extra", "int", false, false, true]
   ],
-  'Dog' => [
+  /*'Dog' => [
     "breed" => ["Breed", "string", false, false, true],
     "age" => ["Age", "int", false, false, false],
     "label" => ["Name", "string", false, true, true],
-    "doggoIndicator" => ["Wikidata Label", 'wikidata', false, false, false]
+    "Wikidata" => ["Wikidata Label", 'wikidata', false, false, false],
+    "smart" => ["Did tricks", 'bool', false, false, false],
   ], 
   'Organization' => [
     "label" => ["Label", "string", false, false, true]
@@ -78,7 +79,12 @@ $nodesDatamodel = array(
     "wikidata" => ['Wikdata ID', 'wikidata', true, false, true], 
     "name" => ['Name', 'string', true, false, true], 
     "link" => ['Link', 'uri', true, false, true]
-  ]
+  ], 
+  'Disease' => [
+    "name" => ["Name", 'string', true, false, true], 
+    "erradicated" => ["Erradicated", 'bool', false, false, true], 
+    "wikidata" => ["Wikidata ID", 'wikidata', false, false, false]
+  ]*/
 );
 
 //what is the property that indicates the startposition of an Annotation:
@@ -122,7 +128,8 @@ $matchOnNodes = array(
   'Event' => 'rgba(39, 245, 123, 0.6)',
   'Dog' => 'rgba(255, 255, 255, 0.6)',
   'Text' => 'rgba(28, 200, 28, 0.6)',
-  'Annotation' => 'rgba(200, 28, 28, 0.6)'
+  'Annotation' => 'rgba(200, 28, 28, 0.6)', 
+  //'Disease' => 'rgba(145,100,52,0.6)'
 );
 
 //automatically fill out below config based on nodesDatamodel:

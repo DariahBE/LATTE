@@ -30,24 +30,31 @@ function loadPropertiesOfSelectedType(selectedString){
   var selected = selector.value; //dropdown value selected. 
   //load properties for selected: 
   //start by testing if a variant exists for the given string: all string values are stored as variants; Variant should be connected to an entity of type == selected. 
+  /*  BUG: uncontrolled response causes crash of app
   fetch('/AJAX/match_variant.php?value='+selectedString+'&connectedto='+selected)
   .then((response) => response.json())
   .then((data) =>{
     console.log(data);
-  })
-
-
+  })*/
   //create a dual display: one with the option to add a new entity, one with the option to attach the annotation to an existing annotation. 
-  
-
-  
   console.log(selectedString); 
   fetch('/AJAX/get_structure.php?type='+selected)
   .then((response) => response.json())
   .then((data) =>{
-    console.log(data);
+    if(data['msg'] == 'success'){
+      var nodedata = data['data']; 
+      //console.log(nodedata); 
+      Object.entries(nodedata).forEach(entry => {
+        const [key, value] = entry;
+        //console.log(key, value);
+        var humanLabel = value[0];
+        var datatype = value[1];
+        console.log(key, humanLabel, datatype); 
+      });
+      
+    }
   })
-  console.log(selected);
+  //console.log(selected);
 }
 
 function triggerSidePanelAction(entityData){

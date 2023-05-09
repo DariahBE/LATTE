@@ -45,5 +45,14 @@ hr.vertical{
 }
 
 .externalURILogo::before{
-  content: '\01F517'; 
+  content: '\01F517';
+}
+
+.internalURILogo::before{
+  content: '\01F5B0'; 
+}
+
+
+.centerCustom{
+  margin: 0 auto;
 }

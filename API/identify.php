@@ -1,5 +1,14 @@
 <?php
+
+/**
+ *  the /API/ * endpoint JSON parallel of /URI/
+ * 
+ */
+
+
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+include_once(ROOT_DIR.'/includes/datasilo.inc.php');
+
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -32,6 +41,7 @@ include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/entityviews.inc.php');
 
 $graph = new Node($client);
+$silo = new Siloconnector($client); 
 $propertyWithPK = 'uid';
 if (array_key_exists($type, PRIMARIES) && boolval(PRIMARIES[$type])){
   $propertyWithPK = PRIMARIES[$type];
@@ -40,13 +50,31 @@ if (array_key_exists($type, PRIMARIES) && boolval(PRIMARIES[$type])){
 //getting the data from the backend:
 $core = $graph->matchSingleNode($type, $propertyWithPK, $uuid);
 if (array_key_exists('coreID', $core)){
+  $coreNeoID = $core["neoID"]; 
   $coreId = $core['coreID'];
-  $neighbours = $graph->getNeighbours($core['data'][0][0]['ID']);
+  //$neighbours = $graph->getNeighbours($core['data'][0][0]['ID']);
+  $neighbours = $graph->getNeighbours($coreNeoID, false, 'see_also');
+  //$textSharingEt = $graph->getTextsSharingEntity($coreId, true);
   $textSharingEt = $graph->getTextsSharingEntity($coreId, true);
+  $silo->getNeighboursConnectedBy($coreNeoID); 
+  $siloArray = $silo->makeURIs('json'); 
+  $textConnections = $graph->listTextsConnectedToEntityWithID((int)$coreNeoID);
+
+  $relatedTexts = array();
+  if(count($textConnections['annotations'])){
+    //count annotations: 
+    $annos = $textConnections['annotations']; 
+    $texts = $textConnections ['texts']; 
+    //display text: 
+    foreach($texts as $tex){
+      $texuri = $baseURI.'/text/'.$tex;
+      $relatedTexts[] = array('id'=> $tex, 'uri'=> $texuri); 
+    }
+  }
 
   //sending it to the views-class:
-  $view = new View($type, array('egoNode' => $core, 'neighbours' => $neighbours, 'relatedTexts' => $textSharingEt));
-  $view->generateJSONOnly(false);
+  //$view = new View($type, array('egoNode' => $core, 'neighbours' => $neighbours, 'relatedTexts' => $textSharingEt));
+  //$view->generateJSONOnly(false);
 }else{
   echo json_encode(array('error' => 'The provided ID does not have matching record. The related node may be deleted, or it never existed.'));
   die();
@@ -55,14 +83,24 @@ if (array_key_exists('coreID', $core)){
 
 //merging individual JSON-blocks built by the view-class
 
+$variants = array(); 
+$egoType = $type; 
+$egoURI = $graph->generateURI($coreNeoID); 
+$egoProps = array(); 
+
+$egoProperties = array(
+  'type' => $egoType,
+  'URI' => $egoURI,
+  'primary_key' => $coreId,
+  'properties' => $egoProps
+); 
+
 echo json_encode(
   array(
-    'egonode' => array(),
-    'neighbours' => array(
-      'projectRelations' => $view->datasilos,
-      'variants' => $view->variants,
-      'related_texts' => $view->relatedText
-    )
+    'egonode' => $egoProperties,
+    'project_relations' => $siloArray,
+    'related_texts' => $relatedTexts,
+    'variants' => $variants
   )
 );
 

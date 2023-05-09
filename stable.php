@@ -2,12 +2,9 @@
 
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/entityviews.inc.php');   //get rid of this!
 include_once(ROOT_DIR.'/includes/preparedviews.inc.php'); //replaced entityviews!
 include_once(ROOT_DIR.'/includes/navbar.inc.php');
 include_once(ROOT_DIR.'/includes/datasilo.inc.php');
-
-
 
 
 $typeOK = false;
@@ -48,12 +45,12 @@ $core = $graph->matchSingleNode($type, $propertyWithPK, $uuid);
 if(array_key_exists('coreID', $core)){
   $coreNeoID = $core["neoID"]; 
   $coreId = $core['coreID'];
-  $neighbours = $graph->getNeighbours($coreId);
-  $textSharingEt = $graph->getTextsSharingEntity($coreId, true);
+  $neighbours = $graph->getNeighbours($coreNeoID, false, 'see_also');
+  //$textSharingEt = $graph->getTextsSharingEntity($coreId, true);
   $silo->getNeighboursConnectedBy($coreNeoID); 
   $siloArray = $silo->makeURIs('html'); 
   $block = new Blockfactory($type); 
-  //$view = new View($type, array('egoNode'=>$core, 'neighbours'=>$neighbours, 'relatedTexts'=>$textSharingEt));
+  $textConnections = $graph->listTextsConnectedToEntityWithID((int)$coreNeoID);
 }else{
   header('Location:/error.php?type=id');
 }
@@ -75,7 +72,8 @@ if(array_key_exists('coreID', $core)){
       $navbar = new Navbar(); 
       echo $navbar->nav;
     ?>
-    <div class="container w-full m-4 p-2">
+    <div class="w-full centerCustom">
+    <div class="md:grid md:grid-cols-2 grid-cols-1">
 
         <?php 
           echo $block->makeIDBox($core); 
@@ -85,63 +83,76 @@ if(array_key_exists('coreID', $core)){
     <?php
 
     ?>
-    <div class="grid md:grid-cols-2 grid-cols-1">
+    <div class="md:w-4/5 md:grid md:grid-cols-2 grid-cols-1 centerCustom">
       <?php
         //datasilo Knowledgebases:
         if (count($siloArray) > 0){
           echo "<div class='p-2 m-2'>";
-            echo "<h3>Connected knowledgebases:</h3>";
+            echo "<h3 class='text-lg'>Connected knowledgebases:</h3>";
             echo "<ul>";
             foreach($siloArray as $urlBlock){
-              echo '<li class="kblink">'.$urlBlock.'</li>';
-
+              echo '<li class="externalURILogo">'.$urlBlock.'</li>';
             }
             echo "</ul>";
           echo "</div>";
         }
-        if(True){
+        if(count($neighbours)){
           echo "<div class='p-2 m-2'>";
-          echo "<h3>Test block1; </h3>";
+          echo "<h3 class='text-lg'>".count($neighbours)." connection(s) </h3>";
+          echo "<table>"; 
+          echo "<thead class='font-bold bg-slate-300'><td>relation</td><td>node</td><td>nodeproperties</td></thead>"; 
+          foreach($neighbours as $row){
+            $relation = $row['r'];
+            $relatedNode = $row['t']; 
+            $nodeProps = $relatedNode['properties']; 
+            $nodePropsList = '<ul>'; 
+            foreach ($nodeProps as $propkey => $propValue){
+              if(array_key_exists($propkey, NODEMODEL[$relatedNode['labels'][0]])){
+                $value = NODEMODEL[$relatedNode['labels'][0]][$propkey];
+                $propCleanName = $value[0];
+                $propType = $value[1]; 
+                if($propType === 'uri'){
+                  $nodePropsList .= "<li><span class='font-bold'>".htmlspecialchars($propCleanName).":</span> <a href='$propValue' target='_blank'><span>".htmlspecialchars($propValue)."</span></a></li>";
+                }else{
+                  $nodePropsList .= "<li><span class='font-bold'>".htmlspecialchars($propCleanName).":</span> <span>$propValue</span></li>";
+                }
+              }
+            }
+            $nodePropsList .= '</ul>';
+            echo "<tr>"; 
+            echo "<td>".$relation['type']."</td>"; 
+            echo "<td>".$relatedNode['labels'][0]."</td>";
+            echo "<td>".$nodePropsList."</td>";
+            echo "</tr>"; 
+          }
+          echo "</table>"; 
           echo "</div>";
         }
-        if(True){
+        if(count($textConnections['annotations'])){
+          //count annotations: 
+          $annos = $textConnections['annotations']; 
+          $texts = $textConnections ['texts']; 
+          //display text: 
+          $annostring = count($annos) === 1 ? 'annotation':'annotations'; 
+          $texstring = count($texts) === 1 ? 'text':'texts'; 
           echo "<div class='p-2 m-2'>";
-          echo "<h3>Test block2; </h3>";
+          echo "<h3 class='text-lg'>".count($annos)." $annostring in ".count($texts)." $texstring</h3>";
+          echo "<h4 class='font-bold'>Texts:</h4>";
+          echo "<ul>"; 
+          foreach($texts as $tex){
+            $texuri = $baseURI.'/text/'.$tex; 
+            echo '<li><a class="internalURILogo" href= "'.$texuri.'">'.$tex.'</a></li>'; 
+          }
+          echo "</ul>"; 
           echo "</div>";
         }
-        if(True){
-          echo "<div class='p-2 m-2'>";
-          echo "<h3>Test block3; </h3>";
-          echo "</div>";
-        }
-        if(True){
-          echo "<div class='p-2 m-2'>";
-          echo "<h3>Test block4; </h3>";
-          echo "</div>";
-        }
-      
       
       
       ?>
 
-<!--    todo!
-      <div class="" id="tableTarget">
-        <script>
-          <?php
-            //$view->generateJSONOnly(true);
-            //output of JSON data: get rid of the view construction!
-            //echo "var silos = ".json_encode($siloArray).";";
-            //!!!!!!!         TODO:::::
-            //echo "var variants = ".json_encode($view->variants).";";
-            //echo "var texts = ".json_encode($view->relatedText).";";
-          ?>
-        </script>
-      </div>
-    </div> -->
-    <hr>
     <div class="h-full w-full" id="visualizeWindow">
 
     </div>
-
+    </div>
   </body>
 </html>

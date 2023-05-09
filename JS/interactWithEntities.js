@@ -41,8 +41,6 @@ function decideOnEdit(protected, level){
 
 function showdata(data){
   //frameWorkBase();
-  console.log('showdata call: ');
-  console.log(data);
   toggleSlide(1);
   var annotationTarget = document.getElementById('slideoverDynamicContent');
   //superimpose the slideover on top of the nabar: 
@@ -50,8 +48,7 @@ function showdata(data){
   var gateWay = document.createElement('div');
   var statsTarget = document.createElement('div');
   statsTarget.setAttribute('id', 'relatedTextStats');
-  statsTarget.classList.add('text-gray-600', 'w-full',  'm-5', 'p-5', 'left-0');
-  gateWay.setAttribute('id', 'applicationGateway');
+  statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
   annotationTarget.innerHTML = '';
   gateWay.appendChild(statsTarget);
   var authorData = data['author'];
@@ -136,7 +133,7 @@ function showdata(data){
     annotationTarget.appendChild(writeField(annotationExtraFields[i], '', false, rightsLevel));
   }
   //work with the Author of the annotation:
-  Object.keys(authorData).forEach(key => {
+  Object.keys(authorData).forEach(key =>{
     var row = authorData[key];
     var rowkey = row[0];
     var rowdata = row[1];
@@ -144,7 +141,9 @@ function showdata(data){
   });
   //show the type of the annotation as an enlarged entry: 
   var etType = document.createElement('h3'); 
-  var etTypeText = document.createTextNode(data['entity'][0]['type']); 
+  var etStable = data['entity'][0]['stableURI']; 
+  etType.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex',  'justify-center'); 
+  var etTypeText = document.createTextNode('Entity: '+data['entity'][0]['type']); 
   etType.appendChild(etTypeText);
   annotationTarget.appendChild(etType);
   var linkToGraphExplorer = '/explore/'+data['entity'][0]['neoID']; 
@@ -154,18 +153,27 @@ function showdata(data){
   imgElement = document.createElement('img');
   imgElement.src = '/images/graphExplore.png';
   linkElement.appendChild(imgElement);
-  gateWay.appendChild(linkElement);
+  var linkToStablePage = document.createElement('a'); 
+  linkToStablePage.setAttribute('href', etStable); 
+  linkToStablePage.setAttribute('target', '_blank');
+  stableImgElement = document.createElement('i'); 
+  stableImgElement.classList.add('fas', 'fa-anchor'); 
+  //stableImgElement.innerHTML = '<i class="fa-anchor"></i>'; 
+  linkToStablePage.appendChild(stableImgElement); 
+  subdivGateway = document.createElement('div'); 
+  subdivGateway.classList.add('flex', 'flex-row'); 
+  subdivGateway.appendChild(linkElement);
+  subdivGateway.appendChild(linkToStablePage);
+  gateWay.appendChild(subdivGateway); 
   annotationTarget.appendChild(gateWay);
 
   //With the type known: look up if there's a wikidata attribute: 
   var qidArr = data['entity'][0]['properties'].filter(ar => ar[2]== 'wikidata');
   if (qidArr.length === 1){
     var qid = qidArr[0][1];
-    //console.log(qid);
     var wd = new wikibaseEntry(qid, wdProperties, 'qid');
     wd.getWikidata()
       .then(function(){wd.renderEntities(qid)}); 
-      //console.log(x);
   }
 }
 
@@ -194,7 +202,6 @@ function loadAnnotationData(){
   console.log('Normal Entry!');
   var eventsource = event.source || event.target;
   //event.preventDefault();
-  //console.log(eventsource);
   var annotationID = eventsource.dataset.annotation;
   getInfoFromBackend("/AJAX/resolve_annotation.php?annotation="+annotationID)
     .then((data)=>{
@@ -213,7 +220,6 @@ function addInteractionToEntities(){
   }
 };
 
-//console.log('present');
 $(document).ready(function(){
   addInteractionToEntities();
 });

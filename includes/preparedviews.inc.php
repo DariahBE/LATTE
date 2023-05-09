@@ -22,7 +22,7 @@ class Blockfactory {
   }
   //helper function (leave it here. )
   function makeTable($keyValuePairs, $alternatingStyle=true){
-    $table = "<table class='table-auto w-full m-8 p-8'><thead class='font-bold bg-slate-300'><tr><td>Property</td><td>Value</td></tr></thead>";
+    $table = "<table class='table-auto w-full p-8'><thead class='font-bold bg-slate-300'><tr><td>Property</td><td>Value</td></tr></thead>";
     for($i=0; $i<count($keyValuePairs); $i++){
       $rowData = $keyValuePairs[$i];
       $key = $rowData[0];
@@ -65,13 +65,10 @@ class Blockfactory {
     $clipBoardIcon = '<div><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
       </svg></div>';
-    /*$sharingIcon = '<div><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
-      <path stroke-linecap="round" stroke-linejoin="round" d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
-      </svg></div>';*/
     $stableLink = $_SERVER['SERVER_NAME'].'/URI/'.$this->viewtype.'/'.$egoID;
     $copy2clipboard = "<div onclick=\"clippy('headerURIContent', 'temp_copy_ok')\" class='flex flex-row'>{$clipBoardIcon}<p id='headerURIContent' class='text-sm'>{$stableLink}</p><p id='temp_copy_ok' class='hidden text-sm'></p></div>";
-    $boxTwo = "<div class='rounded-md border-2 border-violet-800 border-solid flex-shrink justify-center justify-content'><div class='flex flex-row w-full justify-center'>{$fingerprintIcon}<h3 class='text-lg'>Stable link</h3></div><p class='text-xs'>This node has a stable identifier; you can use it to share it with your peers, as long as this node exists, anyone with this link will be able to identify public enitities by its UUID and see connected components.</p>{$copy2clipboard}</div>"; //stable ID box with sharing integrated.
-    return "<div class='w-7/8 m-4 mx-auto px-4 columns-2 gap-4'>{$boxOne}<hr class='vertical'>{$boxTwo}</div>";
+    $boxTwo = "<div class='break-inside-avoid-column rounded-md border-2 border-violet-800 border-solid sm:w-full w-4/5 justify-center justify-content'><div class='flex flex-row w-full justify-center'>{$fingerprintIcon}<h3 class='text-lg'>Stable link</h3></div><p class='text-xs'>This node has a stable identifier; you can use it to share it with your peers, as long as this node exists, anyone with this link will be able to identify public enitities by its UUID and see connected components.</p>{$copy2clipboard}</div>"; //stable ID box with sharing integrated.
+    return "<div class='w-7/8 m-4 mx-auto px-4 columns-2 gap-4'>{$boxOne}{$boxTwo}</div>";
   }
 
   //TODO: remove this!

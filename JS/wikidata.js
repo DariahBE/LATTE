@@ -178,7 +178,7 @@ class wikibaseEntry {
           categoryTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');
           dataDivCategory.appendChild(categoryTitle); 
           for(var n = 0; n < value.length; n++){
-            console.log(value[n]);
+            //console.log(value[n]);
             dataDivCategory.appendChild(value[n]); 
           }
           dataDivMain.appendChild(dataDivCategory); 
@@ -307,6 +307,7 @@ class wikibaseEntry {
           URLLabel.appendChild(document.createTextNode(parent+': '));
           URLAnchor.setAttribute('href', URI); 
           URLAnchor.setAttribute('target', '_blank'); 
+          URLAnchor.classList.add('externalURILogo');
           URLAnchor.appendChild(URLAnchorText); 
           URLLink.appendChild(URLAnchor);
           //add output: 
@@ -320,7 +321,7 @@ class wikibaseEntry {
           var DIVHeaderText = document.createTextNode(parent+': '); 
           DIVHeaderLabel.classList.add('font-bold'); 
           DIVHeaderLabel.appendChild(DIVHeaderText);
-          DIVHeader.appendChild(DIVHeaderLabel); 
+          DIVHeader.appendChild(DIVHeaderLabel);
           URLDiv.appendChild(DIVHeader); 
           DIVHeaderLabel.classList.add('fond-bold'); 
           var LinksInUL = document.createElement('ul'); 
@@ -328,6 +329,7 @@ class wikibaseEntry {
             var URI = urlPattern.replace('$1', identifierOfEntity[n] ); 
             var listItem = document.createElement('li'); 
             listItem.classList.add('wdToMany'); 
+            listItem.classList.add('externalURILogo'); 
             var URLAnchor = document.createElement('a'); 
             var URLAnchorText = document.createTextNode(identifierOfEntity[n]); 
             URLAnchor.setAttribute('href', URI); 

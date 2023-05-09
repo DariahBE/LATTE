@@ -264,7 +264,7 @@ class Node{
   }
 
 
-  function getNeighbours($id, $relation = false){
+  function getNeighbours($id, $relation = false, $exclude = false){
     //use the built in node ID (not the UUID) to extract neighbouring nodes from a core node.
     //query is undirected!!
     // UPDATED FOR PATCH:
@@ -273,15 +273,22 @@ class Node{
      * - patch for nodes that have no neighbours: (n)-[r]-(t) is an exact pattern match
      *     ==> FIX: use optional match [r]-(t) for exact match (n)
     */
+    //exclude a single relationtype as part of the optional match
+    if(boolval($exclude)){
+      $excludedPart = ' WHERE NOT r:'.$exclude.' ';
+    }
+    else{
+      $excludedPart = ''; 
+    }
     if(!boolval($relation)){
       $result = $this->client->run('
-      MATCH (n) WHERE id(n) = $providedID AND NOT n:priv_user
-      OPTIONAL MATCH (n)-[r]-(t)
+      MATCH (n) WHERE id(n) = $providedID AND NOT n:priv_user 
+      OPTIONAL MATCH (n)-[r]-(t) '.$excludedPart.'
       RETURN n,r,t', ['providedID'=>(int)$id]);  
     }else{
       $result = $this->client->run('
-      MATCH (n) WHERE id(n) = $providedID AND NOT n:priv_user
-      OPTIONAL MATCH (n)-[r:'.$relation.']-(t) 
+      MATCH (n) WHERE id(n) = $providedID AND NOT n:priv_user 
+      OPTIONAL MATCH (n)-[r:'.$relation.']-(t) '.$excludedPart.'
       RETURN n,r,t', ['providedID'=>(int)$id]);
 
     }
@@ -512,6 +519,7 @@ class Node{
     //in $data there is at most one entry!
     //also get the model to show in DOM: 
     $result['entity']['neoID'] = $data[0]['entityID'];
+    $etStableUri = $this->generateURI($data[0]['entityID']); 
     foreach($data as $row){
       $node = $row['p']; 
       $nodeType = $node['labels'][0];
@@ -524,6 +532,7 @@ class Node{
           $result['entity']['properties'][] = $showAs;
         }
       }
+      $result['entity']['stableURI'] = $etStableUri; 
     }
     $query2 = 'match(v)-[r:same_as]-(n) where id(n) = $entityid return v' ;
     $data2 = $this->client->run($query2, ['entityid'=> $data[0]['entityID']]);

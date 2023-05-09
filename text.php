@@ -170,7 +170,6 @@ $relations = $node->getEdges($nodeId);
         <div class="entities">
           <p><span class='font-bold key'>Nr. of entities: </span><span class='value italic' id='amountOfEntities'></span></p>
           <p><span class='font-bold key'>Used model: </span><span class='value italic' id='usedEntityModel'></span></p>
-
         </div>
       </div>
       <div class="entities">
