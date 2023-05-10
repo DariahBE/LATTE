@@ -68,7 +68,8 @@ class Blockfactory {
     $stableLink = $_SERVER['SERVER_NAME'].'/URI/'.$this->viewtype.'/'.$egoID;
     $copy2clipboard = "<div onclick=\"clippy('headerURIContent', 'temp_copy_ok')\" class='flex flex-row'>{$clipBoardIcon}<p id='headerURIContent' class='text-sm'>{$stableLink}</p><p id='temp_copy_ok' class='hidden text-sm'></p></div>";
     $boxTwo = "<div class='break-inside-avoid-column rounded-md border-2 border-violet-800 border-solid sm:w-full w-4/5 justify-center justify-content'><div class='flex flex-row w-full justify-center'>{$fingerprintIcon}<h3 class='text-lg'>Stable link</h3></div><p class='text-xs'>This node has a stable identifier; you can use it to share it with your peers, as long as this node exists, anyone with this link will be able to identify public enitities by its UUID and see connected components.</p>{$copy2clipboard}</div>"; //stable ID box with sharing integrated.
-    return "<div class='w-7/8 m-4 mx-auto px-4 columns-2 gap-4'>{$boxOne}{$boxTwo}</div>";
+    return "{$boxOne}{$boxTwo}";
+    //return "<div class='w-7/8 m-4 mx-auto px-4 columns-2 gap-4'>{$boxOne}{$boxTwo}</div>";
   }
 
   //TODO: remove this!

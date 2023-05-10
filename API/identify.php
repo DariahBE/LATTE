@@ -59,6 +59,22 @@ if (array_key_exists('coreID', $core)){
   $silo->getNeighboursConnectedBy($coreNeoID); 
   $siloArray = $silo->makeURIs('json'); 
   $textConnections = $graph->listTextsConnectedToEntityWithID((int)$coreNeoID);
+  $neighbourArrayOutput = array(); 
+  foreach($neighbours as $row){
+    $relation = $row['r'];
+    $relatedNode = $row['t']; 
+    $nodeProps = $relatedNode['properties']; 
+    $nodePropsList = array(); 
+    foreach ($nodeProps as $propkey => $propValue){
+      if(array_key_exists($propkey, NODEMODEL[$relatedNode['labels'][0]])){
+        $value = NODEMODEL[$relatedNode['labels'][0]][$propkey];
+        $propCleanName = $value[0];
+        $nodePropsList[] = array('name'=> $propCleanName, 'value'=> $propValue);
+      }
+    }
+    $nodeRow = array('connectedTo'=>$relatedNode['labels'][0], 'relationType'=>$relation['type'], 'nodeProperties'=>$nodePropsList);
+    $neighbourArrayOutput[]=$nodeRow; 
+  }
 
   $relatedTexts = array();
   if(count($textConnections['annotations'])){
@@ -69,6 +85,18 @@ if (array_key_exists('coreID', $core)){
     foreach($texts as $tex){
       $texuri = $baseURI.'/text/'.$tex;
       $relatedTexts[] = array('id'=> $tex, 'uri'=> $texuri); 
+    }
+  }
+  $egoProps = array();
+
+  $model = NODEMODEL[$type]; 
+  $props = $core['data'][0][0]['node']['properties'];
+  //die();
+  foreach($props as $property => $value){
+    if(array_key_exists($property, $model)){
+      $showAs = array($model[$property][0], $props[$property], $model[$property][1]);
+      //$result['entity']['properties'][] = $showAs;
+      $egoProps[]= $showAs;
     }
   }
 
@@ -86,7 +114,6 @@ if (array_key_exists('coreID', $core)){
 $variants = array(); 
 $egoType = $type; 
 $egoURI = $graph->generateURI($coreNeoID); 
-$egoProps = array(); 
 
 $egoProperties = array(
   'type' => $egoType,
@@ -100,7 +127,7 @@ echo json_encode(
     'egonode' => $egoProperties,
     'project_relations' => $siloArray,
     'related_texts' => $relatedTexts,
-    'variants' => $variants
+    'connections' => $neighbourArrayOutput
   )
 );
 

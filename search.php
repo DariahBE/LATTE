@@ -55,6 +55,7 @@ if((isset($_SESSION) && boolval($_SESSION['userid']))){
         echo "<script>searchFields = ".json_encode($output)."</script>";
       ?>
       <script>createForm(searchFields);</script>
+      <div id='searchbutton'><button onclick='updateDict()'>Search</button></div>
     </div>
   </body>
 </html>

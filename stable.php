@@ -73,16 +73,13 @@ if(array_key_exists('coreID', $core)){
       echo $navbar->nav;
     ?>
     <div class="w-full centerCustom">
-    <div class="md:grid md:grid-cols-2 grid-cols-1">
+    <div class="md:grid md:grid-cols-2 grid-cols-1 w-7/8 m-4 mx-auto px-4 ">
 
-        <?php 
-          echo $block->makeIDBox($core); 
-        ?>
+      <?php 
+        echo $block->makeIDBox($core); 
+      ?>
 
     </div>
-    <?php
-
-    ?>
     <div class="md:w-4/5 md:grid md:grid-cols-2 grid-cols-1 centerCustom">
       <?php
         //datasilo Knowledgebases:

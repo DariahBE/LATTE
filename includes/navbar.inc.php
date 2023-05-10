@@ -33,7 +33,7 @@
     </div>
   </div>
 </nav>
-<div id="navbufferHeight" class= "relative h-8 sm:h-12 py-8 w-full -z-10"></div>
+<div id="navbufferHeight" class= "relative h-8 sm:h-12 py-12 sm:py-8 w-full z-10"></div>
 '; 
 
   }
