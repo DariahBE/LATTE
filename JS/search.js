@@ -37,6 +37,7 @@ let searchSymbols = {
   uri: {
     name: 'Weblink', 
     options: {
+      '': 'No option supplied; your search will only return results <b>maching</b> the exact string.', 
       'link*': 'Your search will look for <b>any URL starting</b> with the defined string.', 
       '*link*': 'Your search will look for <b>any URL containing</b> the defined string.'
     }
@@ -90,12 +91,12 @@ function updateDict(){
   console.log(searchDict);
   $.ajax({
     type: "POST",
-    url: "/AJAX/runsearch.php",
+    url: "/AJAX/runsearch.php?offset="+offset+"&limit="+limit,
     data: searchDict
-})/*
-.done(function( msg ) {                        
-     window.location.href = "../profile.php";
 })
+.done(function( msg ) {                        
+     simpleResponseTableGenerator(msg);
+})/*
 .fail(function(msg) {
      sessionStorage.setItem("success","0");
      window.location.reload();
@@ -138,7 +139,7 @@ function makeModForRange(){
 }
 
 function searchInstruction(searchType){
- target = document.getElementById('searchExplain');
+  target = document.getElementById('searchExplain');
   target.innerHTML = '';
   let options = searchSymbols[searchType]['options'];
   if(options){
@@ -232,4 +233,83 @@ function createForm(formElements){
     wrapper.appendChild(elem);
     target.appendChild(wrapper);
   }
+}
+
+function simpleResponseTableGenerator(data){
+  console.log(data);
+  let replTable = document.createElement('table'); 
+  //let replBody = document.createElement('tbody'); 
+  replTable.classList.add('table', 'w-full'); 
+  for (const [key, value] of Object.entries(data)) {
+    let row = value; 
+    console.log(row);
+    let rowOut = document.createElement('tr'); 
+    rowOut.classList.add('bg-gray-50', 'odd:bg-gray-100', 'hover:bg-gray-200');
+    //generate Link to stable URI or TEXT portal
+    if(row['stable']){
+      var stableLink = document.createElement('i'); 
+      stableLink.classList.add('fas', 'fa-anchor');
+      var stableLinkURI = document.createElement('a'); 
+      stableLinkURI.setAttribute('href', row['stable']); 
+      stableLinkURI.setAttribute('target', '_blank');
+      stableLinkURI.appendChild(stableLink); 
+    }else{
+      var stableLinkURI = document.createElement('p'); 
+      stableLinkURI.appendChild(document.createTextNode('N/A')); 
+    }
+    //generate link to graph: 
+    let networkImg = document.createElement('img');
+    networkImg.src = '/images/graphExplore.png';
+    let networkLink = '/explore/'+row['neoid'];
+    let networkHref = document.createElement('a');
+    networkHref.setAttribute('href', networkLink);
+    networkHref.setAttribute('target', '_blank');
+    networkHref.appendChild(networkImg); 
+    //write links in single cell. 
+    let linktd = document.createElement('td'); 
+    linktd.appendChild(networkHref);
+    linktd.appendChild(stableLinkURI);
+    // handle properties: 
+    var proplist = document.createElement('ul'); 
+    console.log(row['properties']);
+    for(var i = 0; i < row['properties'].length; i++){
+      console.log('making property row for: '); 
+      console.log('rowdata', row['properties'][i]); 
+      var proprow = document.createElement('li'); 
+      var proprowleft = document.createElement('span'); 
+      proprowleft.classList.add('font-bold');
+      proprowleft.appendChild(document.createTextNode(row['properties'][i][0]+': ')); 
+      var proprowright = document.createElement('span'); 
+      if(row['properties'][i][1] == 'uri'){
+        var rightLink = document.createElement('a');
+        rightLink.setAttribute('href', row['properties'][i][2]);
+        rightLink.setAttribute('target', '_blank');
+        rightLink.classList.add('externalLink'); 
+        rightLink.appendChild(document.createTextNode(row['properties'][i][2])); 
+        proprowright.appendChild(rightLink);
+      }else if(row['properties'][i][1] == 'wikidata'){
+        var rightLink = document.createElement('a');
+        rightLink.setAttribute('href', 'https://www.wikidata.org/wiki/'+row['properties'][i][2]);
+        rightLink.setAttribute('target', '_blank');
+        rightLink.classList.add('externalLink'); 
+        rightLink.appendChild(document.createTextNode(row['properties'][i][2])); 
+        proprowright.appendChild(rightLink);
+      }else{
+        proprowright.appendChild(document.createTextNode(row['properties'][i][2]))
+      }
+      proprow.appendChild(proprowleft); 
+      proprow.appendChild(proprowright); 
+      console.log(proprow); 
+      proplist.appendChild(proprow)
+    }
+    rowOut.appendChild(linktd); 
+    rowOut.appendChild(proplist); 
+    replTable.appendChild(rowOut); 
+  }
+  //console.log(replBody);
+  //replTable.appendChild(replBody); 
+  console.log(replTable);
+  document.getElementById('tableHere').innerHTML = ''; 
+  document.getElementById('tableHere').appendChild(replTable); 
+
 }

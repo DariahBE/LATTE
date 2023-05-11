@@ -11,6 +11,9 @@ if((isset($_SESSION) && boolval($_SESSION['userid']))){
 }else{
   $adminMode = False;
 }
+
+$offset = 0; 
+$limit = 20; 
 ?>
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
@@ -55,7 +58,15 @@ if((isset($_SESSION) && boolval($_SESSION['userid']))){
         echo "<script>searchFields = ".json_encode($output)."</script>";
       ?>
       <script>createForm(searchFields);</script>
-      <div id='searchbutton'><button onclick='updateDict()'>Search</button></div>
+      <div id='searchbutton'><button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick='updateDict()'>Search</button></div>
+      <div>
+        <script>
+          <?php echo 'let offset = '.$offset.';';
+          echo 'let limit = '.$limit.';';?>
+        </script>
+        <div id='pgn'></div>
+        <div id='tableHere'></div>
+      </div>
     </div>
   </body>
 </html>
