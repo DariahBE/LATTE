@@ -62,7 +62,6 @@ let searchSymbols = {
 
 function updateDict(){
   let readObject = document.getElementsByClassName('form-block'); 
-  console.log(readObject); 
   for(var i = 0; i < readObject.length; i++){
     let currentObject = readObject[i];
     let operator = null; 
@@ -88,7 +87,6 @@ function updateDict(){
       }; 
     }
   }
-  console.log(searchDict);
   $.ajax({
     type: "POST",
     url: "/AJAX/runsearch.php?offset="+offset+"&limit="+limit,
@@ -170,7 +168,6 @@ function loadPropertyBox(on){
   let target = document.getElementById('field2'); 
   let rangeModifiers = ['int', 'float']; 
   target.innerHTML = ''; 
-  console.log(searchAbleProperties);
   for(let i = 0; i < searchAbleProperties.length; i++){
     let prop = searchAbleProperties[i]; 
     let propname = prop[0];
@@ -236,13 +233,47 @@ function createForm(formElements){
 }
 
 function simpleResponseTableGenerator(data){
-  console.log(data);
+  document.getElementById('tableHere').innerHTML = ''; 
+  if(Object.keys(data).length == 0){
+    if(offset == 0){
+      document.getElementById('tableHere').innerHTML = '<p>This search returned no results.</p>'; 
+    }else{
+      document.getElementById('tableHere').innerHTML = '<p>No additional results found.</p>'; 
+    }
+  }
+  //if (Object.keys(data).length == limit){
+  var pgTarget = document.getElementById('pgn');
+  pgTarget.innerHTML = ''; 
+  let backButton = document.createElement('button'); 
+  let nextButton = document.createElement('button');
+  backButton.addEventListener('click', function(){
+    offset = offset-limit;
+    updateDict();
+  });
+  nextButton.addEventListener('click', function(){
+    offset = offset+limit; 
+    updateDict();
+  }); 
+  backButton.appendChild(document.createTextNode('<<'));
+  nextButton.appendChild(document.createTextNode('>>'));
+  let showingTex = document.createElement('p');
+  let fromRes = offset+1; 
+  let toRes = offset+Object.keys(data).length; 
+  let texToShow = document.createTextNode('Showing results '+fromRes+' to '+ toRes+'.'); 
+  showingTex.appendChild(texToShow);
+  if(offset != 0){
+    pgTarget.appendChild(backButton);
+  }
+  pgTarget.appendChild(showingTex); 
+  if(Object.keys(data).length == limit){
+    pgTarget.appendChild(nextButton);
+  }
+  //}
   let replTable = document.createElement('table'); 
   //let replBody = document.createElement('tbody'); 
   replTable.classList.add('table', 'w-full'); 
   for (const [key, value] of Object.entries(data)) {
     let row = value; 
-    console.log(row);
     let rowOut = document.createElement('tr'); 
     rowOut.classList.add('bg-gray-50', 'odd:bg-gray-100', 'hover:bg-gray-200');
     //generate Link to stable URI or TEXT portal
@@ -271,10 +302,7 @@ function simpleResponseTableGenerator(data){
     linktd.appendChild(stableLinkURI);
     // handle properties: 
     var proplist = document.createElement('ul'); 
-    console.log(row['properties']);
     for(var i = 0; i < row['properties'].length; i++){
-      console.log('making property row for: '); 
-      console.log('rowdata', row['properties'][i]); 
       var proprow = document.createElement('li'); 
       var proprowleft = document.createElement('span'); 
       proprowleft.classList.add('font-bold');
@@ -299,17 +327,12 @@ function simpleResponseTableGenerator(data){
       }
       proprow.appendChild(proprowleft); 
       proprow.appendChild(proprowright); 
-      console.log(proprow); 
       proplist.appendChild(proprow)
     }
     rowOut.appendChild(linktd); 
     rowOut.appendChild(proplist); 
     replTable.appendChild(rowOut); 
   }
-  //console.log(replBody);
-  //replTable.appendChild(replBody); 
-  console.log(replTable);
-  document.getElementById('tableHere').innerHTML = ''; 
   document.getElementById('tableHere').appendChild(replTable); 
 
 }

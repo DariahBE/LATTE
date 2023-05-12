@@ -15,17 +15,12 @@ if (!array_key_exists($labelname, NODEMODEL)){
 $page = 0;
 if(isset($_GET['p'])){$page = (int)$_GET['p'];}
 
-$search = new Search($client); 
-$graph = new Node($client); 
-$data = $search->directNodeSearch($labeloptions, $labelname, $page); 
-
-$controlledResponse = array(); 
-foreach ($data->getresults() as $rowkey=> $row){
-  $row = $row['n'];
-  $neoID = $row['id'];
+function merge($datarow){
+  global $graph;
+  $neoID = $datarow['id'];
   $stableURI = $graph->generateURI($neoID);
-  $rowLabel = $row['labels'][0];
-  $rowProperties = $row['properties']; 
+  $rowLabel = $datarow['labels'][0];
+  $rowProperties = $datarow['properties']; 
   $model = NODEMODEL[$rowLabel]; 
   $rowResponse = array(
     'neoid' => (int)$neoID,
@@ -39,10 +34,31 @@ foreach ($data->getresults() as $rowkey=> $row){
       $rowResponse['properties'][] = array($model[$propname][0], $model[$propname][1], $propval);
     }
   }
-  $controlledResponse[$neoID]= $rowResponse;
-  //echo json_encode($row);
+  return array('neo'=>(int)$neoID, 'data'=>$rowResponse);
 }
 
+$search = new Search($client); 
+$graph = new Node($client); 
+$data = $search->directNodeSearch($labeloptions, $labelname, $page); 
+$controlledResponse = array(); 
+foreach ($data->getresults() as $rowkey=> $row){
+  $rowDirect = $row['n'];
+  $rowIndirect = $row['q'];
+  if(!(is_null($rowIndirect))){
+    $method = 'indirect';
+    $rowResponse = merge($rowIndirect);
+    $controlledResponse[$rowResponse['neo']]= $rowResponse['data'];
+  }
+  
+  if(!(is_null($rowDirect))){
+    $method = 'indirect';
+    $rowResponse = merge($rowDirect);
+    $controlledResponse[$rowResponse['neo']]= $rowResponse['data'];
+  }
+
+
+}
+//var_dump($controlledResponse); 
 echo json_encode($controlledResponse);
 
 

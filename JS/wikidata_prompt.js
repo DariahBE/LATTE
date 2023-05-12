@@ -103,15 +103,17 @@ function pickThisQID(qid){
   //if the user is SURE ==> provide a save button which sends the request to the server! 
   let rejectButton = document.createElement('button');
   let acceptButton = document.createElement('button');
+  rejectButton.classList.add('bg-red-500', 'hover:bg-red-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
+  acceptButton.classList.add('bg-green-500', 'hover:bg-green-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
   let rejectText = document.createTextNode('Reject');
   let acceptText = document.createTextNode('Accept');
   rejectButton.addEventListener('click', function(){
-    console.log('reject');
+    //console.log('reject');
     wd = null; //destroy wikidataObject
     console.log(wd); 
   });
   const displayWDtarget = document.getElementById('handyLittleThingyForWDStuff');
-  console.log(displayWDtarget);
+  //console.log(displayWDtarget);
   rejectButton.appendChild(rejectText);
   acceptButton.appendChild(acceptText);
   let confirmationDiv = document.createElement('div');

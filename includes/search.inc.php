@@ -41,8 +41,9 @@ class Search{
       switch($operator){
         case '': // '', '!=', '^', 'word*', '*word', '*word*')
           return array(
+            'type' => $valuetype,
             'constraint'=>'n.'.$propertyname.' = $'.$phname, 
-            'varconstraint' =>'v.'.$propertyname.' = $'.$phnamevar, 
+            'varconstraint' =>'v.variant = $'.$phnamevar, 
             'placeholders'=>array(
               $phname=>$value[0],
               $phnamevar=>$value[0],
@@ -51,8 +52,9 @@ class Search{
           break; 
         case'!=':
           return array(
+            'type' => $valuetype,
             'constraint'=>'(n.'.$propertyname.' <> $'.$phname .' OR n.'.$propertyname.' IS NULL )', 
-            'varconstraint'=>'(v.'.$propertyname.' <> $'.$phnamevar .' OR v.'.$propertyname.' IS NULL )',
+            'varconstraint'=>'(v.variant <> $'.$phnamevar .' OR v.variant IS NULL )',
             'placeholders'=>array(
               $phname=>$value[0], 
               $phnamevar=>$value[0]
@@ -60,16 +62,48 @@ class Search{
           );
           break;
         case '^':
-          return array('constraint'=>'toLower(n.'.$propertyname.') = toLower($'.$phname.')', 'placeholders'=>array($phname=>$value[0]));
+          return array(
+            'type' => $valuetype,
+            'constraint'=>'toLower(n.'.$propertyname.') = toLower($'.$phname.')', 
+            'varconstraint'=>'toLower(v.variant) = toLower($'.$phnamevar.')', 
+            'placeholders'=>array(
+              $phname=>$value[0],
+              $phnamevar=>$value[0]
+          )
+        );
           break;
         case 'word*':
-          return array('constraint'=>'toLower(n.'.$propertyname.') STARTS WITH toLower($'.$phname.')', 'placeholders'=>array($phname=>$value[0]));
+          return array(
+            'type' => $valuetype,
+            'constraint'=>'toLower(n.'.$propertyname.') STARTS WITH toLower($'.$phname.')', 
+            'varconstraint'=>'toLower(v.variant) STARTS WITH toLower($'.$phnamevar.')', 
+            'placeholders'=>array(
+              $phname=>$value[0],
+              $phnamevar=>$value[0]
+            )
+          );
           break;
         case '*word':
-          return array('constraint'=>'toLower(n.'.$propertyname.') ENDS WITH toLower($'.$phname.')', 'placeholders'=>array($phname=>$value[0]));
+          return array(
+            'type' => $valuetype,
+            'constraint'=>'toLower(n.'.$propertyname.') ENDS WITH toLower($'.$phname.')', 
+            'varconstraint'=>'toLower(v.variant) ENDS WITH toLower($'.$phnamevar.')', 
+            'placeholders'=>array(
+              $phname=>$value[0],
+              $phnamevar=>$value[0]
+            )
+          );
           break;
         case '*word*':
-          return array('constraint'=>'toLower(n.'.$propertyname.') CONTAINS toLower($'.$phname.')', 'placeholders'=>array($phname=>$value[0]));
+          return array(
+            'type' => $valuetype,
+            'constraint'=>'toLower(n.'.$propertyname.') CONTAINS toLower($'.$phname.')', 
+            'varconstraint'=>'toLower(v.variant) CONTAINS toLower($'.$phnamevar.')', 
+            'placeholders'=>array(
+              $phname=>$value[0],
+              $phnamevar=>$value[0]
+            )
+          );
           break;
       }
     }
@@ -79,12 +113,13 @@ class Search{
   function directNodeSearch($searchdict, $label, $offset = 0, $limit = 20){
     $constraints = array(); 
     $conditions = array(); 
+    $optconstraints = array(); 
 
     foreach($searchdict as $key => $opt){
       if(array_key_exists($key, NODEMODEL[$label])){      
         $singleParameter= $this->convertOperatorToCypher($opt['operator'], $opt['type'], $key, $opt['values']);
-        //var_dump($singleParameter);
         $constraints[]=$singleParameter['constraint']; 
+        $optconstraints[]=$singleParameter['varconstraint']; 
         foreach($singleParameter['placeholders'] as $k =>$v){
           $conditions[$k] =$v;
         }
@@ -92,22 +127,22 @@ class Search{
       }
     }
 
-    $query = "MATCH (n:$label) "; 
+    $query = "OPTIONAL MATCH (n:$label) "; 
     $query.=" WHERE ".implode(' AND ', $constraints); 
     //add constraint on type!
-    $query.= "OPTIONAL MATCH (q:$label)--(v:Variant) ";
-    $query.=" RETURN n,q SKIP $offset LIMIT $limit "; 
-    var_dump($query); 
+    if(boolval(count($optconstraints))){
+      $query.= " OPTIONAL MATCH (q:$label)--(v:Variant) WHERE ".implode(' AND ', $optconstraints);
+    }
+    $query.=" RETURN distinct(n)";
+    if(boolval(count($optconstraints))){
+      $query.=",q ";
+    }
+    $query.=" SKIP $offset LIMIT $limit "; 
     $data = $this->client->run($query, $conditions);
     return $data;
-    
   }
 
 }
 
 
-#Look for a cypher statement to find all nodes with label place that have label "Manchester" or where Place is connected to a node with label Variant where the property alt is "Manchester"
-#optional MATCH (n:Place)  WHERE n.label CONTAINS 'Man'
-#OPTIONAL MATCH (q:Place)-[]-(v:Variant) where v.variant CONTAINS 'Man' 
-#RETURN n,q SKIP 0 LIMIT 20
 ?>
