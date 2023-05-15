@@ -57,25 +57,53 @@ function loadPropertiesOfSelectedType(selectedString){
   //console.log(selected);
 }
 
+function showET(etdata){
+  const subtarget = document.getElementById('entitycontent');
+  subtarget.innerHTML = ''; 
+  var label = etdata[1];
+  var properties = etdata[2];
+  var wikidataID = etdata[3];
+  //document.getElementById("handyLittleThingyForWDStuff").remove();
+  //let wd = null; 
+  if(wikidataID) {
+    //integrate wikidata class!
+    wd = new wikibaseEntry(wikidataID, wdProperties, 'qid');
+    wd.getWikidata()
+      .then(function(){wd.renderEntities(wikidataID)}); 
+  }
+  //console.log(label, properties, wikidataID); 
+}
+
 function triggerSidePanelAction(entityData){
+  console.log('ed: '); 
+  console.log(entityData); 
   toggleSlide(1);
-  console.log(entityData);
+  //console.log(entityData);
   let = dataDictionary = {};
   const targetOfInfo = document.getElementById('slideoverDynamicContent'); 
   targetOfInfo.innerHTML = ''; 
+  //backend returned one or more nodes that have  spellingvariant/label matching the request: 
   if(entityData['nodes'].length){
     //create a title that show the information about the matching entities: 
     let topbox = document.createElement('div'); 
     topbox.classList.add('w-full');
     let topTex = document.createElement('h3'); 
     topTex.classList.add('w-full'); 
-    topTex.appendChild(document.createTextNode("Found "+entityData['nodes'].length+" nodes.")); 
+    console.log('triggerSidePanelAction shows: ');
+    topTex.appendChild(document.createTextNode("Found "+entityData['nodes'].length+" nodes based on matching string.")); 
     topbox.appendChild(topTex);
     targetOfInfo.appendChild(topbox);
     //create a box notice where the information is shown: 
     //find a way of attaching variants to the nodes!!
     //start with interpreting the edges: connect the entitynode with the variants once you know that!
-    for(let j = 0; j < entityData['edges'].length; j++){
+    //BUG: entityID gets repeated on one to many relations with variants!
+    dataDictionary = entityData['nodes'];
+    for (let k of Object.keys(dataDictionary)) {
+      //console.log(dataDictionary[k]);
+      dataDictionary[k]['weight'] = entityData['weights'][dataDictionary[k][0]]; 
+      //console.log(entityData['weights'][dataDictionary[k][0]]);
+    }
+    /*for(let j = 0; j < entityData['edges'].length; j++){
       let startnodeid = entityData['edges'][j]['startNodeId'];  // = id of the Entity
       let endnodeid = entityData['edges'][j]['endNodeId'];      // = id of the Variant. 
       //this has to be tested with multiple relations!!!
@@ -83,37 +111,73 @@ function triggerSidePanelAction(entityData){
       let endnode = entityData['labelvariants'].find(node => node[2]['variantOfEntity'].includes(endnodeid));
       //dataDictionary ==> you have to put the startnode in and assign all related variantnodes!
       if(!(Object.keys(dataDictionary).includes(startnodeid))){
+        console.log('appending: '+startnodeid, 'connected to: '+endnodeid);
         dataDictionary[startnodeid] = startnode;
         dataDictionary[startnodeid]['variants']= []; 
       }
+      console.log('DD: keys'); 
+      console.log(dataDictionary); 
+      console.log('DD: keyend'); 
+
       dataDictionary[startnodeid]['variants'].push(endnode);
       //ideally you should sort the nodes according to their importance. Backend still needs to receive an update to make this possible. 
       //console.log(startnode);
       dataDictionary[startnodeid]['weight']=entityData['weights'][endnodeid];     //score attribute: Node with the highest weight. 
+      console.log('DD: keys with weight'); 
+      console.log(dataDictionary); 
+      console.log('DD: keyend of weighed keys'); 
       //append(dataDictionary[startnodeid]['variants']);
       //datadictionary[startnodeid];
       //console.log(startnode, endnode);
-    }
+    }*/
     //console.log(dataDictionary); 
     //sort the entities according to their score coming from the backend: 
     let sortedEntityKeys = []; 
     //console.log(Object.keys(dataDictionary)); //OK
     Object.keys(dataDictionary).sort(score);
     function score(a, b){
-      console.log(a,b);
+      //console.log(a,b);
       return dataDictionary[a]['weight'] - dataDictionary[b]['weight'];
     }
     console.log('here');
     console.log(dataDictionary);
-    //now iterate over dataDictionary according to the sortedEntityKeys order; 
-    sortedEntityKeys.forEach(element => {
-      console.log('ET: '); 
-      console.log(dataDictionary[element]);
-    });
+    //node with the heighest weight is presented first: 
+    //load the first node: 
+    var firstNode = dataDictionary[0]; 
+    var etMainBox = document.createElement('div'); 
+    var etSubNavBox = document.createElement('div');
+    var etSubContentBox = document.createElement('div'); 
+    etMainBox.setAttribute('id', 'etmain'); 
+    etSubNavBox.setAttribute('id', 'etnav'); 
+    etSubContentBox.setAttribute('id', 'entitycontent'); 
+    etMainBox.appendChild(etSubNavBox);
+    etMainBox.appendChild(etSubContentBox);
+    targetOfInfo.appendChild(etMainBox);
+    showET(firstNode); 
+    let datadictpage = 0;
+
+
+    console.log('TODO: extra objects in string basedmatch!');
+    if(Object.keys(dataDictionary).length>1){
+      console.log('extra objects!!');
+      var navdisp = document.createElement('p'); 
+      var navBlock1 = document.createElement('span'); 
+      var navBlock2 = document.createElement('span'); 
+      var navBlock3 = document.createElement('span'); 
+      navBlock1.appendChild(document.createTextNode(toString(datadictpage+1)));
+      navBlock2.appendChild(document.createTextNode(' of '));
+      navBlock3.appendChild(document.createTextNode(toString(Object.keys(dataDictionary).length)));
+      navdisp.appendChild(navBlock1);
+      navdisp.appendChild(navBlock2);
+      navdisp.appendChild(navBlock3);
+    }
+
+
     //console.log(dataDictionary);
     let midbox = document.createElement('div'); 
     midbox.classList.add('w-full'); 
   }else{
+    //nothing found in the backend: no matching variants or nodelabels: 
     function binVariant(e){
       e.parentElement.remove();
     }
@@ -376,29 +440,29 @@ function getTextSelection(){
 }
 
 function triggerSelection(){
-
-    var selectedTextProperties = getTextSelection();
-    var selectedText = selectedTextProperties[0];
-    console.log('Properties: ', selectedTextProperties);
-    var selectedTextStart = selectedTextProperties[1];
-    var selectedTextEnd = selectedTextProperties[2];
-    //fetch from BE:
-    //$findEntityByType = $_GET['type'];
-    //$findEntityByValue = $_GET['value'];
-    if(selectedText){
-      $baseURL = '/AJAX/getEntitySuggestion.php?';
-      $parameters = {
-        'type':'',    //type is empty as there was no pickup by NERtool
-        'value':selectedText,
-        'casesensitive':false
-      };
-      $sendTo = $baseURL+jQuery.param($parameters);
-      makeSuggestionBox();
-      getInfoFromBackend($sendTo)
-      .then((data)=>{
-        loadIntoSuggestionBox(data, selectedTextStart, selectedTextEnd);
-      })
-    }
+  console.log('triggerSelection function'); 
+  var selectedTextProperties = getTextSelection();
+  var selectedText = selectedTextProperties[0];
+  console.log('Properties: ', selectedTextProperties);
+  var selectedTextStart = selectedTextProperties[1];
+  var selectedTextEnd = selectedTextProperties[2];
+  //fetch from BE:
+  //$findEntityByType = $_GET['type'];
+  //$findEntityByValue = $_GET['value'];
+  if(selectedText){
+    $baseURL = '/AJAX/getEntitySuggestion.php?';
+    $parameters = {
+      'type':'',    //type is empty as there was no pickup by NERtool
+      'value':selectedText,
+      'casesensitive':false
+    };
+    $sendTo = $baseURL+jQuery.param($parameters);
+    makeSuggestionBox();
+    getInfoFromBackend($sendTo)
+    .then((data)=>{
+      loadIntoSuggestionBox(data, selectedTextStart, selectedTextEnd);
+    })
+  }
 }
 
 $(document).ready(function() {

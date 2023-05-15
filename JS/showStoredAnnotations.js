@@ -1,8 +1,8 @@
 /**
  *  this is to visualize whatever is stored int he DB and show it to the USER
- *  Not intended for interaction!!!
  * 
  */
+
 
 function unmark(){
   var marked = document.getElementsByClassName('markedAnnotation');
@@ -55,7 +55,7 @@ function visualizeStoredAnnotations(){
         var origin = event.source || event.target;
         var countOfRelatedAnnotations = origin.dataset.annotationCount;
         var relatedAnnotationIDS = origin.dataset.annotation;
-        console.log(relatedAnnotationIDS);
+        //console.log(relatedAnnotationIDS);
         markBasedOnId(relatedAnnotationIDS);
       })
     }

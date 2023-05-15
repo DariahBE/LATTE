@@ -65,6 +65,7 @@ function valueExtract($node, $key){
 
 function process_entityNodes($nodeIn){
   $id = $nodeIn['id'];
+  $wdProp = null; 
   $label = $nodeIn['labels'][0];
   $data = array();
   $model = NODEMODEL[$label];
@@ -73,8 +74,11 @@ function process_entityNodes($nodeIn){
       'value' => valueExtract($nodeIn['properties'], $key),
       'DOMString' => $value[0]
     );
+    if($value[1]==='wikidata'){
+      $wdProp = valueExtract($nodeIn['properties'], $key);
+    }
   }
-  return(array($id, $label, $data));
+  return(array($id, $label, $data, $wdProp));
 }
 
 function process_edge($edgeIn){
@@ -380,6 +384,7 @@ class Node{
     $resultRaw = $this->client->run($cypherQuery,$placeholders);
     $formattedResults = array(
       'nodes'=>array(),
+      'silo'=>array(),
       'edges'=>array(),
       'labelvariants'=>array(),
       'meta'=>array('entities'=>0), 
@@ -398,7 +403,7 @@ class Node{
           $iPartner = process_entityNodes($result['i']);
           if(!(in_array($iPartner[0], $registeredNodes))){
             $registeredNodes[] = $iPartner[0];
-            $formattedResults['nodes'][] = $iPartner;
+            $formattedResults['silo'][] = $iPartner;
           }
         }
         if(!(is_null($result['j']))){
@@ -406,7 +411,7 @@ class Node{
           $jPartner = process_entityNodes($result['j']);
           if(!(in_array($jPartner[0], $registeredNodes))){
             $registeredNodes[] = $jPartner[0];
-            $formattedResults['nodes'][] = $jPartner;
+            $formattedResults['silo'][] = $jPartner;
           }
         }
         if(!(is_null($result['v']))){

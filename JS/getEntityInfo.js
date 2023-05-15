@@ -29,7 +29,7 @@ function showInfoFromBackend(info, elem){
   elem.target.getElementsByClassName('secondSpanElementOfEntity')[0].removeEventListener('click', backendHandler);
   elem.target.getElementsByClassName('secondSpanElementOfEntity')[0].addEventListener('click', backendHandler);
 }
-
+/*
 function getInfoByString(string, nodetype){
   alert('called3');
   console.log(string, nodetype);
@@ -46,7 +46,7 @@ function getInfoByString(string, nodetype){
     console.log(data);
     showInfoFromBackend(data);
   })
-}
+}*/
 
 function getInfoByClick(e){
   alert('called4');
