@@ -72,7 +72,8 @@ function process_entityNodes($nodeIn){
   foreach ($model as $key => $value) {
     $data[$key] = array(
       'value' => valueExtract($nodeIn['properties'], $key),
-      'DOMString' => $value[0]
+      'DOMString' => $value[0],
+      'vartype' => $value[1]
     );
     if($value[1]==='wikidata'){
       $wdProp = valueExtract($nodeIn['properties'], $key);

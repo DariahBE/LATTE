@@ -78,6 +78,13 @@ class Annotation{
     }
   }
 
+  public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user){
+    $idtex = (int)$neoIDText;
+    $idet = (int)$neoIDEt;
+    #create new node and connect it to two existing nodes by using id() in cypher
+
+  }
+
 
   public function getExistingAnnotationsInText($neoid, $user = false){
     //when user is false ==> only show public annotations.

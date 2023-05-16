@@ -37,7 +37,6 @@ function loadPropertiesOfSelectedType(selectedString){
     console.log(data);
   })*/
   //create a dual display: one with the option to add a new entity, one with the option to attach the annotation to an existing annotation. 
-  console.log(selectedString); 
   fetch('/AJAX/get_structure.php?type='+selected)
   .then((response) => response.json())
   .then((data) =>{
@@ -49,34 +48,119 @@ function loadPropertiesOfSelectedType(selectedString){
         //console.log(key, value);
         var humanLabel = value[0];
         var datatype = value[1];
-        console.log(key, humanLabel, datatype); 
       });
       
     }
   })
-  //console.log(selected);
+}
+
+function generateHyperlink(anchor, href, classlist=[], id=false, anchormode='text', newtab=true){
+  var a = document.createElement('a'); 
+  a.setAttribute('href', href);
+  if(newtab){
+    a.setAttribute('target','_blank');
+  }
+  for(let i = 0; i < classlist.length; i++){
+    a.classList.add(classlist[i]); 
+  }
+  if(anchormode =='text'){
+    var t = document.createTextNode(anchor); 
+  }else if (anchormode =='image'){
+    var t = document.createElement('img'); 
+    t.setAttribute('src', anchor); 
+  }
+  a.appendChild(t); 
+  if (id){
+    a.setAttribute('id', id); 
+  }
+  return a; 
 }
 
 function showET(etdata){
+  let wd = null; 
+  let wdboxToDrop = document.getElementById('handyLittleThingyForWDStuff');
+  if(wdboxToDrop){wdboxToDrop.remove();}
   const subtarget = document.getElementById('entitycontent');
   subtarget.innerHTML = ''; 
+  console.log(etdata);
   var label = etdata[1];
   var properties = etdata[2];
+  console.log('propers: '); 
+  console.log(properties);
+  var propdiv = document.createElement('div'); 
+  for(let k in properties){
+    let show = null; 
+    let key = k;
+    let value = properties[k]; 
+    let valueType = value['vartype']; 
+    let valueDOM = value['DOMString']; 
+    let datavalue = value['value']; 
+    if (valueType == 'uri'){
+      show = generateHyperlink(valueDOM, datavalue, ['externalURILogo']); 
+    }else if(valueType == 'wikidata'){
+      show = document.createElement('p')
+      var wdprefix = document.createElement('span'); 
+      wdprefix.appendChild(document.createTextNode('Wikidata: '));
+      wdprefix.classList.add('font-bold'); 
+      let extrashow = generateHyperlink(datavalue, 'https://wikidata.org/wiki/'+datavalue, ['externalURILogo']); 
+      show.appendChild(wdprefix);
+      show.appendChild(extrashow);
+    }else{
+      if(datavalue === null){datavalue='';}
+      show = document.createElement('p'); 
+      let labelShow = document.createElement('span'); 
+      let valueShow = document.createElement('span'); 
+      labelShow.classList.add('font-bold'); 
+      let labelShowTex = document.createTextNode(valueDOM+': '); 
+      let valueShowTex = document.createTextNode(datavalue); 
+      labelShow.appendChild(labelShowTex);
+      valueShow.appendChild(valueShowTex);
+      show.appendChild(labelShow);
+      show.appendChild(valueShow);
+    }
+    propdiv.appendChild(show); 
+  }
+  document.getElementById('entitycontent').appendChild(propdiv); 
   var wikidataID = etdata[3];
-  //document.getElementById("handyLittleThingyForWDStuff").remove();
-  //let wd = null; 
-  if(wikidataID) {
-    //integrate wikidata class!
+  if(wikidataID){
     wd = new wikibaseEntry(wikidataID, wdProperties, 'qid');
     wd.getWikidata()
       .then(function(){wd.renderEntities(wikidataID)}); 
   }
-  //console.log(label, properties, wikidataID); 
+  //with the data displayed: allow the user to accept the suggestion => this creates a new annotation between
+  //the text and existing ET. 
+  console.log('accept/reject suggestion'); 
+  fetch('/user/AJAX/profilestate.php')
+  .then((response) => response.json())
+  .then((data) =>{
+    if(data[0]){
+      var acceptLink = document.createElement('button');
+      var acceptText = document.createTextNode('Create annotation');
+      acceptLink.appendChild(acceptText);
+      acceptLink.classList.add('bg-green-400'); 
+      acceptLink.addEventListener('click', function(){
+        //
+        let postData = {
+          sourceNeoID: etdata[0],
+          texNeoid: languageOptions['nodeid']
+        }; 
+        console.log(postData);
+        // BUG: Why is POST returning empty on the server?? 
+        //let post = JSON.stringify(postData);
+        const url = "/AJAX/crud/connect.php";
+        var xhr = new XMLHttpRequest();
+        xhr.open("POST", url, true);
+        xhr.setRequestHeader('Content-Type', 'application/json');
+        xhr.send(JSON.stringify(postData));
+        
+      }); 
+      document.getElementById('etmain').appendChild(acceptLink); 
+    }
+  })
+
 }
 
 function triggerSidePanelAction(entityData){
-  console.log('ed: '); 
-  console.log(entityData); 
   toggleSlide(1);
   //console.log(entityData);
   let = dataDictionary = {};
@@ -89,58 +173,28 @@ function triggerSidePanelAction(entityData){
     topbox.classList.add('w-full');
     let topTex = document.createElement('h3'); 
     topTex.classList.add('w-full'); 
-    console.log('triggerSidePanelAction shows: ');
-    topTex.appendChild(document.createTextNode("Found "+entityData['nodes'].length+" nodes based on matching string.")); 
-    topbox.appendChild(topTex);
-    targetOfInfo.appendChild(topbox);
     //create a box notice where the information is shown: 
     //find a way of attaching variants to the nodes!!
     //start with interpreting the edges: connect the entitynode with the variants once you know that!
     //BUG: entityID gets repeated on one to many relations with variants!
     dataDictionary = entityData['nodes'];
+
+    topTex.appendChild(document.createTextNode("Found "+dataDictionary.length+" nodes based on matching string.")); 
+    topbox.appendChild(topTex);
+    targetOfInfo.appendChild(topbox);
+
+
     for (let k of Object.keys(dataDictionary)) {
       //console.log(dataDictionary[k]);
       dataDictionary[k]['weight'] = entityData['weights'][dataDictionary[k][0]]; 
       //console.log(entityData['weights'][dataDictionary[k][0]]);
     }
-    /*for(let j = 0; j < entityData['edges'].length; j++){
-      let startnodeid = entityData['edges'][j]['startNodeId'];  // = id of the Entity
-      let endnodeid = entityData['edges'][j]['endNodeId'];      // = id of the Variant. 
-      //this has to be tested with multiple relations!!!
-      let startnode = entityData['nodes'].find(node => node[0] = startnodeid);
-      let endnode = entityData['labelvariants'].find(node => node[2]['variantOfEntity'].includes(endnodeid));
-      //dataDictionary ==> you have to put the startnode in and assign all related variantnodes!
-      if(!(Object.keys(dataDictionary).includes(startnodeid))){
-        console.log('appending: '+startnodeid, 'connected to: '+endnodeid);
-        dataDictionary[startnodeid] = startnode;
-        dataDictionary[startnodeid]['variants']= []; 
-      }
-      console.log('DD: keys'); 
-      console.log(dataDictionary); 
-      console.log('DD: keyend'); 
-
-      dataDictionary[startnodeid]['variants'].push(endnode);
-      //ideally you should sort the nodes according to their importance. Backend still needs to receive an update to make this possible. 
-      //console.log(startnode);
-      dataDictionary[startnodeid]['weight']=entityData['weights'][endnodeid];     //score attribute: Node with the highest weight. 
-      console.log('DD: keys with weight'); 
-      console.log(dataDictionary); 
-      console.log('DD: keyend of weighed keys'); 
-      //append(dataDictionary[startnodeid]['variants']);
-      //datadictionary[startnodeid];
-      //console.log(startnode, endnode);
-    }*/
-    //console.log(dataDictionary); 
     //sort the entities according to their score coming from the backend: 
     let sortedEntityKeys = []; 
-    //console.log(Object.keys(dataDictionary)); //OK
     Object.keys(dataDictionary).sort(score);
     function score(a, b){
-      //console.log(a,b);
       return dataDictionary[a]['weight'] - dataDictionary[b]['weight'];
     }
-    console.log('here');
-    console.log(dataDictionary);
     //node with the heighest weight is presented first: 
     //load the first node: 
     var firstNode = dataDictionary[0]; 
@@ -154,22 +208,62 @@ function triggerSidePanelAction(entityData){
     etMainBox.appendChild(etSubContentBox);
     targetOfInfo.appendChild(etMainBox);
     showET(firstNode); 
-    let datadictpage = 0;
+    var datadictpage = 0;
+    var pageLength = dataDictionary.length; 
 
+    function navET(dir){
+      if(dir === '-'){
+        //go back
+        datadictpage--;
+        if (datadictpage <= 0){
+          datadictpage = 0;
+          document.getElementById('ETSuggestionArrowLeft').classList.add('invisible');
+        }
+      }else{
+        //go up
+        datadictpage++;
+        if (datadictpage >= dataDictionary.length-1){
+          datadictpage = dataDictionary.length-1;
+          document.getElementById('ETSuggestionArrowRight').classList.add('invisible');
+        }
+      }
+      if (datadictpage != 0){
+        document.getElementById('ETSuggestionArrowLeft').classList.remove('invisible');
+      }
+      if(datadictpage != dataDictionary.length -1){
+        document.getElementById('ETSuggestionArrowRight').classList.remove('invisible');
+      }
+      document.getElementById('xofindicator').innerHTML = datadictpage+1;
+      showET(dataDictionary[datadictpage]);
+    }
 
-    console.log('TODO: extra objects in string basedmatch!');
     if(Object.keys(dataDictionary).length>1){
-      console.log('extra objects!!');
       var navdisp = document.createElement('p'); 
+      var xof = document.createElement('span'); 
       var navBlock1 = document.createElement('span'); 
       var navBlock2 = document.createElement('span'); 
       var navBlock3 = document.createElement('span'); 
-      navBlock1.appendChild(document.createTextNode(toString(datadictpage+1)));
+      navBlock1.appendChild(document.createTextNode(datadictpage+1));
+      navBlock1.setAttribute('id', 'xofindicator'); 
       navBlock2.appendChild(document.createTextNode(' of '));
-      navBlock3.appendChild(document.createTextNode(toString(Object.keys(dataDictionary).length)));
-      navdisp.appendChild(navBlock1);
-      navdisp.appendChild(navBlock2);
-      navdisp.appendChild(navBlock3);
+      navBlock3.appendChild(document.createTextNode(pageLength));
+      xof.appendChild(navBlock1);
+      xof.appendChild(navBlock2);
+      xof.appendChild(navBlock3);
+      document.getElementById('etnav').appendChild(navdisp); 
+      //create Nav arraow: 
+      var prevET = document.createElement('span');
+      var nextET = document.createElement('span');
+      prevET.appendChild(document.createTextNode('<<'));
+      prevET.classList.add('invisible'); 
+      prevET.setAttribute('id', 'ETSuggestionArrowLeft'); 
+      nextET.appendChild(document.createTextNode('>>')); 
+      nextET.setAttribute('id', 'ETSuggestionArrowRight'); 
+      navdisp.appendChild(prevET);
+      navdisp.appendChild(xof);
+      navdisp.appendChild(nextET);
+      prevET.addEventListener('click', function(){navET('-')})
+      nextET.addEventListener('click', function(){navET('+')})
     }
 
 
