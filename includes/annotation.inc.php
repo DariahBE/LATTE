@@ -79,13 +79,51 @@ class Annotation{
   }
 
   public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user){
-    $idtex = (int)$neoIDText;
-    $idet = (int)$neoIDEt;
-    #create new node and connect it to two existing nodes by using id() in cypher
+    $constraintTwo = False;
+    //put a constraint on the label of t: ensure that this is the text!
+    $query = 'MATCH (t:'.TEXNODE.') WHERE id(t) = $texid RETURN t';        
+    $result = $this->client->run($query, ['texid'=>$neoIDText]);
+    $constraintOne = boolval(count($result)); 
+    //put a constraint on the lable of e: ensure that this is an entity! The label should be used in CORENODES
+    $query2 = 'MATCH (e) WHERE id(e) = $etid RETURN labels(e) AS labels';
+    $result2 = $this->client->run($query2, ['etid'=>$neoIDEt]); 
+    if(boolval(count($result2))){
+      if(array_key_exists($result2[0]['labels'][0], CORENODES)){
+        $constraintTwo = True;
+      }
+    }
+    if($constraintOne && $constraintTwo){
+      //both constraints are met; connect;
+      #Write a cypher query that creates a new Node with label 'Annotation'.
+
+      #Assign an automatically created UUIDV4 to it. 
+
+      #connect A to t and e 
+      #   (T)=[r:contains]=>(A) 
+      #   (A)=[r:references]=>(E)
+
+      #return PK(A), id(A) in annotdata
+
+      
+      $annotdata = array(); 
+      return array(
+        'success'=>true,
+        'msg'=>'Annotation created succesfully.', 
+        'data'=>$annotdata
+      ); 
+    }else{
+      return array(
+        'success'=>false, 
+        'msg'=>'One or more constraints failed.'
+      );
+    }
+
 
   }
 
 
+
+  
   public function getExistingAnnotationsInText($neoid, $user = false){
     //when user is false ==> only show public annotations.
     // when user is set to a matching priv_user.userid ==> show all public annotation + private annotations by $user

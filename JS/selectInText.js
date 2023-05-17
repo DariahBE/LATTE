@@ -133,7 +133,8 @@ function showET(etdata){
   fetch('/user/AJAX/profilestate.php')
   .then((response) => response.json())
   .then((data) =>{
-    if(data[0]){
+    if(data['valid']){
+      var csrf = data['csrf'];
       var acceptLink = document.createElement('button');
       var acceptText = document.createTextNode('Create annotation');
       acceptLink.appendChild(acceptText);
@@ -142,16 +143,19 @@ function showET(etdata){
         //
         let postData = {
           sourceNeoID: etdata[0],
-          texNeoid: languageOptions['nodeid']
+          texNeoid: languageOptions['nodeid'], 
+          csrf: csrf
         }; 
-        console.log(postData);
-        // BUG: Why is POST returning empty on the server?? 
-        //let post = JSON.stringify(postData);
-        const url = "/AJAX/crud/connect.php";
+        $.ajax({
+          type: "POST",
+          url: "/AJAX/crud/connect.php",
+          data: postData
+      })
+        /*const url = "/AJAX/crud/connect.php";
         var xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);
         xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify(postData));
+        xhr.send(JSON.stringify(postData));*/
         
       }); 
       document.getElementById('etmain').appendChild(acceptLink); 

@@ -13,8 +13,6 @@ $findEntityByType = $_GET['type'];
 $findEntityByValue = $_GET['value'];
 if(in_array($findEntityByType, $approvedEntities)){
   $data = $graph->getEntities($findEntityByType,$findEntityByValue,$caseSensitive);
-  //echo json_encode($data);
-  //die();
   /*
     returned data provides directives to connect the nodes to variants!.
   */
