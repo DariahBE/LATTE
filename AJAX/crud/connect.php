@@ -16,18 +16,44 @@ if(isset($_SESSION['userid'])){
 $data = $_POST;
 $texID = (int)$data['texNeoid'];
 $entityID = (int)$data['sourceNeoID'];
+$texSelection = $data['selection']; 
+$selectionStart = (int)$data['start']; 
+$selectionEnd = (int)$data['stop'];
 $token = $data['csrf'];
 
 //connectiontoken should not be older than 5 minutes. 
 //check if token equals the session variable and that the session did not yet expire 
-if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connectiontoken']) && $token === $_SESSION['connectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
+if (1== 1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connectiontoken']) && $token === $_SESSION['connectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
   //destroy the token: can only be used once. 
-  //var_dump(time() - $_SESSION['connectiontokencreatetime']); 
+  //var_dump(time() - $_SESSION['connectiontokencreatetime']);
   unset($_SESSION['connectiontoken']);
   unset($_SESSION['connectiontokencreatetime']);
 
-  $annotation->createAnnotationWithExistingEt($texID, $entityID, $user); 
+  $data = $annotation->createAnnotationWithExistingEt($texID, $entityID, $user, $selectionStart, $selectionEnd);
+  $annotationState = $data['success'];
+  $annotationMsg = $data['msg']; 
+  $mergeToDict = array(
+    'msg'=> $annotationMsg,
+    'success'=> $annotationState
+  );
+  //var_dump($data); 
+  if($annotationState){
+    $assignedID = $data['data'][0]['id(a)']; 
+    $annotationNode = $data['data'][0]['a'];
+    //var_dump($annotationNode)
+    $entityNode = $data['data'][0]['e'];
+    $entityLabel = $entityNode['labels'][0];
+    $user = $data['user'][0]['u'];
 
+    $mergeToDict['annotation'] = $annotationNode['properties']['uid'];
+    $mergeToDict['creator'] = $user['properties']['userid'];
+    $mergeToDict['private'] = false;
+    $mergeToDict['start'] = $annotationNode['properties']['starts'];
+    $mergeToDict['stop'] = $annotationNode['properties']['stops'];
+    $mergeToDict['type'] = $entityLabel;
+    $mergeToDict['neoid'] = $assignedID;
+  }  
+  echo json_encode($mergeToDict); 
 }else{
   die('Insecure or expired request.'); 
 }

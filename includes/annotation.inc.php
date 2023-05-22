@@ -30,7 +30,7 @@ class Annotation{
   }
 
   public function loadPersonalAnnotations($userid){
-    $query = ('MATCH (a:Annotation)<-[r:created]-(u:priv_user) WHERE u.userid = $userid RETURN a');
+    $query = ('MATCH (a:Annotation)<-[r:priv_created]-(u:priv_user) WHERE u.userid = $userid RETURN a');
     $result = $this->client->run($query, ['userid'=>$userid]);
     var_dump($result);
   }
@@ -38,7 +38,7 @@ class Annotation{
   public function getAnnotationInfo($nodeId){
     //takes the apoc created uid of a node with label Annotation and generates all information about it.
     //1: Information about the author of the annotation:
-    $queryAuthor = 'MATCH (a:Annotation)<-[r:created]-(u:priv_user) WHERE id(a) = $ego RETURN u.role AS role, u.name AS name';
+    $queryAuthor = 'MATCH (a:Annotation)<-[r:priv_created]-(u:priv_user) WHERE id(a) = $ego RETURN u.role AS role, u.name AS name';
     $resultAuthor = $this->client->run($queryAuthor, ['ego'=>$nodeId]);
     if(boolval(count($resultAuthor))){
       $resultAuthor = $resultAuthor[0];
@@ -78,8 +78,12 @@ class Annotation{
     }
   }
 
-  public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user){
+  public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user, $start, $end){
     $constraintTwo = False;
+    $userNeo = $user->neoId;
+    $userAppId = $user->myId;  
+    //var_dump($user->neoId); 
+    //die(); 
     //put a constraint on the label of t: ensure that this is the text!
     $query = 'MATCH (t:'.TEXNODE.') WHERE id(t) = $texid RETURN t';        
     $result = $this->client->run($query, ['texid'=>$neoIDText]);
@@ -95,21 +99,37 @@ class Annotation{
     if($constraintOne && $constraintTwo){
       //both constraints are met; connect;
       #Write a cypher query that creates a new Node with label 'Annotation'.
-
       #Assign an automatically created UUIDV4 to it. 
+      $query = 'MATCH (t:'.TEXNODE.'),(e)
+      WHERE id(t) = $texid AND id(e) = $etid 
+      CREATE
+        (a:Annotation {starts: $startnumb, stops: $endnumb, uid: apoc.create.uuid(), priv_creator: $creatorid } ),
+        (a)<-[r1:contains]-(t),
+        (a)-[r2:references]->(e)
+      RETURN a,t,e,r1,r2,id(a)';
+      $annotdata = $this->client->run($query, [
+        'texid' => $neoIDText,
+        'etid' => $neoIDEt, 
+        'startnumb' => $start,
+        'endnumb' => $end, 
+        'creatorid' => $userAppId, 
+      ]); 
 
-      #connect A to t and e 
-      #   (T)=[r:contains]=>(A) 
-      #   (A)=[r:references]=>(E)
-
-      #return PK(A), id(A) in annotdata
-
-      
-      $annotdata = array(); 
+      //connect (a) to $user
+      $annotationNeoID = $annotdata[0]['id(a)']; 
+      $query2 = 'MATCH (u:priv_user), (a:Annotation)
+      WHERE id(u) = $userid AND id(a) = $annotationid
+      CREATE (u)-[r:priv_created]->(a)
+      RETURN u,r'; 
+      $userdata = $this->client->run($query2, [
+        'userid' => $userNeo, 
+        'annotationid' => $annotationNeoID
+      ]);
       return array(
         'success'=>true,
         'msg'=>'Annotation created succesfully.', 
-        'data'=>$annotdata
+        'data'=>$annotdata->getResults(), 
+        'user'=>$userdata->getResults()
       ); 
     }else{
       return array(
@@ -117,8 +137,6 @@ class Annotation{
         'msg'=>'One or more constraints failed.'
       );
     }
-
-
   }
 
 
@@ -128,7 +146,8 @@ class Annotation{
     //when user is false ==> only show public annotations.
     // when user is set to a matching priv_user.userid ==> show all public annotation + private annotations by $user
     //user parameter to determine if a node is private or not
-    $query = 'MATCH (t:'.TEXNODE.')-[r]->(a:Annotation)-[l]->(p) where id(t)=$neoid return t,a,p;';
+    $query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:Annotation)-[l:references]->(p) where id(t)=$neoid return t,a,p;';
+
     //patch: consider returning the property and extracting that; by default cypher will nullify non-existing properties.
     $result = $this->client->run($query, ['neoid'=>$neoid]);
     $data = array();
@@ -154,8 +173,8 @@ class Annotation{
         foreach($annotationRecord as $subkey => $node){
           if($node->labels()[0] === 'Annotation'){
             $anno_uuid = $node->getProperty('uid');
-            $isPrivate = controlledReply($node, 'private', False);
-            $creator_uuid = controlledReply($node, 'creator', False);
+            $isPrivate = controlledReply($node, 'priv_private', False);
+            $creator_uuid = controlledReply($node, 'priv_creator', False);
             $annotationStart = $node->getProperty(ANNOSTART);
             $annotationStop = $node->getProperty(ANNOSTOP);
             $neoID = $node['id']; 
@@ -169,7 +188,7 @@ class Annotation{
               'neoid' => $neoID
             );
             if($isPrivate){
-              if($user and $creator_uuid === $user){
+              if($user!==false and $creator_uuid === $user){
                 $annotationData[$anno_uuid] = $map;
               }
             }else{

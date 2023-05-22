@@ -136,21 +136,46 @@ function showET(etdata){
     if(data['valid']){
       var csrf = data['csrf'];
       var acceptLink = document.createElement('button');
+      var selectedTextProperties = getTextSelection();
+      var selectedText = selectedTextProperties[0];
+      var selectedTextStart = selectedTextProperties[1];
+      var selectedTextEnd = selectedTextProperties[2];
+      acceptLink.setAttribute('id', 'assignEtToSelection')
+      //console.log(selectedText, selectedTextStart,  selectedTextEnd); 
       var acceptText = document.createTextNode('Create annotation');
       acceptLink.appendChild(acceptText);
       acceptLink.classList.add('bg-green-400'); 
       acceptLink.addEventListener('click', function(){
-        //
+        //make button unresponsive: 
+        acceptLink.disabled = true;  
+        //data to send to server
         let postData = {
           sourceNeoID: etdata[0],
           texNeoid: languageOptions['nodeid'], 
-          csrf: csrf
+          csrf: csrf, 
+          start: selectedTextStart, 
+          stop: selectedTextEnd,
+          selection: selectedText
         }; 
         $.ajax({
           type: "POST",
           url: "/AJAX/crud/connect.php",
-          data: postData
-      })
+          data: postData,
+          dataType: "json",
+          success: function(repldata){
+            //console.log(data); 
+            //let repldata = JSON.parse(json);
+            console.log(repldata); 
+            let repl = document.createElement('p'); 
+            repl.appendChild(document.createTextNode(repldata['msg'])); 
+            document.getElementById('etmain').appendChild(repl)
+          }
+        }).always(
+          function(){
+            document.getElementById('assignEtToSelection').remove(); //delete annotation button
+          }
+        )
+      
         /*const url = "/AJAX/crud/connect.php";
         var xhr = new XMLHttpRequest();
         xhr.open("POST", url, true);

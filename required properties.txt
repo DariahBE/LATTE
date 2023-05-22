@@ -1,9 +1,9 @@
 Annotations:
-  - uid       V4 UUID generated for the annotation!
+  - uid       V4 UUID generated for the annotation! (automatically)
   - starts    INT start of PHP index of the annotation
   - stops     INT end of PHP index of the annotation
-  - creator   UID of the user who created the annotation
-  - private   Boolean true/false
+  - priv_creator   UID of the user who created the annotation
+  - priv_private   Boolean true/false
 
 
 Variant:

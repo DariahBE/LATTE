@@ -6,11 +6,13 @@ session_start();
  */
 class User{
   protected $client;
+  public $neoId;
   function __construct($client)  {
     $this->client = $client;
     $this->myRole = isset($_SESSION['userrole']) ? $_SESSION['userrole'] : False;
     $this->myName = isset($_SESSION['username']) ? $_SESSION['username'] : False;
     $this->myId = isset($_SESSION['userid']) ? $_SESSION['userid'] : False;
+    $this->neoId = isset($_SESSION['neoid']) ? $_SESSION['neoid'] : False;
   }
 
 public function checkForSession($redir="/user/mypage.php"){
@@ -59,6 +61,7 @@ public function checkForSession($redir="/user/mypage.php"){
           $_SESSION['username'] = $name;
           $_SESSION['userrole'] = $role;
           $_SESSION['userid'] = $userid;
+          $_SESSION['neoid'] = $nodeId;
           return array(1, $userid);
         }else{
           //NO matching hash: increment max_login
@@ -121,11 +124,12 @@ public function checkForSession($redir="/user/mypage.php"){
 
 
   public function checkSession(){
+    return $this->myId; /*
     if(isset($_SESSION['user_uuid'])){
       return $_SESSION['user_uuid'];
     }else{
       return false;
-    }
+    }*/
   }
 
   public function checkUniqueness($mail, $username){
