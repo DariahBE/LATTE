@@ -97,10 +97,12 @@ function showET(etdata){
     let datavalue = value['value']; 
     if (valueType == 'uri'){
       show = generateHyperlink(valueDOM, datavalue, ['externalURILogo']); 
-    }else if(valueType == 'wikidata'){
+    }else if(valueType == 'wikidata' && datavalue !== null){
+      console.log("wikidata box: ");
+      console.log(value);
       show = document.createElement('p')
       var wdprefix = document.createElement('span'); 
-      wdprefix.appendChild(document.createTextNode('Wikidata: '));
+      wdprefix.appendChild(document.createTextNode(valueDOM+': '));
       wdprefix.classList.add('font-bold'); 
       let extrashow = generateHyperlink(datavalue, 'https://wikidata.org/wiki/'+datavalue, ['externalURILogo']); 
       show.appendChild(wdprefix);
@@ -130,16 +132,14 @@ function showET(etdata){
   //with the data displayed: allow the user to accept the suggestion => this creates a new annotation between
   //the text and existing ET. 
   console.log('accept/reject suggestion'); 
+  var d=document.getElementById('assignEtToSelection');
+  if(d!==null){d.remove();}
   fetch('/user/AJAX/profilestate.php')
   .then((response) => response.json())
   .then((data) =>{
     if(data['valid']){
       var csrf = data['csrf'];
       var acceptLink = document.createElement('button');
-      var selectedTextProperties = getTextSelection();
-      var selectedText = selectedTextProperties[0];
-      var selectedTextStart = selectedTextProperties[1];
-      var selectedTextEnd = selectedTextProperties[2];
       acceptLink.setAttribute('id', 'assignEtToSelection')
       //console.log(selectedText, selectedTextStart,  selectedTextEnd); 
       var acceptText = document.createTextNode('Create annotation');
@@ -149,13 +149,14 @@ function showET(etdata){
         //make button unresponsive: 
         acceptLink.disabled = true;  
         //data to send to server
+
         let postData = {
           sourceNeoID: etdata[0],
           texNeoid: languageOptions['nodeid'], 
           csrf: csrf, 
-          start: selectedTextStart, 
-          stop: selectedTextEnd,
-          selection: selectedText
+          start: globalSelectionStart, 
+          stop: globalSelectionEnd,
+          selection: globalSelectionText
         }; 
         $.ajax({
           type: "POST",
@@ -168,20 +169,17 @@ function showET(etdata){
             console.log(repldata); 
             let repl = document.createElement('p'); 
             repl.appendChild(document.createTextNode(repldata['msg'])); 
-            document.getElementById('etmain').appendChild(repl)
+            document.getElementById('etmain').appendChild(repl); 
+            let annotationStart = repldata['start'];
+            let annotationEnd = repldata['stop']; 
+            let annotationUID = repldata['annotation'];
+            let annotationForType = repldata['type'];
           }
         }).always(
           function(){
             document.getElementById('assignEtToSelection').remove(); //delete annotation button
           }
         )
-      
-        /*const url = "/AJAX/crud/connect.php";
-        var xhr = new XMLHttpRequest();
-        xhr.open("POST", url, true);
-        xhr.setRequestHeader('Content-Type', 'application/json');
-        xhr.send(JSON.stringify(postData));*/
-        
       }); 
       document.getElementById('etmain').appendChild(acceptLink); 
     }
@@ -214,9 +212,7 @@ function triggerSidePanelAction(entityData){
 
 
     for (let k of Object.keys(dataDictionary)) {
-      //console.log(dataDictionary[k]);
       dataDictionary[k]['weight'] = entityData['weights'][dataDictionary[k][0]]; 
-      //console.log(entityData['weights'][dataDictionary[k][0]]);
     }
     //sort the entities according to their score coming from the backend: 
     let sortedEntityKeys = []; 
@@ -294,9 +290,6 @@ function triggerSidePanelAction(entityData){
       prevET.addEventListener('click', function(){navET('-')})
       nextET.addEventListener('click', function(){navET('+')})
     }
-
-
-    //console.log(dataDictionary);
     let midbox = document.createElement('div'); 
     midbox.classList.add('w-full'); 
   }else{
@@ -311,7 +304,6 @@ function triggerSidePanelAction(entityData){
     topTex.appendChild(document.createTextNode('Create a new annotation'));
     createNodeDiv.appendChild(topTex); 
     //add code to create a node from selection!
-
     //append newly created Div to the DOM: 
     targetOfInfo.appendChild(createNodeDiv);
     //dropdown: select the entity type ==> use the color dict available.
@@ -427,6 +419,7 @@ function triggerSidePanelAction(entityData){
     var searchButtonForWDPromptText = document.createTextNode('Search!'); 
     searchButtonForWDPrompt.appendChild(searchButtonForWDPromptText); 
     searchButtonForWDPrompt.addEventListener('click', function(){
+      console.log('make function call get the preferred lookup language!'); 
       wdprompt(wikidataInputBox.value, 'en', 0);
     });
     var wikidataResultsBox = document.createElement('div');
@@ -546,17 +539,18 @@ function loadIntoSuggestionBox(data, from, to){
   document.getElementById('suggestionboxspinner').remove();
 }
 
-
-
+let globalSelectionText = null;
+let globalSelectionStart = null;
+let globalSelectionEnd = null;
 function getTextSelection(){
-    var text = rangy.getSelection().toString().trim();
     //you need a map filter on selection based on length of childnodes!
     var selection = rangy.getSelection().getRangeAt(0).getNodes().filter(s => s.childNodes.length == 0);
     if(selection.length > 0){
       //get first and last selection elements to extract data attribute:
-      var startOfEntitySelection = parseInt(selection[0].parentElement.dataset.itercounter);
-      var endOfEntitySelection = parseInt(selection[selection.length-1].parentElement.dataset.itercounter);
-      return [text, startOfEntitySelection, endOfEntitySelection];
+      globalSelectionText = rangy.getSelection().toString().trim();
+      globalSelectionStart = parseInt(selection[0].parentElement.dataset.itercounter);
+      globalSelectionEnd = parseInt(selection[selection.length-1].parentElement.dataset.itercounter);
+      return [globalSelectionText, globalSelectionStart, globalSelectionEnd];
     }else{
       return false;
     }
@@ -589,10 +583,14 @@ function triggerSelection(){
 }
 
 $(document).ready(function() {
+  // bug: if cursor lets go off the letter, trigger doesn't work, attach it higher up!
+  document.getElementById('textcontent').addEventListener('mouseup', function(){triggerSelection()});
+  document.getElementById('textcontent').addEventListener('keyup', function(){triggerSelection()});
+  /*
   var triggerpoints = document.getElementsByClassName('ltr');
   for(var i = 0; i < triggerpoints.length; i++){
     if(triggerpoints[i].classList.contains('linked')){
-      /**do not add an event listener if the letter has the linked class (i.e. if it is part of an existing annotation) */
+      / * *do not add an event listener if the letter has the linked class (i.e. if it is part of an existing annotation) * /
       continue;
     }
     triggerpoints[i].addEventListener('mouseup', function(e){
@@ -601,7 +599,7 @@ $(document).ready(function() {
     triggerpoints[i].addEventListener('keyup', function(e){
       triggerSelection();
     });
-  }
+  }*/
   //use esc key to delete the suggestionbox:
   document.addEventListener('keyup', function(event) {
    if (event.key === 'Escape') {

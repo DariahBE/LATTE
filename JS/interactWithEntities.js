@@ -26,7 +26,7 @@ function findRelatedTexts(neoID){
     console.log(showToUser);
   });
 }
-
+/*
 function decideOnEdit(protected, level){
   console.log(protected, level);
   if(protected){
@@ -37,7 +37,7 @@ function decideOnEdit(protected, level){
   }else{
     return false;
   }
-}
+}*/
 
 function showdata(data){
   //frameWorkBase();
@@ -57,21 +57,29 @@ function showdata(data){
   findRelatedTexts(data['entity'][0]['neoID']); 
   var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
-  function writeField(key, data, protected, rights){
-    console.log(key, data, protected, rights);
-    if(!(decideOnEdit(protected, rights))){
+  function writeField(key, data, protected){
+    console.log(key, data, protected);
+    //if(!(decideOnEdit(protected, rights))){
       console.log('A');
       var field = document.createElement('p');
       var fieldkey = document.createElement('span');
+      fieldkey.classList.add('labelKey', 'font-bold');
       var fieldvalue = document.createElement('span');
+      var fieldType = annotationStructure[key] !== undefined ? annotationStructure[key][1] : 'string';
       var keytex = annotationStructure[key] !== undefined ? annotationStructure[key][0] : key;
-      var fieldkeyString = document.createTextNode(keytex);
+      var fieldkeyString = document.createTextNode(keytex+': ');
       var fieldvalueString = document.createTextNode(data);
-      fieldvalue.appendChild(fieldvalueString);
-      fieldkey.appendChild(fieldkeyString);
-      field.appendChild(fieldkey);
-      field.appendChild(fieldvalue);
-    }else{
+      console.log(fieldvalueString); 
+      if (data !== false && data!==''){
+        fieldvalue.appendChild(fieldvalueString);
+        fieldkey.appendChild(fieldkeyString);
+        field.appendChild(fieldkey);
+        field.appendChild(fieldvalue);
+      }
+
+    //}else{
+      /*  alert( 'B Block');
+      
       //if a field is write enabled. you need to type the field accordinly:
       console.log('B');
       console.log(annotationStructure[key]);
@@ -94,9 +102,9 @@ function showdata(data){
         } else {
           this.value = prevVal;
         }
-      });
+      });*/
       //numberfields should have a live function on them to strip all non-numeric values.
-    }
+   // }
       if(fieldType === 'bool'){
         fieldvalue.setAttribute('type', 'boolean');
         console.log('work required in interactWithEntities.js line 108');
@@ -112,25 +120,23 @@ function showdata(data){
     return field;
   }
   //work with the Annotations:
-  var rightsLevel = 0;
   Object.keys(annotationData).forEach(key => {
     var row = annotationData[key];
     var rowkey = row[0];
     var rowdata = row[1];
     var protected = row[2];
-    rightsLevel = row[3];
     if (annotationExtraFields){
       var idx = annotationExtraFields.indexOf(rowkey);  //-1 if not exists.
       if(idx>=0){
         annotationExtraFields.splice(idx,1);
       }
     }
-    var fieldFormatted = writeField(rowkey, rowdata, protected, rightsLevel);
+    var fieldFormatted = writeField(rowkey, rowdata, protected);
     annotationTarget.appendChild(fieldFormatted);
   });
   //for all annotationExtraFields create a new editable field:
   for (var i = 0; i < annotationExtraFields.length; i++){
-    annotationTarget.appendChild(writeField(annotationExtraFields[i], '', false, rightsLevel));
+    annotationTarget.appendChild(writeField(annotationExtraFields[i], '', false));
   }
   //work with the Author of the annotation:
   Object.keys(authorData).forEach(key =>{

@@ -111,7 +111,7 @@ $relations = $node->getEdges($nodeId);
 </div>
 
 <div class="main flex flex-row py-4 my-4">
-  <div class="left" id="leftMainPanel">
+  <div class="left float-left w-full m-2 p-2" id="leftMainPanel">
   <h3 class="text-xl">Text: </h3>
     <div class="subbox leftsubbox" >
       <div class="flex h-12" id="exportBox">
@@ -154,7 +154,7 @@ $relations = $node->getEdges($nodeId);
       ?>
     </style>
   </div>
-  <div class="right" id="rightMainPanel">
+  <div class="right float-right" id="rightMainPanel">
       <div class="meta" id="topmeta">
         <div class="language">
           <p><span class='font-bold key'>Language ISO: </span><span class='value italic' id='detectedLanguageCode'></span></p>

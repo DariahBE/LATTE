@@ -61,6 +61,11 @@ $nodesDatamodel = array(
     "note" => ["Note", "string", false, false, true],
     "extra" => ["Extra", "int", false, false, true]
   ],
+  'Organization' =>[
+    "label" => ["Label", "string", false, true, true],
+    "uid" => ["Label", "string", false, false, true],
+    "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
+  ]
   /*'Dog' => [
     "breed" => ["Breed", "string", false, false, true],
     "age" => ["Age", "int", false, false, false],
@@ -128,6 +133,7 @@ $matchOnNodes = array(
   'Event' => 'rgba(39, 245, 123, 0.6)',
   'Text' => 'rgba(28, 200, 28, 0.6)',
   'Annotation' => 'rgba(200, 28, 28, 0.6)', 
+  'Organization' => 'rgba(145,100,52,0.6)'
   //'Disease' => 'rgba(145,100,52,0.6)'
 );
 

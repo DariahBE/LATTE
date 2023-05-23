@@ -52,6 +52,7 @@ if (1== 1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['c
     $mergeToDict['stop'] = $annotationNode['properties']['stops'];
     $mergeToDict['type'] = $entityLabel;
     $mergeToDict['neoid'] = $assignedID;
+    /** We do not show other attributes here, no need to use NODEMODEL */
   }  
   echo json_encode($mergeToDict); 
 }else{

@@ -166,6 +166,8 @@ class wikibaseEntry {
       var keyToTitle = {'uri': 'External Identifiers', 'geo': 'Maps', 'img': 'Images', 'str': 'Literals'};
       // output the OutputFormattedDataBlocks to DOM. 
       const target = document.getElementById('slideoverDynamicContent'); 
+      var d=document.getElementById('handyLittleThingyForWDStuff');
+      if(d!==null){d.remove();}
       let dataDivMain = document.createElement('div'); 
       dataDivMain.setAttribute('id', 'handyLittleThingyForWDStuff');
       if (this.searchMode === 'qid'){

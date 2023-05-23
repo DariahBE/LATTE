@@ -1,5 +1,7 @@
 function wdprompt(string, language='en', offset = 0){
   let by = 10; 
+  console.log("wdprompt function needs nan extra dropdown for language swapping"); 
+  console.log('use the optional &uselang='+language+' feature to show hits in the language you used to search'); 
   let promptURL = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search="+string+"&origin=*&format=json&errorformat=plaintext&type=item&language="+language+"&strictlanguage=false&limit="+by+"&continue="+offset; 
   const target = document.getElementById('wdpromptBox');
   let table = document.createElement('table'); 
@@ -86,10 +88,11 @@ function wdprompt(string, language='en', offset = 0){
   });
 }
 
+/*    // see pickThisQID()
 function acceptQID(){
 
 }
-
+*/
 function pickThisQID(qid){
   console.log(qid); 
   //clear the promptbox:
