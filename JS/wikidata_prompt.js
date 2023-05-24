@@ -1,8 +1,24 @@
-function wdprompt(string, language='en', offset = 0){
+function wdprompt(string, offset = 0){
+  let language = document.getElementById('wdlookuplanguage').value;         //&language=language
+  let strictLookup = document.getElementById('strictLookup').checked;       //&strictlanguage=true
+  let useFallback = document.getElementById('returnSameAsLookup').checked;  //&uselang=language
+  if (strictLookup){
+    var extra1 = '&strictlanguage=true'; 
+  }else{
+    var extra1 = '&strictlanguage=false'; 
+  }
+  if( useFallback){
+    var extra2 = '&uselang='+language; 
+  }else{
+    var extra2 = ''; 
+  }
+
+  console.log(language); 
   let by = 10; 
   console.log("wdprompt function needs nan extra dropdown for language swapping"); 
   console.log('use the optional &uselang='+language+' feature to show hits in the language you used to search'); 
-  let promptURL = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search="+string+"&origin=*&format=json&errorformat=plaintext&type=item&language="+language+"&strictlanguage=false&limit="+by+"&continue="+offset; 
+  let promptURL = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search="+string+"&origin=*&format=json&errorformat=plaintext&type=item&language="+language+extra1+"&limit="+by+"&continue="+offset+extra2; 
+  console.log(promptURL); 
   const target = document.getElementById('wdpromptBox');
   let table = document.createElement('table'); 
   table.classList.add('table-auto'); 
@@ -69,7 +85,7 @@ function wdprompt(string, language='en', offset = 0){
       let prevPage = document.createElement('p');
       prevPage.appendChild(document.createTextNode('<<')); 
       prevPage.classList.add('font-bold', 'rounded-full', 'text-2xl', 'bg-sky-400', 'text-center'); 
-      prevPage.addEventListener('click', function(){wdprompt(string, language, prevOffset)}); 
+      prevPage.addEventListener('click', function(){wdprompt(string, prevOffset)}); 
       navigateReply.appendChild(prevPage); 
     }
     //    next page offset: 
@@ -79,7 +95,7 @@ function wdprompt(string, language='en', offset = 0){
       let nextPage = document.createElement('p');
       nextPage.appendChild(document.createTextNode('>>')); 
       nextPage.classList.add('font-bold', 'rounded-full', 'text-2xl', 'bg-sky-400', 'text-center');
-      nextPage.addEventListener('click', function(){wdprompt(string, language, nextOffset)});
+      nextPage.addEventListener('click', function(){wdprompt(string, nextOffset)});
       navigateReply.appendChild(nextPage); 
     }
     target.innerHTML = ''; 

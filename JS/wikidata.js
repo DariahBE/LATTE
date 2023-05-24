@@ -139,7 +139,7 @@ class wikibaseEntry {
     //in Q-mode:
     //    One entity only; 
     var madeAtLeastOneMatch = false;
-    var baseBlock = {'uri':[], 'geo':[], 'img':[], 'str':[]}; 
+    var baseBlock = {'wikilink': [], 'uri':[], 'geo':[], 'img':[], 'str':[]}; 
     var promisses = []; 
     if(this.searchMode === 'qid'){
       this.OutputFormattedDataBlocks[qid]= baseBlock; 
@@ -161,9 +161,26 @@ class wikibaseEntry {
           }
         }
       });
+      //handle the wikipedia links: 
+      Object.keys(this.rawData[qid].sitelinks).forEach(key => {
+        let sitelinkValue = this.rawData[qid].sitelinks[key]; 
+        // if key is also a key in : showWikipediaLinksTo:: 
+        //console.log(wdProperties['showWikipediaLinksTo']); 
+        if(key in wdProperties['showWikipediaLinksTo']){
+          //use sitelinkValue to generate a link to wikipedia: 
+          let wikipediaURI = wdProperties['showWikipediaLinksTo'][key][0]+sitelinkValue; 
+          let wikipediaAnchorText = wdProperties['showWikipediaLinksTo'][key][1]; 
+          let wikipediaClickLink = document.createElement('a'); 
+          wikipediaClickLink.setAttribute('target', '_blank'); 
+          wikipediaClickLink.setAttribute('href', wikipediaURI); 
+          wikipediaClickLink.appendChild(document.createTextNode(wikipediaAnchorText)); 
+          wikipediaClickLink.classList.add('externalURILogo', 'flex'); 
+          this.OutputFormattedDataBlocks[qid]['wikilink'].push(wikipediaClickLink);
+        }
+      })
     }
     Promise.all(promisses).then((values)=> {
-      var keyToTitle = {'uri': 'External Identifiers', 'geo': 'Maps', 'img': 'Images', 'str': 'Literals'};
+      var keyToTitle = {'wikilink': 'Wikis', 'uri': 'External Identifiers', 'geo': 'Maps', 'img': 'Images', 'str': 'Literals'};
       // output the OutputFormattedDataBlocks to DOM. 
       const target = document.getElementById('slideoverDynamicContent'); 
       var d=document.getElementById('handyLittleThingyForWDStuff');
@@ -273,6 +290,7 @@ class wikibaseEntry {
     var into = this.OutputFormattedDataBlocks[q]['str'];
     //show this as: user provided string with embedded link to wikidata where te property is explained: value. 
     var pelement = document.createElement('p');
+    //console.log(value, q, property); 
     var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+value+"</span>"; 
     pelement.innerHTML = showAs; 
     //pelement.innerHTML= '<span>TEST</span>'; 

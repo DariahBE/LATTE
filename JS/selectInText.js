@@ -420,7 +420,8 @@ function triggerSidePanelAction(entityData){
     searchButtonForWDPrompt.appendChild(searchButtonForWDPromptText); 
     searchButtonForWDPrompt.addEventListener('click', function(){
       console.log('make function call get the preferred lookup language!'); 
-      wdprompt(wikidataInputBox.value, 'en', 0);
+      console.log('lookup and display can be connected!'); 
+      wdprompt(wikidataInputBox.value, 0);
     });
     var wikidataResultsBox = document.createElement('div');
     wikidataResultsBox.setAttribute('id', 'wdpromptBox');
