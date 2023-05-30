@@ -11,7 +11,8 @@
  */
 class wikibaseEntry {
   Qid;                    //What is the provided Qid (used for items) || or the string to lookup when searchMode === "str"
-  rawData;                //data returned by the wikidata server. 
+  unprocessed             //data returned by wikidata, not parsed by toolkit
+  rawData;                //data returned by the wikidata server and parsed by toollkit!
   usersettings;           //returned by the server: connected to user account AND/OR cookies AND/OR defaultsettings. 
   valid;                  //is the ID valid:
   searchMode;             //Is the query looking for a QID or a string based match. 
@@ -77,15 +78,26 @@ class wikibaseEntry {
         url = url.replace('&normalize=true',''); 
       }
   }
+    this.unprocessed = null; 
     return await fetch(url)
+      //.then(response => this.unprocessed = response.json())
       .then(response => response.json())
       // Turns the response in an array of simplified entities
       .then(response => {if(response['error']){this.valid=false; return null;}else{return response;}})
-      .then(wdk.parse.wd.entities)
-      .then(entities => this.rawData = entities);
+      //.then(this.unprocessed = response)
+      //.then(response => console.log(response))
+      //.then(wdk.parse.wd.entities)                                //put this back if it does not work!
+      .then(response => this.rawData = response);
+      //.then(response => this.unprocessed = response)
+      //;
+      //.then(whatever=> this.unprocessed = whatever); 
   }
 
+
   classify(){
+    //if you keep this function
+    // convert this.rawData to this.parsedData 
+    // !!!!
     this.classifier = {
       'PPL' : [], 
       'PLC' : [], 
@@ -143,10 +155,12 @@ class wikibaseEntry {
     var promisses = []; 
     if(this.searchMode === 'qid'){
       this.OutputFormattedDataBlocks[qid]= baseBlock; 
-      Object.keys(this.rawData[qid].claims).forEach(e => {
+      this.originalData = JSON.parse(JSON.stringify(this.rawData));     //deepcopy! otherwise wdk.parse.wd.entities overrides this
+      this.parsedData = wdk.parse.wd.entities(this.rawData); 
+      Object.keys(this.parsedData[qid].claims).forEach(e => {
         if (Object.keys(this.usersettings['shownProperties']).includes(e)){
           madeAtLeastOneMatch = true;
-          var wikidata_response = this.rawData[qid].claims[e]; 
+          var wikidata_response = this.parsedData[qid].claims[e]; 
           var userSelected = this.usersettings['shownProperties'][e];
           let wdPropLabel = userSelected[0]; 
           let wdProcessAs = userSelected[2];
@@ -157,13 +171,19 @@ class wikibaseEntry {
           }else if(wdProcessAs === 'img'){
             this.displayImageData(wdPropLabel,wikidata_response, qid, e);
           }else if(wdProcessAs === 'str'){
+            //console.log('wdresp!!', wdPropLabel); 
+            //console.log(this.unprocessed);
+            //console.log(this.unprocessed['entities']);//[qid]['claims'][wdPropLabel]); 
+            //console.log(this.unprocessed['entities'][qid]);//['claims'][wdPropLabel]); 
+            //console.log(this.unprocessed['entities'][qid]['claims']);//[wdPropLabel]); 
+            //console.log(this.unprocessed['entities'][qid]['claims'][e]); 
             this.displayStringData(wdPropLabel, wikidata_response, qid, e);
           }
         }
       });
       //handle the wikipedia links: 
-      Object.keys(this.rawData[qid].sitelinks).forEach(key => {
-        let sitelinkValue = this.rawData[qid].sitelinks[key]; 
+      Object.keys(this.parsedData[qid].sitelinks).forEach(key => {
+        let sitelinkValue = this.parsedData[qid].sitelinks[key]; 
         // if key is also a key in : showWikipediaLinksTo:: 
         //console.log(wdProperties['showWikipediaLinksTo']); 
         if(key in wdProperties['showWikipediaLinksTo']){
@@ -286,15 +306,48 @@ class wikibaseEntry {
     //A separate caroussel JS file handles the actual display of data. 
   }
 
-  displayStringData(label, value, q, property){
+  async displayStringData(label, value, q, property){
+    var labelLanguagePreference = document.getElementById('wdlookuplanguage').value;
     var into = this.OutputFormattedDataBlocks[q]['str'];
     //show this as: user provided string with embedded link to wikidata where te property is explained: value. 
     var pelement = document.createElement('p');
-    //console.log(value, q, property); 
-    var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+value+"</span>"; 
-    pelement.innerHTML = showAs; 
-    //pelement.innerHTML= '<span>TEST</span>'; 
-    into.push(pelement); 
+    let propertyset = this.originalData['entities'][q]['claims'][property]
+    console.log(property, propertyset);
+    let propertyDataType = propertyset[0]['mainsnak']['datatype']; 
+    console.log(value, q, property, propertyDataType); 
+    if(propertyDataType === 'time'){
+      //format the literal into a nice datetime field: 
+      var date = new Date(value); 
+      console.log(date); 
+      var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+date+"</span>"; 
+      pelement.innerHTML = showAs; 
+      into.push(pelement); 
+    }else if (propertyDataType === 'wikibase-item'){
+      //look up the labels: ==> prefer to use the label that's selected in the lookup; if that's missing; use 'en'
+      //if both fail, don't show the labelstring, but fallback on the qid, stored in the variable 'value'; 
+      var urlForValueLookup = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+value+"&props=labels&format=json&origin=*"; 
+      console.log(urlForValueLookup); 
+      return await fetch(urlForValueLookup)
+        .then(response => response.json())
+        .then(response => {
+          let labelList = response['entities'][value]['labels'];
+          let showToUser = value; 
+          if(labelLanguagePreference in labelList){
+            showToUser = labelList[labelLanguagePreference]['value'];
+          }else if('en' in labelList){
+            showToUser = labelList['en']['value'];
+          }
+          var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+showToUser+"</span>"; 
+          pelement.innerHTML = showAs; 
+          into.push(pelement); 
+        })
+      }else if (propertyDataType === 'monolingualtext'){
+        alert('MONOLING TODO'); 
+
+
+    }else{
+      console.log('PDTYPE', propertyDataType); 
+    }
   }
 
   async displayURI (parent, identifierOfEntity, q, p){
