@@ -434,6 +434,8 @@ class wikibaseEntry {
           pelement.innerHTML = showAs; 
           into.push(pelement); 
         })
+      }else{
+        alert('quantitative data without formatter symbol still have to be coded!'); 
       }
     }else{
       console.warn('Unsupported datatype: ', propertyDataType); 
