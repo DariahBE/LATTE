@@ -312,13 +312,10 @@ class wikibaseEntry {
     //show this as: user provided string with embedded link to wikidata where te property is explained: value. 
     var pelement = document.createElement('p');
     let propertyset = this.originalData['entities'][q]['claims'][property]
-    console.log(property, propertyset);
     let propertyDataType = propertyset[0]['mainsnak']['datatype']; 
-    console.log(value, q, property, propertyDataType); 
     if(propertyDataType === 'time'){
       //format the literal into a nice datetime field: 
       var date = new Date(value); 
-      console.log(date); 
       var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+date+"</span>"; 
       pelement.innerHTML = showAs; 
       into.push(pelement); 
@@ -326,7 +323,6 @@ class wikibaseEntry {
       //look up the labels: ==> prefer to use the label that's selected in the lookup; if that's missing; use 'en'
       //if both fail, don't show the labelstring, but fallback on the qid, stored in the variable 'value'; 
       var urlForValueLookup = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+value+"&props=labels&format=json&origin=*"; 
-      console.log(urlForValueLookup); 
       return await fetch(urlForValueLookup)
         .then(response => response.json())
         .then(response => {
@@ -342,11 +338,105 @@ class wikibaseEntry {
           into.push(pelement); 
         })
       }else if (propertyDataType === 'monolingualtext'){
-        alert('MONOLING TODO'); 
+        if (value.length === 1){
+          // show as paragraph
+          var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+value[0]+"</span>"; 
+        }else{
+          // show as unordered list
+          var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <ul>";
+          for(let i = 0; i<value.length; i++){
+            showAs += '<li>'+value[i]+'</li>'; 
+          }
+          showAs +='</ul>';
+        }
+        pelement.innerHTML = showAs; 
+        into.push(pelement); 
+    }else if (propertyDataType === 'quantity'){
+      // using the wdk method already selected the preferred statement in value. 
+      // propertyset is not filtered with the preferred statement; so if there's more than 1 key in propertyset: get the preferred rank.
+      // If preferred is not found, or there's only one statement ==> get item at index 0. 
+      let counted = propertyset.length;
+      let preferredProperty = null; 
+      if (counted > 1){
+        //look for the propertyDict that has a preferred rank: 
+        for(let i = 0; i < counted; i++){
+          if(propertyset[i].rank === 'preferred'){
+            preferredProperty = propertyset[i]; 
+          }
+        }
+        if(preferredProperty === null){
+          preferredProperty = propertyset[0]; 
+        }
+      }else if(counted === 1){
+        preferredProperty = propertyset[0]; 
+      }else{
+        console.warn('No property found, dropping statement for ', property); 
+      }
+      console.log(preferredProperty['mainsnak']['datavalue']['value']); 
+      let propertyUnit = preferredProperty['mainsnak']['datavalue']['value']['unit'];
+      let lowerbound = null; 
+      let upperbound = null; 
+      if ('lowerBound' in preferredProperty['mainsnak']['datavalue']['value']){
+        lowerbound = preferredProperty['mainsnak']['datavalue']['value']['lowerBound']; 
+      }
+      if('upperBound' in preferredProperty['mainsnak']['datavalue']['value']){
+        upperbound = preferredProperty['mainsnak']['datavalue']['value']['upperBound']; 
+      }
+      console.log(lowerbound, upperbound, propertyUnit);
+      console.log(preferredProperty['mainsnak']['datavalue']); 
+      console.log('QT', property, label, value); 
+      console.log(property, propertyset);
+      //Displaystrategy: 
+      // Bounded data (lower/upper) is hidden in hover over. 
+      // if propertyUnit === URL to wikidata with Q-ID ==> fetch it (return promise ) (check using regex)
+      // if not URL ==> just show it in DOM. 
+      //test pattern:
+      if(/^(http.*wikidata.org\/entity\/Q[1-9]*)$/.test(propertyUnit)){
+        //true: so matching pattern, but URL does not pass CORS: modify URL. 
+        let Qmatch = propertyUnit.match(/Q[1-9]*/); 
+        let unitLookupUrl = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+Qmatch+"&props=labels|claims&format=json&origin=*";
+        return await fetch(unitLookupUrl)
+        .then(response => response.json())
+        .then(response => {
+          //get unit symbol: property P5061.
+          //if missing ==> use label. 
+          //console.log(response); 
+          let labelList = response['entities'][Qmatch]['labels'];
+          let claimslist = response['entities'][Qmatch]['claims'];
+          //get claim P5061: 
+          let claimSymbol
+          if('P5061'in claimslist){
+            console.log(claimSymbol = claimslist['P5061']); 
+            //if rank is preferred: take that one, otherwise take item at index 0: 
+            let prefstatement = claimslist['P5061'][0];    //take item at index 0 anyway
+            for(let i = 0; i < claimslist['P5061']; i++){
+              if(claimslist['P5061'][i].rank==='preferred'){
+                prefstatement = claimslist['P5061'][i]; 
+              }
+            }
 
+            claimSymbol = prefstatement['mainsnak']['datavalue']['value'].text; 
 
+          }else{
+            //labelList parse rules: use preferredlanguage, the fallback to english, if both fail ==> resolve to item at index 0: 
+            let useAsLabel
+            if(labelLanguagePreference in labelList){
+              useAsLabel = labelList[labelLanguagePreference]; 
+            }else if('en' in labelList){
+              useAsLabel = labelList['en']; 
+            }else{
+              useAsLabel = labelList[Object.keys(labelList)[0]]; 
+            }
+            claimSymbol = useAsLabel['value']; 
+          }
+          let showToUser = value +' '+ claimSymbol; 
+          var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+showToUser+"</span>"; 
+          pelement.innerHTML = showAs; 
+          into.push(pelement); 
+        })
+      }
     }else{
-      console.log('PDTYPE', propertyDataType); 
+      console.warn('Unsupported datatype: ', propertyDataType); 
     }
   }
 

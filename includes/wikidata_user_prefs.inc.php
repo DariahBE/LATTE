@@ -44,7 +44,11 @@
       'P569' => array('Date of Birth', True, 'str'), 
       'P106' => array('Occupation', False, 'str'), 
       'P2671' => array('Google Knowledge Graph ID', False, 'uri'), 
-      'P1449' => array('Nickname', False, 'str')
+      'P1449' => array('Nickname', True, 'str'),
+      'P1198' => array('Unemployment rate', True, 'str'),
+      'P2884' => array('Mains voltage', True, 'str'), 
+      'P2250' => array('Life expectansy', True, 'str'), 
+      'P2044' => array('Height above sea level', True, 'str')
     ); 
 
     //used for the label returned by the wikidata api: 
