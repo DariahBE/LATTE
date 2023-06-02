@@ -23,6 +23,7 @@ public function checkForSession($redir="/user/mypage.php"){
   }
 }
 
+
   public function logout(){
     session_destroy();
     if (filter_var(WEBURL, FILTER_VALIDATE_URL) !== FALSE) {
@@ -32,6 +33,15 @@ public function checkForSession($redir="/user/mypage.php"){
     //die("Log out completed.");
   }
 
+  public function checkAccess($ispublic){
+    if($ispublic){return $ispublic;}
+    if(boolval($this->checkSession())){
+      return True;
+    }else{
+      header("Location: /user/mypage.php");
+      die(); 
+    }
+  }
 
   public function login($email, $password){
     //perform a cypher statement: user data is stored in the same database as the researchdata.

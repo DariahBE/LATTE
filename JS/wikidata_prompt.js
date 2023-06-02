@@ -114,7 +114,7 @@ function pickThisQID(qid){
   //clear the promptbox:
   document.getElementById('wdpromptBox').remove();
   //load the wikidata.js class and set qidmode on qid!
-  var wd = new wikibaseEntry(qid, wdProperties, 'qid');
+  var wd = new wikibaseEntry(qid, wdProperties, 'slideover', 'qid');
   wd.getWikidata()
     .then(function(){wd.renderEntities(qid)});
     //console.log(x);  //put qid in field - make it non-editable. 

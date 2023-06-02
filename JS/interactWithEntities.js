@@ -177,7 +177,7 @@ function showdata(data){
   var qidArr = data['entity'][0]['properties'].filter(ar => ar[2]== 'wikidata');
   if (qidArr.length === 1){
     var qid = qidArr[0][1];
-    var wd = new wikibaseEntry(qid, wdProperties, 'qid');
+    var wd = new wikibaseEntry(qid, wdProperties, 'slideover', 'qid');
     wd.getWikidata()
       .then(function(){wd.renderEntities(qid)}); 
   }

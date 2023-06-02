@@ -5,6 +5,8 @@ include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/preparedviews.inc.php'); //replaced entityviews!
 include_once(ROOT_DIR.'/includes/navbar.inc.php');
 include_once(ROOT_DIR.'/includes/datasilo.inc.php');
+include_once(ROOT_DIR.'/includes/user.inc.php');
+include_once(ROOT_DIR.'/includes/wikidata_user_prefs.inc.php');
 
 
 $typeOK = false;
@@ -33,6 +35,12 @@ if(!($uuid)){
 $graph = new Node($client);
 $silo = new Siloconnector($client); 
 
+$user = new User($client);
+$user->checkAccess(ENTITIESAREPUBLIC);
+$wikidata = new Wikidata_user($client);
+$wikidata->buildPreferences();
+
+
 //getnode that matches the provided UUID or primary key as defined in the configfile:
 
 //if the config file has a PK defined for the given type, use that.
@@ -51,6 +59,7 @@ if(array_key_exists('coreID', $core)){
   $siloArray = $silo->makeURIs('html'); 
   $block = new Blockfactory($type); 
   $textConnections = $graph->listTextsConnectedToEntityWithID((int)$coreNeoID);
+  $wdqid = $graph->getwikidataValue($core["neoID"]);
 }else{
   header('Location:/error.php?type=id');
 }
@@ -66,6 +75,23 @@ if(array_key_exists('coreID', $core)){
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
     <script type="text/javascript" src="/JS/clipboardcopy.js"> </script>
+    <script type="text/javascript" src="/JS/clipboardcopy.js"> </script>
+    <!-- wikidata SDK and custom code! SDK docs: https://github.com/maxlath/wikibase-sdk-->
+    <script src="/JS/wikidata_SDK/wikibase-sdk.js"></script>
+    <script src="/JS/wikidata_SDK/wikidata-sdk.js"></script>
+    <script src="/JS/wikidata.js"></script>
+    <!-- extra script for wikidata content: -->
+    <script src="/JS/caroussel.js"></script>
+    <script src="/JS/makeMap.js"></script>
+    <script src="/JS/leaflet/leaflet.js"></script>
+    <link rel="stylesheet" href="/CSS/leaflet/leaflet.css">
+    <!-- <script src="/JS/wikidata_prompt.js"></script> 
+    <link rel="stylesheet" href="/CSS/style_entities.css">
+    <link rel="stylesheet" href="/CSS/stylePublic.css">
+    <link rel="stylesheet" href="/CSS/overlaystyling.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    -->
+
   </head>
   <body class="bg-neutral-200">
     <?php
@@ -143,13 +169,47 @@ if(array_key_exists('coreID', $core)){
           echo "</ul>"; 
           echo "</div>";
         }
-      
-      
+    ?>
+    </div>
+    <?php
+    if(boolval($wdqid)){
       ?>
+    <div class="md:w-4/5 centerCustom" id="wdwindow">
+      <p class="font-xxl" >Data provided by Wikidata: </p>
+      <div>
+        
+        <!--controlling options for WD string-lookups-->
+        <div id='wdoptionsblock'>
+          <p class='font-bold'>entity lookup options:</p>
+          <select id='wdlookuplanguage'></select>
+          <br>
+          <input name='returnConstraint' type='checkbox' id='returnSameAsLookup'></input>
+          <label for='returnConstraint'>Limit results to lookuplanguage</label>
+          <br>
+          <input name='lookupConstraint' type='checkbox' id='strictLookup'></input>
+          <label for='lookupConstraint'>Use language fallback</label>
+          
+        </div>
+      </div>
+      <div id='insertWDHere'>
 
-    <div class="h-full w-full" id="visualizeWindow">
+      </div>
+      <script>
+        
+        var wdProperties = <?php echo json_encode($wikidata->makeSettingsDictionary()); ?>;
+        helper_setWDLanguages(document.getElementById('wdlookuplanguage')); 
+        var qid = 'Q661619';
+        wd = new wikibaseEntry(qid, wdProperties, 'static');
+        wd.getWikidata()
+          .then(function(){wd.renderEntities(qid)}); 
+      
+      </script>
+    </div>
 
-    </div>
-    </div>
+    <?php
+    }
+      ?>
+    
+
   </body>
 </html>

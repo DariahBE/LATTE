@@ -125,7 +125,7 @@ function showET(etdata){
   document.getElementById('entitycontent').appendChild(propdiv); 
   var wikidataID = etdata[3];
   if(wikidataID){
-    wd = new wikibaseEntry(wikidataID, wdProperties, 'qid');
+    wd = new wikibaseEntry(wikidataID, wdProperties, 'slideover', 'qid');
     wd.getWikidata()
       .then(function(){wd.renderEntities(wikidataID)}); 
   }

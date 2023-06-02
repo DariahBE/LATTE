@@ -190,6 +190,14 @@ $nodes_translate = array(
   'Annotation' => 'Annotations',
   'priv_user' => 'Users'
 );
+
+
+########### SET DATA VISIBILITY FOR THE PUBLIC: ###############################
+$textsPublic = True;            //  True/False; True = texts are publicly visible on the internet.
+$entityPublic = False;          //  True/False; True = stable pages are publicly visible. 
+
+
+
 ########### WHICH ENGINE SHOULD BE USED TO DETECT THE LANGUAGE OF A GIVEN TEXT?
 #                             spacy
 #                             langid
@@ -225,6 +233,10 @@ define("ANNOSTART", $annotationStart);
 define("ANNOSTOP", $annotationEnd);
 define("TEXNODE", $nodeAsText);
 define("TEXNODETEXT", $propertyContainingText);
+#accessibility for the public:
+  define('TEXTSAREPUBLIC', $textsPublic); 
+  define('ENTITIESAREPUBLIC', $entityPublic); 
+  
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL
 define("ENTITYEXTRACTOR", $extractor);

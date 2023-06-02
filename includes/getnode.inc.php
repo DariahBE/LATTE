@@ -572,6 +572,25 @@ class Node{
 
   }
 
+  public function getwikidataValue($neoid){
+    //looks up a node by NEOID
+    // sees if there's a wikidata field defined for it.
+    // if true, returns QID else, return false. 
+    $query = 'MATCH (n) WHERE id(n) = $graphid RETURN n'; 
+    $data = $this->client->run($query, ['graphid'=>$neoid]); 
+    foreach($data as $row){
+      //get nodeLabel:
+      $selectedLabel = $row['n']->getLabels()[0];
+      $model = NODEMODEL[$selectedLabel];
+      array_filter($model, function ($value, $key){
+        if($value[3]==='wikidata'){ return $key; }
+      });
+      var_dump($model); 
+      
+    }
+    return 1;     //default!
+  }
+
 
 }
 
