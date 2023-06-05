@@ -14,27 +14,29 @@ class Search{
     $phnamevar = 'vtemp_'.$this->whereParameterCounter;
     $this->whereParameterCounter+=1;
     if($valuetype === 'int'){
+      // numerical operations: cast to float, works for integers too!
+      // float numbers can be processed in this block too.
       switch($operator){
         case '':   //'', '!=', '>', '<', '<=', '>=', 'x|y' 
-          return array('constraint'=>'n.'.$propertyname.' = $'.$phname, 'placeholders'=>array($phname=>$value[0]));
+          return array('constraint'=>'n.'.$propertyname.' = $'.$phname, 'placeholders'=>array($phname=>floatval($value[0])));
           break;
         case '!=':
-          return array('constraint'=>'(n.'.$propertyname.' <> $'.$phname .' OR n.'.$propertyname.' IS NULL )', 'placeholders'=>array($phname=>$value[0]));
+          return array('constraint'=>'(n.'.$propertyname.' <> $'.$phname .' OR n.'.$propertyname.' IS NULL )', 'placeholders'=>array($phname=>floatval($value[0])));
           break;
         case'>':
-          return array('constraint'=>'n.'.$propertyname.' > $'.$phname, 'placeholders'=>array($phname=>$value[0]));
+          return array('constraint'=>'n.'.$propertyname.' > $'.$phname, 'placeholders'=>array($phname=>floatval($value[0])));
           break;
         case '<':
-          return array('constraint'=>'n.'.$propertyname.' < $'.$phname, 'placeholders'=>array($phname=>$value[0]));
+          return array('constraint'=>'n.'.$propertyname.' < $'.$phname, 'placeholders'=>array($phname=>floatval($value[0])));
           break;
         case '>=':
-          return array('constraint'=>'n.'.$propertyname.' >= $'.$phname, 'placeholders'=>array($phname=>$value[0]));
+          return array('constraint'=>'n.'.$propertyname.' >= $'.$phname, 'placeholders'=>array($phname=>floatval($value[0])));
           break;
         case '<=':
-          return array('constraint'=>'n.'.$propertyname.' <= $'.$phname, 'placeholders'=>array($phname=>$value[0]));
+          return array('constraint'=>'n.'.$propertyname.' <= $'.$phname, 'placeholders'=>array($phname=>floatval($value[0])));
           break;
         case 'x|y':
-          return array('constraint'=> '(n.'.$propertyname.' >= $'.$phname.'a AND n.'.$propertyname.' <= $'.$phname.'b  )', 'placeholders'=>array($phname.'a'=>$value[0], $phname.'b'=>$value[1]));
+          return array('constraint'=> '(n.'.$propertyname.' >= $'.$phname.'a AND n.'.$propertyname.' <= $'.$phname.'b  )', 'placeholders'=>array($phname.'a'=>floatval($value[0]), $phname.'b'=>floatval($value[1])));
           break;
       }
     }else if($valuetype === 'string' ){
@@ -119,7 +121,9 @@ class Search{
       if(array_key_exists($key, NODEMODEL[$label])){      
         $singleParameter= $this->convertOperatorToCypher($opt['operator'], $opt['type'], $key, $opt['values']);
         $constraints[]=$singleParameter['constraint']; 
-        $optconstraints[]=$singleParameter['varconstraint']; 
+        if(isset($singleParameter['varconstraint'])){
+          $optconstraints[]= $singleParameter['varconstraint'];
+        }
         foreach($singleParameter['placeholders'] as $k =>$v){
           $conditions[$k] =$v;
         }
@@ -127,7 +131,7 @@ class Search{
       }
     }
 
-    $query = "OPTIONAL MATCH (n:$label) "; 
+    $query = " OPTIONAL MATCH (n:$label) "; 
     $query.=" WHERE ".implode(' AND ', $constraints); 
     //add constraint on type!
     if(boolval(count($optconstraints))){
@@ -139,6 +143,7 @@ class Search{
     }
     $query.=" SKIP $offset LIMIT $limit "; 
     $data = $this->client->run($query, $conditions);
+    //var_dump($data); 
     return $data;
   }
 

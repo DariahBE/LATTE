@@ -172,6 +172,8 @@ if(array_key_exists('coreID', $core)){
     ?>
     </div>
     <?php
+    //implement here already: boolval AND regex check
+    //or use the regex in designated the getnode.inc.php method
     if(boolval($wdqid)){
       ?>
     <div class="md:w-4/5 centerCustom" id="wdwindow">
@@ -195,13 +197,17 @@ if(array_key_exists('coreID', $core)){
 
       </div>
       <script>
+        //bad idea: INSTEAD use regex in php to check if wdqid is valid; if it is, make it run this code:
+        // otherwise don't let anything be echoed to the DOM!
+        var qid = '<?php echo $wdqid;  ?>' ;
+        if(qid !== ''){
+          var wdProperties = <?php echo json_encode($wikidata->makeSettingsDictionary()); ?>;
+          helper_setWDLanguages(document.getElementById('wdlookuplanguage')); 
+          wd = new wikibaseEntry(qid, wdProperties, 'static');
+          wd.getWikidata()
+            .then(function(){wd.renderEntities(qid)}); 
+        }
         
-        var wdProperties = <?php echo json_encode($wikidata->makeSettingsDictionary()); ?>;
-        helper_setWDLanguages(document.getElementById('wdlookuplanguage')); 
-        var qid = 'Q661619';
-        wd = new wikibaseEntry(qid, wdProperties, 'static');
-        wd.getWikidata()
-          .then(function(){wd.renderEntities(qid)}); 
       
       </script>
     </div>

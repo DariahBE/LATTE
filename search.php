@@ -5,12 +5,16 @@
   include_once(ROOT_DIR.'/includes/navbar.inc.php');
   include_once(ROOT_DIR.'/includes/user.inc.php');
   
-if((isset($_SESSION) && boolval($_SESSION['userid']))){
-  $user = new User($client);
+$user = new User($client);
+if((isset($_SESSION) && isset($_SESSION['userid']) && boolval($_SESSION['userid']))){
   $adminMode = $user->myRole == 'Admin'; 
 }else{
   $adminMode = False;
 }
+
+//check access policy: endpoint should die() when data is not configured to be openly accessible.
+//both text and entities have to be public, otherwise die()
+$user->checkAccess(TEXTSAREPUBLIC &&  ENTITIESAREPUBLIC);
 
 $offset = 0; 
 $limit = 20; 

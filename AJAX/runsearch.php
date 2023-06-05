@@ -5,6 +5,11 @@ include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/search.inc.php');
 
+//check access policy: endpoint should die() when data is not configured to be openly accessible.
+//both text and entities have to be public, otherwise die()
+$user = new User($client);
+$user->checkAccess(TEXTSAREPUBLIC &&  ENTITIESAREPUBLIC);
+
 $labelname = $_POST['node']; 
 $labeloptions = $_POST['options']; 
 
@@ -16,6 +21,7 @@ $page = 0;
 if(isset($_GET['p'])){$page = (int)$_GET['p'];}
 
 function merge($datarow){
+  //set shorten to true if it's the textproperty in the Text node!
   global $graph;
   $neoID = $datarow['id'];
   $stableURI = $graph->generateURI($neoID);
@@ -31,7 +37,8 @@ function merge($datarow){
   //format properties according to NODEMODEL: 
   foreach($rowProperties as $propname => $propval){
     if (array_key_exists($propname, $model)){
-      $rowResponse['properties'][] = array($model[$propname][0], $model[$propname][1], $propval);
+      $shorten = ($rowLabel === TEXNODE && $propname === TEXNODETEXT) ? True : False;
+      $rowResponse['properties'][] = array($model[$propname][0], $model[$propname][1], $propval, $shorten);
     }
   }
   return array('neo'=>(int)$neoID, 'data'=>$rowResponse);
@@ -42,23 +49,29 @@ $graph = new Node($client);
 $data = $search->directNodeSearch($labeloptions, $labelname, $page); 
 $controlledResponse = array(); 
 foreach ($data->getresults() as $rowkey=> $row){
-  $rowDirect = $row['n'];
-  $rowIndirect = $row['q'];
+  $rowKeys = $row->keys(); 
+  //default = null; if it exists ==> override null by row value!
+  $rowDirect = null;
+  $rowIndirect = null; 
+  foreach($rowKeys as $key){
+    if ($key === 'n'){
+      $rowDirect = $row['n'];
+    }
+    if ($key === 'q'){
+      $rowIndirect = $row['q'];
+    }
+  }
   if(!(is_null($rowIndirect))){
     $method = 'indirect';
     $rowResponse = merge($rowIndirect);
     $controlledResponse[$rowResponse['neo']]= $rowResponse['data'];
   }
-  
   if(!(is_null($rowDirect))){
-    $method = 'indirect';
+    $method = 'direct';
     $rowResponse = merge($rowDirect);
     $controlledResponse[$rowResponse['neo']]= $rowResponse['data'];
   }
-
-
 }
-//var_dump($controlledResponse); 
 echo json_encode($controlledResponse);
 
 

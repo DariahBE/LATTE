@@ -102,6 +102,20 @@ function updateDict(){
   
 }
 
+function shortToggler(e){
+  let src = e.target || e.srcElement; 
+  //check if it is short or long ==> then toggle to the one. 
+  if(src.classList.contains('short')){
+    src.classList.remove('short'); 
+    src.classList.add('orig'); 
+    src.textContent = src.dataset.long;
+  }else{
+    src.classList.add('short'); 
+    src.classList.remove('orig'); 
+    src.textContent = src.dataset.short; 
+  }
+}
+
 function makeModForRange(){
   let src =  event.target || event.srcElement; 
   let srcvalue = src.value;
@@ -323,11 +337,24 @@ function simpleResponseTableGenerator(data){
         rightLink.appendChild(document.createTextNode(row['properties'][i][2])); 
         proprowright.appendChild(rightLink);
       }else{
-        proprowright.appendChild(document.createTextNode(row['properties'][i][2]))
+        //check if the property has a 'shorten' bool on index 3
+        const maxDisplayLength = 200; 
+        if (row['properties'][i][3] && row['properties'][i][2].length > maxDisplayLength){
+          let shortString = row['properties'][i][2].substring(0,maxDisplayLength)+' ...'; 
+          let originalString = row['properties'][i][2]; 
+          let shortTextNode = document.createTextNode(shortString); 
+          proprowright.appendChild(shortTextNode);
+          proprowright.classList.add('short', 'toggleShortLong'); 
+          proprowright.setAttribute('data-short', shortString);
+          proprowright.setAttribute('data-long', originalString);
+          proprowright.addEventListener('click', function(){shortToggler(event);});
+        }else{
+          proprowright.appendChild(document.createTextNode(row['properties'][i][2]));
+        }
       }
       proprow.appendChild(proprowleft); 
       proprow.appendChild(proprowright); 
-      proplist.appendChild(proprow)
+      proplist.appendChild(proprow);
     }
     rowOut.appendChild(linktd); 
     rowOut.appendChild(proplist); 
