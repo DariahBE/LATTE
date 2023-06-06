@@ -597,7 +597,6 @@ class Node{
             if(preg_match("/^Q[0-9]*$/", $assumedQID)){
               return $assumedQID; 
             }
-
           }
         }
         
