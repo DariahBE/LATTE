@@ -131,6 +131,12 @@ function pickThisQID(qid){
     wd = null; //destroy wikidataObject
     console.log(wd); 
   });
+  acceptButton.addEventListener('click', function(){
+    console.log('Start lookup if an entity in this database has the assigned QID.'); 
+    console.log('IF TRUE: it will load the entity');
+    console.log('IF FALSE: it will suggest you to make a new one.'); 
+    checkIfConnectionExists(qid); 
+  })
   const displayWDtarget = document.getElementById('handyLittleThingyForWDStuff');
   //console.log(displayWDtarget);
   rejectButton.appendChild(rejectText);
@@ -140,3 +146,47 @@ function pickThisQID(qid){
   confirmationDiv.appendChild(rejectButton);
   document.getElementById('slideoverDynamicContent').insertBefore(confirmationDiv, displayWDtarget);
 }
+
+
+function connectSuggestionToEntity(id){
+  let div = document.createElement('div'); 
+  div.classList.add('w-full'); 
+  div.setAttribute('id', 'connectSuggestion'); 
+  fetch()
+  .then((response) => response.json())
+  .then((data) => {
+    console.log(data);
+  });
+}
+
+function checkIfConnectionExists(qid){
+  //make a .fetch call in javascript
+  console.warn('checking if QID exists.'); 
+  fetch("/AJAX/checkWDExists.php?qid="+qid)
+  .then((response) => response.json())
+  .then((data) => {
+    console.log(data);
+    let hits = data['data'];
+    if(data['hits']!= 0){
+      let firstHit = hits[0]; 
+      if (data['hits']>1){
+        //add navigationmenu.
+
+
+      }else{
+        //load the firsthit.
+      }
+      console.log(data['hits'], ' hits found; ');
+      /*for(let i = 0; i < hits.length; i++){
+        let hit = data['data'][i]; 
+        let suggestionDiv = document.createElement('div'); 
+
+        console.log(hit);
+        //get connected text: 
+        fetch('http://entitylinker.test/AJAX/connected_texts.php?id='+hit)
+      }*/
+    }else{
+      alert('no results found!'); 
+    }
+  })
+  }
