@@ -605,6 +605,89 @@ class Node{
     return false;     //default!
   }
 
+  public function fetchWikidataFromAnyPossibleEt($qid){
+    //scans the entire nodesmodel variable, 
+    //extracts all fields that have  a wikidatavariable set
+    //returns nodes matching the provided Qid. 
+    //var_dump(NODEMODEL);
+    $hits = array();
+    foreach(NODEMODEL as $labelName => $properties){
+      //echo $labelName;
+      $x = array_filter($properties, function($propconfig, $propname){
+        if($propconfig[1] === 'wikidata'){
+          return $propname;
+        }
+      }, ARRAY_FILTER_USE_BOTH );
+      if (boolval($x)){
+        $hits[]= array($labelName, array_keys($x)[0]);
+      }
+    }
+    $results = array(); 
+    if(boolval(count($hits))){
+      //now iterate over the $hits list and find any matching entity, where the property equals $qid.; 
+      foreach($hits as $pair){
+        //var_dump($pair); 
+        $labelName = $pair[0]; 
+        $property = $pair[1]; 
+        $query = 'MATCH (n:'.$labelName.') WHERE n.'.$property.' = $id RETURN id(n) as neoID';
+        $data = $this->client->run($query,array('id'=>$qid));
+        foreach($data as $row){
+          $results[] = $row->get('neoID'); 
+        }
+        
+        //var_dump($data['']);
+        //echo 'NEXT: ';
+      }
+    }
+    //no hits => return empty array
+    return $results; 
+  }
+
+
+  public function fetchEtById($id){
+    $query = 'MATCH (n) WHERE id(n)= $neoid AND NOT n:priv_user RETURN n'; 
+    $data = $this->client->run($query, array('neoid'=>$id)); 
+    $repl = array();
+    foreach($data as $row){
+      $et = $row->get('n'); 
+      $etlabel = $et['labels'][0]; 
+      $etprops = $et['properties']; 
+      $etModel = NODEMODEL[$etlabel];
+      foreach($etprops as $k => $v){
+        if (array_key_exists($k, $etModel)){
+          var_dump($etprops[$k]); 
+        }
+      }
+    }
+    return $repl;
+  }
+
+
+  public function fetchAltSpellingsById($id){
+    $query = 'MATCH (n)-[r:same_as]-(v:Variant) WHERE id(n)= $neoid AND NOT n:priv_user RETURN v'; 
+    $data = $this->client->run($query, array('neoid'=>$id)); 
+    //var_dump($data); 
+    $repl = array(); 
+    foreach($data as $row){
+      $var = $row->get('v'); 
+      //should be //var anyway! 
+      $etprops = $var['properties']; 
+      $varModel = NODEMODEL['Variant']; 
+      //the Variant node is a static node type; properties should always be
+      // PK and valuestring
+      $pk = helper_extractPrimary('Variant'); 
+      $pkval = $etprops[$pk]; 
+      var_dump($pk);
+      var_dump($pkval);
+      $field = array($pk, $pkval); 
+      //pk = getprimaries
+      //valuestring => encoded in 'variant' property. 
+      
+
+    }
+    return $repl; 
+  }
+
 
 }
 

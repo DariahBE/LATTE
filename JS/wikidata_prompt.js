@@ -147,16 +147,21 @@ function pickThisQID(qid){
   document.getElementById('slideoverDynamicContent').insertBefore(confirmationDiv, displayWDtarget);
 }
 
-
-function connectSuggestionToEntity(id){
+function showHit(id){
+  document.getElementById(''); 
   let div = document.createElement('div'); 
   div.classList.add('w-full'); 
   div.setAttribute('id', 'connectSuggestion'); 
-  fetch()
+  //get mentions of this et and connected texts: 
+  findRelatedTexts(id);/*
+  fetch('http://entitylinker.test/AJAX/connected_texts.php?id='+id)
   .then((response) => response.json())
   .then((data) => {
     console.log(data);
-  });
+  });*/
+  //get DB information about this et: 
+  showDBInfoFor(id); 
+
 }
 
 function checkIfConnectionExists(qid){
@@ -168,13 +173,12 @@ function checkIfConnectionExists(qid){
     console.log(data);
     let hits = data['data'];
     if(data['hits']!= 0){
-      let firstHit = hits[0]; 
+      //load the first hit anyway: 
+      showHit(hits[0]); 
+      //add navigationmenu if there's more than one option: 
       if (data['hits']>1){
-        //add navigationmenu.
 
 
-      }else{
-        //load the firsthit.
       }
       console.log(data['hits'], ' hits found; ');
       /*for(let i = 0; i < hits.length; i++){

@@ -226,6 +226,16 @@ function addInteractionToEntities(){
   }
 };
 
+function showDBInfoFor(id){
+  //gets the neoID of an entity node:
+  //sends it to the BE
+  // shows all data there's stored about it. 
+  alert(id); 
+  fetch('/AJAX/getETById.php?id='+id)
+  .then((data)=> console.log(data)); 
+
+}
+
 $(document).ready(function(){
   addInteractionToEntities();
 });
