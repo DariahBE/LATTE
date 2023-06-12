@@ -177,7 +177,7 @@ function checkIfConnectionExists(qid){
       showHit(hits[0]); 
       //add navigationmenu if there's more than one option: 
       if (data['hits']>1){
-
+        console.warn('Todo, add navigation for multiple hits!'); 
 
       }
       console.log(data['hits'], ' hits found; ');

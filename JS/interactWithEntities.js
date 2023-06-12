@@ -212,6 +212,8 @@ function loadAnnotationData(){
   getInfoFromBackend("/AJAX/resolve_annotation.php?annotation="+annotationID)
     .then((data)=>{
       console.log('interactWithEntities.js: rewrite loadAnnotationData, handeError & showdata functions'); 
+      console.warn('showdata data:'); 
+      console.log(data); 
       showdata(data);
     })
     //.catch(err => handleError() );
@@ -226,13 +228,50 @@ function addInteractionToEntities(){
   }
 };
 
+function deleteVariant(event){
+  let src = event.source || event.target; 
+  console.log(src); 
+}
+
+function displayWrittenVariants(variantData){
+  //used by showdata() and showDBInfoFor() functions. 
+  let varTarget = document.getElementById('variantStorageBox');
+  console.log(varTarget); 
+  for(let i = 0; i < variantData.length; i++){
+    let variant = variantData[i]; 
+    let varbox = document.createElement('div'); 
+    let varboxDelete = document.createElement('span')
+    let varboxContent = document.createElement('span'); 
+    varboxContent.appendChild(document.createTextNode(variant['label'])); 
+    varboxDelete.setAttribute('data-id', variant['primary'][1]); 
+    varboxDelete.setAttribute('data-key', variant['primary'][0]); 
+    varbox.appendChild(varboxDelete);
+    varbox.appendChild(varboxContent);
+    varTarget.appendChild(varbox);
+    alert('where\'s the varbox??'); 
+  }
+
+}
+
 function showDBInfoFor(id){
-  //gets the neoID of an entity node:
+  //gets the neoID of an entity node after having found a matching Q-id.
   //sends it to the BE
-  // shows all data there's stored about it. 
-  alert(id); 
-  fetch('/AJAX/getETById.php?id='+id)
-  .then((data)=> console.log(data)); 
+  // shows all data there's stored about it.
+  console.warn('fetching database info');
+  getInfoFromBackend('/AJAX/getETById.php?id='+id)
+  .then((data)=> {
+    //process entity information
+    const info = data['props']; 
+    for(let i = 0; i < info.length; i++){
+      let infoBlock = info[i];
+    }
+    //process: variants
+    const variants = data['variantSpellings']; 
+    displayWrittenVariants(variants); 
+    console.log(info, variants); 
+
+
+  }); 
 
 }
 

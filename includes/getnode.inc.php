@@ -655,7 +655,9 @@ class Node{
       $etModel = NODEMODEL[$etlabel];
       foreach($etprops as $k => $v){
         if (array_key_exists($k, $etModel)){
-          var_dump($etprops[$k]); 
+          $humanReadableKey = $etModel[$k][0];      //human readable key
+          $value = $etprops[$k];                    //value; 
+          $repl[]=array($humanReadableKey, $value); 
         }
       }
     }
@@ -673,17 +675,18 @@ class Node{
       //should be //var anyway! 
       $etprops = $var['properties']; 
       $varModel = NODEMODEL['Variant']; 
+      //var_dump($varModel); 
       //the Variant node is a static node type; properties should always be
       // PK and valuestring
-      $pk = helper_extractPrimary('Variant'); 
-      $pkval = $etprops[$pk]; 
-      var_dump($pk);
-      var_dump($pkval);
-      $field = array($pk, $pkval); 
+      $pk = helper_extractPrimary('Variant');
+      $pkval = $etprops[$pk];
+      $pkdata = array($pk, $pkval);
+      //var_dump($pk);
+      //var_dump($pkval);
+      $field = array('label'=> $etprops['variant'], 'primary'=> $pkdata);
+      $repl[] = $field;
       //pk = getprimaries
       //valuestring => encoded in 'variant' property. 
-      
-
     }
     return $repl; 
   }
