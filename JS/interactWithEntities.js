@@ -228,27 +228,86 @@ function addInteractionToEntities(){
   }
 };
 
-function deleteVariant(event){
-  let src = event.source || event.target; 
-  console.log(src); 
+
+//global scope
+let spellingVariantTracker = [];
+function binVariant(e){
+  //gets the attribute of e: sends XHR request to delete. 
+  const DOMElement = e.parentElement; 
+  let nodeInternalId = e.getAttribute('neoid'); 
+  let etInternalId = document.getElementById('connectSuggestion').getAttribute('neoid'); 
+  fetch('/AJAX/variants/delete.php?variantid='+nodeInternalId+'&entityid='+etInternalId)
+  .then(data => function(){
+    console.log(data);
+  });
+
+  console.log(nodeInternalId); 
+  console.log(DOMElement); 
+  const writtenValue = DOMElement.textContent; 
+  //then removes it from the spellingvarianttracker
+  let idx = spellingVariantTracker.indexOf(writtenValue); 
+  delete(spellingVariantTracker[idx]); 
+  //tehn removes it from the DOM: 
+  e.parentElement.remove();
 }
 
 function displayWrittenVariants(variantData){
+      //    allow the user to generate a list of spelling variants: 
+      var spellingVariantMainBox = document.createElement('div');
+      spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
+      var spellingVariantTitle = document.createElement('h3'); 
+      spellingVariantTitle.appendChild(document.createTextNode('Naming variants: '));
+      spellingVariantMainBox.appendChild(spellingVariantTitle);
+      spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'); 
+      var spellingVariantCreation = document.createElement('input'); 
+      spellingVariantCreation.setAttribute('id', 'variantInputBox'); 
+      spellingVariantCreation.classList.add('border-solid', 'border-2')
+      var spellingVariantSubBox = document.createElement('div');
+      spellingVariantSubBox.setAttribute('id', 'variantStorageBox'); 
+      spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex', 'flex-wrap');
+      var addToStorageBox = document.createElement('button'); 
+      addToStorageBox.appendChild(document.createTextNode('Add')); 
+      addToStorageBox.addEventListener('click', function(){
+        var writtenValue = document.getElementById('variantInputBox').value; 
+        document.getElementById('variantInputBox').value = ''; 
+        if(spellingVariantTracker.includes(writtenValue)){
+          return;
+        }
+        spellingVariantTracker.push(writtenValue);
+        var storeIn = document.getElementById('variantStorageBox'); 
+        var variantDisplayDiv = document.createElement('div'); 
+        variantDisplayDiv.classList.add('m-1','p-1','spellingvariantbox', 'bg-amber-100', 'flex');
+        var variantDisplayTex = document.createElement('p');
+        variantDisplayTex.appendChild(document.createTextNode(writtenValue));
+        var variantDisplayBin = document.createElement('p');
+        variantDisplayBin.classList.add('xsbinicon', 'bg-amber-200', 'm-1','p-1', 'rounded-full'); 
+        variantDisplayBin.addEventListener('click', function(){binVariant(this);});
+        variantDisplayDiv.appendChild(variantDisplayTex);
+        variantDisplayDiv.appendChild(variantDisplayBin);
+        storeIn.appendChild(variantDisplayDiv);
+      }); 
+      spellingVariantMainBox.appendChild(spellingVariantCreation);
+      spellingVariantMainBox.appendChild(addToStorageBox);
+      spellingVariantMainBox.appendChild(spellingVariantSubBox);
+  
   //used by showdata() and showDBInfoFor() functions. 
   let varTarget = document.getElementById('variantStorageBox');
-  console.log(varTarget); 
+  //console.log(varTarget); 
   for(let i = 0; i < variantData.length; i++){
     let variant = variantData[i]; 
     let varbox = document.createElement('div'); 
-    let varboxDelete = document.createElement('span')
-    let varboxContent = document.createElement('span'); 
+    varbox.classList.add('m-1','p-1', 'spellingvariantbox', 'bg-amber-100', 'flex');
+    let varboxDelete = document.createElement('p'); 
+    let varboxContent = document.createElement('p'); 
     varboxContent.appendChild(document.createTextNode(variant['label'])); 
     varboxDelete.setAttribute('data-id', variant['primary'][1]); 
     varboxDelete.setAttribute('data-key', variant['primary'][0]); 
-    varbox.appendChild(varboxDelete);
+    varboxDelete.setAttribute('data-neoid', variant['neoid']); 
+    varboxDelete.classList.add('xsbinicon', 'bg-amber-200', 'm-1', 'p-1', 'rounded-full');
+    varboxDelete.addEventListener('click', function(){binVariant(this);});
     varbox.appendChild(varboxContent);
+    varbox.appendChild(varboxDelete);
     varTarget.appendChild(varbox);
-    alert('where\'s the varbox??'); 
   }
 
 }

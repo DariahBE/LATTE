@@ -666,11 +666,12 @@ class Node{
 
 
   public function fetchAltSpellingsById($id){
-    $query = 'MATCH (n)-[r:same_as]-(v:Variant) WHERE id(n)= $neoid AND NOT n:priv_user RETURN v'; 
+    $query = 'MATCH (n)-[r:same_as]-(v:Variant) WHERE id(n)= $neoid AND NOT n:priv_user RETURN v, id(v) as variantNeoID'; 
     $data = $this->client->run($query, array('neoid'=>$id)); 
     //var_dump($data); 
     $repl = array(); 
     foreach($data as $row){
+      $varid = (int)$row->get('variantNeoID');
       $var = $row->get('v'); 
       //should be //var anyway! 
       $etprops = $var['properties']; 
@@ -683,7 +684,7 @@ class Node{
       $pkdata = array($pk, $pkval);
       //var_dump($pk);
       //var_dump($pkval);
-      $field = array('label'=> $etprops['variant'], 'primary'=> $pkdata);
+      $field = array('label'=> $etprops['variant'], 'primary'=> $pkdata, 'neoid'=>$varid);
       $repl[] = $field;
       //pk = getprimaries
       //valuestring => encoded in 'variant' property. 

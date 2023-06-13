@@ -148,13 +148,29 @@ function pickThisQID(qid){
 }
 
 function showHit(id){
-  document.getElementById(''); 
+  let replaceContent = document.getElementById('displayHitEt'); 
+  replaceContent.innerHTML = '';  
   let div = document.createElement('div'); 
+  //hitNav.setAttribute('data-neoid', id); 
   div.classList.add('w-full'); 
   div.setAttribute('id', 'connectSuggestion'); 
   //get mentions of this et and connected texts: 
-  findRelatedTexts(id);/*
-  fetch('http://entitylinker.test/AJAX/connected_texts.php?id='+id)
+  console.warn('NEO ID; '); 
+  console.log(id); 
+  
+  //don't rely on the WD Container, susceptible to race conditions!
+  alert('redo the gateway code!'); 
+  var gateWay = document.createElement('div');
+  var statsTarget = document.createElement('div');
+  statsTarget.setAttribute('id', 'relatedTextStats');
+  statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
+  gateWay.appendChild(statsTarget);
+  //use insertbefore to put the gateway in front of the WD container. 
+  var referenceNode = document.getElementById('handyLittleThingyForWDStuff');
+  referenceNode.parentElement.insertBefore(gateWay, referenceNode);
+  //document.getElementById('handyLittleThingyForWDStuff').appendChild(gateWay);
+  findRelatedTexts(id);
+  /*fetch('http://entitylinker.test/AJAX/connected_texts.php?id='+id)
   .then((response) => response.json())
   .then((data) => {
     console.log(data);
@@ -164,6 +180,11 @@ function showHit(id){
 
 }
 
+/**
+ *  navigating Qid links is wrong; 
+ * 
+ */
+
 function checkIfConnectionExists(qid){
   //make a .fetch call in javascript
   console.warn('checking if QID exists.'); 
@@ -172,11 +193,47 @@ function checkIfConnectionExists(qid){
   .then((data) => {
     console.log(data);
     let hits = data['data'];
+    hits.push(148);
+    hits.push(146);
+    let j = 0; 
     if(data['hits']!= 0){
       //load the first hit anyway: 
-      showHit(hits[0]); 
+      let maintarget = document.getElementById('embeddedET');
+      maintarget.innerHTML = ''; 
+      let contentNav = document.createElement('div'); 
+      contentNav.setAttribute('id', 'navigateETs'); 
+      let hitNav = document.createElement('div'); 
+      hitNav.setAttribute('id', 'displayHitEt'); 
+      maintarget.appendChild(contentNav);   //navigates through the hits.
+      maintarget.appendChild(hitNav);       //prepares a box to display single hit info. 
+
+      showHit(hits[j]); 
       //add navigationmenu if there's more than one option: 
-      if (data['hits']>1){
+      if (hits.length>1){
+        let navigateHits = document.createElement('div');
+        navigateHits.classList.add('w-full'); 
+        navigateBack = document.createElement('p'); 
+        navigateBack.appendChild(document.createTextNode('<<')); 
+        navigateNext = document.createElement('p'); 
+        navigateNext.appendChild(document.createTextNode('>>')); 
+        navigateNext.addEventListener('click', function(){
+          if(j<hits.length){
+            j++; 
+            console.log("nextpage"); 
+            showHit(hits[j]); 
+          }
+        })
+        navigateBack.addEventListener('click', function(){
+          if(j>0){
+            j--;
+            showHit(hits[j]); 
+          }
+        })
+        navigateHits.appendChild(navigateBack);
+        navigateHits.appendChild(navigateNext);
+        console.log(navigateHits);
+        console.log(document.getElementById('navigateETs'));
+        document.getElementById('navigateETs').appendChild(navigateHits);
         console.warn('Todo, add navigation for multiple hits!'); 
 
       }

@@ -299,10 +299,13 @@ function triggerSidePanelAction(entityData){
     }
     var createNodeDiv = document.createElement('div'); 
     createNodeDiv.classList.add('w-full'); 
+    createNodeDiv.setAttribute('id', 'etcreate'); 
+    var embeddedCreateDiv = document.createElement('div'); 
+    embeddedCreateDiv.setAttribute('id', 'embeddedET'); 
     var topTex = document.createElement('h3'); 
     topTex.classList.add('uppercase', 'text-xl', 'underline', 'decoration-4', 'underline-offset-2');
     topTex.appendChild(document.createTextNode('Create a new annotation'));
-    createNodeDiv.appendChild(topTex); 
+    embeddedCreateDiv.appendChild(topTex); 
     //add code to create a node from selection!
     //append newly created Div to the DOM: 
     targetOfInfo.appendChild(createNodeDiv);
@@ -325,14 +328,16 @@ function triggerSidePanelAction(entityData){
       o.setAttribute('value', coreNodes[c]);
       setEntityType.appendChild(o); 
     }
-    createNodeDiv.appendChild(entityTypeDiv);
-    createNodeDiv.appendChild(setEntityType);
+    embeddedCreateDiv.appendChild(entityTypeDiv);
+    embeddedCreateDiv.appendChild(setEntityType);
+    createNodeDiv.appendChild(embeddedCreateDiv);
     //Dropdown added: Show positional info: 
     var text = getTextSelection();
     var startPositionInText = text[1];
     var endPositionInText = text[2];
     var selectedString = text[0];
     var positionDiv = document.createElement('div'); 
+    positionDiv.setAttribute('id', 'embeddedAnnotation'); 
     var positionTitle = document.createElement('h3'); 
     positionTitle.appendChild(document.createTextNode('Annotation information: ')); 
     setEntityType.addEventListener('change', function(){
@@ -372,10 +377,13 @@ function triggerSidePanelAction(entityData){
     positionDiv.appendChild(selectedText);
     //positional info added: show spellingvariantbox: 
     //    allow the user to generate a list of spelling variants: 
+    console.warn("code should be rewritten to use function call to displayWrittenVariants()");
     var spellingVariantTracker = [];
     var spellingVariantMainBox = document.createElement('div');
     var spellingVariantTitle = document.createElement('h3'); 
     spellingVariantTitle.appendChild(document.createTextNode('Naming variants: '));
+    spellingVariantTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');
+    spellingVariantMainBox.appendChild(spellingVariantTitle);
     spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'); 
     var spellingVariantCreation = document.createElement('input'); 
     spellingVariantCreation.setAttribute('id', 'variantInputBox'); 
