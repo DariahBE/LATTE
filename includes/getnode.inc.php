@@ -664,11 +664,23 @@ class Node{
     return $repl;
   }
 
+  public function countConnectionsOver($id, $label){
+    //takes an INT neo ID and label. counts how many label-relations the node with a given ID has. 
+    $query = 'MATCH (n)-[r:'.$label.']-(m) WHERE id(n) = $neoid RETURN count(r) AS count';
+    $data = $this->client->run($query, array('neoid'=>$id));
+    return $data;
+  }
+
+  public function countConnectionsBetweenAndOver($id1, $id2, $label){
+    $query = 'MATCH (n)-[r:'.$label.']-(m) WHERE id(n) = $neoid AND id(m) = $neoid2 RETURN count(r) AS count';
+    $data = $this->client->run($query, array('neoid'=>$id1, 'neoid2'=>$id2));
+    return $data;
+  }
+
 
   public function fetchAltSpellingsById($id){
-    $query = 'MATCH (n)-[r:same_as]-(v:Variant) WHERE id(n)= $neoid AND NOT n:priv_user RETURN v, id(v) as variantNeoID'; 
+    $query = 'MATCH (n)-[r:same_as]-(v:Variant) WHERE id(n)= $neoid AND NOT n:priv_user RETURN v, id(v) AS variantNeoID'; 
     $data = $this->client->run($query, array('neoid'=>$id)); 
-    //var_dump($data); 
     $repl = array(); 
     foreach($data as $row){
       $varid = (int)$row->get('variantNeoID');

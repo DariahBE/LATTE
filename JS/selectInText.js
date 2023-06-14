@@ -380,6 +380,7 @@ function triggerSidePanelAction(entityData){
     console.warn("code should be rewritten to use function call to displayWrittenVariants()");
     var spellingVariantTracker = [];
     var spellingVariantMainBox = document.createElement('div');
+    spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
     var spellingVariantTitle = document.createElement('h3'); 
     spellingVariantTitle.appendChild(document.createTextNode('Naming variants: '));
     spellingVariantTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');

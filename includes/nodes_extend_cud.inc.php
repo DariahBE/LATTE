@@ -71,20 +71,58 @@ class CUDNode extends Node {
         }
     }
 
+  public function createVariantRelation($label, $entitySource){
+    //create a variant or connection between an entity and a variant:
+    //if the variant is not yet in de DB, the variant is created.
+    //if the variant already exists, a relation is created connecting it to the entity. 
+    //$label    =string   = string label to be inserted in the database and used as spellingvariant for the node. 
+    //$entitySource =int  = neoID of the entity-node(multilabel)
+    //1: check variant.
+    $query = 'MATCH (n:Variant) WHERE n.variant = $varlabel RETURN id(n) as id';
+    $existsResult = $this->client->run($query, array('varlabel'=>$label));
+    $hasResult = !($existsResult->isempty()); 
+    //2: check if the entity is an actual entity.
+    if($hasResult){
+      //there is a matching request!
+      $existingVariantId = $existsResult->first()->get('id'); 
+      //SO: connect it. 
 
-
-    public function determineRightsSet($requestedLevel){
-        include_once(ROOT_DIR.'\includes\user.inc.php');
-        $user = new User($this->client); 
-        $nodetype = '';         //TODO: determine the nodetype! Some nodes require lower level deletes than others. 
-        $ownerShip = False;     //TODO: determine whether or not the user owns the node!!
-        $whatRightSetApplies = $user->hasEditRights($user->myRole, $ownerShip); 
-        if ($whatRightSetApplies >= $requestedLevel){
-            return True;
-        }else{
-            return False;
-        }
+    }else{
+      //the variant has no label registered in the DB that matches the request: create one. 
     }
+    
+
+    
+  }
+
+  public function dropVariant($variantID, $entityID, $detachQuery){
+    //drops a variant or connection between a variant and entity:
+    //$variantID  = int   = neoID of the Variant-node.
+    //$entityID   = int   = neoID of the entity-node(multilabel)
+    //$detachQuery= bool  = if true ==> runs a detach delete query; if false remove all relations between $variantID and $entityID that have the same_as-label
+    if($detachQuery){
+      //deletes all relationships where n is part of and deletes the node. 
+      $result = $this->client->run('MATCH (n) WHERE id(n)=$varid DETACH DELETE n;', array('varid'=>$variantID));
+    }else{
+      //deletes all relationships with the same_as label between n and m;
+      $result = $this->client->run('MATCH (n)-[r:same_as]-(m) WHERE id(n) = $varid AND id(m) = $etid DELETE(r);', array('varid'=>$variantID, 'etid'=>$entityID)); 
+    }
+    return $result;
+  }
+
+
+  public function determineRightsSet($requestedLevel){
+    include_once(ROOT_DIR.'\includes\user.inc.php');
+    $user = new User($this->client); 
+    $nodetype = '';         //TODO: determine the nodetype! Some nodes require lower level deletes than others. 
+    $ownerShip = False;     //TODO: determine whether or not the user owns the node!!
+    $whatRightSetApplies = $user->hasEditRights($user->myRole, $ownerShip); 
+    if ($whatRightSetApplies >= $requestedLevel){
+        return True;
+    }else{
+        return False;
+    }
+  }
 
 
 

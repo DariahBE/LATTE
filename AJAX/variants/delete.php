@@ -14,14 +14,28 @@ $user_uuid = $user->checkSession();
 if(!(boolval($user_uuid))){
   die();
 }
+//connect to graph database
+$graph = new CUDNode($client);
 
-//gets the neoID for both connected nodes. 
-$etNeoID = $_GET['et'];
-$varuid = $_GET['var']
 
-//gets the node ID where the variant connects to
+//gets the neoID for both connected nodes.  //cast to integers!!
+$etNeoID = (int)$_GET['entityid'];
+$varuid = (int)$_GET['variantid'];
 
-//count connections from variant to any other node over the 'same_as' relation.
+//preparation: 
+//1. count connections from variant to any other node over the 'same_as' relation.
+$res = $graph->countConnectionsOver($varuid, 'same_as'); 
+$countVar = $res->first()->get('count');
+//2. count connections between the two given ids over the same_as relation
+$res = $graph->countConnectionsBetweenAndOver($varuid, $etNeoID, 'same_as'); 
+$countConnect = $res->first()->get('count');
+
+//decisionMaking:
+$output = $graph->dropVariant($varuid, $etNeoID, $countVar == $countConnect);
+var_dump($output); 
+
+echo json_encode($countConnect);
+
 
 //if there's more than one, the node cannot be deleted. 
 

@@ -17,11 +17,14 @@ $graph = new Node($client);
 $embeddedProps = $graph->fetchEtById($id);
 $relatedVariants = $graph->fetchAltSpellingsById($id);
 
+$stableLink = $graph->generateURI($id); 
+
 
 echo json_encode(
     array(
         'props'=> $embeddedProps, 
-        'variantSpellings' => $relatedVariants
+        'variantSpellings' => $relatedVariants, 
+        'stable' => $stableLink
     )
     ); 
 

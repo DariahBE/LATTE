@@ -135,13 +135,15 @@ function pickThisQID(qid){
     console.log('Start lookup if an entity in this database has the assigned QID.'); 
     console.log('IF TRUE: it will load the entity');
     console.log('IF FALSE: it will suggest you to make a new one.'); 
+    document.getElementById('embeddedWDConfirmationGroup').remove();
     checkIfConnectionExists(qid); 
-  })
+  }); 
   const displayWDtarget = document.getElementById('handyLittleThingyForWDStuff');
   //console.log(displayWDtarget);
   rejectButton.appendChild(rejectText);
   acceptButton.appendChild(acceptText);
   let confirmationDiv = document.createElement('div');
+  confirmationDiv.setAttribute('id', 'embeddedWDConfirmationGroup');
   confirmationDiv.appendChild(acceptButton);
   confirmationDiv.appendChild(rejectButton);
   document.getElementById('slideoverDynamicContent').insertBefore(confirmationDiv, displayWDtarget);
@@ -150,33 +152,33 @@ function pickThisQID(qid){
 function showHit(id){
   let replaceContent = document.getElementById('displayHitEt'); 
   replaceContent.innerHTML = '';  
-  let div = document.createElement('div'); 
+  let etPropContainer = document.createElement('div'); 
   //hitNav.setAttribute('data-neoid', id); 
-  div.classList.add('w-full'); 
-  div.setAttribute('id', 'connectSuggestion'); 
+  etPropContainer.classList.add('w-full'); 
+  etPropContainer.setAttribute('id', 'connectSuggestion'); 
+  etPropContainer.setAttribute('data-neoid', id); 
   //get mentions of this et and connected texts: 
   console.warn('NEO ID; '); 
   console.log(id); 
+  replaceContent.appendChild(etPropContainer);
+  // if relatedTextStats is missing from the DOM: 
+  //race condition in etcreate! Elem does not exist when WD check hasn't been performed.
+  waitForElement('#handyLittleThingyForWDStuff').then((elm) => {
+    if (!(document.getElementById('relatedTextStats'))){
+      var gateWay = document.createElement('div');
+      var statsTarget = document.createElement('div');
+      statsTarget.setAttribute('id', 'relatedTextStats');
+      statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
+      gateWay.appendChild(statsTarget);
+      var referenceNode = document.getElementById('handyLittleThingyForWDStuff');//.nextElementSibling;
+      referenceNode.parentElement.insertBefore(gateWay, referenceNode);
+    }
+    //document.getElementById('handyLittleThingyForWDStuff').appendChild(gateWay);
+    findRelatedTexts(id);
+    //get DB information about this et: 
+    showDBInfoFor(id); 
   
-  //don't rely on the WD Container, susceptible to race conditions!
-  alert('redo the gateway code!'); 
-  var gateWay = document.createElement('div');
-  var statsTarget = document.createElement('div');
-  statsTarget.setAttribute('id', 'relatedTextStats');
-  statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
-  gateWay.appendChild(statsTarget);
-  //use insertbefore to put the gateway in front of the WD container. 
-  var referenceNode = document.getElementById('handyLittleThingyForWDStuff');
-  referenceNode.parentElement.insertBefore(gateWay, referenceNode);
-  //document.getElementById('handyLittleThingyForWDStuff').appendChild(gateWay);
-  findRelatedTexts(id);
-  /*fetch('http://entitylinker.test/AJAX/connected_texts.php?id='+id)
-  .then((response) => response.json())
-  .then((data) => {
-    console.log(data);
-  });*/
-  //get DB information about this et: 
-  showDBInfoFor(id); 
+  });
 
 }
 

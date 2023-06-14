@@ -39,6 +39,53 @@ function decideOnEdit(protected, level){
   }
 }*/
 
+function waitForElement(selector) {
+  return new Promise(resolve => {
+      if (document.querySelector(selector)) {
+          return resolve(document.querySelector(selector));
+      }
+
+      const observer = new MutationObserver(mutations => {
+          if (document.querySelector(selector)) {
+              resolve(document.querySelector(selector));
+              observer.disconnect();
+          }
+      });
+
+      observer.observe(document.body, {
+          childList: true,
+          subtree: true
+      });
+  });
+}
+
+
+function createStableLinkingBlock(nodeid, stableURI){
+  //generates a link to the graph explorer page
+  //and to the stable URI 
+  //returns a DIV with both link elements embedded in.
+  var linkToGraphExplorer = '/explore/'+nodeid; 
+  var linkElement = document.createElement('a'); 
+  linkElement.setAttribute('href', linkToGraphExplorer); 
+  linkElement.setAttribute('target', '_blank');
+  imgElement = document.createElement('img');
+  imgElement.src = '/images/graphExplore.png';
+  linkElement.appendChild(imgElement);
+  var linkToStablePage = document.createElement('a'); 
+  linkToStablePage.setAttribute('href', stableURI); 
+  linkToStablePage.setAttribute('target', '_blank');
+  stableImgElement = document.createElement('i'); 
+  stableImgElement.classList.add('fas', 'fa-anchor'); 
+  linkToStablePage.appendChild(stableImgElement); 
+  subdivGateway = document.createElement('div'); 
+  subdivGateway.classList.add('flex', 'flex-row'); 
+  subdivGateway.setAttribute('id', 'stableBox'); 
+  subdivGateway.appendChild(linkElement);
+  subdivGateway.appendChild(linkToStablePage);
+  return subdivGateway;
+}
+
+
 function showdata(data){
   //frameWorkBase();
   toggleSlide(1);
@@ -69,7 +116,7 @@ function showdata(data){
       var keytex = annotationStructure[key] !== undefined ? annotationStructure[key][0] : key;
       var fieldkeyString = document.createTextNode(keytex+': ');
       var fieldvalueString = document.createTextNode(data);
-      console.log(fieldvalueString); 
+      //console.log(fieldvalueString); 
       if (data !== false && data!==''){
         fieldvalue.appendChild(fieldvalueString);
         fieldkey.appendChild(fieldkeyString);
@@ -151,26 +198,8 @@ function showdata(data){
   etType.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex',  'justify-center'); 
   var etTypeText = document.createTextNode('Entity: '+data['entity'][0]['type']); 
   etType.appendChild(etTypeText);
-  annotationTarget.appendChild(etType);
-  var linkToGraphExplorer = '/explore/'+data['entity'][0]['neoID']; 
-  var linkElement = document.createElement('a'); 
-  linkElement.setAttribute('href', linkToGraphExplorer); 
-  linkElement.setAttribute('target', '_blank');
-  imgElement = document.createElement('img');
-  imgElement.src = '/images/graphExplore.png';
-  linkElement.appendChild(imgElement);
-  var linkToStablePage = document.createElement('a'); 
-  linkToStablePage.setAttribute('href', etStable); 
-  linkToStablePage.setAttribute('target', '_blank');
-  stableImgElement = document.createElement('i'); 
-  stableImgElement.classList.add('fas', 'fa-anchor'); 
-  //stableImgElement.innerHTML = '<i class="fa-anchor"></i>'; 
-  linkToStablePage.appendChild(stableImgElement); 
-  subdivGateway = document.createElement('div'); 
-  subdivGateway.classList.add('flex', 'flex-row'); 
-  subdivGateway.appendChild(linkElement);
-  subdivGateway.appendChild(linkToStablePage);
-  gateWay.appendChild(subdivGateway); 
+  annotationTarget.appendChild(etType); 
+  gateWay.appendChild(createStableLinkingBlock(data['entity'][0]['neoID'], etStable)); 
   annotationTarget.appendChild(gateWay);
 
   //With the type known: look up if there's a wikidata attribute: 
@@ -233,9 +262,10 @@ function addInteractionToEntities(){
 let spellingVariantTracker = [];
 function binVariant(e){
   //gets the attribute of e: sends XHR request to delete. 
+  console.log(e); 
   const DOMElement = e.parentElement; 
-  let nodeInternalId = e.getAttribute('neoid'); 
-  let etInternalId = document.getElementById('connectSuggestion').getAttribute('neoid'); 
+  let nodeInternalId = e.getAttribute('data-neoid'); 
+  let etInternalId = document.getElementById('connectSuggestion').getAttribute('data-neoid'); 
   fetch('/AJAX/variants/delete.php?variantid='+nodeInternalId+'&entityid='+etInternalId)
   .then(data => function(){
     console.log(data);
@@ -326,10 +356,16 @@ function showDBInfoFor(id){
     }
     //process: variants
     const variants = data['variantSpellings']; 
+    const uri = data['stable']; 
     displayWrittenVariants(variants); 
     console.log(info, variants); 
 
-
+    let referenceNode = document.getElementById('relatedTextStats').parentElement; 
+    //remove the stable block if it exists: 
+    let stableBox = document.getElementById('stableBox'); 
+    if(stableBox){stableBox.remove();}
+    referenceNode.appendChild(createStableLinkingBlock(id, uri));
+  
   }); 
 
 }
