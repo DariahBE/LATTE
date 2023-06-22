@@ -70,6 +70,13 @@ class CUDNode extends Node {
             return $inputvariable; 
         }
     }
+  private function is_entity($neoID){
+    //helper function that checks if the given $neoID has a label that belongs to an entity. 
+    $labelResult =  $this->client->run('MATCH (n) WHERE id(n) = $id RETURN labels(n) AS labels;', array('id'=>$neoID)); 
+    if($labelResult->isempty()){return false;}
+    $label = $labelResult->first()->get('labels')[0];
+    return $label; 
+  }
 
   public function createVariantRelation($label, $entitySource){
     //create a variant or connection between an entity and a variant:
@@ -82,13 +89,47 @@ class CUDNode extends Node {
     $existsResult = $this->client->run($query, array('varlabel'=>$label));
     $hasResult = !($existsResult->isempty()); 
     //2: check if the entity is an actual entity.
+    //Label exists AND is not yet connected to et: SO connect it ==> verify that $entitySource is an $entity.
+    $labelCheck = $this->is_entity($entitySource);      
     if($hasResult){
-      //there is a matching request!
-      $existingVariantId = $existsResult->first()->get('id'); 
-      //SO: connect it. 
-
+      if(array_key_exists($labelCheck, CORENODES)){
+        //there is a matching request!
+        $existingVariantId = $existsResult->first()->get('id'); 
+        //3: Check that there is no connection between $entitySource and $existingVariantId: 
+        $checkResult = $this->client->run('MATCH (n:Variant)-[r:same_as]-(t) WHERE id(n) = $varid AND id(t) = $etid RETURN count(r) AS relations;', array('varid'=>$existingVariantId, 'etid'=>$entitySource));
+        //is empty when there is no node found ==> otherwise it will have a property set where relations could be 0 or more. 
+        if ($checkResult->isempty()){
+          return array('msg'=>'Invalid request: one or more nodes do not exists.'); 
+          die(); 
+        }
+        //check how many relations the query returned: 
+        if($checkResult->first()->get('relations') === 0){
+          //required to make a new relation
+          //var_dump(array('varid'=> $existingVariantId, 'etid'=>$entitySource));
+          $matchAndConnectResult = $this->client->run('MATCH (n), (t) WHERE id(n) = $varid AND id(t) = $etid CREATE (n)-[r:same_as]->(t)', array('varid'=> $existingVariantId, 'etid'=>$entitySource));
+          var_dump($matchAndConnectResult); 
+          return array('msg'=> 'New relation created'); 
+          die(); 
+        }else{
+          //do not modify anything: a relation already exists
+          return (array('msg'=>'A relation already exists, no changes made to the database.')); 
+          die();
+        }
+      }else{
+        return array('msg'=> 'Invalid entity node.');
+        die();
+      }
     }else{
       //the variant has no label registered in the DB that matches the request: create one. 
+      //and create the relationship IF the related entity node exists: 
+      if(array_key_exists($labelCheck, CORENODES)){
+        $createAndConnectResult = $this->client->run('MATCH (e) WHERE id(e) = $etid CREATE (n:Variant {variant: $varname, uuid: apoc.create.uuid()})-[:same_as]->(e)', array('etid'=>$entitySource, 'varname'=>$label));
+        return array('msg'=>'New variant and link created.'); 
+        //var_dump($createAndConnectResult); 
+      }else{
+        //the variant label is not found in the DB and the entity node doesn't have a valid ID:
+        return array('msg'=> 'Invalid entity node.');
+      }
     }
     
 

@@ -12,24 +12,15 @@ $user = new User($client);
 $user->checkAccess(TEXTSAREPUBLIC);
 $user_uuid = $user->checkSession();
 if(!(boolval($user_uuid))){
-  die();
+  die();        //only registered users can make changes to the database.
 }
 //connect to graph database
 $graph = new CUDNode($client);
 
-$varstring = $_GET['varlabel']; 
-$connectToEt = (int)$_GET['entity']; 
+$varstring = $_GET['varlabel'];
+$connectToEt = (int)$_GET['entity'];
 
-$graph->createVariantRelation($varstring, $connectToEt); 
+$repl = $graph->createVariantRelation($varstring, $connectToEt);
 
-
-//creates a UID
-
-//gets the node ID where the variant connects to
-
-//Checks if there's already a node with that label
-
-//if not; create node and edge
-//if true; create edge only and connect it to the existing variant and entity.
-
+echo json_encode($repl);
 ?>
