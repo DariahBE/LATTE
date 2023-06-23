@@ -104,12 +104,15 @@ function wdprompt(string, offset = 0){
   });
 }
 
+let chosenQID = null; 
+
 /*    // see pickThisQID()
 function acceptQID(){
 
 }
 */
 function pickThisQID(qid){
+  chosenQID = qid;
   console.log(qid); 
   //clear the promptbox:
   document.getElementById('wdpromptBox').remove();
@@ -249,7 +252,9 @@ function checkIfConnectionExists(qid){
         fetch('http://entitylinker.test/AJAX/connected_texts.php?id='+hit)
       }*/
     }else{
-      alert('no results found!'); 
+      loadPropertiesOfSelectedType();
+      //let the user fill out the entity type and go from there
+      alert('no results found! Create a new entity.'); 
     }
   })
   }

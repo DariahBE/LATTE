@@ -106,6 +106,8 @@ $nodesDatamodel = array(
   ]
 );
 
+//what is the node used for Annotations: Should match a key used in your Nodesmodel:
+  $nodeAsAnnotation = 'Annotation'; 
 //what is the property that indicates the startposition of an Annotation:
 $annotationStart = 'start';
 //what is the property that indicates the endposition of an Annotation:
@@ -232,10 +234,11 @@ define("EDGEMODEL", $edgesDatamodel);
 define("ANNOSTART", $annotationStart);
 define("ANNOSTOP", $annotationEnd);
 define("TEXNODE", $nodeAsText);
+define("ANNONODE", $nodeAsAnnotation);
 define("TEXNODETEXT", $propertyContainingText);
 #accessibility for the public:
-  define('TEXTSAREPUBLIC', $textsPublic); 
-  define('ENTITIESAREPUBLIC', $entityPublic); 
+define('TEXTSAREPUBLIC', $textsPublic); 
+define('ENTITIESAREPUBLIC', $entityPublic); 
   
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL

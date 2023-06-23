@@ -11,6 +11,7 @@ function ignoreSuggestion(){
 
 
 function toggleSlide(dir = 0){
+  chosenQID = null; 
   // 0 closes the sidepanel; 1 opens it. Better than the original .toggle() functions
   if(dir === 0){
     document.getElementById('slideover-container').classList.add('invisible');
@@ -36,20 +37,31 @@ function loadPropertiesOfSelectedType(selectedString){
   .then((data) =>{
     console.log(data);
   })*/
+  //you need to insert the form data after the selector element!
   //create a dual display: one with the option to add a new entity, one with the option to attach the annotation to an existing annotation. 
+  let formBox = document.createElement('div'); 
+  formBox.classList.add('w-full'); 
+  let formBoxHeader = document.createElement('p'); 
+  formBoxHeader.appendChild(document.createTextNode(selected+' info:'));
   fetch('/AJAX/get_structure.php?type='+selected)
   .then((response) => response.json())
   .then((data) =>{
     if(data['msg'] == 'success'){
-      var nodedata = data['data']; 
+      var nodedata = data['data'];
       //console.log(nodedata); 
       Object.entries(nodedata).forEach(entry => {
         const [key, value] = entry;
-        //console.log(key, value);
+        console.log(key, value);
         var humanLabel = value[0];
         var datatype = value[1];
+        if(datatype === 'wikidata' &&  chosenQID !== null){
+          alert('found wikidata for chosen value!', chosenQID); 
+        }
       });
-      
+    formBox.appendChild(formBoxHeader);
+    selector.parentElement.appendChild(formBox);
+    console.log(formBox); 
+    alert('appending formbox');
     }
   })
 }
@@ -61,7 +73,7 @@ function generateHyperlink(anchor, href, classlist=[], id=false, anchormode='tex
     a.setAttribute('target','_blank');
   }
   for(let i = 0; i < classlist.length; i++){
-    a.classList.add(classlist[i]); 
+    a.classList.add(classlist[i]);
   }
   if(anchormode =='text'){
     var t = document.createTextNode(anchor); 

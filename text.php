@@ -134,12 +134,19 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
           echo "<span class='ltr' data-itercounter=$i>".nl2br($c)."</span>";
           $i++;
         }
+
+        $coreNodeFiltered = array(); 
+        foreach(array_keys(CORENODES) as $cn){
+          if($cn !== TEXNODE && $cn !== ANNONODE){
+            $coreNodeFiltered[]=$cn; 
+          }
+        }
       ?>
 
       </div>
     </div>
     <script>
-      var coreNodes = <?php echo json_encode(array_keys(CORENODES)); ?>;
+      var coreNodes = <?php echo json_encode($coreNodeFiltered); ?>;
       var languageOptions = {
         'text': <?php echo json_encode($textString)?>,
         'ISO_code': <?php echo json_encode($textLanguage)?>,

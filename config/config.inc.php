@@ -92,6 +92,8 @@ $nodesDatamodel = array(
   ]*/
 );
 
+//what is the node used for Annotations: Should match a key used in your Nodesmodel:
+$nodeAsAnnotation = 'Annotation'; 
 //what is the property that indicates the startposition of an Annotation:
 $annotationStart = 'starts';
 //what is the property that indicates the endposition of an Annotation:
@@ -99,6 +101,7 @@ $annotationEnd = 'stops';
 //What is the node label used for Text objects. Should match a Key used in your Nodesmodel.
 $nodeAsText = 'Text';
 $propertyContainingText = 'text';   //Which property holds the text to show on the screen and to annotate into?
+
 
 
 
@@ -220,6 +223,7 @@ define("EDGEMODEL", $edgesDatamodel);
 define("ANNOSTART", $annotationStart);
 define("ANNOSTOP", $annotationEnd);
 define("TEXNODE", $nodeAsText);
+define("ANNONODE", $nodeAsAnnotation);
 define("TEXNODETEXT", $propertyContainingText);
 #accessibility for the public:
 define('TEXTSAREPUBLIC', $textsPublic); 
