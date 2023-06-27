@@ -252,9 +252,12 @@ function checkIfConnectionExists(qid){
         fetch('http://entitylinker.test/AJAX/connected_texts.php?id='+hit)
       }*/
     }else{
-      loadPropertiesOfSelectedType();
       //let the user fill out the entity type and go from there
+      //create flash box to prompt attention: 
+      //TODO
+
       alert('no results found! Create a new entity.'); 
+      loadPropertiesOfSelectedType();
     }
   })
   }
