@@ -123,7 +123,7 @@ class CUDNode extends Node {
       //the variant has no label registered in the DB that matches the request: create one. 
       //and create the relationship IF the related entity node exists: 
       if(array_key_exists($labelCheck, CORENODES)){
-        $createAndConnectResult = $this->client->run('MATCH (e) WHERE id(e) = $etid CREATE (n:Variant {variant: $varname, uuid: apoc.create.uuid()})-[:same_as]->(e)', array('etid'=>$entitySource, 'varname'=>$label));
+        $createAndConnectResult = $this->client->run('MATCH (e) WHERE id(e) = $etid CREATE (n:Variant {variant: $varname, uid: apoc.create.uuid()})-[:same_as]->(e)', array('etid'=>$entitySource, 'varname'=>$label));
         return array('msg'=>'New variant and link created.'); 
         //var_dump($createAndConnectResult); 
       }else{
@@ -211,7 +211,7 @@ class CUDNode extends Node {
         }else{
             die('no node matches request');
         }
-        //once vallidation of the node has passed: get the model!
+        //once validation of the node has passed: get the model!
         //only allow models that are defined in the config file: 
         if(array_key_exists($label, NODEMODEL)){
             $model = NODEMODEL[$label];
