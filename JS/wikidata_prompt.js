@@ -255,8 +255,9 @@ function checkIfConnectionExists(qid){
       //let the user fill out the entity type and go from there
       //create flash box to prompt attention: 
       //TODO
-
-      alert('no results found! Create a new entity.'); 
+      let creationElement = document.getElementById('etcreate'); 
+      creationElement.classList.add('getAttention');
+      //alert('no results found! Create a new entity.'); 
       loadPropertiesOfSelectedType();
     }
   })

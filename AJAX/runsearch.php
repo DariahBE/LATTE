@@ -32,7 +32,8 @@ function merge($datarow){
     'neoid' => (int)$neoID,
     'stable' => $stableURI,
     'label' => $rowLabel, 
-    'properties' => array()
+    'properties' => array(), 
+    'variants' => array()
   ); 
   //format properties according to NODEMODEL: 
   foreach($rowProperties as $propname => $propval){
@@ -61,16 +62,24 @@ foreach ($data->getresults() as $rowkey=> $row){
       $rowIndirect = $row['q'];
     }
   }
+  $neoID = null;
   if(!(is_null($rowIndirect))){
     $method = 'indirect';
     $rowResponse = merge($rowIndirect);
+    $neoID = $rowResponse['neo'];
+    $variantData = $graph->fetchAltSpellingsById($neoID);
+    $rowResponse['data']['variants'] = $variantData; 
     $controlledResponse[$rowResponse['neo']]= $rowResponse['data'];
   }
   if(!(is_null($rowDirect))){
     $method = 'direct';
     $rowResponse = merge($rowDirect);
+    $neoID = $rowResponse['neo'];
+    $variantData = $graph->fetchAltSpellingsById($neoID);
+    $rowResponse['data']['variants'] = $variantData; 
     $controlledResponse[$rowResponse['neo']]= $rowResponse['data'];
   }
+
 }
 echo json_encode($controlledResponse);
 

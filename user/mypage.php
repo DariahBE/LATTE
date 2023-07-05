@@ -4,6 +4,8 @@ include_once(ROOT_DIR."/includes/client.inc.php");
 include_once(ROOT_DIR."/includes/user.inc.php");
 include_once(ROOT_DIR."/includes/annotation.inc.php");
 include_once(ROOT_DIR."/includes/wikidata_user_prefs.inc.php");
+include_once(ROOT_DIR.'/includes/navbar.inc.php');
+
 
 if(isset($_SESSION['userid'])){
   $user = new User($client);
@@ -32,6 +34,10 @@ $preferences->buildPreferences();
 
   </head>
   <body class="bg-neutral-200 w-full">
+  <?php
+    $navbar = new Navbar(); 
+    echo $navbar->nav;  
+  ?>
     <div class="top navbar">
 
     </div>

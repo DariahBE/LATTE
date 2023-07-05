@@ -56,3 +56,21 @@ hr.vertical{
 .centerCustom{
   margin: 0 auto;
 }
+
+
+@keyframes blink {
+  0% {
+    border-color: transparent;
+  }
+  50% {
+    border-color: cyan;
+  }
+  100% {
+    border-color: transparent;
+  }
+}
+.getAttention{
+  animation: blink 1s  ease 0s 2;
+  border: 5px solid transparent;
+  border-radius: 10px;
+}

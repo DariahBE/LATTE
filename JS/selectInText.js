@@ -27,21 +27,22 @@ function toggleSlide(dir = 0){
 }
 
 function loadPropertiesOfSelectedType(selectedString){
-  var selector = document.getElementById('entityTypeSelector'); 
-  var selected = selector.value; //dropdown value selected. 
+  //reads from the DOM which entity is being created; 
+  //does an AJAX call to fetch the structure of the entity and matches with config file
+  //fields get generated and appended. If old fields exist, they are removed. 
+  let selector = document.getElementById('entityTypeSelector'); 
+  let selected = selector.value; //dropdown value selected. 
+  //if a user made a mistake: remove the old formcontent
+  let deleteOldBox = document.getElementsByClassName('generatedFieldsForFormBox'); 
+  while(deleteOldBox.length > 0) {
+    deleteOldBox[0].parentNode.removeChild(deleteOldBox[0]);
+  }
   //load properties for selected: 
-  //start by testing if a variant exists for the given string: all string values are stored as variants; Variant should be connected to an entity of type == selected. 
-  /*  BUG: uncontrolled response causes crash of app
-  fetch('/AJAX/match_variant.php?value='+selectedString+'&connectedto='+selected)
-  .then((response) => response.json())
-  .then((data) =>{
-    console.log(data);
-  })*/
   //you need to insert the form data after the selector element!
-  //create a dual display: one with the option to add a new entity, one with the option to attach the annotation to an existing annotation. 
-  let formBox = document.createElement('div'); 
-  formBox.classList.add('w-full'); 
-  let formBoxHeader = document.createElement('p'); 
+  //??create a dual display: one with the option to add a new entity, one with the option to attach the annotation to an existing annotation. 
+  let formBox = document.createElement('div');
+  formBox.classList.add('w-full', 'generatedFieldsForFormBox');
+  let formBoxHeader = document.createElement('p');
   formBoxHeader.appendChild(document.createTextNode(selected+' info:'));
   fetch('/AJAX/get_structure.php?type='+selected)
   .then((response) => response.json())
@@ -54,14 +55,30 @@ function loadPropertiesOfSelectedType(selectedString){
         console.log(key, value);
         var humanLabel = value[0];
         var datatype = value[1];
+        let newFieldContainer = document.createElement('div');
+        let newFieldLabel = document.createElement('label'); 
+        let newFieldInput = document.createElement('input'); 
+        newFieldLabel.appendChild(document.createTextNode(humanLabel+': '));
         if(datatype === 'wikidata' &&  chosenQID !== null){
-          alert('found wikidata for chosen value!', chosenQID); 
+          newFieldInput.value = chosenQID; 
+          newFieldInput.disabled = true;
         }
+        //let nameVar = key; 
+        newFieldLabel.setAttribute('for',key);
+        newFieldInput.setAttribute('name', key); 
+        newFieldInput.classList.add('attachValidator'); 
+        newFieldInput.classList.add('validateAs-'+datatype); 
+        newFieldContainer.appendChild(newFieldLabel);
+        newFieldContainer.appendChild(newFieldInput);
+        formBox.appendChild(newFieldContainer);
       });
     formBox.appendChild(formBoxHeader);
     selector.parentElement.appendChild(formBox);
     console.log(formBox); 
-    alert('appending formbox');
+    //alert('appending formbox');
+    //attach validator: 
+    let validator = new Validator; 
+    validator.pickup(); 
     }
   })
 }

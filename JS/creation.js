@@ -90,7 +90,7 @@ class nodeCreator{
     prompt.text = "Select Node Type";
     prompt.value = false;
     selectBlock.appendChild(prompt);
-    for(var i = 0; i < this.coreNodes.length; i++){
+    for(var i = 0; i < Object.keys(this.coreNodes).length; i++){
       var o = document.createElement('option');
       o.value = this.coreNodes[i];
       o.text = this.coreNodes[i];

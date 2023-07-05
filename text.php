@@ -70,6 +70,8 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
     <script src="/JS/makeMap.js"></script>
     <script src="/JS/leaflet/leaflet.js"></script>
     <script src="/JS/wikidata_prompt.js"></script>
+    <!-- datatype vallidators.  -->
+    <script src="/JS/validation.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
@@ -177,7 +179,6 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
           <br>
           <input name='lookupConstraint' type='checkbox' id='strictLookup'></input>
           <label for='lookupConstraint'>Use language fallback</label>
-          
         </div>
         <div class="language">
           <p><span class='font-bold key'>Language ISO: </span><span class='value italic' id='detectedLanguageCode'></span></p>

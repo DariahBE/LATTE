@@ -59,6 +59,7 @@ class Annotation{
   }
 
   public function createAnnotation($texid, $start, $stop, $user, $targetNode, $hidden=false){
+    //todo: 
     die("redo this, do not rely on static properties!!! (starts, texid.... bad idea)");
     //keep the $texid even though it is implied as part of the edge target!
     //DO NOT rely on id(): https://stackoverflow.com/questions/64796146/how-stable-are-the-neo4j-ids

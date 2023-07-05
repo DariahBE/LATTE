@@ -691,15 +691,22 @@ class Node{
       //var_dump($varModel); 
       //the Variant node is a static node type; properties should always be
       // PK and valuestring
+      //variant has embedded UID property as fallback.  otherwise use the assigned property!
       $pk = helper_extractPrimary('Variant');
-      $pkval = $etprops[$pk];
-      $pkdata = array($pk, $pkval);
-      //var_dump($pk);
-      //var_dump($pkval);
-      $field = array('label'=> $etprops['variant'], 'primary'=> $pkdata, 'neoid'=>$varid);
-      $repl[] = $field;
-      //pk = getprimaries
-      //valuestring => encoded in 'variant' property. 
+      foreach($etprops as $k => $v){
+        if ($k === $pk){
+          $pkval = $etprops[$pk];
+          $pkdata = array($pk, $pkval);
+          //var_dump($pk);
+          //var_dump($pkval);
+          $field = array('label'=> $etprops['variant'], 'primary'=> $pkdata, 'neoid'=>$varid);
+          $repl[] = $field;
+          //pk = getprimaries
+          //valuestring => encoded in 'variant' property. 
+
+        }
+      }
+
     }
     return $repl; 
   }

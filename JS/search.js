@@ -356,6 +356,26 @@ function simpleResponseTableGenerator(data){
       proprow.appendChild(proprowright); 
       proplist.appendChild(proprow);
     }
+    let variants = [];
+    for(var i = 0; i < row['variants'].length; i++){
+      let rowvariant = row['variants'][i];
+      let variantLabel = rowvariant['label'];
+      //let variantPKProp = rowvariant['primary'][0];
+      //let variantPKVal = rowvariant['primary'][1]; 
+      variants.push(variantLabel); 
+    }
+    var proprow = document.createElement('li'); 
+    var proprowleft = document.createElement('span'); 
+    var proprowright = document.createElement('span'); 
+    proprowleft.classList.add('font-bold');
+    proprowleft.appendChild(document.createTextNode('Spelling variants: ')); 
+    var proprowright = document.createElement('span'); 
+    proprowright.appendChild(document.createTextNode([...new Set(variants)].join(', '))); 
+    proprow.appendChild(proprowleft);
+    proprow.appendChild(proprowright);
+    proplist.appendChild(proprow);
+
+
     rowOut.appendChild(linktd); 
     rowOut.appendChild(proplist); 
     replTable.appendChild(rowOut); 
