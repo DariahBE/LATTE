@@ -44,7 +44,9 @@ class nodeCreator{
     fetch('/AJAX/get_structure.php?type='+type)
       .then((response) => response.json())
       .then((data) =>{
-        var keys = Object.keys(data); 
+        var keys = Object.keys(data['data']); 
+        console.log(keys); 
+        data = data['data'];
         for(var i=0; i<keys.length; i++){
           //var fieldName = 'field_name_'+toString(i); 
           var attributes = data[keys[i]];
