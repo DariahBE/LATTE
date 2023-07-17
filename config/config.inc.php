@@ -3,11 +3,11 @@
 $projectName = 'HIPE data';
 
 /*Connect to the NEO4Jdatabase:*/
-$defaultdriver = 'neo4j';   //neo4j or bolt
+//$defaultdriver = 'neo4j';   //neo4j or bolt  // disabled!
 $hostname = 'localhost';    //where's the DB hosted
 $hostport = 7687;           //Port used by the DB
-$userName = '';
-$userPaswrd = '';
+$userName = 'neo4j';
+$userPaswrd = 'password';
 $databaseName = 'hipe.db'; //database hosted on the graph DB instance.
 $URI = 'neo4j://localhost:7687';
 
@@ -208,7 +208,7 @@ define("USERNAME", $userName);
 define("PASSWORD", $userPaswrd);
 define("HOSTNAME", $hostname);
 define("HOSTPORT", $hostport);
-define("DEFAULTDRIVER", $defaultdriver);
+//define("DEFAULTDRIVER", $defaultdriver);
 define("NODES", $nodes);
 define("EDGETRANSLATIONS", $edges_translate);
 define("NODETRANSLATIONS", $nodes_translate);

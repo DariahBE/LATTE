@@ -68,9 +68,11 @@ function loadPropertiesOfSelectedType(selectedString){
         newFieldInput.setAttribute('name', key); 
         newFieldInput.classList.add('attachValidator'); 
         newFieldInput.classList.add('validateAs-'+datatype); 
+        newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
         newFieldContainer.appendChild(newFieldLabel);
         newFieldContainer.appendChild(newFieldInput);
         formBox.appendChild(newFieldContainer);
+        alert('bug in validation ==> cannot fetch props from validator class!!')
       });
     formBox.appendChild(formBoxHeader);
     selector.parentElement.appendChild(formBox);
