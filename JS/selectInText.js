@@ -1,12 +1,9 @@
-function saveSuggestion(){
-  console.log('saved');
-}
-
 function ignoreSuggestion(){
   var isOpen = document.getElementById("suggestionOnSelect");
   if (isOpen){
     isOpen.remove();
   }
+  toggleSlide(0);
 }
 
 
@@ -67,18 +64,18 @@ function loadPropertiesOfSelectedType(selectedString){
         newFieldLabel.setAttribute('for',key);
         newFieldInput.setAttribute('name', key); 
         newFieldInput.classList.add('attachValidator'); 
-        newFieldInput.classList.add('validateAs-'+datatype); 
+        newFieldInput.classList.add('validateAs_'+datatype); 
         newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
         newFieldContainer.appendChild(newFieldLabel);
         newFieldContainer.appendChild(newFieldInput);
         formBox.appendChild(newFieldContainer);
-        alert('bug in validation ==> cannot fetch props from validator class!!')
       });
     formBox.appendChild(formBoxHeader);
     selector.parentElement.appendChild(formBox);
     console.log(formBox); 
     //alert('appending formbox');
     //attach validator: 
+    console.log('making validation.');
     let validator = new Validator; 
     validator.pickup(); 
     }
@@ -514,31 +511,30 @@ function makeSuggestionBox(){
   div.setAttribute('id', 'suggestionOnSelect');
   //save/dismiss button:
   var buttonsBottom = document.createElement('div');
-  var save = document.createElement('button');
+  /*var save = document.createElement('button');
   save.addEventListener('click', function(){saveSuggestion();});
-  var savetext = document.createTextNode('Save');
+  var savetext = document.createTextNode('Save');*/
   var dismiss = document.createElement('button');
   dismiss.addEventListener('click', function(){
-    console.log('Close open box');
     ignoreSuggestion();
   });
   var dismisstext = document.createTextNode('Dismiss');
   buttonsBottom.classList.add('w-full', 'mt-auto', 'p-2');
-  save.disabled = true;
-  save.classList.add('bg-green-400', 'w-1/2', 'disabled:opacity-25', 'disabled:cursor-not-allowed');
-  save.setAttribute('id', 'suggestionbox_saveButton');
+  //save.disabled = true;
+  //save.classList.add('bg-green-400', 'w-1/2', 'disabled:opacity-25', 'disabled:cursor-not-allowed');
+  //save.setAttribute('id', 'suggestionbox_saveButton');
   dismiss.classList.add('bg-red-400', 'w-1/2');
-  save.appendChild(savetext);
+  //save.appendChild(savetext);
   dismiss.appendChild(dismisstext);
   dismiss.setAttribute('id', 'suggestionbox_dismissButton');
-  buttonsBottom.appendChild(save);
+  //buttonsBottom.appendChild(save);
   buttonsBottom.appendChild(dismiss);
   div.appendChild(buttonsBottom);
   document.body.appendChild(div);
 }
 
 function loadIntoSuggestionBox(data, from, to){
-  document.getElementById('suggestionbox_saveButton').disabled = false;
+  //document.getElementById('suggestionbox_saveButton').disabled = false;
   var datadiv = document.createElement('div');
   var metadataOnSearch = document.createElement('div');
   metadataOnSearch.classList.add('suggestionMetadata');
