@@ -31,7 +31,11 @@ function wdprompt(string, offset = 0){
       const noresultmsg = document.createElement('p'); 
       const noresulttext = document.createTextNode('No results found for the given search query.'); 
       noresultmsg.appendChild(noresulttext); 
+      /*let manualCreateButton = document.createElement('button'); 
+      let manualCreateButtonText = document.createTextNode('Add manual annotation'); 
+      manualCreateButton.appendChild(manualCreateButtonText); */
       target.appendChild(noresultmsg); 
+      acceptQID(); 
       return;
     }
     for(var s = 0; s < searchResults.length; s++){
@@ -111,6 +115,22 @@ function acceptQID(){
 
 }
 */
+
+function acceptQID(qid = -1){
+  console.log('Start lookup if an entity in this database has the assigned QID.'); 
+  console.log('IF TRUE: it will load the entity');
+  console.log('IF FALSE: it will suggest you to make a new one.'); 
+  if (qid !== -1){
+    document.getElementById('embeddedWDConfirmationGroup').remove();
+    checkIfConnectionExists(qid); 
+  }
+  let baseElem = document.getElementById('embeddedET'); 
+  baseElem.classList.remove('hidden'); 
+  let creationElement = document.getElementById('etcreate'); 
+  creationElement.classList.add('getAttention');
+  //alert('here');
+}
+
 function pickThisQID(qid){
   chosenQID = qid;
   console.log(qid); 
@@ -135,12 +155,9 @@ function pickThisQID(qid){
     console.log(wd); 
   });
   acceptButton.addEventListener('click', function(){
-    console.log('Start lookup if an entity in this database has the assigned QID.'); 
-    console.log('IF TRUE: it will load the entity');
-    console.log('IF FALSE: it will suggest you to make a new one.'); 
-    document.getElementById('embeddedWDConfirmationGroup').remove();
-    checkIfConnectionExists(qid); 
+    acceptQID(qid);
   }); 
+  
   const displayWDtarget = document.getElementById('handyLittleThingyForWDStuff');
   //console.log(displayWDtarget);
   rejectButton.appendChild(rejectText);
@@ -205,6 +222,7 @@ function checkIfConnectionExists(qid){
       //load the first hit anyway: 
       let maintarget = document.getElementById('embeddedET');
       maintarget.innerHTML = ''; 
+      maintarget.classList.remove('hidden');
       let contentNav = document.createElement('div'); 
       contentNav.setAttribute('id', 'navigateETs'); 
       let hitNav = document.createElement('div'); 

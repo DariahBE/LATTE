@@ -1,5 +1,9 @@
 class Validator{
 
+  globalState(){
+    return false;
+  }
+
   intValidator(data){
     let shouldBe = parseInt(data)+0; 
     if(shouldBe == data){
@@ -85,7 +89,7 @@ class Validator{
         } 
         if (correct[0]){
           this.classList.add('bg-green-50', 'border', 'border-green-500');
-          this.classList.remove('bg-red-50', 'border', 'border-red-500');
+          this.classList.remove('bg-red-50', 'border', 'border-red-500', 'validatorFlaggedMistake');
         }else{
           var msg = correct[1];
           var msgHolder = document.createElement('p');
@@ -93,7 +97,7 @@ class Validator{
           var msgText = document.createTextNode(msg); 
           msgHolder.appendChild(msgText);
           this.parentNode.insertBefore(msgHolder, this);
-          this.classList.add('bg-red-50', 'border', 'border-red-500');
+          this.classList.add('bg-red-50', 'border', 'border-red-500', 'validatorFlaggedMistake');
           this.classList.remove('bg-green-50', 'border', 'border-green-500');
         }
       })

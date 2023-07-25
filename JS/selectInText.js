@@ -7,6 +7,28 @@ function ignoreSuggestion(){
 }
 
 
+function saveNewDB(){
+  let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
+  //IS erverything valid 
+  if(mistakes.length == 0){
+    //  Y
+
+
+  }else{
+    //  N
+    document.getElementById('saveEtToDb').classList.add('animate-shake');
+
+  }
+
+  //get a CSRF token
+  fetch("/AJAX/getdisposabletoken.php")
+    .then(response => response.json())
+    .then(data => console.log(data))
+  //append token to request
+
+  //show request results.
+}
+
 function toggleSlide(dir = 0){
   chosenQID = null; 
   // 0 closes the sidepanel; 1 opens it. Better than the original .toggle() functions
@@ -39,8 +61,8 @@ function loadPropertiesOfSelectedType(selectedString){
   //??create a dual display: one with the option to add a new entity, one with the option to attach the annotation to an existing annotation. 
   let formBox = document.createElement('div');
   formBox.classList.add('w-full', 'generatedFieldsForFormBox');
-  let formBoxHeader = document.createElement('p');
-  formBoxHeader.appendChild(document.createTextNode(selected+' info:'));
+  //let formBoxHeader = document.createElement('p');
+  //formBoxHeader.appendChild(document.createTextNode(selected+' info:'));
   fetch('/AJAX/get_structure.php?type='+selected)
   .then((response) => response.json())
   .then((data) =>{
@@ -70,14 +92,23 @@ function loadPropertiesOfSelectedType(selectedString){
         newFieldContainer.appendChild(newFieldInput);
         formBox.appendChild(newFieldContainer);
       });
-    formBox.appendChild(formBoxHeader);
+    //formBox.appendChild(formBoxHeader);
     selector.parentElement.appendChild(formBox);
-    console.log(formBox); 
+    //console.log(formBox); 
     //alert('appending formbox');
     //attach validator: 
-    console.log('making validation.');
+    //console.log('making validation.');
     let validator = new Validator; 
     validator.pickup(); 
+    //make a save button to commit the data: 
+    let saveNewEntry = document.createElement('button'); 
+    saveNewEntry.setAttribute('id', 'saveEtToDb')
+    saveNewEntry.classList.add('bg-green-400', 'mx-2', 'px-2', 'my-1', 'py-1', 'rounded');
+    saveNewEntry.appendChild(document.createTextNode('Save')); 
+    saveNewEntry.addEventListener('click', function(){
+      saveNewDB()
+    });
+    formBox.appendChild(saveNewEntry);
     }
   })
 }
@@ -92,14 +123,14 @@ function generateHyperlink(anchor, href, classlist=[], id=false, anchormode='tex
     a.classList.add(classlist[i]);
   }
   if(anchormode =='text'){
-    var t = document.createTextNode(anchor); 
+    var t = document.createTextNode(anchor);
   }else if (anchormode =='image'){
-    var t = document.createElement('img'); 
-    t.setAttribute('src', anchor); 
+    var t = document.createElement('img');
+    t.setAttribute('src', anchor);
   }
-  a.appendChild(t); 
+  a.appendChild(t);
   if (id){
-    a.setAttribute('id', id); 
+    a.setAttribute('id', id);
   }
   return a; 
 }
@@ -329,7 +360,8 @@ function triggerSidePanelAction(entityData){
     createNodeDiv.classList.add('w-full'); 
     createNodeDiv.setAttribute('id', 'etcreate'); 
     var embeddedCreateDiv = document.createElement('div'); 
-    embeddedCreateDiv.setAttribute('id', 'embeddedET'); 
+    embeddedCreateDiv.setAttribute('id', 'embeddedET');
+    embeddedCreateDiv.classList.add('hidden');
     var topTex = document.createElement('h3'); 
     topTex.classList.add('uppercase', 'text-xl', 'underline', 'decoration-4', 'underline-offset-2');
     topTex.appendChild(document.createTextNode('Create a new annotation'));
