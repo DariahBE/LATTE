@@ -10,21 +10,56 @@ function ignoreSuggestion(){
 function saveNewDB(){
   let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
   //IS erverything valid 
+  //validate in backend too!!
+  let dataObject = {}; 
   if(mistakes.length == 0){
     //  Y
+    console.log('no mistakes made.'); 
+    //get a CSRF token
+    fetch("/AJAX/getdisposabletoken.php")
+    .then(response => response.json())
+    .then(data => {
+      const token = data;
+      console.log('generating request with token: '+token); 
+      //fetch all fields: 
+      ///////ANNOTATION: 
+      //get text that is selected
+      const selectedText = globalSelectionText;
+      //get start position of annotation: 
+      const startOfSelection = globalSelectionStart;
+      //get end position of annotation: 
+      const endOfSelection = globalSelectionEnd;
+      /////// VARIANTS: 
+      let variantSpellings = document.getElementById('variantStorageBox').getElementsByClassName('writtenvariantvalue');
+      foundVariants = []; 
+      for(p=0; p<variantSpellings.length; p++){
+        foundVariants.push(variantSpellings[p].textContent); 
+      }
+      console.log(foundVariants); 
+      /////// PROPERTIES: 
+      const etType = document.getElementById('entityTypeSelector').value;
+      let propertyPairs = document.getElementById('propertyBox').getElementsByTagName('div'); 
+      console.log(propertyPairs); 
+      for(p=0; p< propertyPairs.length; p++){
+        let pair = propertyPairs[p]; 
+      }
 
+      //appending to dataObject
+      dataObject['token'] = token; 
+      dataObject['annotation'] = {start: startOfSelection, stop: endOfSelection, selectedText: selectedText}; 
+      dataObject['variants'] = foundVariants; 
 
+      console.log(token, startOfSelection, endOfSelection, selectedText, foundVariants); 
+    })
+    //append token to request
   }else{
-    //  N
+    //  ==> form data is not valid: types don't match config definitions.
     document.getElementById('saveEtToDb').classList.add('animate-shake');
 
   }
 
-  //get a CSRF token
-  fetch("/AJAX/getdisposabletoken.php")
-    .then(response => response.json())
-    .then(data => console.log(data))
-  //append token to request
+  
+
 
   //show request results.
 }
@@ -60,6 +95,7 @@ function loadPropertiesOfSelectedType(selectedString){
   //you need to insert the form data after the selector element!
   //??create a dual display: one with the option to add a new entity, one with the option to attach the annotation to an existing annotation. 
   let formBox = document.createElement('div');
+  formBox.setAttribute('id', 'propertyBox'); 
   formBox.classList.add('w-full', 'generatedFieldsForFormBox');
   //let formBoxHeader = document.createElement('p');
   //formBoxHeader.appendChild(document.createTextNode(selected+' info:'));
@@ -93,6 +129,10 @@ function loadPropertiesOfSelectedType(selectedString){
         formBox.appendChild(newFieldContainer);
       });
     //formBox.appendChild(formBoxHeader);
+    let propertyPrompt = document.createElement('p'); 
+    propertyPrompt.appendChild(document.createTextNode('2) Properties:'));
+    propertyPrompt.classList.add('text-lg', 'p-2',  'm-2'); 
+    selector.parentElement.appendChild(propertyPrompt);
     selector.parentElement.appendChild(formBox);
     //console.log(formBox); 
     //alert('appending formbox');
@@ -465,6 +505,7 @@ function triggerSidePanelAction(entityData){
       var variantDisplayDiv = document.createElement('div'); 
       variantDisplayDiv.classList.add('m-1','p-1','spellingvariantbox', 'bg-amber-100', 'flex');
       var variantDisplayTex = document.createElement('p');
+      variantDisplayTex.classList.add('writtenvariantvalue');
       variantDisplayTex.appendChild(document.createTextNode(writtenValue));
       var variantDisplayBin = document.createElement('p');
       variantDisplayBin.classList.add('xsbinicon', 'bg-amber-200', 'm-1','p-1', 'rounded-full'); 
