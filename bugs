@@ -36,3 +36,7 @@ ________________________
     * stable.php
     * identify.php
     * resolve.php
+
+9) When clicking on an annotation in a text, the spelling variants are not being shown. There's also no option to add spelling variants. Problem is that this code is dupblicated. 
+  - There is code to deal with variants in interactWithEntities.js > displayWrittenVariants 
+  - Other code block is in: selectInText.js > spellingVariantCreation 

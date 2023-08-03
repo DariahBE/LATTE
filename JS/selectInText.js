@@ -7,6 +7,37 @@ function ignoreSuggestion(){
 }
 
 
+function typeToHtml(type, defaultValue='text'){
+  //converts configured type to valid html types:
+  const conversionList = {
+    'longtext': false,
+    'wikidata': 'text',
+    'string': 'text', 
+    'int': 'number',
+    'bool': 'checkbox',
+    'uri': 'url'
+  }
+    // Check if the type exists in the conversionList, if yes, return the corresponding HTML type
+    if (conversionList.hasOwnProperty(type)) {
+      return conversionList[type];
+    }
+  
+    // If type doesn't exist, return the default value
+    return defaultValue;
+}
+function typeToPattern(type, defaultValue = false){
+  const conversionList = {
+    'uri': "http?://.*"
+  }
+  // Check if the type exists in the conversionList, if yes, return the corresponding HTML type
+  if (conversionList.hasOwnProperty(type)) {
+    return conversionList[type];
+  }
+
+  // If type doesn't exist, return the default value
+  return defaultValue;
+}
+
 function saveNewDB(){
   let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
   //IS erverything valid 
@@ -31,25 +62,32 @@ function saveNewDB(){
       const endOfSelection = globalSelectionEnd;
       /////// VARIANTS: 
       let variantSpellings = document.getElementById('variantStorageBox').getElementsByClassName('writtenvariantvalue');
-      foundVariants = []; 
+      let foundVariants = []; 
       for(p=0; p<variantSpellings.length; p++){
         foundVariants.push(variantSpellings[p].textContent); 
       }
       console.log(foundVariants); 
       /////// PROPERTIES: 
+      let properties = {}; 
       const etType = document.getElementById('entityTypeSelector').value;
       let propertyPairs = document.getElementById('propertyBox').getElementsByTagName('div'); 
       console.log(propertyPairs); 
       for(p=0; p< propertyPairs.length; p++){
         let pair = propertyPairs[p]; 
+        let pairName = pair.getElementsByTagName('input')[0].name;
+        let pairValue = pair.getElementsByTagName('input')[0].value;
+        properties[pairName] = pairValue; 
       }
 
       //appending to dataObject
       dataObject['token'] = token; 
       dataObject['annotation'] = {start: startOfSelection, stop: endOfSelection, selectedText: selectedText}; 
       dataObject['variants'] = foundVariants; 
+      dataObject['properties'] = properties;
 
-      console.log(token, startOfSelection, endOfSelection, selectedText, foundVariants); 
+      console.log(dataObject); 
+      //send dataobject to backend: 
+      $.ajax("/AJAX/put_annotation.php")
     })
     //append token to request
   }else{
@@ -112,7 +150,13 @@ function loadPropertiesOfSelectedType(selectedString){
         var datatype = value[1];
         let newFieldContainer = document.createElement('div');
         let newFieldLabel = document.createElement('label'); 
-        let newFieldInput = document.createElement('input'); 
+        let newFieldInput;
+        if(datatype === 'longtext'){
+          newFieldInput = document.createElement('textarea'); 
+        }else{
+          newFieldInput = document.createElement('input'); 
+        }
+        newFieldInput.classList.add('inputelement');
         newFieldLabel.appendChild(document.createTextNode(humanLabel+': '));
         if(datatype === 'wikidata' &&  chosenQID !== null){
           newFieldInput.value = chosenQID; 
@@ -121,6 +165,14 @@ function loadPropertiesOfSelectedType(selectedString){
         //let nameVar = key; 
         newFieldLabel.setAttribute('for',key);
         newFieldInput.setAttribute('name', key); 
+        let htmlType = typeToHtml(datatype);
+        if(htmlType !== false){
+          newFieldInput.setAttribute('type', htmlType); 
+        }
+        let expectedPattern = typeToPattern(datatype);
+        if(expectedPattern){
+          newFieldInput.setAttribute('pattern', expectedPattern); 
+        }
         newFieldInput.classList.add('attachValidator'); 
         newFieldInput.classList.add('validateAs_'+datatype); 
         newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
@@ -286,6 +338,54 @@ function showET(etdata){
 
 }
 
+function spellingVariantCreation(data){
+  //takes the data, if there's any parses it
+  //if data is empty == no known variants ==> just create the interface
+  //ALWAYS return that to to the original call
+  //adding function return values should happen when the function is called. 
+  var spellingVariantTracker = [];
+  var spellingVariantMainBox = document.createElement('div');
+  spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
+  var spellingVariantTitle = document.createElement('h3'); 
+  spellingVariantTitle.appendChild(document.createTextNode('Naming variants: '));
+  spellingVariantTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');
+  spellingVariantMainBox.appendChild(spellingVariantTitle);
+  spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'); 
+  var spellingVariantCreation = document.createElement('input'); 
+  spellingVariantCreation.setAttribute('id', 'variantInputBox'); 
+  spellingVariantCreation.classList.add('border-solid', 'border-2')
+  var spellingVariantSubBox = document.createElement('div');
+  spellingVariantSubBox.setAttribute('id', 'variantStorageBox'); 
+  spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex', 'flex-wrap');
+  var addToStorageBox = document.createElement('button'); 
+  addToStorageBox.appendChild(document.createTextNode('Add')); 
+  addToStorageBox.addEventListener('click', function(){
+    var writtenValue = document.getElementById('variantInputBox').value; 
+    document.getElementById('variantInputBox').value = ''; 
+    if(spellingVariantTracker.includes(writtenValue)){
+      return;
+    }
+    spellingVariantTracker.push(writtenValue);
+    var storeIn = document.getElementById('variantStorageBox'); 
+    var variantDisplayDiv = document.createElement('div'); 
+    variantDisplayDiv.classList.add('m-1','p-1','spellingvariantbox', 'bg-amber-100', 'flex');
+    var variantDisplayTex = document.createElement('p');
+    variantDisplayTex.classList.add('writtenvariantvalue');
+    variantDisplayTex.appendChild(document.createTextNode(writtenValue));
+    var variantDisplayBin = document.createElement('p');
+    variantDisplayBin.classList.add('xsbinicon', 'bg-amber-200', 'm-1','p-1', 'rounded-full'); 
+    variantDisplayBin.addEventListener('click', function(){binVariant(this);});
+    variantDisplayDiv.appendChild(variantDisplayTex);
+    variantDisplayDiv.appendChild(variantDisplayBin);
+    storeIn.appendChild(variantDisplayDiv);
+  }); 
+  spellingVariantMainBox.appendChild(spellingVariantCreation);
+  spellingVariantMainBox.appendChild(addToStorageBox);
+  spellingVariantMainBox.appendChild(spellingVariantSubBox);
+  return spellingVariantMainBox;
+
+}
+
 function triggerSidePanelAction(entityData){
   toggleSlide(1);
   //console.log(entityData);
@@ -405,7 +505,57 @@ function triggerSidePanelAction(entityData){
     var topTex = document.createElement('h3'); 
     topTex.classList.add('uppercase', 'text-xl', 'underline', 'decoration-4', 'underline-offset-2');
     topTex.appendChild(document.createTextNode('Create a new annotation'));
+    //get annotation structure: 
+    let topBox = document.createElement('div');
+    fetch('/AJAX/get_structure.php?type=createNewAnnotation')
+      .then((response) => response.json())
+      .then((data) =>{
+        //exclude: start, stop and selectedtext info!
+        Object.entries(data['data']).forEach(entry => {
+          const [key, value] = entry;
+          var humanLabel = value[0];
+          var datatype = value[1];
+          if (data['exclude'] && data['exclude'].includes(key)){
+            //do not use the key:
+          }else{
+            //console.warn('new key created for: ', key); 
+            console.log(key, datatype);
+            let newFieldContainer = document.createElement('div');
+            let newFieldLabel = document.createElement('label'); 
+            newFieldLabel.appendChild(document.createTextNode(humanLabel)); 
+            let newFieldInput;
+            if(datatype === 'longtext'){
+              newFieldInput = document.createElement('textarea'); 
+            }else{
+              newFieldInput = document.createElement('input'); 
+            }
+            newFieldInput.classList.add('inputelement');
+            newFieldLabel.setAttribute('for',key);
+            newFieldInput.setAttribute('name', key); 
+            let htmlType = typeToHtml(datatype);
+            if(htmlType !== false){
+              newFieldInput.setAttribute('type', htmlType); 
+            }
+            newFieldInput.setAttribute('type', htmlType); 
+            let expectedPattern = typeToPattern(datatype);
+            if(expectedPattern){
+              newFieldInput.setAttribute('pattern', expectedPattern); 
+            }
+            newFieldInput.classList.add('attachValidator'); 
+            newFieldInput.classList.add('validateAs_'+datatype); 
+            newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
+            newFieldContainer.appendChild(newFieldLabel);
+            newFieldContainer.appendChild(newFieldInput);
+            topBox.appendChild(newFieldContainer); 
+          }
+
+        });
+
+      });
+
+
     embeddedCreateDiv.appendChild(topTex); 
+    embeddedCreateDiv.appendChild(topBox); 
     //add code to create a node from selection!
     //append newly created Div to the DOM: 
     targetOfInfo.appendChild(createNodeDiv);
@@ -477,6 +627,7 @@ function triggerSidePanelAction(entityData){
     positionDiv.appendChild(selectedText);
     //positional info added: show spellingvariantbox: 
     //    allow the user to generate a list of spelling variants: 
+    /*
     console.warn("code should be rewritten to use function call to displayWrittenVariants()");
     var spellingVariantTracker = [];
     var spellingVariantMainBox = document.createElement('div');
@@ -516,7 +667,8 @@ function triggerSidePanelAction(entityData){
     }); 
     spellingVariantMainBox.appendChild(spellingVariantCreation);
     spellingVariantMainBox.appendChild(addToStorageBox);
-    spellingVariantMainBox.appendChild(spellingVariantSubBox);
+    spellingVariantMainBox.appendChild(spellingVariantSubBox); */
+    let spellingVariantDOMReturn = spellingVariantCreation(null); 
     //wikidataPrompt: 
     var wikidataQLabel = document.createElement('div');
     wikidataQLabel.setAttribute('readonly', true);
@@ -543,7 +695,8 @@ function triggerSidePanelAction(entityData){
 
     //add all boxes to the DOM: 
     createNodeDiv.appendChild(positionDiv);
-    createNodeDiv.appendChild(spellingVariantMainBox);
+    //createNodeDiv.appendChild(spellingVariantMainBox);
+    createNodeDiv.appendChild(spellingVariantDOMReturn);
     //add a WD Promptbox and trigger the function for wikidata_prompting from here:
     createNodeDiv.appendChild(wikidataPromptMainbox); 
     searchButtonForWDPrompt.click();

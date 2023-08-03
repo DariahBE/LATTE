@@ -12,13 +12,20 @@ if(!(isset($_GET['type']))){
   echo json_encode(array('msg'=> 'failed', 'data'=>array('Unknown type'))); 
   die();
 }
+$exclude = false;
+$setType = $_GET['type'];
+if($setType === 'createNewAnnotation'){
+  $setType = ANNONODE;
+  $exclude = array(ANNOSTART, ANNOSTOP); 
+}
 //AND if the set type is part of the corenodes which can be set by uses!
-if(!(array_key_exists($_GET['type'], CORENODES))){
+if(!(array_key_exists($setType, CORENODES))){
   echo json_encode(array('msg'=> 'failed', 'data'=>array('Unknown type'))); 
   die(); 
 }
 //then, respond with the structure required to generate a form!
-echo json_encode(array('msg'=> 'success', 'data'=>NODEMODEL[$_GET['type']])); 
+
+echo json_encode(array('msg'=> 'success', 'data'=>NODEMODEL[$setType], 'exclude'=>$exclude)); 
 
 die(); 
 

@@ -19,7 +19,7 @@ $URI = 'neo4j://localhost:7687';
   Nodes are capitalized, properties aren't!
   Every label is followed by an array of properties: 
     - Human readable string: this string is used in the frontend.
-    - Type of variable: string, int, bool OR wikidata.
+    - Type of variable: string, longtext, int, bool OR wikidata.
         - the wikidata datatype expects a Q-identifier and returns live data from an API call. 
     - Boolean: Unique Key: is the value unique for this type of nodes? 
     - Boolean: Visual Distinguishing: Is the value used in the dom to label the nodes. If the node does not have a visually distinguishable component, the nodelabel is used.
@@ -58,8 +58,9 @@ $nodesDatamodel = array(
     "starts" => ["AnnotionStart", "int", false, false, false],
     "stops" => ["AnnotationEnd", "int", false, false, false],
     "private" => ["Private Annotation", "bool", false, false, false],
-    "note" => ["Note", "string", false, false, true],
-    "extra" => ["Extra", "int", false, false, true]
+    "note" => ["Note", "longtext", false, false, true],
+    "extra" => ["Extra", "text", false, false, true], 
+    "url" => ["Link", 'uri', false, false, false]
   ],
   'Organization' =>[
     "label" => ["Label", "string", false, true, true],
