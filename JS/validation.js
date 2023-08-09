@@ -14,14 +14,27 @@ class Validator{
   }
 
   boolValidator(data){
-    var value = data; 
-    console.log(value);
+    var value = data.checked; 
+    if(typeof value === 'boolean'){
+      return[true];
+    }else{
+      return[false, 'The provided input is not a valid bool.']; 
+    }
+  }
+  
+  linkValidator(data){
+    try { 
+      Boolean(new URL(data.value)); 
+      return [true]; 
+    }
+    catch(e){ 
+      return[false, 'The provided URL is invalid.']; 
+    }
   }
 
   floatValidator(data){
     alert('What about negative floats!'); 
     var pattern = /(^\d*.\d*$)/
-    var value = data; 
     if(pattern.test(data)){
       return [true];
     }else{
@@ -51,14 +64,24 @@ class Validator{
         console.log(target);
         if(this.classList.contains('validateAs_string')){
           var correct = [true]; //not really required; strings are allowed to be empty anyway!
-        }else if(this.classList.contains('validateAs_wikidata')){
+        }
+        if(this.classList.contains('validateAs_longtext')){
+          var correct = [true]; //not really required; strings are allowed to be empty anyway!
+        }
+        if(this.classList.contains('validateAs_wikidata')){
           var correct = mainclass.regexValidator(this.value);
-        }else if(this.classList.contains('validateAs_int')){
+        }
+        if(this.classList.contains('validateAs_int')){
           var correct = mainclass.intValidator(this.value);
-        }else if(this.classList.contains('validateAs_bool')){
-          var correct = mainclass.boolValidator(this.value);
-        }else if(this.classList.contains('validateAs_float')){
+        }
+        if(this.classList.contains('validateAs_bool')){
+          var correct = mainclass.boolValidator(this);
+        }
+        if(this.classList.contains('validateAs_float')){
           var correct = mainclass.floatValidator(this.value);
+        }
+        if(this.classList.contains('validateAs_uri')){
+          var correct = mainclass.linkValidator(this);
         }
         if(this.classList.contains('validateAs_unique')){
           var selectedNode = document.getElementById('nodeTypeSelection').firstChild.value;

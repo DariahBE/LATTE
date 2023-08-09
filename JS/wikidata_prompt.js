@@ -158,7 +158,7 @@ function pickThisQID(qid){
     acceptQID(qid);
   }); 
   
-  const displayWDtarget = document.getElementById('handyLittleThingyForWDStuff');
+  const displayWDtarget = document.getElementById('WDResponseTarget');
   //console.log(displayWDtarget);
   rejectButton.appendChild(rejectText);
   acceptButton.appendChild(acceptText);
@@ -183,17 +183,17 @@ function showHit(id){
   replaceContent.appendChild(etPropContainer);
   // if relatedTextStats is missing from the DOM: 
   //race condition in etcreate! Elem does not exist when WD check hasn't been performed.
-  waitForElement('#handyLittleThingyForWDStuff').then((elm) => {
+  waitForElement('#WDResponseTarget').then((elm) => {
     if (!(document.getElementById('relatedTextStats'))){
       var gateWay = document.createElement('div');
       var statsTarget = document.createElement('div');
       statsTarget.setAttribute('id', 'relatedTextStats');
       statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
       gateWay.appendChild(statsTarget);
-      var referenceNode = document.getElementById('handyLittleThingyForWDStuff');//.nextElementSibling;
+      var referenceNode = document.getElementById('WDResponseTarget');//.nextElementSibling;
       referenceNode.parentElement.insertBefore(gateWay, referenceNode);
     }
-    //document.getElementById('handyLittleThingyForWDStuff').appendChild(gateWay);
+    //document.getElementById('WDResponseTarget').appendChild(gateWay);
     findRelatedTexts(id);
     //get DB information about this et: 
     showDBInfoFor(id); 

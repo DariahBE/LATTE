@@ -231,6 +231,7 @@ class wikibaseEntry {
     //if you keep this function
     // convert this.rawData to this.parsedData 
     // !!!!
+    console.warn('is classification needed? ');
     this.classifier = {
       'PPL' : [], 
       'PLC' : [], 
@@ -341,10 +342,15 @@ class wikibaseEntry {
       }else if(this.windowmode === 'static'){
         target = document.getElementById('insertWDHere'); 
       }
-      var d=document.getElementById('handyLittleThingyForWDStuff');
+      var d=document.getElementById('WDResponseTarget');
       if(d!==null){d.remove();}
       let dataDivMain = document.createElement('div'); 
-      dataDivMain.setAttribute('id', 'handyLittleThingyForWDStuff');
+      dataDivMain.classList.add('border-t-2', 'mt-1', 'pt-1');
+      dataDivMain.setAttribute('id', 'WDResponseTarget');
+      let wikidataTitleBlock = document.createElement('h2'); 
+      wikidataTitleBlock.appendChild(document.createTextNode('Wikidata:')); 
+      wikidataTitleBlock.classList.add('text-xl', 'font-bold'); 
+      dataDivMain.appendChild(wikidataTitleBlock);
       if (this.searchMode === 'qid'){
         for (const [key, value] of Object.entries(this.OutputFormattedDataBlocks[qid])) {
           if(value.length === 0){continue;}
@@ -365,7 +371,7 @@ class wikibaseEntry {
       buildCaroussel(); 
       buildMaps(); 
       if(!(madeAtLeastOneMatch)){
-        document.getElementById('handyLittleThingyForWDStuff').innerHTML = '<p>Wikidata returned no property tags which are in the project scope.</p>'; 
+        document.getElementById('WDResponseTarget').innerHTML = '<p>Wikidata returned no property tags which are in the project scope.</p>'; 
       }
     })
 

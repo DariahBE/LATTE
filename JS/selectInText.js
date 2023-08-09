@@ -27,7 +27,7 @@ function typeToHtml(type, defaultValue='text'){
 }
 function typeToPattern(type, defaultValue = false){
   const conversionList = {
-    'uri': "http?://.*"
+    
   }
   // Check if the type exists in the conversionList, if yes, return the corresponding HTML type
   if (conversionList.hasOwnProperty(type)) {
@@ -84,7 +84,7 @@ function saveNewDB(){
       dataObject['annotation'] = {start: startOfSelection, stop: endOfSelection, selectedText: selectedText}; 
       dataObject['variants'] = foundVariants; 
       dataObject['properties'] = properties;
-
+      console.log('Sending to server: '); 
       console.log(dataObject); 
       //send dataobject to backend: 
       $.ajax("/AJAX/put_annotation.php")
@@ -135,6 +135,11 @@ function loadPropertiesOfSelectedType(selectedString){
   let formBox = document.createElement('div');
   formBox.setAttribute('id', 'propertyBox'); 
   formBox.classList.add('w-full', 'generatedFieldsForFormBox');
+  let propertyPrompt = document.createElement('p'); 
+  propertyPrompt.appendChild(document.createTextNode('2) Properties:'));
+  propertyPrompt.classList.add('text-lg', 'p-2',  'm-2'); 
+  formBox.appendChild(propertyPrompt);
+
   //let formBoxHeader = document.createElement('p');
   //formBoxHeader.appendChild(document.createTextNode(selected+' info:'));
   fetch('/AJAX/get_structure.php?type='+selected)
@@ -181,10 +186,6 @@ function loadPropertiesOfSelectedType(selectedString){
         formBox.appendChild(newFieldContainer);
       });
     //formBox.appendChild(formBoxHeader);
-    let propertyPrompt = document.createElement('p'); 
-    propertyPrompt.appendChild(document.createTextNode('2) Properties:'));
-    propertyPrompt.classList.add('text-lg', 'p-2',  'm-2'); 
-    selector.parentElement.appendChild(propertyPrompt);
     selector.parentElement.appendChild(formBox);
     //console.log(formBox); 
     //alert('appending formbox');
@@ -229,7 +230,7 @@ function generateHyperlink(anchor, href, classlist=[], id=false, anchormode='tex
 
 function showET(etdata){
   let wd = null; 
-  let wdboxToDrop = document.getElementById('handyLittleThingyForWDStuff');
+  let wdboxToDrop = document.getElementById('WDResponseTarget');
   if(wdboxToDrop){wdboxToDrop.remove();}
   const subtarget = document.getElementById('entitycontent');
   subtarget.innerHTML = ''; 
@@ -502,6 +503,9 @@ function triggerSidePanelAction(entityData){
     var embeddedCreateDiv = document.createElement('div'); 
     embeddedCreateDiv.setAttribute('id', 'embeddedET');
     embeddedCreateDiv.classList.add('hidden');
+    var annotationDiv = document.createElement('div'); 
+    annotationDiv.classList.add('hidden'); 
+    annotationDiv.setAttribute('id', 'annotationCreationDiv');
     var topTex = document.createElement('h3'); 
     topTex.classList.add('uppercase', 'text-xl', 'underline', 'decoration-4', 'underline-offset-2');
     topTex.appendChild(document.createTextNode('Create a new annotation'));
@@ -554,8 +558,10 @@ function triggerSidePanelAction(entityData){
       });
 
 
-    embeddedCreateDiv.appendChild(topTex); 
-    embeddedCreateDiv.appendChild(topBox); 
+    annotationDiv.appendChild(topTex); 
+    annotationDiv.appendChild(topBox); 
+    //      customizable annoation information: 
+    embeddedCreateDiv.appendChild(annotationDiv);
     //add code to create a node from selection!
     //append newly created Div to the DOM: 
     targetOfInfo.appendChild(createNodeDiv);
@@ -591,8 +597,13 @@ function triggerSidePanelAction(entityData){
     var positionTitle = document.createElement('h3'); 
     positionTitle.appendChild(document.createTextNode('Annotation information: ')); 
     setEntityType.addEventListener('change', function(){
+      //clear out properties if they exist: 
+      let d = document.getElementById('propertyBox'); 
+      if(d!==null){d.remove();}
       loadPropertiesOfSelectedType(selectedString); 
+      document.getElementById('annotationCreationDiv').classList.remove('hidden'); 
     })
+
     //      startposition
     var positionStart = document.createElement('p');
     var positionStartSpan = document.createElement('span');

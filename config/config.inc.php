@@ -33,6 +33,7 @@ $nodesDatamodel = array(
     "sex" =>["Gender", "string", false, false, true], 
     "wikidata" => ["Wikidata Label", 'wikidata', false, false, false]
   ],
+  'Person' => [], 
   'Text' => [
     "texid" => ["Text ID", "int", true, true, true],
     "text" => ["Text", "string", false, false, true],
@@ -59,7 +60,7 @@ $nodesDatamodel = array(
     "stops" => ["AnnotationEnd", "int", false, false, false],
     "private" => ["Private Annotation", "bool", false, false, false],
     "note" => ["Note", "longtext", false, false, true],
-    "extra" => ["Extra", "text", false, false, true], 
+    "extra" => ["Extra", "string", false, false, true], 
     "url" => ["Link", 'uri', false, false, false]
   ],
   'Organization' =>[
@@ -134,7 +135,7 @@ $privateProperties = array('uid');
 $matchOnNodes = array(
   'Person' => 'rgba(39, 123, 245, 0.6)',
   'Place' => 'rgba(245, 178, 39, 0.6)',
-  'Event' => 'rgba(39, 245, 123, 0.6)',
+  //'Event' => 'rgba(39, 245, 123, 0.6)',
   'Text' => 'rgba(28, 200, 28, 0.6)',
   'Annotation' => 'rgba(200, 28, 28, 0.6)', 
   'Organization' => 'rgba(145,100,52,0.6)'
