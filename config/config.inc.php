@@ -33,7 +33,6 @@ $nodesDatamodel = array(
     "sex" =>["Gender", "string", false, false, true], 
     "wikidata" => ["Wikidata Label", 'wikidata', false, false, false]
   ],
-  'Person' => [], 
   'Text' => [
     "texid" => ["Text ID", "int", true, true, true],
     "text" => ["Text", "string", false, false, true],

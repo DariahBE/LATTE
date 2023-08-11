@@ -342,17 +342,24 @@ function displayWrittenVariants(variantData){
 
 }
 
-function showDBInfoFor(id){
+function showDBInfoFor(id, extra=''){
   //gets the neoID of an entity node after having found a matching Q-id.
   //sends it to the BE
+  let extended = ''; 
+  if(extra){
+    extended = '&extended=1'
+  }
   // shows all data there's stored about it.
   console.warn('fetching database info');
-  getInfoFromBackend('/AJAX/getETById.php?id='+id)
+  getInfoFromBackend('/AJAX/getETById.php?id='+id+extended)
   .then((data)=> {
     //process entity information
     const info = data['props']; 
     for(let i = 0; i < info.length; i++){
       let infoBlock = info[i];
+      let blockName = infoBlock[0]; 
+      let blockData = infoBlock[1];
+      console.log(infoBlock); 
     }
     //process: variants
     const variants = data['variantSpellings']; 

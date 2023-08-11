@@ -471,10 +471,6 @@ class Node{
     //$result should be processed in a NODE ; EDGE list
   }
 
-  function createSingleNode($type, $argumentList){
-
-  }
-
   function generateURI($id){
     //finds the node by it's NEO-id, returns a stable identifier;
     //The NEO-id is unstable and should not be used in the frontend to identify a node.
@@ -641,6 +637,27 @@ class Node{
     }
     //no hits => return empty array
     return $results; 
+  }
+
+  public function fetchLabelById($id){
+    /**
+     * Uses the internal NEO id to fetch the label of one node!
+     */
+    $query = 'MATCH (n) WHERE id(n)= $neoid AND NOT n:priv_user RETURN n'; 
+    $data = $this->client->run($query, array('neoid'=>$id)); 
+    foreach($data as $row){
+      $et = $row->get('n'); 
+      $etlabel = $et['labels'][0]; 
+      return $etlabel; 
+    }
+  }
+
+  public function fetchModelByLabel($label){
+    if(array_key_exists($label, NODEMODEL)){
+      return NODEMODEL[$label]; 
+    }else{
+      return false;
+    }
   }
 
 

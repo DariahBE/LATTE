@@ -1,0 +1,14 @@
+1) race condition in JS frontent on /text/ portal causes two UI elements to replace one another.
+    DESCRIPTION: when clicking bruxelles in text 10000 the application finds one-to-many relations from variantspelling to entity.
+        This causes an extra function to be called in: 
+    CONFLICTING FUNCTIONS: 
+        selectInText.js > triggerSidePanelAction()
+        wikidata_prompt.js >acceptQID()         > classlist removal of baseElem (==> #embeddedET)
+    SOLUTION (todo:):
+        make the call to checkIfConnectionExists async. If there's no existing connection - carry on.
+        if a connection exists let the code clear its content BEFORE removing the hidden class!
+
+________________________________________________________________________________________________________________________________________________
+
+
+

@@ -394,6 +394,7 @@ function triggerSidePanelAction(entityData){
   const targetOfInfo = document.getElementById('slideoverDynamicContent'); 
   targetOfInfo.innerHTML = ''; 
   //backend returned one or more nodes that have  spellingvariant/label matching the request: 
+  console.warn('BUG1: triggerSidePanelAction function')
   if(entityData['nodes'].length){
     //create a title that show the information about the matching entities: 
     let topbox = document.createElement('div'); 
@@ -523,7 +524,7 @@ function triggerSidePanelAction(entityData){
             //do not use the key:
           }else{
             //console.warn('new key created for: ', key); 
-            console.log(key, datatype);
+            //console.log(key, datatype);
             let newFieldContainer = document.createElement('div');
             let newFieldLabel = document.createElement('label'); 
             newFieldLabel.appendChild(document.createTextNode(humanLabel)); 
@@ -569,6 +570,7 @@ function triggerSidePanelAction(entityData){
     var entityTypeDiv = document.createElement('div');
     var entityTypePrompt = document.createElement('p');
     entityTypePrompt.classList.add('text-lg', 'p-2', 'm-2'); 
+    console.warn('Related to BUG1: race condition.');
     entityTypePrompt.appendChild(document.createTextNode('1) Set entity type: ')); 
     entityTypeDiv.appendChild(entityTypePrompt); 
     var setEntityType = document.createElement('select'); 
@@ -595,6 +597,7 @@ function triggerSidePanelAction(entityData){
     var positionDiv = document.createElement('div'); 
     positionDiv.setAttribute('id', 'embeddedAnnotation'); 
     var positionTitle = document.createElement('h3'); 
+    console.log('annoinformationHere');
     positionTitle.appendChild(document.createTextNode('Annotation information: ')); 
     setEntityType.addEventListener('change', function(){
       //clear out properties if they exist: 
@@ -712,7 +715,6 @@ function triggerSidePanelAction(entityData){
     createNodeDiv.appendChild(wikidataPromptMainbox); 
     searchButtonForWDPrompt.click();
     //done with spelling variants: 
-
   }
 }
 

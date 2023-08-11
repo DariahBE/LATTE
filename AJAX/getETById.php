@@ -19,14 +19,22 @@ $relatedVariants = $graph->fetchAltSpellingsById($id);
 
 $stableLink = $graph->generateURI($id); 
 
+$replData = array(
+    'props'=> $embeddedProps, 
+    'variantSpellings' => $relatedVariants, 
+    'stable' => $stableLink
+);
 
-echo json_encode(
-    array(
-        'props'=> $embeddedProps, 
-        'variantSpellings' => $relatedVariants, 
-        'stable' => $stableLink
-    )
-    ); 
+if(isset($_GET['extended']) && ($_GET['extended']==1)){
+    //add the label of the node
+    $label = $graph->fetchLabelById($id);
+    $replData['extra']['label'] = $label;
+
+    //add the relational model
+    $replData['extra']['model']  = $graph->fetchModelByLabel($label);
+}
+
+echo json_encode($replData ); 
 
 
 

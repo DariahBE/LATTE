@@ -25,10 +25,12 @@ function wdprompt(string, offset = 0){
   fetch(promptURL)
   .then((response) => response.json())
   .then((data) => {
+    //needs a title item for wikidata:
     var searchResults = data['search'];
     if(searchResults.length === 0){
       target.innerHTML = ''; 
       const noresultmsg = document.createElement('p'); 
+      noresultmsg.classList.add('border-t-2',' mt-1', 'pt-1');
       const noresulttext = document.createTextNode('No results found for the given search query.'); 
       noresultmsg.appendChild(noresulttext); 
       /*let manualCreateButton = document.createElement('button'); 
@@ -122,9 +124,12 @@ function acceptQID(qid = -1){
   console.log('IF FALSE: it will suggest you to make a new one.'); 
   if (qid !== -1){
     document.getElementById('embeddedWDConfirmationGroup').remove();
+    //BUG1 FIX: async/await promise here. 
     checkIfConnectionExists(qid); 
+    console.warn('checkIfConnectionExists needs to be a promise to fix BUG1!!')
   }
   let baseElem = document.getElementById('embeddedET'); 
+  console.warn('related to BUG1: when using the SHOWHIT call; baseElem gets removed at a later stage causing the UI to blink!'); 
   baseElem.classList.remove('hidden'); 
   let creationElement = document.getElementById('etcreate'); 
   creationElement.classList.add('getAttention');
@@ -170,6 +175,8 @@ function pickThisQID(qid){
 }
 
 function showHit(id){
+  alert(1);
+  console.log('calling HIT');
   let replaceContent = document.getElementById('displayHitEt'); 
   replaceContent.innerHTML = '';  
   let etPropContainer = document.createElement('div'); 
@@ -196,19 +203,15 @@ function showHit(id){
     //document.getElementById('WDResponseTarget').appendChild(gateWay);
     findRelatedTexts(id);
     //get DB information about this et: 
-    showDBInfoFor(id); 
+    showDBInfoFor(id, true); 
   
   });
 
 }
 
-/**
- *  navigating Qid links is wrong; 
- * 
- */
-
 function checkIfConnectionExists(qid){
   //make a .fetch call in javascript
+  //BUG1 FIX: make this function return a promise
   console.warn('checking if QID exists.'); 
   fetch("/AJAX/checkWDExists.php?qid="+qid)
   .then((response) => response.json())
@@ -233,26 +236,48 @@ function checkIfConnectionExists(qid){
       showHit(hits[j]); 
       //add navigationmenu if there's more than one option: 
       if (hits.length>1){
-        let navigateHits = document.createElement('div');
+        function paginationIndicator(p){
+          if (p === 0){
+            navigateBack.classList.add('invisible');
+          }else{
+            navigateBack.classList.remove('invisible');
+          }
+          if(p+1 === hits.length){
+            navigateNext.classList.add('invisible');
+          }else{
+            navigateNext.classList.remove('invisible');
+          }
+        }
+        let navigateHits = document.createElement('p');
         navigateHits.classList.add('w-full'); 
-        navigateBack = document.createElement('p'); 
+        navigateBack = document.createElement('span'); 
         navigateBack.appendChild(document.createTextNode('<<')); 
-        navigateNext = document.createElement('p'); 
+        navigateNext = document.createElement('span'); 
         navigateNext.appendChild(document.createTextNode('>>')); 
+        navigateState = document.createElement('span');
+        navigateState.setAttribute('id', 'optionsIndicatorWD');
+        navigateState.appendChild(document.createTextNode((j+1)+' of '+hits.length));
         navigateNext.addEventListener('click', function(){
-          if(j<hits.length){
+          if(j+1<hits.length){
             j++; 
-            console.log("nextpage"); 
+            navigateState.innerHTML = '';
+            navigateState.appendChild(document.createTextNode((j+1)+' of '+hits.length));
+            paginationIndicator(j);
             showHit(hits[j]); 
           }
         })
         navigateBack.addEventListener('click', function(){
           if(j>0){
             j--;
+            paginationIndicator(j);
             showHit(hits[j]); 
+            navigateState.innerHTML = '';
+            navigateState.appendChild(document.createTextNode(j+1+' of '+hits.length));
           }
-        })
+        }); 
+        paginationIndicator(j);
         navigateHits.appendChild(navigateBack);
+        navigateHits.appendChild(navigateState);
         navigateHits.appendChild(navigateNext);
         console.log(navigateHits);
         console.log(document.getElementById('navigateETs'));
