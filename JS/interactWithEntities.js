@@ -23,7 +23,7 @@ function findRelatedTexts(neoID){
   .then((data)=>{
     var showToUser = `Mentioned ${data.Annotations} time${isPlural(data.Annotations)} in ${data.Texts} text${isPlural(data.Texts)}`; 
     document.getElementById("relatedTextStats").innerHTML=`<p>${showToUser}</p>`;
-    console.log(showToUser);
+    //console.log(showToUser);
   });
 }
 /*
@@ -283,6 +283,11 @@ function binVariant(e){
 
 function displayWrittenVariants(variantData){
       //    allow the user to generate a list of spelling variants: 
+      let varbox = document.getElementById('embeddedSpellingVariants')
+      alert('this still has to be done');
+      if(varbox !== null){
+        varbox.parentNode.removeChild(varbox);
+      }
       var spellingVariantMainBox = document.createElement('div');
       spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
       var spellingVariantTitle = document.createElement('h3'); 

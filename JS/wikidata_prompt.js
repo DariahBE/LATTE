@@ -119,33 +119,39 @@ function acceptQID(){
 */
 
 function acceptQID(qid = -1){
-  console.log('Start lookup if an entity in this database has the assigned QID.'); 
-  console.log('IF TRUE: it will load the entity');
-  console.log('IF FALSE: it will suggest you to make a new one.'); 
+  /* Start lookup if an entity in this database has the assigned QID.
+    *IF TRUE: it will load the entity
+    *IF FALSE: it will suggest you to make a new one.
+  */
   if (qid !== -1){
     document.getElementById('embeddedWDConfirmationGroup').remove();
-    //BUG1 FIX: async/await promise here. 
-    checkIfConnectionExists(qid); 
-    console.warn('checkIfConnectionExists needs to be a promise to fix BUG1!!')
+    //BUG10 FIX: async/await promise here. 
+    checkIfConnectionExists(qid)
+    .then((data)=>{
+      //console.warn('checkIfConnectionExists needs to be a promise to fix BUG10!!');
+      //console.log(data);
+      if (data==0){
+        let baseElem = document.getElementById('embeddedET'); 
+        //console.warn('related to BUG10: when using the SHOWHIT call; baseElem gets removed at a later stage causing the UI to blink!'); 
+        baseElem.classList.remove('hidden'); 
+        let creationElement = document.getElementById('etcreate'); 
+        creationElement.classList.add('getAttention');
+      }else{
+        //NO changes needed to DOM in here.
+      }
+    })
   }
-  let baseElem = document.getElementById('embeddedET'); 
-  console.warn('related to BUG1: when using the SHOWHIT call; baseElem gets removed at a later stage causing the UI to blink!'); 
-  baseElem.classList.remove('hidden'); 
-  let creationElement = document.getElementById('etcreate'); 
-  creationElement.classList.add('getAttention');
-  //alert('here');
 }
 
 function pickThisQID(qid){
   chosenQID = qid;
-  console.log(qid); 
+  //console.log(qid); 
   //clear the promptbox:
   document.getElementById('wdpromptBox').remove();
   //load the wikidata.js class and set qidmode on qid!
   var wd = new wikibaseEntry(qid, wdProperties, 'slideover', 'qid');
   wd.getWikidata()
     .then(function(){wd.renderEntities(qid)});
-    //console.log(x);  //put qid in field - make it non-editable. 
   //if the user is unsure, allow them to go back to the selector layout: 
   //if the user is SURE ==> provide a save button which sends the request to the server! 
   let rejectButton = document.createElement('button');
@@ -155,7 +161,6 @@ function pickThisQID(qid){
   let rejectText = document.createTextNode('Reject');
   let acceptText = document.createTextNode('Accept');
   rejectButton.addEventListener('click', function(){
-    //console.log('reject');
     wd = null; //destroy wikidataObject
     console.log(wd); 
   });
@@ -164,7 +169,6 @@ function pickThisQID(qid){
   }); 
   
   const displayWDtarget = document.getElementById('WDResponseTarget');
-  //console.log(displayWDtarget);
   rejectButton.appendChild(rejectText);
   acceptButton.appendChild(acceptText);
   let confirmationDiv = document.createElement('div');
@@ -175,7 +179,7 @@ function pickThisQID(qid){
 }
 
 function showHit(id){
-  alert(1);
+  //alert(1);
   console.log('calling HIT');
   let replaceContent = document.getElementById('displayHitEt'); 
   replaceContent.innerHTML = '';  
@@ -206,18 +210,19 @@ function showHit(id){
     showDBInfoFor(id, true); 
   
   });
-
 }
 
-function checkIfConnectionExists(qid){
+let checkIfConnectionExists = async(qid)=>{
+  var existingConnection = new Promise((resolve, reject) =>{
   //make a .fetch call in javascript
-  //BUG1 FIX: make this function return a promise
+  //BUG10 FIX: make this function return a promise
   console.warn('checking if QID exists.'); 
   fetch("/AJAX/checkWDExists.php?qid="+qid)
   .then((response) => response.json())
   .then((data) => {
     console.log(data);
     let hits = data['data'];
+    //alert('testdata still present in code!!'); 
     hits.push(148);
     hits.push(146);
     let j = 0; 
@@ -294,6 +299,8 @@ function checkIfConnectionExists(qid){
         //get connected text: 
         fetch('http://entitylinker.test/AJAX/connected_texts.php?id='+hit)
       }*/
+      console.log('NOTEMPTY.')
+      resolve(data['hits']);
     }else{
       //let the user fill out the entity type and go from there
       //create flash box to prompt attention: 
@@ -302,6 +309,11 @@ function checkIfConnectionExists(qid){
       creationElement.classList.add('getAttention');
       //alert('no results found! Create a new entity.'); 
       loadPropertiesOfSelectedType();
+      console.log('ISEMPTY');
+      resolve(0);
     }
   })
+  })
+  //return Promise; 
+  return existingConnection;
   }

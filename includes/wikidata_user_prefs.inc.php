@@ -32,7 +32,7 @@
       //      The third is the type of data used in the User Frontend: Choose between: geo, uri, img, str
 
       'P625' => array('Coordinates', True, 'geo'),
-      'P18' => array('Image', False, 'img'), 
+      'P18' => array('Image', True, 'img'), 
       'P94' => array('Coat of Arms', False, 'img'), 
       'P1801' => array('Commemorative Plaque', False, 'img'), 
       'P1082' => array('Population count', False, 'str'), 

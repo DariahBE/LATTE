@@ -107,13 +107,9 @@ function toggleSlide(dir = 0){
   // 0 closes the sidepanel; 1 opens it. Better than the original .toggle() functions
   if(dir === 0){
     document.getElementById('slideover-container').classList.add('invisible');
-    //document.getElementById('slideover-bg').classList.add('opacity-0');
-    //document.getElementById('slideover-bg').classList.remove('opacity-50');
     document.getElementById('slideover').classList.add('translate-x-full');
   }else{
     document.getElementById('slideover-container').classList.remove('invisible');
-    //document.getElementById('slideover-bg').classList.add('opacity-50');
-    //document.getElementById('slideover-bg').classList.remove('opacity-0');
     document.getElementById('slideover').classList.remove('translate-x-full');
   }
 }
@@ -187,10 +183,7 @@ function loadPropertiesOfSelectedType(selectedString){
       });
     //formBox.appendChild(formBoxHeader);
     selector.parentElement.appendChild(formBox);
-    //console.log(formBox); 
-    //alert('appending formbox');
     //attach validator: 
-    //console.log('making validation.');
     let validator = new Validator; 
     validator.pickup(); 
     //make a save button to commit the data: 
@@ -234,11 +227,11 @@ function showET(etdata){
   if(wdboxToDrop){wdboxToDrop.remove();}
   const subtarget = document.getElementById('entitycontent');
   subtarget.innerHTML = ''; 
-  console.log(etdata);
+  //console.log(etdata);
   var label = etdata[1];
   var properties = etdata[2];
-  console.log('propers: '); 
-  console.log(properties);
+  //console.log('propers: '); 
+  //console.log(properties);
   var propdiv = document.createElement('div'); 
   for(let k in properties){
     let show = null; 
@@ -250,8 +243,8 @@ function showET(etdata){
     if (valueType == 'uri'){
       show = generateHyperlink(valueDOM, datavalue, ['externalURILogo']); 
     }else if(valueType == 'wikidata' && datavalue !== null){
-      console.log("wikidata box: ");
-      console.log(value);
+      //console.log("wikidata box: ");
+      //console.log(value);
       show = document.createElement('p')
       var wdprefix = document.createElement('span'); 
       wdprefix.appendChild(document.createTextNode(valueDOM+': '));
@@ -283,7 +276,7 @@ function showET(etdata){
   }
   //with the data displayed: allow the user to accept the suggestion => this creates a new annotation between
   //the text and existing ET. 
-  console.log('accept/reject suggestion'); 
+  //console.log('accept/reject suggestion'); 
   var d=document.getElementById('assignEtToSelection');
   if(d!==null){d.remove();}
   fetch('/user/AJAX/profilestate.php')
@@ -326,6 +319,7 @@ function showET(etdata){
             let annotationEnd = repldata['stop']; 
             let annotationUID = repldata['annotation'];
             let annotationForType = repldata['type'];
+            console.warn('UNUSED variables of CRUD/Connect call!!: ', annotationStart, annotationEnd, annotationUID, annotationForType); 
           }
         }).always(
           function(){
@@ -394,7 +388,7 @@ function triggerSidePanelAction(entityData){
   const targetOfInfo = document.getElementById('slideoverDynamicContent'); 
   targetOfInfo.innerHTML = ''; 
   //backend returned one or more nodes that have  spellingvariant/label matching the request: 
-  console.warn('BUG1: triggerSidePanelAction function')
+  console.warn('BUG10: triggerSidePanelAction function');
   if(entityData['nodes'].length){
     //create a title that show the information about the matching entities: 
     let topbox = document.createElement('div'); 
@@ -570,7 +564,7 @@ function triggerSidePanelAction(entityData){
     var entityTypeDiv = document.createElement('div');
     var entityTypePrompt = document.createElement('p');
     entityTypePrompt.classList.add('text-lg', 'p-2', 'm-2'); 
-    console.warn('Related to BUG1: race condition.');
+    console.warn('Related to BUG10: race condition.');
     entityTypePrompt.appendChild(document.createTextNode('1) Set entity type: ')); 
     entityTypeDiv.appendChild(entityTypePrompt); 
     var setEntityType = document.createElement('select'); 
@@ -597,7 +591,7 @@ function triggerSidePanelAction(entityData){
     var positionDiv = document.createElement('div'); 
     positionDiv.setAttribute('id', 'embeddedAnnotation'); 
     var positionTitle = document.createElement('h3'); 
-    console.log('annoinformationHere');
+    //console.log('annoinformationHere');
     positionTitle.appendChild(document.createTextNode('Annotation information: ')); 
     setEntityType.addEventListener('change', function(){
       //clear out properties if they exist: 
@@ -695,8 +689,8 @@ function triggerSidePanelAction(entityData){
     var searchButtonForWDPromptText = document.createTextNode('Search!'); 
     searchButtonForWDPrompt.appendChild(searchButtonForWDPromptText); 
     searchButtonForWDPrompt.addEventListener('click', function(){
-      console.log('make function call get the preferred lookup language!'); 
-      console.log('lookup and display can be connected!'); 
+      //console.log('make function call get the preferred lookup language!'); 
+      //console.log('lookup and display can be connected!'); 
       wdprompt(wikidataInputBox.value, 0);
     });
     var wikidataResultsBox = document.createElement('div');
@@ -791,7 +785,7 @@ function loadIntoSuggestionBox(data, from, to){
   keySpanEdge.classList.add('font-bold');
   //var coreNodes = ['Place', 'Person', 'Event'];
   var retrievedCoreElements = data.nodes.filter(node => coreNodes.includes(node[1]));
-  console.log(retrievedCoreElements);
+  //console.log(retrievedCoreElements);
   var valueSpanEdge = document.createTextNode(data.edges.length);
   var valueSpanNode = document.createTextNode(data.nodes.length+' | '+retrievedCoreElements.length);
   var positionBox = document.createElement('p');
@@ -833,7 +827,7 @@ function getTextSelection(){
 }
 
 function triggerSelection(){
-  console.log('triggerSelection function'); 
+  //console.log('triggerSelection function'); 
   var selectedTextProperties = getTextSelection();
   var selectedText = selectedTextProperties[0];
   console.log('Properties: ', selectedTextProperties);

@@ -29,11 +29,11 @@ class Annotation{
     return NODES['Annotation'];
   }
 
-  public function loadPersonalAnnotations($userid){
+  /*public function loadPersonalAnnotations($userid){
     $query = ('MATCH (a:Annotation)<-[r:priv_created]-(u:priv_user) WHERE u.userid = $userid RETURN a');
     $result = $this->client->run($query, ['userid'=>$userid]);
     var_dump($result);
-  }
+  }*/
 
   public function getAnnotationInfo($nodeId){
     //takes the apoc created uid of a node with label Annotation and generates all information about it.
@@ -80,6 +80,7 @@ class Annotation{
   }
 
   public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user, $start, $end){
+    die("redo this, do not rely on static properties!!! (starts, texid.... bad idea)");
     $constraintTwo = False;
     $userNeo = $user->neoId;
     $userAppId = $user->myId;  

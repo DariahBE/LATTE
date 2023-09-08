@@ -60,7 +60,6 @@ class Exporter {
   public function outputContent(){
     $date = date("d-m-Y H:i:s");
     $exportURL = $_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']; 
-    $webURI = 'still working on this'; 
     if($this->mode == 'xml'){
       $dom = new DOMDocument();
       $dom->encoding = 'utf-8';
@@ -75,10 +74,8 @@ class Exporter {
       // assign fields to metadata: 
       $metaTimeStamp = $dom->createElement('requestTime', $date); 
       $metaSourceStamp = $dom->createElement( 'requestURI', htmlspecialchars($exportURL, ENT_XML1, 'UTF-8'));
-      $webView = $dom->createElement('stableURI', htmlspecialchars($webURI, ENT_XML1, 'UTF-8')); 
       $metaNode->appendChild($metaTimeStamp); 
       $metaNode->appendChild($metaSourceStamp); 
-      $metaNode->appendChild($webView); 
       // assign data to text: 
       $rawText = $dom->createElement('rawText', htmlspecialchars($this->rawtext)); 
       $texNode->appendChild($rawText);

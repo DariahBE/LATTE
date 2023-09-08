@@ -31,7 +31,6 @@ function detectLanguage(options){
 
 function displayLanguage(langdetect){
   if (!langdetect){
-    console.log('nullable');
     $("#detectedLanguage").text("N/A");
     $("#detectedLanguageCode").text("N/A");
     $("#detectedLanguageCertainty").text(0);

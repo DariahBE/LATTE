@@ -1,5 +1,5 @@
 function getInfoFromBackend(url){
-  alert('called1');
+  //alert('called1');
   var myPromise = new Promise ((resolve, reject)=>{
     $.ajax({
       type:"GET",
@@ -15,7 +15,7 @@ function getInfoFromBackend(url){
 }
 
 function showInfoFromBackend(info, elem){
-  alert('called2');
+  //alert('called2');
   var matchingRecords = info['meta']['entities'];
   var nodes = info['nodes'];
   var edges = info['edges'];
@@ -29,29 +29,9 @@ function showInfoFromBackend(info, elem){
   elem.target.getElementsByClassName('secondSpanElementOfEntity')[0].removeEventListener('click', backendHandler);
   elem.target.getElementsByClassName('secondSpanElementOfEntity')[0].addEventListener('click', backendHandler);
 }
-/*
-function getInfoByString(string, nodetype){
-  alert('called3');
-  console.log(string, nodetype);
-  $baseURL = '/AJAX/getEntitySuggestion.php?';
-  $parameters = {
-    'type':nodetype,
-    'value':string,
-    'casesensitive':false
-  };
-  $sendTo = $baseURL+jQuery.param($parameters);
-  getInfoFromBackend($sendTo)
-
-  .then((data)=>{
-    console.log(data);
-    showInfoFromBackend(data);
-  })
-}*/
 
 function getInfoByClick(e){
-  alert('called4');
   //depends on use of normalization.
-  console.log('detected Element click');
   var nodetype = e.target.getAttribute('data-type');
   if(useNormalization){
     var strValue = e.target.getAttribute('data-stringNormalized');
