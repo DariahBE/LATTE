@@ -111,7 +111,16 @@
     }catch (\Throwable $th){
         //throw $th;
         $node->rollbackTransaction();
-        die('rollback of changes');
+        die('rollback of changes: init error');
+    }
+    //connect the user ID to $createdEnditity!
+    try{
+        $userNeoId = $user->neoId;
+        $node->connectNodes($userNeoId, $createdEntity, 'priv_created');
+    }catch(\Throwable $th){
+        //throw $th;
+        $node->rollbackTransaction();
+        die('rollback of changes: user error');
     }
     //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
     try {
@@ -121,7 +130,7 @@
     }catch(\Throwable $th){
         //throw $th;
         $node->rollbackTransaction();
-        die('rollback of changes');
+        die('rollback of changes: annocreation error');
     }
 
 
