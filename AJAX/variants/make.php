@@ -20,6 +20,8 @@ $graph = new CUDNode($client);
 $varstring = $_GET['varlabel'];
 $connectToEt = (int)$_GET['entity'];
 
+$node->startTransaction(); 
+//TODO; update to transactional architecture required here!!
 $repl = $graph->createVariantRelation($varstring, $connectToEt);
 
 echo json_encode($repl);

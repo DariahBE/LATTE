@@ -288,7 +288,6 @@ class CUDNode extends Node {
                 //filter out the attributes: remove any attribute that is not written down in the NODEMODEL: 
                 $placeholder=1; 
                 $placeholderValues = array();
-                //$data = array('label'=>'test', 'sex'=>'unknown');
                 foreach($data as $key => $value){
                     if(array_key_exists($key, NODEMODEL[$label])){
                         $nodeAttributes[] = ' n.'.$key.' = $placeholder_'.$placeholder;
@@ -308,8 +307,6 @@ class CUDNode extends Node {
                 $data = $this->tsx->run($query, $placeholderValues); 
                 $id = $data->first()->get('id');
                 //node is created; now connect it to the user that created it: 
-                $userNeoId = $user->neoId;
-                $this->connectNodes($userNeoId, $id, 'priv_created');
                 return $id; 
 
             }else{
@@ -324,5 +321,13 @@ class CUDNode extends Node {
 
 
 }
+
+/*
+                IMPORTANT
+there are a few todos in this file to make all nodes
+transactionally safe!                
+
+*/
+
 
 ?>
