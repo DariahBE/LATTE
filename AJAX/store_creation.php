@@ -1,4 +1,4 @@
-<?php
+<?php/*
 header('Content-Type: application/json; charset=utf-8');
 
 if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
@@ -26,7 +26,7 @@ $nodeLabel = $data['label'];
 $properties = $data['properties']; 
 $creatingUser = (int)$_SESSION['userid']; 
 
-$graph->createNewNode($nodeLabel, $properties); 
-die();
+//$graph->createNewNode($nodeLabel, $properties); 
+die();*/
 
 ?>

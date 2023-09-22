@@ -51,7 +51,6 @@ function saveNewDB(){
     .then(response => response.json())
     .then(data => {
       const token = data;
-      console.log('generating request with token: '+token); 
       //fetch all fields: 
       ///////ANNOTATION: 
       //get text that is selected
@@ -66,7 +65,6 @@ function saveNewDB(){
       for(p=0; p<variantSpellings.length; p++){
         foundVariants.push(variantSpellings[p].textContent); 
       }
-      console.log(foundVariants); 
       /////// PROPERTIES: 
       let properties = {}; 
       const etType = document.getElementById('entityTypeSelector').value;
@@ -81,13 +79,18 @@ function saveNewDB(){
 
       //appending to dataObject
       dataObject['token'] = token; 
+      dataObject['texid'] = languageOptions['nodeid']; 
+      dataObject['nodetype'] = etType;
       dataObject['annotation'] = {start: startOfSelection, stop: endOfSelection, selectedText: selectedText}; 
       dataObject['variants'] = foundVariants; 
       dataObject['properties'] = properties;
       console.log('Sending to server: '); 
-      console.log(dataObject); 
+      console.log("savenewdb", dataObject); 
       //send dataobject to backend: 
-      $.ajax("/AJAX/put_annotation.php")
+      $.post("/AJAX/put_annotation.php", {data: dataObject}, function(data, status){
+        console.log(data);
+        console.log(status);
+      });
     })
     //append token to request
   }else{

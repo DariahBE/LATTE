@@ -1,4 +1,5 @@
 <?php
+/*
 
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'\includes\getnode.inc.php');
@@ -11,7 +12,7 @@ $input = $_POST;
 var_dump($input); 
 die();
 
-$node->createNewNode($input['label'], $input['data'], true); 
+//$node->createNewNode($input['label'], $input['data'], true); 
 //read the post request: 
-
+*/
 ?>

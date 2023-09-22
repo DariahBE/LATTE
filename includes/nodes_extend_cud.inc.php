@@ -78,6 +78,29 @@ class CUDNode extends Node {
     return $label; 
   }
 
+  //transaction management.
+  public function startTransaction(){
+    $this->tsx = $this->client->beginTransaction();
+  }
+  public function rollbackTransaction(){
+    $this->tsx->rollback();
+  }
+  public function commitTransaction(){
+    $this->tsx->commit();
+  }
+
+  public function connectNodes($sourceNodeNeoId, $targetNodeNeoId, $edgeName) {
+    $query = "
+        MATCH (sourceNode)
+        WHERE ID(sourceNode) = $sourceNodeNeoId
+        MATCH (targetNode)
+        WHERE ID(targetNode) = $targetNodeNeoId
+        CREATE (sourceNode)-[:$edgeName]->(targetNode)
+    ";
+    $this->tsx->run($query); 
+}
+
+//TODO: createVariantRelation needs to have transactional model!
   public function createVariantRelation($label, $entitySource){
     //create a variant or connection between an entity and a variant:
     //if the variant is not yet in de DB, the variant is created.
@@ -135,7 +158,7 @@ class CUDNode extends Node {
 
     
   }
-
+  //TODO: dropVariant needs transactional model!!
   public function dropVariant($variantID, $entityID, $detachQuery){
     //drops a variant or connection between a variant and entity:
     //$variantID  = int   = neoID of the Variant-node.
@@ -172,6 +195,7 @@ class CUDNode extends Node {
      * the dryRun argument will report how many
      * edges are to be deleted in addition to the node.
     */
+    //TODO: delete requires transactional model!
     public function delete($id, $dryRun=False){
         if($dryRun){
             $query_EdgesToBeRemoved = 'MATCH (n)-[r]-() WHERE id(n) = $nodeid RETURN count(r) as count'; 
@@ -196,6 +220,7 @@ class CUDNode extends Node {
         }
     }
 
+    //TODO: update needs transactional model!
     public function update($id, $data, $changePrivateProperties=False){
         /**
          * changePrivateProperties IS IT EVEN NEEDED??
@@ -278,12 +303,13 @@ class CUDNode extends Node {
                 if($createUID){
                     $nodeAttributes[] = ' n.uid = apoc.create.uuid() ';
                 }
-                $query .= implode(', ', $nodeAttributes);
+                $query .= ' SET '. implode(', ', $nodeAttributes);
                 $query .= ' return id(n) as id';
-
-                die($query);
-                $data = $this->client->run($query); 
-                $id = $data->first->get('id');
+                $data = $this->tsx->run($query, $placeholderValues); 
+                $id = $data->first()->get('id');
+                //node is created; now connect it to the user that created it: 
+                $userNeoId = $user->neoId;
+                $this->connectNodes($userNeoId, $id, 'priv_created');
                 return $id; 
 
             }else{
