@@ -1,8 +1,9 @@
 class Validator{
 
+  /*
   globalState(){
     return false;
-  }
+  }*/
 
   intValidator(data){
     let shouldBe = parseInt(data)+0; 
@@ -33,9 +34,7 @@ class Validator{
   }
 
   floatValidator(data){
-    alert('What about negative floats!'); 
-    var pattern = /(^\d*.\d*$)/
-    if(pattern.test(data)){
+    if(!isNaN(parseFloat(data)) && isFinite(data)){
       return [true];
     }else{
       return [false, 'The provided input is not a valid float e.g.: 3.14.'];
@@ -43,7 +42,6 @@ class Validator{
   }
 
   regexValidator(data){
-    console.log(data); 
     var pattern = /(^Q\d*$)/;
     if(pattern.test(data)){
       return [true];

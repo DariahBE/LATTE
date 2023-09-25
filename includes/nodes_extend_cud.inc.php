@@ -129,8 +129,8 @@ class CUDNode extends Node {
         if($checkResult->first()->get('relations') === 0){
           //required to make a new relation
           //var_dump(array('varid'=> $existingVariantId, 'etid'=>$entitySource));
-          $matchAndConnectResult = $this->client->run('MATCH (n), (t) WHERE id(n) = $varid AND id(t) = $etid CREATE (n)-[r:same_as]->(t)', array('varid'=> $existingVariantId, 'etid'=>$entitySource));
-          var_dump($matchAndConnectResult); 
+          $matchAndConnectResult = $this->tsx->run('MATCH (n), (t) WHERE id(n) = $varid AND id(t) = $etid CREATE (n)-[r:same_as]->(t)', array('varid'=> $existingVariantId, 'etid'=>$entitySource));
+          //var_dump($matchAndConnectResult); 
           return array('msg'=> 'New relation created'); 
           die(); 
         }else{

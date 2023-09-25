@@ -22,7 +22,16 @@ $connectToEt = (int)$_GET['entity'];
 
 $node->startTransaction(); 
 //TODO; update to transactional architecture required here!!
-$repl = $graph->createVariantRelation($varstring, $connectToEt);
+try {
+  $repl = $graph->createVariantRelation($varstring, $connectToEt);
+} catch (\Throwable $th) {
+  //throw $th;
+  $graph->rollbackTransaction();
+  echo json_encode('msg'=>'An error ocurred in the database');
+  die();
+}
 
+$graph->commitTransaction();
 echo json_encode($repl);
+die();
 ?>

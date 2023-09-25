@@ -63,7 +63,7 @@ function saveNewDB(){
       let variantSpellings = document.getElementById('variantStorageBox').getElementsByClassName('writtenvariantvalue');
       let foundVariants = []; 
       for(p=0; p<variantSpellings.length; p++){
-        foundVariants.push(variantSpellings[p].textContent); 
+        foundVariants.push(variantSpellings[p].textContent);
       }
       /////// PROPERTIES: 
       let properties = {}; 
@@ -95,7 +95,11 @@ function saveNewDB(){
     //append token to request
   }else{
     //  ==> form data is not valid: types don't match config definitions.
-    document.getElementById('saveEtToDb').classList.add('animate-shake');
+    let shakeButton = document.getElementById('saveEtToDb');
+    shakeButton.classList.add('animate-shake');
+    shakeButton.addEventListener("animationend", function() {
+      shakeButton.classList.remove('animate-shake'); 
+    }, false);
 
   }
 
