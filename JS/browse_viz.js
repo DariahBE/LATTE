@@ -148,7 +148,7 @@ function buildTopController(){
   topLeft.appendChild(countEdges); 
   //in topLeft div: add one button that extends the graph one hop to all sides.
   const bt = document.createElement('button'); 
-  bt.classList.add('btn', 'btn-blue');
+  bt.classList.add('btn', 'bg-blue-400');
   const btText = document.createTextNode('Extend graph'); 
   bt.appendChild(btText); 
   bt.onclick = function(){
@@ -316,6 +316,7 @@ function init(neoIDFromEgo){
       var node = network.body.data.nodes.get(clickedOn); 
       showNodeMetadata(node['properties'], clickedOn);
     });
+    //body.on('click', function(){toggleSlide(0);})
   } 
   )
 }

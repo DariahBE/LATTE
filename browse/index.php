@@ -36,7 +36,7 @@ unset($node);
     <script>
       var options = [];
     </script>
-    <div class="container w-full h-full">
+    <div class="w-full h-full">
       <div class="top-0 left-0 fixed z-50 w-full" id="top">
 
       </div>
