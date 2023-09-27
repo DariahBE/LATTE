@@ -13,7 +13,7 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
     <script src="/JS/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" src="JS/homepage.js"></script>
   </head>
-  <body class=bg-amber-200>
+  <body class="bg-amber-200">
     <div>
       <?php
         $navbar = new Navbar(); 
@@ -71,6 +71,7 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
                 </ul>
               </div>
               <div class="">
+                <!-- // TODO code cleanup! -->
                 <p>Hello world</p>
               </div>
 
