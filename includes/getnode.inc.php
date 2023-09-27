@@ -660,8 +660,37 @@ class Node{
     }
   }
 
+  public function fetchRawEtById($id, $byUser=0){
+    //returns the raw node data by neoidç
+    //the byUser variable defaults to 0, which will only return the public nodes
+    //if an id is provided it will return the public nodes and nodes created by the associated user id which are marked private. 
+
+    //WARNING: completely wrong!!! you need to look at the private property of a node, not at the priv_user label of a usernode!
+    $queryData = array(
+      'neoid' => $id
+    );
+    if($byUser === 0){
+      $query = 'MATCH (n)
+        WHERE id(n) = $neoid
+          AND NOT n:priv_user
+          AND (NOT exists(n.private) OR n.private <> true)
+        RETURN n'; 
+    }else{
+      $queryData['usr'] = $byUser;
+      $query = 'MATCH (n)
+        WHERE id(n) = $neoid
+          AND (NOT n:priv_user
+          AND ((NOT exists(n.private) OR n.private <> true)
+              OR (n.priv_creator = $usr AND n.private = true)))
+        RETURN n';
+    }
+    $data = $this->client->run($query, $queryData); 
+    return ($data);
+  }
+
 
   public function fetchEtById($id){
+    //returns the properties of a node with the human readable labels provided!
     $query = 'MATCH (n) WHERE id(n)= $neoid AND NOT n:priv_user RETURN n'; 
     $data = $this->client->run($query, array('neoid'=>$id)); 
     $repl = array();
