@@ -132,7 +132,50 @@ class Exporter {
       $dom->appendChild($root);
       return $dom->saveXML();
     }else if ($this->mode == 'json'){
-
+      $taggedTextArray = array(); 
+      foreach($this->XMLTaggedText as $key => $value){
+        $taggedTextArray[] = array(
+          'type'=>$value[1],
+          'content'=>$value[2],
+          'id'=>$value[3]
+        );
+      }
+      $annotationLinks = array();
+      //var_dump($this->annotations);
+      foreach($this->annotationToEt as $key => $value){
+        $annotationLinks[] = array(
+          'annotationId' => $key,
+          'referencesLabel' => $value[1]
+        );
+      }
+      $entityLinks = array(); 
+      foreach($this->entityDict as $key => $value){
+        //$entityLinks[$key] = $value;
+        //var_dump($value);
+        $properties = array(); 
+        foreach($value['properties'] as $propkey =>$propvalue){
+          $properties[]=$propvalue;
+        }
+        $entityLinks[]  =  array(
+          'label' => $value['label'],
+          'pk' => $value['primaryKey']['value'],
+          'uri' => $value['primaryKey']['URI'],
+          'properties' => $properties
+        );
+      }
+      $root = array(
+        'metadata' => array(
+          'requestTime' => $date,
+          'requestURI' => $exportURL
+        ), 
+        'text' => array(
+          'rawText' => $this->rawtext
+        ),
+        'annotatedText' => $taggedTextArray, 
+        'annotations' => $annotationLinks, 
+        'entities' => $entityLinks
+      ); 
+      echo json_encode($root); 
     }
   }
 
