@@ -661,11 +661,10 @@ class Node{
   }
 
   public function fetchRawEtById($id, $byUser=0){
-    //returns the raw node data by neoidç
+    //returns the raw node data by neoid (neo4J property)
+    //with node label.
     //the byUser variable defaults to 0, which will only return the public nodes
     //if an id is provided it will return the public nodes and nodes created by the associated user id which are marked private. 
-
-    //WARNING: completely wrong!!! you need to look at the private property of a node, not at the priv_user label of a usernode!
     $queryData = array(
       'neoid' => $id
     );
@@ -685,7 +684,25 @@ class Node{
         RETURN n';
     }
     $data = $this->client->run($query, $queryData); 
-    return ($data);
+    $repl = array(
+      'label' => null, 
+      'properties' => null
+    );
+    foreach($data as $row){
+      $et = $row->get('n'); 
+      $etlabel = $et['labels'][0]; 
+      $repl['label'] = $etlabel;
+      $etprops = $et['properties']; 
+      $etModel = NODEMODEL[$etlabel];
+      foreach($etprops as $k => $v){
+        if (array_key_exists($k, $etModel)){
+          $humanReadableKey = $etModel[$k][0];      //human readable key
+          $value = $etprops[$k];                    //value; 
+          $repl[]=array($humanReadableKey, $value, $k); 
+        }
+      }
+    }
+    return $repl;
   }
 
 

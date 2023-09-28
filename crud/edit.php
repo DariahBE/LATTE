@@ -4,6 +4,7 @@ include_once(ROOT_DIR."/includes/client.inc.php");
 include_once(ROOT_DIR.'/includes/navbar.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
+include_once(ROOT_DIR.'/includes/csrf.inc.php');
 
 //edits are allowed to use the NEO4J ID. As long as the node exists, the ID does not change. 
 //when committing changes check that the node still exists. Otherwise you're good. 
@@ -17,21 +18,30 @@ if($user_uuid === false){
   die("redir required"); 
 }
 
+$tokenManager = new CsrfTokenManager(); 
+$tokenManager->generateToken();
+
+
 //get the node ID: 
-$id = (int)$_GET['id']; 
+if(isset($_GET['id'])){
+  $id = (int)$_GET['id']; 
+}else{
+  header("Location: /index.php");
+  die("redir required"); 
+}
 // with the node ID get the data from the DB
 $node = new Node($client);
-$requestedNode = $node->fetchEtById($id); 
-$requestedNodeLabel = $node->fetchLabelById($id);
+$requestedNode = $node->fetchRawEtById($id); 
+$requestedNodeLabel = $requestedNode['label'];
 //with label and properties known for the node, get the model as defined in config file. 
 //restrict edit to entitytypes in CORENODES constant
 //and do not allow users to edit the text property of text nodes!!
 $model = false; 
 if(array_key_exists($requestedNodeLabel, CORENODES)){
   $model = NODEMODEL[$requestedNodeLabel]; 
-}else{
-  die('Node is not editable.');
-}
+}/*else{
+  die('Node is not editable or does not exist.');
+}*/
 //don't edit text!! ==> remove it from editable features
 if($requestedNodeLabel === TEXNODE){
   unset($model[TEXNODETEXT]);
@@ -62,8 +72,11 @@ if($requestedNodeLabel === TEXNODE){
     </div>
     <div class="container">
       <div class="row"> </div>
-      <h2>Update node properties</h2>
       <?php
+      if ($model === false){
+        echo "No editable node matches your request.";
+      }else{
+      echo "<h2>Update node properties</h2>";
         //var_dump($requestedNode);
         foreach($requestedNode as $key=>$value){
           var_dump($value);
@@ -75,6 +88,12 @@ if($requestedNodeLabel === TEXNODE){
           echo '<br>';
           echo '<br>';
         }
+      }
+
+      //add the hidden csrf token to the form
+      //echo "<input hidden readonly name='token' type='text' value='$token'></input>"; 
+      $tokenManager->outputToken();
+
       ?>
     </div>
   </body>
