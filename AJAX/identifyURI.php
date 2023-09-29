@@ -16,7 +16,8 @@ $neoId = (int)$_GET['id'];
 
 $node = new Node($client);
 $data = $node->generateURI($neoId); 
+$connections = $node->countConnections($neoId);
 
-echo json_encode($data); 
+echo json_encode(array('uri' => $data, 'connections' =>$connections)); 
 die()
 ?>

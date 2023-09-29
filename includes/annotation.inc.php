@@ -80,6 +80,7 @@ class Annotation{
   }
 
   public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user, $start, $end){
+    //todo; static properties!
     die("redo this, do not rely on static properties!!! (starts, texid.... bad idea)");
     $constraintTwo = False;
     $userNeo = $user->neoId;

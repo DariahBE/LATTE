@@ -112,9 +112,13 @@ function showNodeMetadata(metadata, nodeId){
     if(data.length === 1){
       var uriDisplay = document.createElement('a'); 
       uriDisplay.href = data[0]; 
-      var uriText = document.createTextNode(data[0]); 
+      var uriText = document.createTextNode(data['uri'][0]); 
       uriDisplay.appendChild(uriText); 
       uriTarget.appendChild(uriDisplay);
+      counttarget = document.getElementById('nodestatisticsBox');
+      let holdStat = document.createElement('span'); 
+      holdStat.appendChild(document.createTextNode(data['connections']));
+      counttarget.appendChild(holdStat);
     }else{
       uriTarget.innerHTML = 'N/A';
     }

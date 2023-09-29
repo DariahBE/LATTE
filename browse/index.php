@@ -53,10 +53,8 @@ unset($node);
 <div id="slideover-container" class="right-0 w-1/3 h-full fixed top-0 invisible z-50">
   <div id="slideover" class="w-full bg-white h-full absolute left-0 duration-300 ease-out transition-all translate-x-full">
     <div class="w-full absolute cursor-pointer text-gray-600 top-0 flex items-center justify-center left-0 m-3 p-3 flex-col">
-      <h1 class='w-full text-xl'>Node information: </h1>
-      <div id='defaultExplain'><p>test</p></div>
-      <h2 class='w-full text-lg'>Statistics: </h2>
-      <div id='nodestatisticsBox'><p>test</p></div>
+      <h2 class='w-full text-lg'>Connections: </h2>
+      <div id='nodestatisticsBox'></div>
       <h2 class='w-full text-lg'>URI: </h2>
       <div id='nodeLinkBox'></div>
       <h2 class='w-full text-lg'>Metadata: </h2>

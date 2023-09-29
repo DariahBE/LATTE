@@ -512,6 +512,23 @@ class Node{
     return $result; 
   }
 
+  public function countConnections($id){
+    /* takes the NEO ID of a node and returns the count of public edges to the user
+    * only edges between nodes in the datamodel are counted.
+    */
+    $query = 'MATCH (n)-[r]-(t) WHERE id(n) = $id return n,r,t '; 
+    $data = array('id' => $id); 
+    $result = $this->client->run($query, $data);
+    $i=0;
+    foreach($result as $row){
+      if (array_key_exists($row['t']['labels'][0], NODEMODEL)){
+        $i+=1;
+      }
+    }
+    return ($i); 
+
+  }
+
 
   public function findEntityAndVariants($id){
     $result = array('entity'=> array(), 'labelVariants'=>array());

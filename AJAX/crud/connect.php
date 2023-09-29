@@ -42,7 +42,7 @@ if (1== 1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['c
     $entityNode = $data['data'][0]['e'];
     $entityLabel = $entityNode['labels'][0];
     $user = $data['user'][0]['u'];
-
+    //TODO: this code is not dynamic! properties shouldn't be static!
     $mergeToDict['annotation'] = $annotationNode['properties']['uid'];
     $mergeToDict['creator'] = $user['properties']['userid'];
     $mergeToDict['private'] = false;
