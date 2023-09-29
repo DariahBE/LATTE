@@ -109,13 +109,15 @@ function showNodeMetadata(metadata, nodeId){
   .done(function(data){
     const uriTarget = document.getElementById('nodeLinkBox'); 
     uriTarget.innerHTML= '';
-    if(data.length === 1){
+    //console.log(data);
+    if(data.uri.length === 1){
       var uriDisplay = document.createElement('a'); 
       uriDisplay.href = data[0]; 
       var uriText = document.createTextNode(data['uri'][0]); 
       uriDisplay.appendChild(uriText); 
       uriTarget.appendChild(uriDisplay);
       counttarget = document.getElementById('nodestatisticsBox');
+      counttarget.innerHTML ='';
       let holdStat = document.createElement('span'); 
       holdStat.appendChild(document.createTextNode(data['connections']));
       counttarget.appendChild(holdStat);
