@@ -112,7 +112,7 @@ function showNodeMetadata(metadata, nodeId){
     //console.log(data);
     if(data.uri.length === 1){
       var uriDisplay = document.createElement('a'); 
-      uriDisplay.href = data[0]; 
+      uriDisplay.href = data['uri'][0]; 
       var uriText = document.createTextNode(data['uri'][0]); 
       uriDisplay.appendChild(uriText); 
       uriTarget.appendChild(uriDisplay);
