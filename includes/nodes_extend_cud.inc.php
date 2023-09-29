@@ -304,6 +304,8 @@ class CUDNode extends Node {
                 }
                 $query .= ' SET '. implode(', ', $nodeAttributes);
                 $query .= ' return id(n) as id';
+                var_dump($query);
+                var_dump($placeholderValues);
                 $data = $this->tsx->run($query, $placeholderValues); 
                 $id = $data->first()->get('id');
                 //node is created; now connect it to the user that created it: 

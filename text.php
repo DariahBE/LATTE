@@ -157,7 +157,8 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
       };
       var wdProperties = <?php echo json_encode($wikidata->makeSettingsDictionary()); ?>;
      // var wikidataIndication = <?php //echo json_encode($wikidata->labelIndicator()); ?>;
-
+      let startcode = "<?php echo ANNOSTART; ?>";
+      let stopcode = "<?php echo ANNOSTOP; ?>";
     </script>
     <style>
       <?php

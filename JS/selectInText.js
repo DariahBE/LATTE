@@ -38,6 +38,19 @@ function typeToPattern(type, defaultValue = false){
   return defaultValue;
 }
 
+function extractValueType(htmlElem){
+  //takes an input box, then uses the correct method to get the value from each htmlElem
+  if(htmlElem.tagName === 'INPUT'){
+    if(htmlElem.type === 'checkbox'){
+      return htmlElem.checked;
+    }else{
+      return htmlElem.value;
+    }
+  }else if(htmlElem.tagname === 'TEXTAREA'){
+    return htmlElem.value;
+  }
+}
+
 function saveNewDB(){
   let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
   //IS erverything valid 
@@ -81,7 +94,22 @@ function saveNewDB(){
       dataObject['token'] = token; 
       dataObject['texid'] = languageOptions['nodeid']; 
       dataObject['nodetype'] = etType;
-      dataObject['annotation'] = {start: startOfSelection, stop: endOfSelection, selectedText: selectedText}; 
+      let annotationCollectionBox = {};
+      let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
+      for(let i = 0; i < annotationProperties.length; i++){
+        let box = annotationProperties[i].getElementsByClassName('inputelement')[0];
+        //console.log(box);
+        //todo => boxes that are checkboxes should use .checked not .value method
+        let boxName = box.name; 
+        console.log('eetse beetsy bugfixing required!');
+        let boxValue = extractValueType(box);
+        console.log(boxName, boxValue);
+        annotationCollectionBox[boxName] = boxValue;
+      }
+      annotationCollectionBox[startcode] = startOfSelection;
+      annotationCollectionBox[stopcode] = endOfSelection;
+
+      dataObject['annotation'] = annotationCollectionBox; 
       dataObject['variants'] = foundVariants; 
       dataObject['properties'] = properties;
       console.log('Sending to server: '); 
@@ -527,6 +555,7 @@ function triggerSidePanelAction(entityData){
             //console.warn('new key created for: ', key); 
             //console.log(key, datatype);
             let newFieldContainer = document.createElement('div');
+            newFieldContainer.classList.add('property');
             let newFieldLabel = document.createElement('label'); 
             newFieldLabel.appendChild(document.createTextNode(humanLabel)); 
             let newFieldInput;
@@ -613,6 +642,7 @@ function triggerSidePanelAction(entityData){
     var positionStartSpan = document.createElement('span');
     var startData = document.createElement('span');
     startData.appendChild(document.createTextNode(startPositionInText));
+    startData.setAttribute('data-postname', startcode); 
     positionStartSpan.appendChild(document.createTextNode('Starts: '));
     positionStartSpan.classList.add('font-bold'); 
     positionStart.appendChild(positionStartSpan);
@@ -621,6 +651,7 @@ function triggerSidePanelAction(entityData){
     var positionEnd = document.createElement('p');
     var positionEndSpan = document.createElement('span');
     var endData = document.createElement('span'); 
+    endData.setAttribute('data-postname', stopcode); 
     endData.appendChild(document.createTextNode(endPositionInText)); 
     positionEndSpan.appendChild(document.createTextNode('Stops: '));
     positionEndSpan.classList.add('font-bold');

@@ -14,18 +14,22 @@
     include_once(ROOT_DIR.'/includes/getnode.inc.php');
     include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
 
+
+    //check if the annotation is being created by a valid user: If no user is logged in => die()
+    $user = new User($client); 
+    //check user
+    $user_uuid = $user->checkSession();
+    if(!(isset($_POST['data']))){
+        echo json_encode(array('msg' => 'Data is missing in request. Your request was rejected.'));
+        die(); 
+    }
+
+    // TODO drop debug statement and make code ready for production!
     $debug = true; 
 
     if(!($debug)){
-        //check if the annotation is being created by a valid user: If no user is logged in => die()
-        $user = new User($client); 
-        //check user
-        $user_uuid = $user->checkSession();
-        if(!(isset($_POST['data']))){
-            echo json_encode(array('msg' => 'Data is missing in request. Your request was rejected.'));
-            die(); 
-        }
 
+        //interpretation of the post request!
         $data = $_POST['data']; 
         //parse parts of the data: 
         //// csrf: 
@@ -64,7 +68,6 @@
             "annotation"=> array(
               "start"=> 123,
               "stop"=> 129,
-              "selectedText"=> "Zurich"
         ),
             "variants"=> array("Zuerich", "Zuri"),
             "properties"=> array(
@@ -107,7 +110,7 @@
     // use the properties to create a new node if it does not exist: 
     try {
         $createdEntity = $node->createNewNode($nodelabel, $properties, true); 
-        var_dump($createdEntity);
+        //var_dump($createdEntity);
     }catch (\Throwable $th){
         //throw $th;
         $node->rollbackTransaction();
@@ -124,12 +127,14 @@
     }
     //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
     try {
+        var_dump(ANNONODE);
+        var_dump($annotation);
         $createAnnotation = $node->createNewNode(ANNONODE, $annotation,true);
         //on $createdEntity, attach all labelvariants!
         var_dump($createAnnotation);
     }catch(\Throwable $th){
-        //throw $th;
         $node->rollbackTransaction();
+        throw $th;
         die('rollback of changes: annocreation error');
     }
 
