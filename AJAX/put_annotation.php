@@ -94,6 +94,17 @@
         $node->rollbackTransaction();
         die('rollback of changes: user error');
     }
+    //connect variant spellings to the $createdentity:
+    //user ID is not connected to variants.
+    foreach($variants as $variant){
+        try{
+            $node->createVariantRelation($variant, $createdEntity); 
+        }catch(\Throwable $th){
+            $node->rollbackTransaction();
+            die('Rejected variant node. '); 
+        }
+    }
+        
     //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
     try {
         $createAnnotation = $node->createNewNode(ANNONODE, $annotation,true);

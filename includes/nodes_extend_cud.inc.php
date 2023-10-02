@@ -100,7 +100,7 @@ class CUDNode extends Node {
     $this->tsx->run($query); 
 }
 
-//TODO: createVariantRelation needs to have transactional model!
+  //Transactional model: OK
   public function createVariantRelation($label, $entitySource){
     //create a variant or connection between an entity and a variant:
     //if the variant is not yet in de DB, the variant is created.
@@ -128,9 +128,7 @@ class CUDNode extends Node {
         //check how many relations the query returned: 
         if($checkResult->first()->get('relations') === 0){
           //required to make a new relation
-          //var_dump(array('varid'=> $existingVariantId, 'etid'=>$entitySource));
           $matchAndConnectResult = $this->tsx->run('MATCH (n), (t) WHERE id(n) = $varid AND id(t) = $etid CREATE (n)-[r:same_as]->(t)', array('varid'=> $existingVariantId, 'etid'=>$entitySource));
-          //var_dump($matchAndConnectResult); 
           return array('msg'=> 'New relation created'); 
           die(); 
         }else{
@@ -153,11 +151,9 @@ class CUDNode extends Node {
         //the variant label is not found in the DB and the entity node doesn't have a valid ID:
         return array('msg'=> 'Invalid entity node.');
       }
-    }
-    
-
-    
+    } 
   }
+  
   //TODO: dropVariant needs transactional model!!
   public function dropVariant($variantID, $entityID, $detachQuery){
     //drops a variant or connection between a variant and entity:
