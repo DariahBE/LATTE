@@ -77,7 +77,7 @@ function wdprompt(string, offset = 0){
         descrcell.textContent = descr;
         qidcell.classList.add('m-1', 'p-1');
         titlecell.classList.add('m-1', 'p-1');
-        pickThisCell.classList.add('m-1', 'p-1', 'hover:bg-green-200'); 
+        pickThisCell.classList.add('m-1', 'p-1', 'hover:bg-green-200');
         descrcell.classList.add('m-1', 'p-1'); 
       }
     }
@@ -111,12 +111,6 @@ function wdprompt(string, offset = 0){
 }
 
 let chosenQID = null; 
-
-/*    // see pickThisQID()
-function acceptQID(){
-
-}
-*/
 
 function acceptQID(qid = -1){
   /* Start lookup if an entity in this database has the assigned QID.
@@ -179,18 +173,14 @@ function pickThisQID(qid){
 }
 
 function showHit(id){
-  //alert(1);
-  console.log('calling HIT');
   let replaceContent = document.getElementById('displayHitEt'); 
   replaceContent.innerHTML = '';  
   let etPropContainer = document.createElement('div'); 
-  //hitNav.setAttribute('data-neoid', id); 
   etPropContainer.classList.add('w-full'); 
   etPropContainer.setAttribute('id', 'connectSuggestion'); 
   etPropContainer.setAttribute('data-neoid', id); 
   //get mentions of this et and connected texts: 
-  console.warn('NEO ID; '); 
-  console.log(id); 
+  console.warn('NEO ID; ', id); 
   replaceContent.appendChild(etPropContainer);
   // if relatedTextStats is missing from the DOM: 
   //race condition in etcreate! Elem does not exist when WD check hasn't been performed.
@@ -222,7 +212,7 @@ let checkIfConnectionExists = async(qid)=>{
   .then((data) => {
     console.log(data);
     let hits = data['data'];
-    //alert('testdata still present in code!!'); 
+    console.log('testdata still present in code!!'); 
     hits.push(148);
     hits.push(146);
     let j = 0; 
@@ -237,7 +227,6 @@ let checkIfConnectionExists = async(qid)=>{
       hitNav.setAttribute('id', 'displayHitEt'); 
       maintarget.appendChild(contentNav);   //navigates through the hits.
       maintarget.appendChild(hitNav);       //prepares a box to display single hit info. 
-
       showHit(hits[j]); 
       //add navigationmenu if there's more than one option: 
       if (hits.length>1){
@@ -291,23 +280,13 @@ let checkIfConnectionExists = async(qid)=>{
 
       }
       console.log(data['hits'], ' hits found; ');
-      /*for(let i = 0; i < hits.length; i++){
-        let hit = data['data'][i]; 
-        let suggestionDiv = document.createElement('div'); 
-
-        console.log(hit);
-        //get connected text: 
-        fetch('http://entitylinker.test/AJAX/connected_texts.php?id='+hit)
-      }*/
       console.log('NOTEMPTY.')
       resolve(data['hits']);
     }else{
       //let the user fill out the entity type and go from there
       //create flash box to prompt attention: 
-      //TODO
       let creationElement = document.getElementById('etcreate'); 
       creationElement.classList.add('getAttention');
-      //alert('no results found! Create a new entity.'); 
       loadPropertiesOfSelectedType();
       console.log('ISEMPTY');
       resolve(0);

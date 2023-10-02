@@ -289,23 +289,26 @@ class CUDNode extends Node {
                 $placeholder=1; 
                 $placeholderValues = array();
                 foreach($data as $key => $value){
-                    if(array_key_exists($key, NODEMODEL[$label])){
-                        $nodeAttributes[] = ' n.'.$key.' = $placeholder_'.$placeholder;
-                        //enforce the correct type of the $value!
-                        $reformattedValue = $this->helper_enforceType(NODEMODEL[$label][$key][1],$value); 
-                        $placeholderValues['placeholder_'.$placeholder] = $reformattedValue; 
-                    }else{
-                        throw new Exception("Data does not match node definition. Request rejected.");
+                    //empty uri triggers fatal error: empty values should not be parsed as data!!
+                    if($value !== ''){
+                        if(array_key_exists($key, NODEMODEL[$label])){
+                            $nodeAttributes[] = ' n.'.$key.' = $placeholder_'.$placeholder;
+                            //enforce the correct type of the $value!
+                            $reformattedValue = $this->helper_enforceType(NODEMODEL[$label][$key][1],$value); 
+                            $placeholderValues['placeholder_'.$placeholder] = $reformattedValue; 
+                        }else{
+                            throw new Exception("Data does not match node definition. Request rejected.");
+                        }
+                        $placeholder++; 
                     }
-                    $placeholder++; 
                 }
                 if($createUID){
                     $nodeAttributes[] = ' n.uid = apoc.create.uuid() ';
                 }
                 $query .= ' SET '. implode(', ', $nodeAttributes);
                 $query .= ' return id(n) as id';
-                var_dump($query);
-                var_dump($placeholderValues);
+                //var_dump($query);
+                //var_dump($placeholderValues);
                 $data = $this->tsx->run($query, $placeholderValues); 
                 $id = $data->first()->get('id');
                 //node is created; now connect it to the user that created it: 

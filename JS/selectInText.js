@@ -74,7 +74,7 @@ function saveNewDB(){
       const endOfSelection = globalSelectionEnd;
       /////// VARIANTS: 
       let variantSpellings = document.getElementById('variantStorageBox').getElementsByClassName('writtenvariantvalue');
-      let foundVariants = []; 
+      let foundVariants = [selectedText]; 
       for(p=0; p<variantSpellings.length; p++){
         foundVariants.push(variantSpellings[p].textContent);
       }
@@ -115,6 +115,7 @@ function saveNewDB(){
       console.log('Sending to server: '); 
       console.log("savenewdb", dataObject); 
       //send dataobject to backend: 
+      console.warn('sending data:');
       $.post("/AJAX/put_annotation.php", {data: dataObject}, function(data, status){
         console.log(data);
         console.log(status);
@@ -805,7 +806,6 @@ function makeSuggestionBox(){
 }
 
 function loadIntoSuggestionBox(data, from, to){
-  //document.getElementById('suggestionbox_saveButton').disabled = false;
   var datadiv = document.createElement('div');
   var metadataOnSearch = document.createElement('div');
   metadataOnSearch.classList.add('suggestionMetadata');
@@ -821,9 +821,7 @@ function loadIntoSuggestionBox(data, from, to){
   keySpanNode.appendChild(nodesKey);
   keySpanNode.classList.add('font-bold');
   keySpanEdge.classList.add('font-bold');
-  //var coreNodes = ['Place', 'Person', 'Event'];
   var retrievedCoreElements = data.nodes.filter(node => coreNodes.includes(node[1]));
-  //console.log(retrievedCoreElements);
   var valueSpanEdge = document.createTextNode(data.edges.length);
   var valueSpanNode = document.createTextNode(data.nodes.length+' | '+retrievedCoreElements.length);
   var positionBox = document.createElement('p');
@@ -865,15 +863,12 @@ function getTextSelection(){
 }
 
 function triggerSelection(){
-  //console.log('triggerSelection function'); 
   var selectedTextProperties = getTextSelection();
   var selectedText = selectedTextProperties[0];
   console.log('Properties: ', selectedTextProperties);
   var selectedTextStart = selectedTextProperties[1];
   var selectedTextEnd = selectedTextProperties[2];
   //fetch from BE:
-  //$findEntityByType = $_GET['type'];
-  //$findEntityByValue = $_GET['value'];
   if(selectedText){
     $baseURL = '/AJAX/getEntitySuggestion.php?';
     $parameters = {
@@ -894,20 +889,6 @@ $(document).ready(function() {
   // bug: if cursor lets go off the letter, trigger doesn't work, attach it higher up!
   document.getElementById('textcontent').addEventListener('mouseup', function(){triggerSelection()});
   document.getElementById('textcontent').addEventListener('keyup', function(){triggerSelection()});
-  /*
-  var triggerpoints = document.getElementsByClassName('ltr');
-  for(var i = 0; i < triggerpoints.length; i++){
-    if(triggerpoints[i].classList.contains('linked')){
-      / * *do not add an event listener if the letter has the linked class (i.e. if it is part of an existing annotation) * /
-      continue;
-    }
-    triggerpoints[i].addEventListener('mouseup', function(e){
-      triggerSelection();
-    });
-    triggerpoints[i].addEventListener('keyup', function(e){
-      triggerSelection();
-    });
-  }*/
   //use esc key to delete the suggestionbox:
   document.addEventListener('keyup', function(event) {
    if (event.key === 'Escape') {

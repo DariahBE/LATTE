@@ -14,9 +14,8 @@
     include_once(ROOT_DIR.'/includes/getnode.inc.php');
     include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
 
-
     //check if the annotation is being created by a valid user: If no user is logged in => die()
-    $user = new User($client); 
+    $user = new User($client);
     //check user
     $user_uuid = $user->checkSession();
     if(!(isset($_POST['data']))){
@@ -24,73 +23,43 @@
         die(); 
     }
 
-    // TODO drop debug statement and make code ready for production!
-    $debug = true; 
 
-    if(!($debug)){
+    // TODO : spelling variants are not handled yet!
 
-        //interpretation of the post request!
-        $data = $_POST['data']; 
-        //parse parts of the data: 
-        //// csrf: 
-        $token = $data['token'] ? $data['token'] : false;
-        //// annotation: 
-        $annotation = $data['annotation'] ? $data['annotation'] : false; 
-        //// variants: 
-        $variants = $data['variants'] ? $data['variants'] : false; 
-        //// properties: 
-        $properties = $data['properties'] ? $data['properties'] : false; 
-        //// Neo id of the text: 
-        $texid = $data['texid']; 
-        //// Labeltype of the node to be created:
-        $nodelabel = $data['nodetype']; 
+    die('TODO:  missing variants'); 
 
 
-        ///////////////////////////////////
-        // check if token is part of data dict AND for validity: 
-        if(!($token)){
-            echo json_encode(array('msg' => 'Invalid session token')); 
-            die();
-        }
-        $tokenManager = new CsrfTokenManager(); 
-        $validToken = $tokenManager->checkToken($token); 
-        if(!($validToken)){
-            echo json_encode(array('msg' => 'Invalid session token')); 
-            die();
-        }
+    //interpretation of the post request!
+    $data = $_POST['data']; 
+    //parse parts of the data: 
+    //// csrf: 
+    $token = array_key_exists('token', $data) ? $data['token'] : false;
+    //// annotation: 
+    $annotation = array_key_exists('annotation', $data) ? $data['annotation'] : false; 
+    //// variants: 
+    $variants = array_key_exists('variants', $data) ? $data['variants'] : false; 
+    //// properties: 
+    $properties = array_key_exists('properties', $data) ? $data['properties'] : false; 
+    //// Neo id of the text: 
+    $texid = array_key_exists('texid', $data) ? $data['texid'] : false; 
+    //// Labeltype of the node to be created:
+    $nodelabel = array_key_exists('nodetype', $data) ? $data['nodetype'] : false; 
+
+    ///////////////////////////////////
+    // check if token is part of data dict AND for validity: 
+    if(!($token)){
+        echo json_encode(array('msg' => 'Invalid session token')); 
+        die();
     }
-
-    if($debug){
-        $data = array(
-            "token"=> "86eb6e48e3cadb7061f686cf24707be9f9beb64842e33b055927be15d715f5f9",
-            "texid"=> 1375, 
-            "nodetype"=> "Place",
-            "annotation"=> array(
-              "start"=> 123,
-              "stop"=> 129,
-        ),
-            "variants"=> array("Zuerich", "Zuri"),
-            "properties"=> array(
-              "geoid"=> "45",
-              "label"=> "zu",
-              "region"=> "zur",
-              "wikidata"=> "Q72"
-            )
-        );
-
-        $token = $data['token'] ? $data['token'] : false;
-        //// annotation: 
-        $annotation = $data['annotation'] ? $data['annotation'] : false; 
-        //// variants: 
-        $variants = $data['variants'] ? $data['variants'] : false; 
-        //// properties: 
-        $properties = $data['properties'] ? $data['properties'] : false; 
-        //// Neo id of the text: 
-        $texid = $data['texid']; 
-        //// Labeltype of the node to be created:
-        $nodelabel = $data['nodetype']; 
-        
-
+    if(!($texid) || !($nodelabel)){
+        echo json_encode(array('msg' => 'Invalid node content'));
+        die();
+    }
+    $tokenManager = new CsrfTokenManager(); 
+    $validToken = $tokenManager->checkToken($token); 
+    if(!($validToken)){
+        echo json_encode(array('msg' => 'Invalid session token')); 
+        die();
     }
 
     $node = new CUDNode($client);
@@ -127,27 +96,33 @@
     }
     //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
     try {
-        var_dump(ANNONODE);
-        var_dump($annotation);
         $createAnnotation = $node->createNewNode(ANNONODE, $annotation,true);
-        //on $createdEntity, attach all labelvariants!
-        var_dump($createAnnotation);
     }catch(\Throwable $th){
         $node->rollbackTransaction();
         throw $th;
         die('rollback of changes: annocreation error');
     }
 
+    //connect the entity with the annotation !
+    try{
+        $node->connectNodes($createAnnotation, $createdEntity, 'references');
+    }catch(\Throwable $th){
+        //throw $th;
+        $node->rollbackTransaction();
+        die('rollback of changes: annotation ID error');
+    }
 
-
+    //connect the text with the annotation !
+    try{
+        $node->connectNodes($texid, $createAnnotation, 'contains');
+    }catch(\Throwable $th){
+        //throw $th;
+        $node->rollbackTransaction();
+        die('rollback of changes: annotation ID error');
+    }
     $node->commitTransaction();
-
-
-    die('debug statement verwijderen');
-    /////////////////////////////////////
     // if database commit was successfull: revoke the token. 
     $tokenManager->revokeToken(); 
-
-
-
+    echo json_encode($node); 
+    die('token revoked');
 ?>
