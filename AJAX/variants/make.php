@@ -15,7 +15,7 @@ if(!(boolval($user_uuid))){
   die();        //only registered users can make changes to the database.
 }
 //connect to graph database
-$graph = new CUDNode($client);
+$node = new CUDNode($client);
 
 $varstring = $_GET['varlabel'];
 $connectToEt = (int)$_GET['entity'];
@@ -23,15 +23,15 @@ $connectToEt = (int)$_GET['entity'];
 $node->startTransaction(); 
 //TODO; update to transactional architecture required here!!
 try {
-  $repl = $graph->createVariantRelation($varstring, $connectToEt);
+  $repl = $node->createVariantRelation($varstring, $connectToEt);
 } catch (\Throwable $th) {
   //throw $th;
-  $graph->rollbackTransaction();
+  $node->rollbackTransaction();
   echo json_encode('msg'=>'An error ocurred in the database');
   die();
 }
 
-$graph->commitTransaction();
+$node->commitTransaction();
 echo json_encode($repl);
 die();
 ?>
