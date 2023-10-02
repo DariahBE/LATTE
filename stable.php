@@ -130,8 +130,7 @@ if(array_key_exists('coreID', $core)){
             $nodeProps = $relatedNode['properties']; 
             $nodePropsList = '<ul>'; 
             foreach ($nodeProps as $propkey => $propValue){
-              //BUG: http://entitylinker.test/URI/Place/331838f3-a491-43ef-80be-e6df6607e4f3  
-              if(array_key_exists($propkey, NODEMODEL[$relatedNode['labels'][0]])){
+              if(($propkey !== 'priv_user') && (array_key_exists($propkey, NODEMODEL[$relatedNode['labels'][0]]))){
                 $value = NODEMODEL[$relatedNode['labels'][0]][$propkey];
                 $propCleanName = $value[0];
                 $propType = $value[1]; 

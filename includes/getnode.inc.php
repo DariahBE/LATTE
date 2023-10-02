@@ -280,7 +280,7 @@ class Node{
     */
     //exclude a single relationtype as part of the optional match
     if(boolval($exclude)){
-      $excludedPart = ' WHERE NOT r:'.$exclude.' ';
+      $excludedPart = ' AND NOT r:'.$exclude.' ';
     }
     else{
       $excludedPart = ''; 
@@ -288,12 +288,12 @@ class Node{
     if(!boolval($relation)){
       $result = $this->client->run('
       MATCH (n) WHERE id(n) = $providedID AND NOT n:priv_user 
-      OPTIONAL MATCH (n)-[r]-(t) '.$excludedPart.'
+      OPTIONAL MATCH (n)-[r]-(t) WHERE NOT t:priv_user '.$excludedPart.'
       RETURN n,r,t', ['providedID'=>(int)$id]);  
     }else{
       $result = $this->client->run('
       MATCH (n) WHERE id(n) = $providedID AND NOT n:priv_user 
-      OPTIONAL MATCH (n)-[r:'.$relation.']-(t) '.$excludedPart.'
+      OPTIONAL MATCH (n)-[r:'.$relation.']-(t) WHERE NOT t:priv_user '.$excludedPart.'
       RETURN n,r,t', ['providedID'=>(int)$id]);
 
     }
