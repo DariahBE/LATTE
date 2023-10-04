@@ -26,7 +26,7 @@
 
     // TODO : spelling variants are not handled yet!
 
-    die('TODO:  missing variants'); 
+    //die('TODO:  missing variants'); 
 
 
     //interpretation of the post request!

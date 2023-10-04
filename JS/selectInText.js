@@ -228,7 +228,7 @@ function loadPropertiesOfSelectedType(selectedString){
     saveNewEntry.classList.add('bg-green-400', 'mx-2', 'px-2', 'my-1', 'py-1', 'rounded');
     saveNewEntry.appendChild(document.createTextNode('Save')); 
     saveNewEntry.addEventListener('click', function(){
-      saveNewDB()
+      saveNewDB();
     });
     formBox.appendChild(saveNewEntry);
     }

@@ -283,8 +283,9 @@ function binVariant(e){
 
 function displayWrittenVariants(variantData){
       //    allow the user to generate a list of spelling variants: 
-      let varbox = document.getElementById('embeddedSpellingVariants')
-      alert('this still has to be done');
+      let varbox = document.getElementById('embeddedSpellingVariants');
+      // TODO
+      //alert('this still has to be done');
       if(varbox !== null){
         varbox.parentNode.removeChild(varbox);
       }
@@ -296,7 +297,7 @@ function displayWrittenVariants(variantData){
       spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'); 
       var spellingVariantCreation = document.createElement('input'); 
       spellingVariantCreation.setAttribute('id', 'variantInputBox'); 
-      spellingVariantCreation.classList.add('border-solid', 'border-2')
+      spellingVariantCreation.classList.add('border-solid', 'border-2');
       var spellingVariantSubBox = document.createElement('div');
       spellingVariantSubBox.setAttribute('id', 'variantStorageBox'); 
       spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex', 'flex-wrap');
@@ -327,6 +328,7 @@ function displayWrittenVariants(variantData){
   
   //used by showdata() and showDBInfoFor() functions. 
   let varTarget = document.getElementById('variantStorageBox');
+  console.warn('variantStorageBox missing in DOM'); 
   //console.log(varTarget); 
   for(let i = 0; i < variantData.length; i++){
     let variant = variantData[i]; 

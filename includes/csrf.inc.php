@@ -9,6 +9,9 @@ class CsrfTokenManager {
     }
 
     public function checkToken($submittedToken) {
+        if(is_null($this->getTokenFromSession())){
+            return false;
+        }
         return hash_equals($this->getTokenFromSession(), $submittedToken);
     }
 

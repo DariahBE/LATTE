@@ -167,13 +167,13 @@ $primaryKeys = array_map(function ($ar){
 
 /*Provide an optional translation for edges.
 Edgelabels may use another name in the database than in the tool's GUI.
-This allows for more intuitive names.
+This allows for more intuitive names. 
+// TODO: edge information should not be editable by user anyway,
+//        Is it then really needed in the config file? 
 */
 $edges_translate = array(
   'same_as' => 'Variant',
   'see_also' => 'Knowledgebase relations',
-  'resides_in' => 'Lives in',
-  'knows' => 'Knows'
 );
 $nodes_translate = array(
   'Person' => 'People',

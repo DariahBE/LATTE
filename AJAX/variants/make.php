@@ -27,7 +27,7 @@ try {
 } catch (\Throwable $th) {
   //throw $th;
   $node->rollbackTransaction();
-  echo json_encode('msg'=>'An error ocurred in the database');
+  echo json_encode(array('msg'=>'An error ocurred in the database'));
   die();
 }
 

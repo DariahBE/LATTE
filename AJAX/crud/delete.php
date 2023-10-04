@@ -7,8 +7,29 @@
 header('Content-Type: application/json; charset=utf-8');
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'\includes\user.inc.php');
+include_once(ROOT_DIR.'\includes\csrf.inc.php');
 include_once(ROOT_DIR.'\includes\getnode.inc.php');
 include_once(ROOT_DIR.'\includes\nodes_extend_cud.inc.php');
+
+
+if(!isset($_GET['id'])){
+    die(); 
+}
+
+if(!isset($_GET['token'])){
+    die();
+}else{
+    $token = $_GET['token']; 
+}
+$tokenManager = new CsrfTokenManager(); 
+$validToken = $tokenManager->checkToken($token); 
+if(!($validToken)){
+    echo json_encode(array('msg' => 'Invalid session token')); 
+    die();
+}
+
+
+
 $crudNode = new CUDNode($client); 
 
 /** determine rights first delete endpoint is only granted to limit set of users. 

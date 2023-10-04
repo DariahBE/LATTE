@@ -42,12 +42,14 @@ class CUDNode extends Node {
             if(!(array_key_exists('host', $parsed))){
                 throw new Exception('No host defined, URI rejected'); 
             }
+            /*
             //If there's no scheme: prepend it with 'https://
             if(!(array_key_exists('scheme', $parsed))){
                 $parsed['scheme']='https://'; 
-            }
+            }*/
+            
             //re-assemble $parsed into a URI: 
-            $scheme   = isset($parsed['scheme']) ? $parsed['scheme'] . '://' : '';
+            /*$scheme   = isset($parsed['scheme']) ? $parsed['scheme'] . '://' : '';
             $host     = isset($parsed['host']) ? $parsed['host'] : '';
             $port     = isset($parsed['port']) ? ':' . $parsed['port'] : '';
             $user     = isset($parsed['user']) ? $parsed['user'] : '';
@@ -56,12 +58,11 @@ class CUDNode extends Node {
             $path     = isset($parsed['path']) ? $parsed['path'] : '';
             $query    = isset($parsed['query']) ? '?' . $parsed['query'] : '';
             $fragment = isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
-            $url =  "$scheme$user$pass$host$port$path$query$fragment"; 
-            throw new Exception('Encoding of URIs has not been tested (nodes_extended_cud.inc.php::helper_enforceType)'); 
-            //todo: figure out how to validate URIS!
-            $filtered = filter_var($url, FILTER_VALIDATE_URL);
+            $url =  "$scheme$user$pass$host$port$path$query$fragment";*/
+            //throw new Exception('Encoding of URIs has not been tested (nodes_extended_cud.inc.php::helper_enforceType)'); 
+            $filtered = filter_var($inputvariable, FILTER_VALIDATE_URL);
             if($filtered){
-                return $url;
+                return $inputvariable;
             }else{
                 throw new Exception('Invalid URI provided: entry was rejected.'); 
             };
@@ -79,6 +80,7 @@ class CUDNode extends Node {
   }
 
   //transaction management.
+  public $tsx;
   public function startTransaction(){
     $this->tsx = $this->client->beginTransaction();
   }
@@ -129,7 +131,8 @@ class CUDNode extends Node {
         if($checkResult->first()->get('relations') === 0){
           //required to make a new relation
           $matchAndConnectResult = $this->tsx->run('MATCH (n), (t) WHERE id(n) = $varid AND id(t) = $etid CREATE (n)-[r:same_as]->(t)', array('varid'=> $existingVariantId, 'etid'=>$entitySource));
-          return array('msg'=> 'New relation created'); 
+          //TODO: is it safe to return the $matchAndConnectResult variable? 
+          return array('msg'=> 'New relation created', 'node' => $matchAndConnectResult); 
           die(); 
         }else{
           //do not modify anything: a relation already exists
@@ -153,7 +156,7 @@ class CUDNode extends Node {
       }
     } 
   }
-  
+
   //TODO: dropVariant needs transactional model!!
   public function dropVariant($variantID, $entityID, $detachQuery){
     //drops a variant or connection between a variant and entity:
@@ -172,6 +175,7 @@ class CUDNode extends Node {
 
 
   public function determineRightsSet($requestedLevel){
+    //TODO: incomplete method
     include_once(ROOT_DIR.'\includes\user.inc.php');
     $user = new User($this->client); 
     $nodetype = '';         //TODO: determine the nodetype! Some nodes require lower level deletes than others. 
@@ -191,7 +195,6 @@ class CUDNode extends Node {
      * the dryRun argument will report how many
      * edges are to be deleted in addition to the node.
     */
-    //TODO: delete requires transactional model!
     public function delete($id, $dryRun=False){
         if($dryRun){
             $query_EdgesToBeRemoved = 'MATCH (n)-[r]-() WHERE id(n) = $nodeid RETURN count(r) as count'; 
@@ -210,9 +213,9 @@ class CUDNode extends Node {
             }
             return $returnData; 
         }else{
-            die('defer');
+            //die('defer Transactional model!');
             $query = 'MATCH (n) WHERE id(n) = $nodeid DETACH DELETE (n)';
-            $this->client->run($query, ['nodeid'=>$id]); 
+            $this->tsx->run($query, ['nodeid'=>$id]); 
         }
     }
 
