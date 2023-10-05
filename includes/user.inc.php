@@ -65,7 +65,7 @@ public function checkForSession($redir="/user/mypage.php"){
         $match = password_verify($password, $hash);
         if($match){
           //matching hash == reset max login to 0 & set session
-          $this->client->run("MATCH (u:priv_user) WHERE id(u)= $nodeId SET u.logon_attempts = 0; ");
+          $this->client->run("MATCH (u:priv_user) WHERE id(u)= $nodeId SET u.logon_attempts = 0 REMOVE u.resethash; ");
           $this->myName = $name;
           $this->myRole = $role;
           $_SESSION['username'] = $name;
@@ -82,7 +82,6 @@ public function checkForSession($redir="/user/mypage.php"){
         //account suspended
         return array(3, false);
       }
-
     }
   }
 
@@ -131,6 +130,26 @@ public function checkForSession($redir="/user/mypage.php"){
       return array('ok', 'user created');
     }
   }
+
+  public function requestPasswordReset($mail){
+    $hashSymbols = 'abcdefghijklmnopqrstuvwxyz0123456789'; 
+    $hash = '';
+    for ($i = 0; $i < 32; $i++){
+      $hash .= $hashSymbols[random_int(0, strlen($hashSymbols) - 1)];
+    }
+    $checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email SET n.resethash = $resetcode';
+    $usr = $this->client->run($checkQuery, ['email'=>$mail, 'resetcode'=>$hash]);
+    var_dump($usr); 
+    //if there is one user affected by the query: you need to initiate the mail option!
+    //TODO > make a mailer class
+    //TODO > connect userclass to mailhash-method
+    //TODO > hash is single-use only: 
+    //          needs to be deleted upon every login
+    //          AND 
+    //          Upon actual reset of a new password!
+    
+  }
+
 
 
   public function checkSession(){

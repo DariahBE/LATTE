@@ -6,6 +6,21 @@ function ignoreSuggestion(){
   toggleSlide(0);
 }
 
+function extractAnnotationPropertiesFromDOM(domBlock){
+  let prop = {}
+  for(let i = 0; i < domBlock.length; i++){
+    let box = domBlock[i].getElementsByClassName('inputelement')[0];
+    //console.log(box);
+    //todo => boxes that are checkboxes should use .checked not .value method
+    let boxName = box.name; 
+    console.log('eetse beetsy bugfixing required!');
+    let boxValue = extractValueType(box);
+    console.log(boxName, boxValue);
+    prop[boxName] = boxValue;
+  }
+  return prop;
+}
+
 
 function typeToHtml(type, defaultValue='text'){
   //converts configured type to valid html types:
@@ -46,7 +61,7 @@ function extractValueType(htmlElem){
     }else{
       return htmlElem.value;
     }
-  }else if(htmlElem.tagname === 'TEXTAREA'){
+  }else if(htmlElem.tagName === 'TEXTAREA'){
     return htmlElem.value;
   }
 }
@@ -94,9 +109,10 @@ function saveNewDB(){
       dataObject['token'] = token; 
       dataObject['texid'] = languageOptions['nodeid']; 
       dataObject['nodetype'] = etType;
-      let annotationCollectionBox = {};
+      //let annotationCollectionBox = {};
       let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
-      for(let i = 0; i < annotationProperties.length; i++){
+      let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties)
+      /*for(let i = 0; i < annotationProperties.length; i++){
         let box = annotationProperties[i].getElementsByClassName('inputelement')[0];
         //console.log(box);
         //todo => boxes that are checkboxes should use .checked not .value method
@@ -105,7 +121,7 @@ function saveNewDB(){
         let boxValue = extractValueType(box);
         console.log(boxName, boxValue);
         annotationCollectionBox[boxName] = boxValue;
-      }
+      }*/
       annotationCollectionBox[startcode] = startOfSelection;
       annotationCollectionBox[stopcode] = endOfSelection;
 
@@ -257,6 +273,57 @@ function generateHyperlink(anchor, href, classlist=[], id=false, anchormode='tex
   return a; 
 }
 
+function buildPropertyInputFieldsFor(label){
+  return new Promise((resolve, reject) => {
+    let fieldContents = []; 
+    fetch('/AJAX/get_structure.php?type='+label)
+    .then((response) => response.json())
+    .then((data) =>{
+      if(data['msg'] == 'success'){
+        var nodedata = data['data'];
+        //console.log(nodedata); 
+        Object.entries(nodedata).forEach(entry => {
+          const [key, value] = entry;
+          var humanLabel = value[0];
+          var datatype = value[1];
+          let newFieldContainer = document.createElement('div');
+          let newFieldLabel = document.createElement('label'); 
+          let newFieldInput;
+          if(datatype === 'longtext'){
+            newFieldInput = document.createElement('textarea'); 
+          }else{
+            newFieldInput = document.createElement('input'); 
+          }
+          newFieldInput.classList.add('inputelement');
+          newFieldLabel.appendChild(document.createTextNode(humanLabel+': '));
+          if(datatype === 'wikidata' &&  chosenQID !== null){
+            newFieldInput.value = chosenQID; 
+            newFieldInput.disabled = true;
+          }
+          //let nameVar = key; 
+          newFieldLabel.setAttribute('for',key);
+          newFieldInput.setAttribute('name', key); 
+          let htmlType = typeToHtml(datatype);
+          if(htmlType !== false){
+            newFieldInput.setAttribute('type', htmlType); 
+          }
+          let expectedPattern = typeToPattern(datatype);
+          if(expectedPattern){
+            newFieldInput.setAttribute('pattern', expectedPattern); 
+          }
+          newFieldInput.classList.add('attachValidator'); 
+          newFieldInput.classList.add('validateAs_'+datatype); 
+          newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
+          newFieldContainer.appendChild(newFieldLabel);
+          newFieldContainer.appendChild(newFieldInput);
+          fieldContents.push(newFieldContainer);
+        });
+      }
+      resolve (fieldContents); 
+    })
+  })
+}
+
 function showET(etdata){
   let wd = null; 
   let wdboxToDrop = document.getElementById('WDResponseTarget');
@@ -330,7 +397,9 @@ function showET(etdata){
         //make button unresponsive: 
         acceptLink.disabled = true;  
         //data to send to server
-
+        //read the content of the div that holds annotation data when connecting nodes 
+        let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
+        let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties); 
         let postData = {
           sourceNeoID: etdata[0],
           texNeoid: languageOptions['nodeid'], 
@@ -363,6 +432,40 @@ function showET(etdata){
           }
         )
       }); 
+      //calls a helper function that generates the input elements
+      //according to their type. All elements are then added to
+      //annotationProperties. 
+      annotationProperties = document.createElement('div'); 
+      annotationProperties.setAttribute('id','annotationCreationDiv');
+      annoPromptTitle = document.createElement('h3'); 
+      annoPromptTitle.appendChild(document.createTextNode('Annotation properties:')); 
+      annotationProperties.appendChild(annoPromptTitle); 
+      annoSubContent = document.createElement('div'); 
+      buildPropertyInputFieldsFor('Annotation').then((content)=>{
+        for(let i=0; i < Object.keys(content).length; i++){
+          //don't show: start, stop, selectedtext. 
+          let field = content[i]; 
+          let fieldAtr = field.getElementsByTagName('label')[0].getAttribute('for');
+          if (fieldAtr != startcode && fieldAtr != stopcode){
+            annoSubContent.appendChild(field);
+          }
+        }
+      annotationProperties.appendChild(annoSubContent);
+
+        document.getElementById('etmain').appendChild(annotationProperties); 
+        //attach validator after content is in the DOM:  
+        let validator = new Validator; 
+        validator.pickup(); 
+  
+      });
+    //make a save button to commit the data: 
+    let saveNewEntry = document.createElement('button'); 
+    saveNewEntry.setAttribute('id', 'saveEtToDb');
+    saveNewEntry.classList.add('bg-green-400', 'mx-2', 'px-2', 'my-1', 'py-1', 'rounded');
+    saveNewEntry.appendChild(document.createTextNode('Save')); 
+    saveNewEntry.addEventListener('click', function(){
+      saveNewDB();
+    });
       document.getElementById('etmain').appendChild(acceptLink); 
     }
   })

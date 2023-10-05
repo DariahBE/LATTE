@@ -81,7 +81,7 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
   <body class="bg-neutral-200 w-full">
   <?php
     $navbar = new Navbar(); 
-    echo $navbar->nav;  
+    echo $navbar->nav; 
   ?>
 
     <div class=" 2xl:w-1/2 xl:w-2/3 items-center m-auto"> 
@@ -108,6 +108,7 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
 
   </div>
   <div id="explorationDialogue" class="w-full py-4 my-4">
+    <!-- // TODO feature is pending: if there is no integration with a NER-tool, then this has to go! -->
     <h3 class="text-xl">Node Exploration: </h3>
     <!-- automatic exploration of the retrieved entities-->
     <label for="autoexplore">Fetch recognized entities: </label>

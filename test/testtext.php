@@ -16,11 +16,11 @@ $node = new Node($client);
 $annotation = new Annotation($client);
 $user = new User($client);
 
-
+/*
 $silo = new Siloconnector($client); 
 $silo->getNeighboursConnectedBy(1528); 
 $arr = $silo->makeURIs('json'); 
-
+*/
 
 /*
 $annotation->createAnnotation(78, 1561, 1568, 'c42c4c15-b546-46c5-bdc5-23ea20c7c628','85541469-4a69-4732-b8fa-7e8e32487225');
@@ -65,6 +65,8 @@ $annotation->createAnnotation(15734, 39298, 39308, 'd6576386-d819-413c-b01f-7fcc
 $annotation->createAnnotation(15734, 45997, 46008, 'd6576386-d819-413c-b01f-7fcc10a10149','6e69895b-5177-4d51-b905-352bb0cf43d3');
 $annotation->createAnnotation(15734, 50526, 50536, 'd6576386-d819-413c-b01f-7fcc10a10149','6e69895b-5177-4d51-b905-352bb0cf43d3');
 */
+
+$user->requestPasswordReset('someoneWhodoesnotexist@gmail.com'); 
 
 
 

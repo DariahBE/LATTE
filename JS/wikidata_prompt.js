@@ -30,7 +30,7 @@ function wdprompt(string, offset = 0){
     if(searchResults.length === 0){
       target.innerHTML = ''; 
       const noresultmsg = document.createElement('p'); 
-      noresultmsg.classList.add('border-t-2',' mt-1', 'pt-1');
+      noresultmsg.classList.add('border-t-2', 'mt-1', 'pt-1');
       const noresulttext = document.createTextNode('No results found for the given search query.'); 
       noresultmsg.appendChild(noresulttext); 
       /*let manualCreateButton = document.createElement('button'); 
@@ -280,15 +280,14 @@ let checkIfConnectionExists = async(qid)=>{
 
       }
       console.log(data['hits'], ' hits found; ');
-      console.log('NOTEMPTY.')
       resolve(data['hits']);
     }else{
       //let the user fill out the entity type and go from there
       //create flash box to prompt attention: 
+      //OK
       let creationElement = document.getElementById('etcreate'); 
       creationElement.classList.add('getAttention');
       loadPropertiesOfSelectedType();
-      console.log('ISEMPTY');
       resolve(0);
     }
   })
