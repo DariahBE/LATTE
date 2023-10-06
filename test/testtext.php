@@ -8,6 +8,7 @@ include_once("../config/config.inc.php");
 include_once(ROOT_DIR."\includes\getnode.inc.php");
 include_once(ROOT_DIR."\includes\annotation.inc.php");
 include_once(ROOT_DIR."\includes\user.inc.php");
+include_once(ROOT_DIR."\includes\mail.inc.php");
 include_once(ROOT_DIR."\includes\datasilo.inc.php");
 
 
@@ -15,6 +16,13 @@ include_once(ROOT_DIR."\includes\datasilo.inc.php");
 $node = new Node($client);
 $annotation = new Annotation($client);
 $user = new User($client);
+$mail = new Mail(); 
+
+$mail->setMessageContent('Hello world');
+$mail->setRecipient('frederic.pietowski@kuleuven.be');
+$mail->setSubjectOfMail('implementation test');
+$mail->send();
+
 
 /*
 $silo = new Siloconnector($client); 
@@ -66,7 +74,7 @@ $annotation->createAnnotation(15734, 45997, 46008, 'd6576386-d819-413c-b01f-7fcc
 $annotation->createAnnotation(15734, 50526, 50536, 'd6576386-d819-413c-b01f-7fcc10a10149','6e69895b-5177-4d51-b905-352bb0cf43d3');
 */
 
-$user->requestPasswordReset('someoneWhodoesnotexist@gmail.com'); 
+//$user->requestPasswordReset('someoneWhodoesnotexist@gmail.com'); 
 
 
 

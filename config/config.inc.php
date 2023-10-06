@@ -11,6 +11,17 @@ $userPaswrd = 'password';
 $databaseName = 'hipe.db'; //database hosted on the graph DB instance.
 $URI = 'neo4j://localhost:7687';
 
+/**
+ *     CONFIGURATION OF THE EMAIL CONNECTION
+ */
+$mailprotocol = 'SMTP';          // 'SMTP' or ''.
+$originEmail = 'donotreply@trismegistos.org';     //emailadress used to sent the message.
+$smtpUser = false;     //account use on the server to send the mail. set to false if there is no authentication method
+$smtpPassword = false;     //password associated to the email adress. set to false if there is no authentication method
+$smtpServer = 'smtp.kuleuven.be';
+$smtpPort = 25;     //port of the SMTP server
+
+
 
 /*map your nodes:
   arrayKeys are the NodeType:
@@ -226,16 +237,22 @@ define("ANNOSTOP", $annotationEnd);
 define("TEXNODE", $nodeAsText);
 define("ANNONODE", $nodeAsAnnotation);
 define("TEXNODETEXT", $propertyContainingText);
-#accessibility for the public:
-define('TEXTSAREPUBLIC', $textsPublic); 
-define('ENTITIESAREPUBLIC', $entityPublic); 
-
+//accessibility for the public:
+define("TEXTSAREPUBLIC", $textsPublic); 
+define("ENTITIESAREPUBLIC", $entityPublic); 
+//email config: 
+define("PROTOCOL", $mailprotocol);
+define("SMTPSERVERADR", $smtpServer);
+define("SMTPPORT", $smtpPort);
+define("SERVERORIGMAIL", $originEmail);
+define("SMTPUSER", $smtpUser);
+define("SMTPPASSWORD", $smtpPassword);
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL
 define("ENTITYEXTRACTOR", $extractor);
 
 /*PYTHON ENVIRONMENT:*/
-$pyenv = "C:/Users/u0118112/AppData/Local/Programs/Python/Python310/python.exe";
+$pyenv = "C:/Workdir/MyApps/Python/Python311/python.exe";
 $scripts = "C:/Users/u0118112/OneDrive - KU Leuven/DARIAH/2021 - 2025/webDevelopment/V1/host_scripts/";
 
 define("PYTHON", $pyenv);
