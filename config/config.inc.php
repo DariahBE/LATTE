@@ -20,6 +20,7 @@ $smtpUser = false;     //account use on the server to send the mail. set to fals
 $smtpPassword = false;     //password associated to the email adress. set to false if there is no authentication method
 $smtpServer = 'smtp.kuleuven.be';
 $smtpPort = 25;     //port of the SMTP server
+$selfSignedCertificates = true;           //set to true for servers where a self-signed SSL-certificate is being used (see Bug info described here: https://github.com/PHPMailer/PHPMailer/issues/718 )
 
 
 
@@ -247,6 +248,7 @@ define("SMTPPORT", $smtpPort);
 define("SERVERORIGMAIL", $originEmail);
 define("SMTPUSER", $smtpUser);
 define("SMTPPASSWORD", $smtpPassword);
+define("SMPTPPATCH", $selfSignedCertificates);
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL
 define("ENTITYEXTRACTOR", $extractor);

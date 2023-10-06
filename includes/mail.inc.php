@@ -60,6 +60,7 @@ class Mail{
     }*/
 
     function send(){
+        //TODO test on server
         //include("class.smtp.php"); // optional, gets called from within class.phpmailer.php if not already loaded
         $mail             = new PHPMailer();
         if($this->smtp === 'SMTP'){
@@ -69,7 +70,16 @@ class Mail{
                                                 // 1 = errors and messages
                                                 // 2 = messages only
         //$mail->SMTPAuth   = SMTPREQUIRESAUTH;                  // enable SMTP authentication
-        $mail->SMTPSecure = "ssl";                      // sets the prefix to the server
+        //$mail->SMTPSecure = "ssl";                      // sets the prefix to the server
+        if(SMPTPPATCH){
+            $mail->SMTPOptions = array(
+                'ssl' => array(
+                    'verify_peer' => false,
+                    'verify_peer_name' => false,
+                    'allow_self_signed' => true
+                )
+            );
+        }
         $mail->Host       = SMTPSERVERADR;              // sets SMTPSERVERADR as the SMTP server
         $mail->Port       = SMTPPORT;                   // set the SMTP port for the SMTPSERVERADR server
         if(SMTPUSER && SMTPPASSWORD){
