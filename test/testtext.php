@@ -85,3 +85,5 @@ $data = $annotation->getExistingAnnotationsInText(78, 'c42c4c15-b546-46c5-bdc5-2
 
 echo json_encode($data);
 ?>
+
+

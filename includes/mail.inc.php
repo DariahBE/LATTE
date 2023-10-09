@@ -12,7 +12,7 @@ class Mail{
     protected $password;
     protected $mailOrigin;
     protected $smtp;
-    public $contactAdress;
+    public $contactAddress;
     public $message; 
     public $subject; 
     public $messageIsHtml;
@@ -26,6 +26,9 @@ class Mail{
         $this->smtp = PROTOCOL;
         if(filter_var(SERVERORIGMAIL, FILTER_VALIDATE_EMAIL)){
             $this->mailOrigin = SERVERORIGMAIL; 
+        }else{
+            throw new Exception("Invalid origin email");
+            die(); 
         }
     }
 
@@ -33,7 +36,7 @@ class Mail{
         $this->messageIsHtml = $isHtml;
         $this->message = $message;
         if($isHtml){
-
+            
         }
         return true;
     }
@@ -45,7 +48,7 @@ class Mail{
 
     function setRecipient($recipient){
         if(filter_var($recipient, FILTER_VALIDATE_EMAIL)){
-            $this->contactAdress = $recipient;
+            $this->contactAddress = $recipient;
             return true;
         }else{
             throw new Exception('Invalid e-mail provided.');
@@ -57,6 +60,8 @@ class Mail{
         //TODO: required?
         $hash = ''; 
         $codes = 'abcdefghijklmnopqrstuvwxyz0123456789';
+        
+        return $hash
     }*/
 
     function send(){
@@ -98,12 +103,12 @@ class Mail{
 
         $mail->Body = strval($this->message);
 
-        $mail->AddAddress($this->contactAdress);
+        $mail->AddAddress($this->contactAddress);
 
         if(!$mail->Send()) {
-        echo "Mailer Error: " . $mail->ErrorInfo;
+            echo "Mailer Error: " . $mail->ErrorInfo;
         } else {
-        echo "Message sent!";
+            echo "Message sent!";
         }
 
     }
