@@ -29,11 +29,15 @@ class Annotation{
     return NODES['Annotation'];
   }
 
-  /*public function loadPersonalAnnotations($userid){
-    $query = ('MATCH (a:Annotation)<-[r:priv_created]-(u:priv_user) WHERE u.userid = $userid RETURN a');
-    $result = $this->client->run($query, ['userid'=>$userid]);
-    var_dump($result);
-  }*/
+  public function countPersonalAnnotations($userid){
+    $query = ('MATCH (a:Annotation)<-[r:priv_created]-(u:priv_user) WHERE u.userid = $userid RETURN COUNT(a) as annotationcount');
+    $queryPrivate = ('MATCH (a:Annotation)<-[r:priv_created]-(u:priv_user) WHERE u.userid = $userid AND a.private=True RETURN COUNT(a) as annotationcount');
+    $data = ['userid'=>$userid]; 
+    $result = $this->client->run($query, $data);
+    $resultPrivate = $this->client->run($queryPrivate, $data); 
+    //var_dump($resultPrivate);
+    return(array('public' => $result[0]['annotationcount'], 'private' => $resultPrivate[0]['annotationcount']));
+  }
 
   public function getAnnotationInfo($nodeId){
     //takes the apoc created uid of a node with label Annotation and generates all information about it.

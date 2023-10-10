@@ -623,6 +623,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .mb-0 {
   margin-bottom: 0px;
 }
+.ml-1 {
+  margin-left: 0.25rem;
+}
 .mt-4 {
   margin-top: 1rem;
 }
@@ -1899,6 +1902,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .pb-6 {
   padding-bottom: 1.5rem;
 }
+.pl-1 {
+  padding-left: 0.25rem;
+}
 .text-left {
   text-align: left;
 }
@@ -2398,6 +2404,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .content-\[\'this-is-also-valid\]-weirdly-enough\'\] {
   --tw-content: 'this-is-also-valid]-weirdly-enough';
   content: var(--tw-content);
+}
+.\[hostname\:port\] {
+  hostname: port;
 }
 .\[attr\:value\] {
   attr: value;

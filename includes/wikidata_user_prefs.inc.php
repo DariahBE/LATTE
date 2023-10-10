@@ -206,7 +206,7 @@
       //$customPreferences now has it's settings!
       }
       //end of building preferences is reached ==> store whatever comes out in cookies!
-      //this is done every time the method is called, that way unwanted/unsupported properties get filtered out in case of tampering.
+      //this is done every time the method is called, that way unwanted/unsuppor²ted properties get filtered out in case of tampering.
       $cleanedCookieString_properties = implode(',', $this->customPreferences['shownProperties']);
       $cleanedCookieString_links = implode(',', $this->customPreferences['showWikipediaLinksTo']);
       $cleanedCookieString_language = implode(',', $this->customPreferences['preferredLanguage']); 
@@ -246,22 +246,25 @@
           throw new Exception('Invalid form');
         }
         //what is chosen by the user: 
+        //idSalt: give the ID an extra salt to prevent one form activating the other when clicking on labels: 
+        $salt = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 8);
         $userChoice = $this->getUserSettingsForKey($formname);
         //generate HTML here: 
-        $output = '<div class=""><form method="POST" action="profileUpdate.php" class="grid lg:grid-cols-4 lg:gap-4 md:grid-cols-3 md:gap:3 sm:grid-cols-1 sm:gap-4" >'; 
+        $output = '<div class=""><form method="POST" action="profileUpdate.php" class="" ><div class="grid lg:grid-cols-4 lg:gap-4 md:grid-cols-3 md:gap:3 sm:grid-cols-1 sm:gap-4">'; 
         foreach($data as $key => $value){
           if(in_array($key, $userChoice)){
             $checked = ' checked '; 
           }else{
             $checked = ''; 
           }
+          $saltedKey = $salt.$key; //randomizes ID's with salted string
           $output .= 
           '<div class="">
-            <input type="checkbox" id="'.$key.'" name="'.$key.'" '.$checked.'  >
-            <label for="'.$key.'">'.$value[$position].'</label>
+            <input type="checkbox" id="'.$saltedKey.'" name="'.$key.'" '.$checked.'  >
+            <label for="'.$saltedKey.'">'.$value[$position].'</label>
           </div>'; 
         }
-        $output .= '<input class="hidden" name="form_type_setting_application_value" value="'.$formname.'"><input type="submit" value = "Submit"></form></div>';
+        $output .= '</div><div class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4 mb-3"><input class="hidden" name="form_type_setting_application_value" value="'.$formname.'"><input type="submit" value = "Submit"></form></div></div>';
         return $output; 
       }
 

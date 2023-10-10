@@ -43,34 +43,39 @@ $preferences->buildPreferences();
     </div>
     <div class="body container 2xl:w-1/2 xl:w-2/3 items-center m-auto">
       <div class="container data cols-3">
-        <div class="col">
-          <h2>My Annotations</h2>
+        <div class="col pb-1 mb-1">
+          <h2 class='text-2xl'>My annotations</h2>
           <div class="colDynamic">
             <?php
-              //$annotation->loadPersonalAnnotations($user->myId);
+              $count = $annotation->countPersonalAnnotations($user->myId);
+              $privcount = $count['private'];
+              $publcount = $count['public']; 
+              echo "<p class='ml-1 pl-1'>You have $privcount private and $publcount public annotations linked to your account.</p>"
             ?>
           </div>
         </div>
+        
 
         <div class="coll">
-          <h2>empty</h2>
+          <h2 class='text-2xl'>empty</h2>
 
         </div>
 
         <div class="coll">
-          <h2>empty</h2>
+          <h2 class='text-2xl'>empty</h2>
 
         </div>
 
       </div>
       <div class="container">
         <div>
-          <h3>Preferences</h3>
+          <h2 class='text-2xl'>Preferences</h3>
         </div>
         <div>
-          <h4>Wikidata Preferences:</h4>
+          <h3 class='text-xl'>Wikidata Preferences:</h4>
           <div id="wikidataPrefContainer">
             <p><span class='font-bold'>Labels: </span> If present in wikidata, select the properties to show:</p>
+            <p class='text-sm'>When a string is matched against a Wikidata entity, which properties (if present) need to be shown?</p>
             <div id="chosenWDProperties">
               <?php
                 echo $preferences->generateForm('properties');
@@ -78,6 +83,7 @@ $preferences->buildPreferences();
             </div>
             <br>
             <p><span class='font-bold'>Links: </span> If present, a link to the following wikipedia portals are shown: </p>
+            <p class='text-sm'>When a matching wikipedia article is found, which languages should be shown?</p>
             <div id="chosenWDLinks">
               <?php 
                 echo $preferences->generateForm('links');
@@ -85,6 +91,7 @@ $preferences->buildPreferences();
             </div>
             <br>
             <p><span class='font-bold'>Stringmatching: </span> Match strings against Wikipedia titles in the following languages: </p>
+            <p class='text-sm'>When a string is matched against Wikidata, which languages does the tool need to look for?</p>
             <div id="chosenStringMatches">
               <?php 
                 echo $preferences->generateForm('titles');
