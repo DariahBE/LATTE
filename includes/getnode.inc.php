@@ -102,7 +102,7 @@ class Node{
   }
 
   function countTextsConnectedToEntityWithID($value){
-    //this function starts from the automatically generated UUID and counts all TEXT nodes that are related to it. 
+    //this function starts from the automatically generated NEO ID and counts all TEXT nodes that are related to it. 
     $connectedAnnotations = $this->client->run('MATCH (x)--(n:Annotation) WHERE id(x) = $nodeval RETURN COUNT(n) AS result', ['nodeval'=>$value]);
     //echo $connectedAnnotations[0]->get('result');
     //var_dump($connectedAnnotations);
@@ -111,7 +111,7 @@ class Node{
     return array('Annotations'=> (int)$connectedAnnotations[0]->get('result'), 'Texts'=>(int)$connectedTexts[0]->get('result'));
   }
   function listTextsConnectedToEntityWithID($value){
-    //this function start form the automatically generated UUID and lists all TEXT nodes that are related to it.
+    //this function start form the automatically generated NEO ID and lists all TEXT nodes that are related to it.
     $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:'.TEXNODE.') WHERE id(x) = $nodeval RETURN x, t, n', ['nodeval'=>$value]);
     $result = array(
       'annotations'=>array(),
@@ -140,6 +140,9 @@ class Node{
   }
 
   function getDistinctLabels(){
+    /**   Returns a list of labels used in the database that match a key present in the NODETRANSLATIONS  constant 
+     *    matching is required to prevent leaking amount of priv_users. 
+     */
     $result = $this->client->run('MATCH (n) WHERE NOT (n:priv_user) RETURN DISTINCT labels(n) AS label');
     //return a translated dict:
     $data = array();
@@ -155,21 +158,36 @@ class Node{
     return $data;
   }
 
+  /*
+            !!!!!!!!!!!!  unused code -- consider deleting.    !!!!!!!!!!!!!!!!!!!!!!!!
+
   function getDistinctProperties($ofLabel){
-    $label = $ofLabel;//needs sanitation!!
-    $result = $this->client->run('MATCH(n:'.$label.') UNWIND keys(n) AS keys RETURN DISTINCT keys');
+    $label = $this->sanitizeInput($ofLabel);
+    $query = 'MATCH (n:'. $label .') UNWIND keys(n) AS keys RETURN DISTINCT keys';
+    $result = $this->client->run($query);
     $data = array();
     foreach($result as $record){
       $key = $record['keys'];
-      if(array_key_exists($key, NODEMODEL[$ofLabel]) && boolval(NODEMODEL[$ofLabel][$key][4])){
-        $keyTranslation = NODEMODEL[$ofLabel][$key][0];
-        array_push($data, array($key, $keyTranslation));
+      if($this->isValidKey($label, $key)){
+        $keyTranslation = NODEMODEL[$label][$key][0];
+        $data[] = array($key, $keyTranslation);
       }else{
         $keyTranslation = false;
       }
     }
     return $data;
-  } 
+  }
+  
+  function sanitizeInput($input){
+    if(array_key_exists())
+    return $input;
+  }
+  
+  function isValidKey($ofLabel, $key){
+    // Perform validation of key here
+    // ...
+    return true; // Return true if the key is valid, false otherwise
+  }*/
 
   function getConnections($label){
     $result = $this->client->run('MATCH(n:'.$label.')-[r]-() UNWIND(r) AS relations RETURN DISTINCT type(relations) AS relationtype'); 
@@ -189,6 +207,9 @@ class Node{
   }
 
   function findEntitiesWithVariantValue($entityLabel, $variantValue){
+    //looks for entities with a known label that have a connection to a given variant!
+    // TODO: confirm that the variant model will not change, here you have a hard-set 'variant' property!
+    // TODO: confirm that the Variant node label will not change. Here it is a hard-set 'node' label!!!
     $query = "OPTIONAL MATCH (e:$entityLabel)-[]-(v:Variant {variant: '$variantValue'}) RETURN e";
     $results = $this->client->run($query);
     return $results;
@@ -230,6 +251,9 @@ class Node{
   }
 
   function matchTextByNeo($id){
+    /**
+     * Returns a textnode by the given Neo ID()
+     *  */
     $neo = (int)$id; 
     //var_dump($neo); 
     $result = $this->client->run('MATCH (n:'.TEXNODE.') WHERE id(n) = $nodeval RETURN n LIMIT 1', ['nodeval'=>$neo]);
@@ -789,6 +813,15 @@ class Node{
 
     }
     return $repl; 
+  }
+
+  public function executionOfParameterizedQuery($query, $parameters){
+    /**     READ OPERATIONS
+     *  Executes a given query with parameter placeholders, then assigns the $parameters during execution.
+     *  Returns to you all rows of the query!
+     */
+    $data = $this->client->run($query, $parameters); 
+    return $data;
   }
 
 

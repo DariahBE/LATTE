@@ -23,8 +23,8 @@ if(isset($_SESSION["userid"])){
 
   //check CSRF
 
-  $tokenHandler = new CsrfTokenManager();
-  $tokenIsValid = $tokenHandler->checkToken(); 
+  $tokenManager = new CsrfTokenManager();
+  $tokenIsValid = $tokenManager->checkToken(); 
 
   if(!($tokenIsValid && $adminMode)){
     header("HTTP/1.0 403 Forbidden");
@@ -32,7 +32,7 @@ if(isset($_SESSION["userid"])){
   }else{
     // CSRF is valid and the user is an admin: 
     //revoke the CSRF it's a single use token.
-    $tokenHandler->revokeToken();
+    $tokenManager->revokeToken();
     
     switch ($_GET['operation']){
         case "noderemoval":

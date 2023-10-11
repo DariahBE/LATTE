@@ -12,8 +12,8 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
 $user = new User($client);
 $user_uuid = $user->checkSession();
 
-$token = new CsrfTokenManager; 
-$token->revokeToken();
-$token->generateToken();
-echo json_encode($token->getTokenFromSession()); 
+$tokenManager = new CsrfTokenManager; 
+$tokenManager->revokeToken();
+$tokenManager->generateToken();
+echo json_encode($tokenManager->getTokenFromSession()); 
 ?>

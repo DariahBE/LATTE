@@ -2,9 +2,9 @@
 class CsrfTokenManager {
     private $token;
 
-    public function generateToken() {
+    public function generateToken($name = 'csrf_token') {
         $this->token = bin2hex(random_bytes(32));
-        $_SESSION['csrf_token'] = $this->token;
+        $_SESSION[$name] = $this->token;
         return $this->token;
     }
 
@@ -19,14 +19,14 @@ class CsrfTokenManager {
         echo '<input type="hidden" name="csrf_token" value="' . $this->getTokenFromSession() . '">';
     }
 
-    public function revokeToken() {
-        unset($_SESSION['csrf_token']);
+    public function revokeToken($name = 'csrf_token') {
+        unset($_SESSION[$name]);
         $this->token = null;
     }
 
-    public function getTokenFromSession() {
-        if (isset($_SESSION['csrf_token'])) {
-            return $_SESSION['csrf_token'];
+    public function getTokenFromSession($name) {
+        if (isset($_SESSION[$name])) {
+            return $_SESSION[$name];
         } else {
             return null;
         }

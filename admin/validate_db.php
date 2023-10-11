@@ -48,8 +48,8 @@
     $navbar = new Navbar($adminMode); 
     echo $navbar->nav;  
     $integrity = new Integrity($client);
-    $tokenHandler = new CsrfTokenManager();
-    $token = $tokenHandler->generateToken(); 
+    $tokenManager = new CsrfTokenManager();
+    $token = $tokenManager->generateToken(); 
   ?>
   <div class="2xl:w-1/2 xl:w-2/3 items-center m-auto">
     <div>

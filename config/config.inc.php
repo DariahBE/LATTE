@@ -58,8 +58,8 @@ $nodesDatamodel = array(
     "region" => ["Regionname", "string", false, false, true], 
     "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
   ],
-  'Variant' => [
-    "variant" => ["Label", "string", false, true, true],
+  'Variant' => [                                                //'Variant' label is a required nodelabel in the current model!
+    "variant" => ["Label", "string", false, true, true],        //'variant' proprety is a required property in the current model!
     "remark" => ["Remark", "string", false, false, true]
   ],
   'See_Also' => [
@@ -268,7 +268,7 @@ define( 'ROOT_DIR', $_SERVER["DOCUMENT_ROOT"] );
   1 = invite only.
   2 = open: public frontend will allow users to regiser.
 */
-$registration_policy = 0;
+$registration_policy = 1;
 define('REGISTRATIONPOLICY', $registration_policy);
 
 ?>

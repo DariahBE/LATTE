@@ -23,6 +23,7 @@ if(isset($_SESSION["userid"])){
 
   //check CSRF
   function databaseReachable(){
+    // TODO 
     /**
      * Checks if the database is properly configured and can be accessed by the tool.
      */
@@ -32,10 +33,21 @@ if(isset($_SESSION["userid"])){
   }
 
   function pluginExists(){
+    // TODO
     /**
      * Checks if the APOC plugin can  be used by the tool. 
      */
     return 'TODO';
+  }
+
+  function checkApacheConfig(){
+    // TODO
+    /**
+     *              DEPENDENCIES IN APACHE:
+     * GD  ==> needed for image functions (e.g.: imagetruecolor()  ===> https://stackoverflow.com/questions/4560996/call-to-undefined-function-imagecreatetruecolor-error-in-php-pchart)
+     * Redirect ==> Needed for htacces redirects (e.g. 301 ) ===> ?? 
+     * 
+     */
   }
 
   function coreNodeCheck(){
@@ -97,6 +109,9 @@ if(isset($_SESSION["userid"])){
         'key_exists' => correctAnnotationSet(), 
         'start_exists' => annotationHasStart(),
         'stop_exists' => annotationHasStop(),
+    ), 
+    'Server' => array(
+      'apache_modules_enabled' => checkApacheConfig(), 
     )
     
   ));

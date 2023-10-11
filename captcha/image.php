@@ -10,7 +10,7 @@
 	$font_size = 20;
 	$font = "./verdana.ttf";
 	$font = realpath($font);
-	$chars_length = 4;
+	$chars_length = 6;
 
 	$captcha_characters = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ';
 
