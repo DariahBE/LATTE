@@ -161,12 +161,9 @@ public function checkForSession($redir="/user/mypage.php"){
     }*/
   }
 
-  public function checkUniqueness($mail, $username){
+  public function checkUniqueness($mail){
     if($mail){
-      $result = $this->client->run('MATCH (n:priv_user) WHERE n.mail= $mail',['mail'=>$mail]);
-    }
-    if($username){
-      $result = $this->client->run('MATCH (n:priv_user) WHERE n.username= $username', ['username'=>$username]);
+      $result = $this->client->run('MATCH (n:priv_user) WHERE n.mail= $mail RETURN n',['mail'=>$mail], );
     }
     if(boolval(count($result))){
       //already exists 
@@ -175,6 +172,28 @@ public function checkForSession($redir="/user/mypage.php"){
       //not taken yet!
       return true;
     }
+  }
+
+  public function autoIncrementControllableUserId(){
+    /**                     OK
+     *  looks for all priv_user nodes that already have an exisint
+     *  userid property, it finds the highest and returns that +1
+     *  if no users in the database exist: the query return NULL.
+     *  In this case the method will return 1 as next to be used 
+     *  userid
+     */
+    $query = "MATCH (n:priv_user)
+          WHERE exists(n.userid) 
+          WITH n ORDER BY n.userid DESC LIMIT 1
+          RETURN n.userid AS userid";
+    $result = $this->client->run($query);
+
+    if (boolval(count($result))){
+      $highestExistingId = $result[0]['userid']; 
+    }else{
+      $highestExistingId = 0; 
+    }  
+    return $highestExistingId +=1; 
   }
 
 }

@@ -195,20 +195,21 @@ if(REGISTRATIONPOLICY === 2){
                         </button>
                         <p class="text-gray-500">Already have an account? <a href='login.php'>Log in here</a></p>
                       </div>
-                      <?php if (REGISTRATIONPOLICY === 2) {?>
+                      <?php if (REGISTRATIONPOLICY !== 0) {?>
                       <script>
                         var elem = document.getElementById('signupbutton');
                         elem.addEventListener('click', function(){
+                          //alert('yes!');
                           var signupData = {
                             fullname: document.getElementById('fullnamefield').value,
                             email: document.getElementById('emailfield').value,
                             password: document.getElementById('passwordfield').value,
                             password_confirmation: document.getElementById('confirmPasswordfield').value, 
                             token: document.getElementById('csrfToken').value,
-                            captcha: document.getElementById('captchaSolution').value
+                            captcha: document.getElementById('captchaSolution').value,
                             invitetoken: document.getElementById('invitecode').value
                           };
-                          // console.log(signupData)
+                          console.log(signupData);
                           $.ajax({
                             type: 'POST',
                             url: 'runsignup.php',

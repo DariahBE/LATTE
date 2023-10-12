@@ -16,6 +16,9 @@ include_once(ROOT_DIR."\includes\datasilo.inc.php");
 $node = new Node($client);
 $annotation = new Annotation($client);
 $user = new User($client);
+var_dump($user->autoIncrementControllableUserId() );
+
+die();
 $mail = new Mail(); 
 
 $mail->setMessageContent('Hello world');

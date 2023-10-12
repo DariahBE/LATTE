@@ -1,4 +1,8 @@
 <?php
+/*
+
+//TODO delete ??
+
 header('Content-Type: application/json; charset=utf-8');
 
 if(isset($_GET['email'])){
@@ -21,6 +25,6 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
 $user = new User($client); 
 $user->checkUniqueness($email,$username);
 
-
+*/
 
 ?>
