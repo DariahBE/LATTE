@@ -81,10 +81,12 @@
                         </button>
                         <a class="text-gray-500" href="#!">Forgot password? <a href="pwreset.php">Perform a reset.</a>
                       </div>
-                      <?php if (REGISTRATIONPOLICY === 2) {?>
                       <div class="flex items-center justify-between pb-6">
-                        <p class="mb-0 mr-2">Don't have an account? Then <a href='register.php'>register for one</a>.</p>
+                        <?php if (REGISTRATIONPOLICY === 2) {?>
+                          <p class="mb-0 mr-2">Don't have an account? Then <a href='register.php'>register for one</a>.</p>
+                        <?php }?>
                         <script>
+                          console.log('click event');
                           var elem = document.getElementById('loginbutton');
                           elem.addEventListener('click', function(){
                             var logindata = {
@@ -108,8 +110,7 @@
                                     });
                                   }
                                 }else{ // if false, show some sort of message with errors
-                                  console.log('nope');
-                                    $("#status").text('Something went wrong.');
+                                  $("#status").text('Something went wrong.');
                                 }
                             }
                             });
@@ -117,7 +118,7 @@
                         </script>
 
                       </div>
-                      <?php }?>
+
                     </form>
                   </div>
                 </div>
