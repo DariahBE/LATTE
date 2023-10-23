@@ -1,3 +1,7 @@
+RewriteCond %{REQUEST_URI} !^/onboarding/
+RewriteCond %{REQUEST_FILENAME} !-d
+RewriteRule ^(.*)$ /onboarding/$1 [L]
+
 RewriteRule API/([\w-]+)/([^/]*)$ /API/identify.php?type=$1&uuid=$2 [NC,L]
 RewriteRule text/([^/]*)$ /text.php?texid=$1 [NC,L]
 RewriteRule URI/([^/]*)/([^/]*)$ /stable.php?type=$1&uuid=$2 [NC,L]
