@@ -19,7 +19,7 @@ $graph = new Node($client);
  *  we don't want to tell which generic 'invalid request' message
  *  is being returned.
  */
-$hashedPassword = password_hash('prevent', PASSWORD_BCRYPT);
+$hashedPassword = password_hash('prevent', PASSWORD_DEFAULT);
 password_verify('timingattack', $hashedPassword); 
 
 
@@ -128,7 +128,7 @@ if(!empty($missing)) {
 
 
     /*
-    $hashedUserPassword = password_hash($_POST['password'], PASSWORD_BCRYPT);
+    $hashedUserPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
     if(REGISTRATIONPOLICY === 1){
         //update the record: 
         $query = 'MATCH (n:priv_user) WHERE id(n) = $neoidKnown SET n.logon_attempts = 0, n.name = $setName, n.userid = $userid, n.wd_property_preferences	= "", n.wd_titlestring_preferences	= "", n.wd_wikilink_preferences	= "", n.password = $passwordhash '; 
