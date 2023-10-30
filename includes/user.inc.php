@@ -1,19 +1,42 @@
 <?php
-//everywhere the user class is needed; will require sessionscope: so load it
+//todo: 
+/**
+ *      FULL REWRITE REQUIRED FOR LOGON LOGIC NEEDS TO CONNECT THROUGH SQLITE
+ * 
+ */
+
+
+//everywhere the user class is needed; will require sessionscope: so load it from here. 
 session_start();
 /**
  *
  */
 class User{
+  protected $sqlite; 
   protected $client;
+  protected $path_to_sqlite; 
   public $neoId;
   function __construct($client)  {
-    $this->client = $client;
+    $this->path_to_sqlite = ROOT_DIR."/user/protected/users.sqlite";
+    $this->sqlite = new PDO('sqlite:' . $this->path_to_sqlite);
+    $this->sqlite->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
+    $this->client = $client;    //delete (keep until SQLITE migration is completed.)
     $this->myRole = isset($_SESSION['userrole']) ? $_SESSION['userrole'] : False;
     $this->myName = isset($_SESSION['username']) ? $_SESSION['username'] : False;
     $this->myId = isset($_SESSION['userid']) ? $_SESSION['userid'] : False;
     $this->neoId = isset($_SESSION['neoid']) ? $_SESSION['neoid'] : False;
+
   }
+
+private function guidv4(){
+  if (function_exists('com_create_guid') === true){
+      return trim(com_create_guid(), '{}');
+  }
+  $data = openssl_random_pseudo_bytes(16);
+  $data[6] = chr(ord($data[6]) & 0x0f | 0x40); // set version to 0100
+  $data[8] = chr(ord($data[8]) & 0x3f | 0x80); // set bits 6-7 to 10
+  return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
+}
 
 public function checkForSession($redir="/user/mypage.php"){
   if($this->myName){
@@ -43,20 +66,26 @@ public function checkForSession($redir="/user/mypage.php"){
     }
   }
 
+  //Converted To SQLITE == FALSE
   public function login($email, $password){
     //perform a cypher statement: user data is stored in the same database as the researchdata.
     //protected userdata is prepended with priv_
-    $query = 'MATCH (u:priv_user {mail:$email}) return u.password as pw, u.logon_attempts as att, id(u) as nodeid, u.userid as uid, u.role as role, u.name as name limit 1';
-    $result = $this->client->run($query, array('email'=>$email));
+    //$query = 'MATCH (u:priv_user {mail:$email}) return u.password as pw, u.logon_attempts as att, id(u) as nodeid, u.userid as uid, u.role as role, u.name as name limit 1';
+    //$result = $this->client->run($query, array('email'=>$email));
+    //var_dump($this->sqlite);
+    $query = "SELECT * FROM userdata WHERE userdata.mail = ? AND userdata.logon_attempts <= 5 AND userdata.token IS NULL ";
+    $stmt = $this->sqlite->prepare($query);
+    $stmt->execute(array($email));
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     if(count($result) === 0){
       // if 0 records returned = NO user with this email:
         return array(0, false);
     }else{
-      $nodeId = $result[0]['nodeid'];
-      $hash = $result[0]['pw'];
-      $attempts = $result[0]['att'];
-      $userid = $result[0]['uid'];
-      $name = $result[0]['name'];
+      $user_nodeId = $result[0]['id'];
+      $hash = $result[0]['password'];
+      $attempts = $result[0]['logon_attempts'];
+      $userid = $result[0]['uuid'];
+      $name = $result[0]['username'];
       $role = $result[0]['role'];
       //if 1 record returned: User exists;
       //check max login attempts. Only try to vallidate the login if the limit has not been exceeded:
@@ -65,17 +94,26 @@ public function checkForSession($redir="/user/mypage.php"){
         $match = password_verify($password, $hash);
         if($match){
           //matching hash == reset max login to 0 & set session
-          $this->client->run("MATCH (u:priv_user) WHERE id(u)= $nodeId SET u.logon_attempts = 0 REMOVE u.resethash; ");
+          //$this->client->run("MATCH (u:priv_user) WHERE id(u)= $nodeId SET u.logon_attempts = 0 REMOVE u.resethash; ");
+          $update_query = "UPDATE userdata SET logon_attempts = 0 WHERE id = ? ";
+          $update_data = array($user_nodeId); 
+          $stmt = $this->sqlite->prepare($update_query); 
+          $stmt->execute($update_data); 
           $this->myName = $name;
           $this->myRole = $role;
           $_SESSION['username'] = $name;
           $_SESSION['userrole'] = $role;
-          $_SESSION['userid'] = $userid;
-          $_SESSION['neoid'] = $nodeId;
-          return array(1, $userid);
+          $_SESSION['userid'] = $user_nodeId;
+          $_SESSION['user_uuid'] = $userid;
+          //$_SESSION['neoid'] = $user_nodeId;
+          return array(1, $user_nodeId);
         }else{
           //NO matching hash: increment max_login
-          $this->client->run("MATCH (u:priv_user) WHERE id(u)= $nodeId SET u.logon_attempts = u.logon_attempts+1; ");
+          $update_query = "UPDATE userdata SET logon_attempts = ? where id = ? ";
+          $update_data = array($user_nodeId); 
+          $stmt = $this->sqlite->prepare($attempts+1, $update_query); 
+          $stmt->prepare($update_query); 
+          $stmt->execute($update_data); 
           return array(2, false);
         }
       }else{
@@ -118,6 +156,7 @@ public function checkForSession($redir="/user/mypage.php"){
     }
   }
 
+  //Converted To SQLITE == FALSE
   public function createUser($mail, $name, $role, $password){
     //check if user with mail already exists:
     $checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email RETURN count(n) as count';
@@ -131,6 +170,8 @@ public function checkForSession($redir="/user/mypage.php"){
     }
   }
 
+
+  //Converted To SQLITE == FALSE
   public function requestPasswordReset($mail){
     $hashSymbols = 'abcdefghijklmnopqrstuvwxyz0123456789'; 
     $hash = '';
@@ -161,6 +202,8 @@ public function checkForSession($redir="/user/mypage.php"){
     }*/
   }
 
+
+  //Converted To SQLITE == FALSE
   public function checkUniqueness($mail){
     if($mail){
       $result = $this->client->run('MATCH (n:priv_user) WHERE n.mail= $mail RETURN n',['mail'=>$mail], );
@@ -174,6 +217,8 @@ public function checkForSession($redir="/user/mypage.php"){
     }
   }
 
+
+  //Converted To SQLITE == FALSE
   public function autoIncrementControllableUserId(){
     /**                     OK
      *  looks for all priv_user nodes that already have an exisint
