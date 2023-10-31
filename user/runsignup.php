@@ -121,7 +121,7 @@ if(!empty($missing)) {
     }
 
 
-    $newUserId = (int)$user->autoIncrementControllableUserId(); 
+    //$newUserId = (int)$user->autoIncrementControllableUserId(); 
 
     // all checks have passed: 
     // perform registration using the User class

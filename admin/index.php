@@ -34,24 +34,9 @@
   <?php
     $navbar = new Navbar($adminMode); 
     echo $navbar->nav;  
+    include_once('admin_tasks.php');
   ?>
-  <div class="2xl:w-1/2 xl:w-2/3 items-center m-auto">
-    <div>
-      <h3>User Management</h3>
-      <div>
-        <ul>
-          <li><a href="invite.php">Invite user</a></li>
-          <li><a href="remove.php">Remove user</a></li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>Database Management</h3>
-      <div>
-        <li><a href="validate_db.php">Database Validation</a></li>
-      </div>
-    </div>
-  </div>
+
 
   </body>
 </html>

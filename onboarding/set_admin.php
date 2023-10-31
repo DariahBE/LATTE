@@ -65,7 +65,8 @@
                         password TEXT,
                         role TEXT,
                         wd_property_preferences	TEXT, 
-                        token TEXT default Null
+                        token TEXT default Null?, 
+                        completed INTEGER default 0
                     )";
 
                 // Execute the query

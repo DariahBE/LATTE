@@ -38,6 +38,15 @@ private function guidv4(){
   return vsprintf('%s%s-%s-%s-%s-%s%s%s', str_split(bin2hex($data), 4));
 }
 
+private function getHash($l){
+  $hashSymbols = 'abcdefghijklmnopqrstuvwxyz0123456789'; 
+  $hash = '';
+  for ($i = 0; $i < $l; $i++){
+    $hash .= $hashSymbols[random_int(0, strlen($hashSymbols) - 1)];
+  }
+  return $hash; 
+}
+
 public function checkForSession($redir="/user/mypage.php"){
   if($this->myName){
     //var_dump($redir); 
@@ -66,14 +75,15 @@ public function checkForSession($redir="/user/mypage.php"){
     }
   }
 
-  //Converted To SQLITE == FALSE
+  //Converted To SQLITE == OK
+  //tested == OK
   public function login($email, $password){
     //perform a cypher statement: user data is stored in the same database as the researchdata.
     //protected userdata is prepended with priv_
     //$query = 'MATCH (u:priv_user {mail:$email}) return u.password as pw, u.logon_attempts as att, id(u) as nodeid, u.userid as uid, u.role as role, u.name as name limit 1';
     //$result = $this->client->run($query, array('email'=>$email));
     //var_dump($this->sqlite);
-    $query = "SELECT * FROM userdata WHERE userdata.mail = ? AND userdata.logon_attempts <= 5 AND userdata.token IS NULL ";
+    $query = "SELECT * FROM userdata WHERE userdata.mail = ? AND userdata.logon_attempts <= 5 AND userdata.token IS NULL AND userdata.completed = 1";
     $stmt = $this->sqlite->prepare($query);
     $stmt->execute(array($email));
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -110,9 +120,8 @@ public function checkForSession($redir="/user/mypage.php"){
         }else{
           //NO matching hash: increment max_login
           $update_query = "UPDATE userdata SET logon_attempts = ? where id = ? ";
-          $update_data = array($user_nodeId); 
-          $stmt = $this->sqlite->prepare($attempts+1, $update_query); 
-          $stmt->prepare($update_query); 
+          $update_data = array($attempts+=1,$user_nodeId); 
+          $stmt = $this->sqlite->prepare($update_query); 
           $stmt->execute($update_data); 
           return array(2, false);
         }
@@ -156,39 +165,64 @@ public function checkForSession($redir="/user/mypage.php"){
     }
   }
 
-  //Converted To SQLITE == FALSE
-  public function createUser($mail, $name, $role, $password){
+  //Converted To SQLITE == TRUE
+  // tested = OK
+  public function createUser($mail, $name, $role){
     //check if user with mail already exists:
-    $checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email RETURN count(n) as count';
-    $exists = $this->client->run($checkQuery, ['email'=>$mail]);
+    //$checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email RETURN count(n) as count';
+    //$exists = $this->client->run($checkQuery, ['email'=>$mail]);
+    $checkQuery = 'SELECT COUNT(mail) AS count FROM userdata WHERE userdata.mail = ?';
+    $stmt = $this->sqlite->prepare($checkQuery);
+    $stmt->execute(array($mail));
+    $exists = $stmt->fetchAll(PDO::FETCH_ASSOC);
     if ($exists[0]['count'] > 0){
       return array('error', 'user already exists.');
     }else{
-      $query = 'CREATE (n:priv_user {userid: apoc.create.uuid(), mail: $email, name: $username, role: $role, logon_attempts: 0, password: $password})';
-      $this->client->run($query, ['email'=>$mail, 'username'=>$name, 'role'=>$role, 'password'=>password_hash($password, PASSWORD_DEFAULT)]);
-      return array('ok', 'user created');
+      $uuid = $this->guidv4(); 
+      $token = $this->getHash(64);
+      $query = "INSERT INTO userdata (uuid, logon_attempts, mail, username, password, role, wd_property_preferences, token, completed) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?); ";
+      $insert_query_data = array($uuid, 0, $mail, $name, NULL, $role, NULL, $token, 0);
+
+      $sql_id = 0; 
+      try {
+        $stmt = $this->sqlite->prepare($query);
+        $stmt->execute($insert_query_data);
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        //var_dump($result); 
+        $sql_id = (int)$this->sqlite->lastInsertId(); 
+        //duplicate node into NEO4J-database. Only store the essential data in there!!
+        $query = 'CREATE (n:priv_user {userid: $uuid, name: $username, sqlite_id: $sqlite_id})';
+        $this->client->run($query, ['uuid'=>$uuid, 'username'=>$name, 'sqlite_id'=>$sql_id]);
+        return array('ok', 'user created');
+      } catch (\Throwable $th) {
+        return (array('error', 'User could not be added.')); 
+      }
     }
   }
 
 
-  //Converted To SQLITE == FALSE
+  //Converted To SQLITE == TRUE
   public function requestPasswordReset($mail){
-    $hashSymbols = 'abcdefghijklmnopqrstuvwxyz0123456789'; 
-    $hash = '';
-    for ($i = 0; $i < 32; $i++){
-      $hash .= $hashSymbols[random_int(0, strlen($hashSymbols) - 1)];
+    $hash = $this->getHash(32); 
+    //$checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email SET n.resethash = $resetcode';
+    $checkQuery = "UPDATE userdata SET token = ? WHERE userdata.mail = ? "; 
+    $checkData = array($hash, $mail); 
+    //$usr = $this->client->run($checkQuery, ['email'=>$mail, 'resetcode'=>$hash]);
+    $stmt = $this->sqlite->prepare($checkQuery);
+    $stmt->execute($checkData);
+    $result = $stmt->rowCount();
+
+    if(boolval($result)){
+      //if there is one user affected by the query: you need to initiate the mail option!
+      //TODO > make a mailer class
+      //TODO > connect userclass to mailhash-method
+      //TODO > hash is single-use only: 
+      //          needs to be deleted upon every login
+      //          AND 
+      //          Upon actual reset of a new password!
     }
-    $checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email SET n.resethash = $resetcode';
-    $usr = $this->client->run($checkQuery, ['email'=>$mail, 'resetcode'=>$hash]);
-    var_dump($usr); 
-    //if there is one user affected by the query: you need to initiate the mail option!
-    //TODO > make a mailer class
-    //TODO > connect userclass to mailhash-method
-    //TODO > hash is single-use only: 
-    //          needs to be deleted upon every login
-    //          AND 
-    //          Upon actual reset of a new password!
-    
+    return array(1, 'A reset token has been created for the associated mailaccount.'); 
   }
 
 
@@ -206,7 +240,13 @@ public function checkForSession($redir="/user/mypage.php"){
   //Converted To SQLITE == FALSE
   public function checkUniqueness($mail){
     if($mail){
-      $result = $this->client->run('MATCH (n:priv_user) WHERE n.mail= $mail RETURN n',['mail'=>$mail], );
+      $query = "SELECT count() AS count FROM userdata WHERE userdata.mail = ? "; 
+      $data = array($mail); 
+      $stmt = $this->sqlite->prepare($checkQuery);
+      $stmt->execute($checkData);
+      $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      var_dump($result); 
+      //$result = $this->client->run('MATCH (n:priv_user) WHERE n.mail= $mail RETURN n',['mail'=>$mail]);
     }
     if(boolval(count($result))){
       //already exists 
@@ -220,6 +260,7 @@ public function checkForSession($redir="/user/mypage.php"){
 
   //Converted To SQLITE == FALSE
   public function autoIncrementControllableUserId(){
+    // not required for SQLITE (PK == AI anyway!)
     /**                     OK
      *  looks for all priv_user nodes that already have an exisint
      *  userid property, it finds the highest and returns that +1

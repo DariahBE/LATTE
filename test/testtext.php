@@ -12,6 +12,19 @@ include_once(ROOT_DIR."\includes\mail.inc.php");
 include_once(ROOT_DIR."\includes\datasilo.inc.php");
 
 
+$user = new User($client); 
+
+$mail = 'frederic2_pietowski@3hotmail.com';
+$name = 'fre';
+$role = 'adm'; 
+$password = ''; 
+
+
+var_dump($user->createUser($mail, $name, $role)); 
+
+
+/*
+
 //$texid = (int)$_GET['texid'];
 $node = new Node($client);
 $annotation = new Annotation($client);
@@ -24,7 +37,7 @@ $mail = new Mail();
 $mail->setMessageContent('Hello world');
 $mail->setRecipient('frederic.pietowski@kuleuven.be');
 $mail->setSubjectOfMail('implementation test');
-$mail->send();
+$mail->send();*/
 
 
 /*
