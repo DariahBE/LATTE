@@ -1,11 +1,4 @@
 <?php
-//todo: 
-/**
- *      FULL REWRITE REQUIRED FOR LOGON LOGIC NEEDS TO CONNECT THROUGH SQLITE
- * 
- */
-
-
 //everywhere the user class is needed; will require sessionscope: so load it from here. 
 session_start();
 /**
@@ -63,7 +56,7 @@ public function checkForSession($redir="/user/mypage.php"){
       die(); 
     }
     //die("Log out completed.");
-  }
+  } 
 
   public function checkAccess($ispublic){
     if($ispublic){return $ispublic;}
@@ -180,9 +173,9 @@ public function checkForSession($redir="/user/mypage.php"){
     }else{
       $uuid = $this->guidv4(); 
       $token = $this->getHash(64);
-      $query = "INSERT INTO userdata (uuid, logon_attempts, mail, username, password, role, wd_property_preferences, token, completed) 
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?); ";
-      $insert_query_data = array($uuid, 0, $mail, $name, NULL, $role, NULL, $token, 0);
+      $query = "INSERT INTO userdata (uuid, logon_attempts, mail, username, password, role, token, completed) 
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?); ";
+      $insert_query_data = array($uuid, 0, $mail, $name, NULL, $role, $token, 0);
 
       $sql_id = 0; 
       try {

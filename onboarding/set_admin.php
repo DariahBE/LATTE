@@ -64,8 +64,11 @@
                         username TEXT,
                         password TEXT,
                         role TEXT,
-                        wd_property_preferences	TEXT, 
-                        token TEXT default Null?, 
+                        wd_property_preferences	TEXT default '', 
+                        wd_titlestring_preferences TEXT default '',
+                        wd_wikilink_preferences	TEXT default '',
+                        wd_language_preferences TEXT default '',
+                        token TEXT default Null, 
                         completed INTEGER default 0
                     )";
 
@@ -82,9 +85,9 @@
             if(!(boolval($count))){
                 try{
                     $query_load_admin = "INSERT INTO 
-                        userdata (mail, username, password, role, wd_property_preferences, uuid)
+                        userdata (mail, username, password, role, wd_property_preferences, uuid, completed)
                         VALUES 
-                        (:mail, :username, :password, 'Admin', '', :uuid) "; 
+                        (:mail, :username, :password, 'Admin', '', :uuid, 1) "; 
                     $data_admin = array(
                         'mail' => $_POST['email'], 
                         'username' => $_POST['username'], 

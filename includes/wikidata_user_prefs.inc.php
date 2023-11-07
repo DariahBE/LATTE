@@ -140,15 +140,18 @@
       //cookies are parse and checked: look for user preferences if any of the optional items are still false AND a session is set!
       if(!($this->customPreferences['shownProperties'] && $this->customPreferences['preferredLanguage'] && $this->customPreferences['showWikipediaLinksTo'] && $this->customPreferences['stringmatchWikipediaTitles'])){
         if(isset($_SESSION['userid'])){
-          $result = $this->client->run('
-            MATCH (n:priv_user) 
-            WHERE n.userid = $uid 
-            RETURN
-              n.wd_property_preferences as wd_properties,
-              n.wd_wikilink_preferences as wd_wikilinks,
-              n.wd_language_preferences as wd_pref_lang, 
-              n.wd_titlestring_preferences as wd_wikipedia_titles
-            ', array('uid'=>$_SESSION['userid']));
+          $query = "SELECT 
+            userdata.wd_property_preferences as wd_properties,
+            userdata.wd_language_preferences as wd_pref_lang,
+            userdata.wd_wikilink_preferences as wd_wikilinks, 
+            userdata.wd_titlestring_preferences as wd_wikipedia_titles
+            FROM userdata 
+            WHERE 
+            userdata.id = ? LIMIT 1;
+            ";
+          $stmt = $this->sqlite->prepare($query);
+          $stmt->execute(array($_SESSION['userid']));
+          $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
           foreach($result as $row){
             if(!$this->customPreferences['shownProperties']){
               $this->read_validate_and_store_settings($row['wd_properties'], $cookies['wd_properties']);
@@ -219,16 +222,26 @@
 
       private function getUserSettingsForKey($key){
         //no need to check here; input is validated in this->generateForm: 
-        $query = 'MATCH (n:priv_user) WHERE n.userid = $uid RETURN '; 
+        $query = 'SELECT '; 
+        //$query = 'MATCH (n:priv_user) WHERE n.userid = $uid RETURN '; 
         if($key === 'properties'){
-          $query.= ' n.wd_property_preferences ' ;  
+          //$query.= ' n.wd_property_preferences ' ;  
+          $query.= ' userdata.wd_property_preferences ' ;  
         }elseif($key === 'links'){
-          $query .= ' n.wd_wikilink_preferences ';
+          //$query .= ' n.wd_wikilink_preferences ';
+          $query .= ' userdata.wd_wikilink_preferences ';
         }elseif($key === 'titles'){
-          $query .= ' n.wd_titlestring_preferences ';
+          //$query .= ' n.wd_titlestring_preferences ';
+          $query .= ' userdata.wd_titlestring_preferences ';
+        }elseif($key === 'language'){
+          //$query .= ' n.wd_language_preferences ';
+          $query .= ' userdata.wd_language_preferences '; 
         }
-        $query .= ' AS data '; 
-        $data = $this->client->run($query, array('uid'=>$_SESSION['userid'])); 
+        $query .= ' AS data FROM userdata WHERE userdata.id = ? LIMIT 1 '; 
+        $stmt = $this->sqlite->prepare($query);
+        $stmt->execute(array($_SESSION['userid']));
+        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        //$data = $this->client->run($query, array($_SESSION['userid'])); 
         return explode(',', $data[0]['data']);
       }
 
@@ -269,6 +282,7 @@
       }
 
 
+  //BUG Saving new preferences doesnt work yet!
   public function storeProfileSettings($formname, $keys){
     //vallidate the formname: 
     $validForms = array(
@@ -285,13 +299,21 @@
       }
     }
     //if one or more valid keys are detected: 
+      //TODO: update new user data model!
     if(count($validatedKeys)>0){
       //update the settings: 
       $userid = $_SESSION['userid'];
       $validData = implode(',',$validatedKeys); 
-      $updateWDsettingsQuery = 'MATCH (n:priv_user) WHERE n.userid = $uid SET n.'.$validForms[$formname][1].' = $prefString  return n; ';
-      $updateAction = $this->client->run($updateWDsettingsQuery, array('uid'=>$userid, 'prefString'=>$validData)); 
-      if(boolval($updateAction->getSummary()['counters']['propertiesSet'])){
+      $updateWDsettingsQuery = 'UPDATE userdata SET userdata.'.$validForms[$formname][1].' = ?  WHERE userdata.id = ? LIMIT 1 ';
+      //$updateWDsettingsQuery = 'MATCH (n:priv_user) WHERE n.userid = $uid SET n.'.$validForms[$formname][1].' = $prefString  return n; ';
+      //$updateAction = $this->client->run($updateWDsettingsQuery, array('uid'=>$userid, 'prefString'=>$validData)); 
+      var_dump($updateWDsettingsQuery);
+      var_dump(array($validData, $userid)); 
+      $stmt = $this->sqlite->prepare($updateWDsettingsQuery);
+      $stmt->execute(array($validData, $userid));
+      //$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
+      if($stmt->rowCount()===1){
         return True; 
       }
     }
