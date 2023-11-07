@@ -304,11 +304,9 @@
       //update the settings: 
       $userid = $_SESSION['userid'];
       $validData = implode(',',$validatedKeys); 
-      $updateWDsettingsQuery = 'UPDATE userdata SET userdata.'.$validForms[$formname][1].' = ?  WHERE userdata.id = ? LIMIT 1 ';
+      $updateWDsettingsQuery = 'UPDATE userdata SET '.$validForms[$formname][1].' = ?  WHERE id = ? ';
       //$updateWDsettingsQuery = 'MATCH (n:priv_user) WHERE n.userid = $uid SET n.'.$validForms[$formname][1].' = $prefString  return n; ';
       //$updateAction = $this->client->run($updateWDsettingsQuery, array('uid'=>$userid, 'prefString'=>$validData)); 
-      var_dump($updateWDsettingsQuery);
-      var_dump(array($validData, $userid)); 
       $stmt = $this->sqlite->prepare($updateWDsettingsQuery);
       $stmt->execute(array($validData, $userid));
       //$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
