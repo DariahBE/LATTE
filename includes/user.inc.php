@@ -97,7 +97,8 @@ public function checkForSession($redir="/user/mypage.php"){
         $match = password_verify($password, $hash);
         if($match){
           //matching hash == reset max login to 0 & set session
-          //$this->client->run("MATCH (u:priv_user) WHERE id(u)= $nodeId SET u.logon_attempts = 0 REMOVE u.resethash; ");
+          $result_from_neo = $this->client->run('MATCH (u:priv_user) WHERE u.userid = $userid return id(u) as user_neo_id; ', ['userid'=> $user_nodeId]);
+          $user_neo_id = $result_from_neo[0]['user_neo_id']; 
           $update_query = "UPDATE userdata SET logon_attempts = 0 WHERE id = ? ";
           $update_data = array($user_nodeId); 
           $stmt = $this->sqlite->prepare($update_query); 
@@ -108,7 +109,7 @@ public function checkForSession($redir="/user/mypage.php"){
           $_SESSION['userrole'] = $role;
           $_SESSION['userid'] = $user_nodeId;
           $_SESSION['user_uuid'] = $userid;
-          //$_SESSION['neoid'] = $user_nodeId;
+          $_SESSION['neoid'] = $user_neo_id;
           return array(1, $user_nodeId);
         }else{
           //NO matching hash: increment max_login

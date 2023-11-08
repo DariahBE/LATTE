@@ -212,7 +212,7 @@ let checkIfConnectionExists = async(qid)=>{
   .then((data) => {
     console.log(data);
     let hits = data['data'];
-    console.log('testdata still present in code!!'); 
+    console.warn('testdata still present in code!!'); 
     hits.push(148);
     hits.push(146);
     let j = 0; 
@@ -281,6 +281,7 @@ let checkIfConnectionExists = async(qid)=>{
       }
       console.log(data['hits'], ' hits found; ');
       resolve(data['hits']);
+      alert('endofblock reached');
     }else{
       //let the user fill out the entity type and go from there
       //create flash box to prompt attention: 

@@ -282,7 +282,6 @@
       }
 
 
-  //BUG Saving new preferences doesnt work yet!
   public function storeProfileSettings($formname, $keys){
     //vallidate the formname: 
     $validForms = array(
@@ -299,7 +298,6 @@
       }
     }
     //if one or more valid keys are detected: 
-      //TODO: update new user data model!
     if(count($validatedKeys)>0){
       //update the settings: 
       $userid = $_SESSION['userid'];
@@ -344,7 +342,6 @@
       }
 
     }
-
     return $outputdictionary;
   }
 

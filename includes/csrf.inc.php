@@ -24,7 +24,7 @@ class CsrfTokenManager {
         $this->token = null;
     }
 
-    public function getTokenFromSession($name) {
+    public function getTokenFromSession($name = 'csrf_token') {
         if (isset($_SESSION[$name])) {
             return $_SESSION[$name];
         } else {

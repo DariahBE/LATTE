@@ -96,6 +96,8 @@
     }
     //connect variant spellings to the $createdentity:
     //user ID is not connected to variants.
+    //Connect the variants: 
+    //TODO  test variant creation! ==> Are not being created at the moment: //BUG!!
     foreach($variants as $variant){
         try{
             $node->createVariantRelation($variant, $createdEntity); 
@@ -131,9 +133,10 @@
         $node->rollbackTransaction();
         die('rollback of changes: annotation ID error');
     }
+
     $node->commitTransaction();
     // if database commit was successfull: revoke the token. 
     $tokenManager->revokeToken(); 
     echo json_encode($node); 
-    die('token revoked');
+    //die('token revoked');
 ?>

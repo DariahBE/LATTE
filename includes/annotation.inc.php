@@ -15,7 +15,7 @@
 
 class Annotation{
   private $client;
-  private $protectedKeys = array('starts', 'stops', 'uid', 'creator');
+  private $protectedKeys = array(ANNOSTART, ANNOSTOP, 'uid', 'creator');
   function __construct($client){
     $this->client = $client;
   }
@@ -59,7 +59,7 @@ class Annotation{
       'annotation' =>$resultEntity[0]->get('a'),
       'annotationModel' => $this->getAnnotationModel(),
       'entity'=>$resultEntity[0]->get('b'),
-    );
+    ); 
   }
 
   public function createAnnotation($texid, $start, $stop, $user, $targetNode, $hidden=false){
