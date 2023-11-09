@@ -1,3 +1,6 @@
+/*
+// Code out of date, not needed anymore
+
 function loadSigmaModules(){
 
 }
@@ -48,3 +51,4 @@ function generateNodeOverlayWindow(e){
 $(document).ready(function(){
   loadSigmaModules();
 });
+*/

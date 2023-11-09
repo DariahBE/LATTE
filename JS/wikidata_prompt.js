@@ -13,12 +13,8 @@ function wdprompt(string, offset = 0){
     var extra2 = ''; 
   }
 
-  console.log(language); 
   let by = 10; 
-  console.log("wdprompt function needs nan extra dropdown for language swapping"); 
-  console.log('use the optional &uselang='+language+' feature to show hits in the language you used to search'); 
   let promptURL = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search="+string+"&origin=*&format=json&errorformat=plaintext&type=item&language="+language+extra1+"&limit="+by+"&continue="+offset+extra2; 
-  console.log(promptURL); 
   const target = document.getElementById('wdpromptBox');
   let table = document.createElement('table'); 
   table.classList.add('table-auto'); 
@@ -86,24 +82,29 @@ function wdprompt(string, offset = 0){
     navigateReply.classList.add('flex', 'flex-row'); 
     let nextOffset, prevOffset; 
     //    prev page offset:
-    if (offset != 0){
-      prevOffset = offset-by; 
-      let prevPage = document.createElement('p');
-      prevPage.appendChild(document.createTextNode('<<')); 
-      prevPage.classList.add('font-bold', 'rounded-full', 'text-2xl', 'bg-sky-400', 'text-center'); 
-      prevPage.addEventListener('click', function(){wdprompt(string, prevOffset)}); 
-      navigateReply.appendChild(prevPage); 
+
+    prevOffset = offset-by; 
+    let prevPage = document.createElement('p');
+    prevPage.appendChild(document.createTextNode('<<')); 
+    prevPage.classList.add('font-bold', 'rounded-lg', 'text-2xl', 'bg-green-400', 'text-center'); 
+    if (offset === 0){
+      prevPage.classList.add('invisible');
     }
+    prevPage.addEventListener('click', function(){wdprompt(string, prevOffset)}); 
+    navigateReply.appendChild(prevPage); 
     //    next page offset: 
     nextOffset = data['search-continue']; 
-    if(typeof nextOffset !== "undefined"){
-      //there's more than 'by'-results;
-      let nextPage = document.createElement('p');
-      nextPage.appendChild(document.createTextNode('>>')); 
-      nextPage.classList.add('font-bold', 'rounded-full', 'text-2xl', 'bg-sky-400', 'text-center');
-      nextPage.addEventListener('click', function(){wdprompt(string, nextOffset)});
-      navigateReply.appendChild(nextPage); 
+
+
+    let nextPage = document.createElement('p');
+    nextPage.appendChild(document.createTextNode('>>')); 
+    nextPage.classList.add('font-bold', 'rounded-lg', 'text-2xl', 'bg-green-400', 'text-center');
+    nextPage.addEventListener('click', function(){wdprompt(string, nextOffset)});
+    if(typeof nextOffset === "undefined"){
+      //end of results;
+      nextPage.classList.add('invisible');
     }
+    navigateReply.appendChild(nextPage); 
     target.innerHTML = ''; 
     target.appendChild(navigateReply); 
     target.appendChild(table);
@@ -119,6 +120,7 @@ function acceptQID(qid = -1){
   */
   if (qid !== -1){
     document.getElementById('embeddedWDConfirmationGroup').remove();
+    document.getElementById('wdsearchpromptbox').remove(); 
     //BUG10 FIX: async/await promise here. 
     checkIfConnectionExists(qid)
     .then((data)=>{
@@ -156,7 +158,7 @@ function pickThisQID(qid){
   let acceptText = document.createTextNode('Accept');
   rejectButton.addEventListener('click', function(){
     wd = null; //destroy wikidataObject
-    console.log(wd); 
+    console.log('rejected'); 
   });
   acceptButton.addEventListener('click', function(){
     acceptQID(qid);
@@ -281,7 +283,6 @@ let checkIfConnectionExists = async(qid)=>{
       }
       console.log(data['hits'], ' hits found; ');
       resolve(data['hits']);
-      alert('endofblock reached');
     }else{
       //let the user fill out the entity type and go from there
       //create flash box to prompt attention: 

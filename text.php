@@ -173,11 +173,14 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
       <div class="meta" id="topmeta">
         <!--controlling options for WD string-lookups-->
         <div id='wdoptionsblock'>
-          <p class='font-bold'>entity lookup options:</p>
+          <div class="flex">
+            <img src="/images/wikidatawiki_small.png" class="h-auto max-h-10 rounded-r-lg p-1">
+            <p class='font-bold'>entity lookup options:</p>
+          </div>
           <select id='wdlookuplanguage'></select>
           <br>
           <input name='returnConstraint' type='checkbox' id='returnSameAsLookup'></input>
-          <label for='returnConstraint'>Limit results to lookuplanguage</label>
+          <label for='returnConstraint'>Prioritize results in lookuplanguage</label>
           <br>
           <input name='lookupConstraint' type='checkbox' id='strictLookup'></input>
           <label for='lookupConstraint'>Use language fallback</label>

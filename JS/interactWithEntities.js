@@ -105,9 +105,8 @@ function showdata(data){
   var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
   function writeField(key, data, protected){
-    console.log(key, data, protected);
+    console.log('Method A', key, data, protected);
     //if(!(decideOnEdit(protected, rights))){
-      console.log('A');
       var field = document.createElement('p');
       var fieldkey = document.createElement('span');
       fieldkey.classList.add('labelKey', 'font-bold');
@@ -240,9 +239,9 @@ function loadAnnotationData(){
   var annotationID = eventsource.dataset.annotation;
   getInfoFromBackend("/AJAX/resolve_annotation.php?annotation="+annotationID)
     .then((data)=>{
-      console.log('interactWithEntities.js: rewrite loadAnnotationData, handeError & showdata functions'); 
+      /*console.log('interactWithEntities.js: rewrite loadAnnotationData, handeError & showdata functions'); 
       console.warn('showdata data:'); 
-      console.log(data); 
+      console.log(data); */
       showdata(data);
     })
     //.catch(err => handleError() );

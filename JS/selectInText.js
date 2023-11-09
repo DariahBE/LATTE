@@ -527,7 +527,7 @@ function triggerSidePanelAction(entityData){
   const targetOfInfo = document.getElementById('slideoverDynamicContent'); 
   targetOfInfo.innerHTML = ''; 
   //backend returned one or more nodes that have  spellingvariant/label matching the request: 
-  console.warn('BUG10: triggerSidePanelAction function');
+ // console.warn('BUG10: triggerSidePanelAction function');
   if(entityData['nodes'].length){
     //create a title that show the information about the matching entities: 
     let topbox = document.createElement('div'); 
@@ -704,7 +704,7 @@ function triggerSidePanelAction(entityData){
     var entityTypeDiv = document.createElement('div');
     var entityTypePrompt = document.createElement('p');
     entityTypePrompt.classList.add('text-lg', 'p-2', 'm-2'); 
-    console.warn('Related to BUG10: race condition.');
+    //console.warn('Related to BUG10: race condition.');
     entityTypePrompt.appendChild(document.createTextNode('1) Set entity type: ')); 
     entityTypeDiv.appendChild(entityTypePrompt); 
     var setEntityType = document.createElement('select'); 
@@ -824,11 +824,26 @@ function triggerSidePanelAction(entityData){
     wikidataQLabel.setAttribute('readonly', true);
     wikidataQLabel.setAttribute('id', 'chosenQID');
     var wikidataPromptMainbox = document.createElement('div');
+    wikidataPromptMainbox.setAttribute('id', 'wdsearchpromptbox');
+    wikidataPromptMainbox.classList.add('my-2', 'py-2', 'border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
+    let wikidataPromptExplain = document.createElement('p');
+    wikidataPromptExplain.classList.add('text-sm', 'w-full', 'text-center');
+    wikidataPromptExplain.appendChild(document.createTextNode('Wikidata lookup using this keyword: ')); 
+    wikidataPromptMainbox.appendChild(wikidataPromptExplain); 
+    let wikidataLogoBox = document.createElement('img');
+    wikidataLogoBox.setAttribute('src', '/images/wikidatawiki_small.png');
+    wikidataLogoBox.classList.add('h-auto', 'max-h-10', 'rounded-r-lg', 'p-1');
+    let wikidataRowBox = document.createElement('div'); 
+    wikidataRowBox.classList.add('flex');
+    wikidataRowBox.appendChild(wikidataLogoBox); 
     var wikidataInputBox = document.createElement('input');
     wikidataInputBox.setAttribute('id', 'wikidataInputPrompter');
+    wikidataInputBox.classList.add('border','border-gray-300', 'rounded-md', 'shadow-sm', 'focus:outline-none', 'focus:border-indigo-500');
     wikidataInputBox.value = selectedString;
+    wikidataRowBox.appendChild(wikidataInputBox); 
     var searchButtonForWDPrompt = document.createElement('button'); 
-    var searchButtonForWDPromptText = document.createTextNode('Search!'); 
+    var searchButtonForWDPromptText = document.createTextNode('Search'); 
+    searchButtonForWDPrompt.classList.add('bg-green-500', 'border-solid', 'hover:bg-green-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold'); 
     searchButtonForWDPrompt.appendChild(searchButtonForWDPromptText); 
     searchButtonForWDPrompt.addEventListener('click', function(){
       //console.log('make function call get the preferred lookup language!'); 
@@ -838,7 +853,7 @@ function triggerSidePanelAction(entityData){
     var wikidataResultsBox = document.createElement('div');
     wikidataResultsBox.setAttribute('id', 'wdpromptBox');
     wikidataPromptMainbox.appendChild(wikidataQLabel);
-    wikidataPromptMainbox.appendChild(wikidataInputBox);
+    wikidataPromptMainbox.appendChild(wikidataRowBox);
     wikidataPromptMainbox.appendChild(searchButtonForWDPrompt);
     wikidataPromptMainbox.appendChild(wikidataResultsBox); 
 
