@@ -184,7 +184,6 @@ class wikibaseEntry {
 
 
   async getWikidata(){
-    //console.log(this.searchMode);
     let url = '';
     if (this.searchMode === 'qid'){
       url = wdk.getEntities({
@@ -213,25 +212,18 @@ class wikibaseEntry {
   }
     this.unprocessed = null; 
     return await fetch(url)
-      //.then(response => this.unprocessed = response.json())
       .then(response => response.json())
       // Turns the response in an array of simplified entities
       .then(response => {if(response['error']){this.valid=false; return null;}else{return response;}})
-      //.then(this.unprocessed = response)
-      //.then(response => console.log(response))
-      //.then(wdk.parse.wd.entities)                                //put this back if it does not work!
       .then(response => this.rawData = response);
-      //.then(response => this.unprocessed = response)
-      //;
-      //.then(whatever=> this.unprocessed = whatever); 
   }
 
 
-  classify(){
+ /* classify(){
+      //classification not required. 
     //if you keep this function
     // convert this.rawData to this.parsedData 
     // !!!!
-    console.warn('is classification needed? ');
     this.classifier = {
       'PPL' : [], 
       'PLC' : [], 
@@ -276,7 +268,7 @@ class wikibaseEntry {
       }
     });
     //console.log(this.classifier);
-  }
+  }*/
   renderEntities(qid){
     //with all the entities categorized by the classify() call:
     //show them in the DOM. Use user preferences and highest probability to display ets:
@@ -305,12 +297,6 @@ class wikibaseEntry {
           }else if(wdProcessAs === 'img'){
             this.displayImageData(wdPropLabel,wikidata_response, qid, e);
           }else if(wdProcessAs === 'str'){
-            //console.log('wdresp!!', wdPropLabel); 
-            //console.log(this.unprocessed);
-            //console.log(this.unprocessed['entities']);//[qid]['claims'][wdPropLabel]); 
-            //console.log(this.unprocessed['entities'][qid]);//['claims'][wdPropLabel]); 
-            //console.log(this.unprocessed['entities'][qid]['claims']);//[wdPropLabel]); 
-            //console.log(this.unprocessed['entities'][qid]['claims'][e]); 
             this.displayStringData(wdPropLabel, wikidata_response, qid, e);
           }
         }
@@ -319,7 +305,6 @@ class wikibaseEntry {
       Object.keys(this.parsedData[qid].sitelinks).forEach(key => {
         let sitelinkValue = this.parsedData[qid].sitelinks[key]; 
         // if key is also a key in : showWikipediaLinksTo:: 
-        //console.log(wdProperties['showWikipediaLinksTo']); 
         if(key in wdProperties['showWikipediaLinksTo']){
           //use sitelinkValue to generate a link to wikipedia: 
           let wikipediaURI = wdProperties['showWikipediaLinksTo'][key][0]+sitelinkValue; 
@@ -361,7 +346,6 @@ class wikibaseEntry {
           categoryTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');
           dataDivCategory.appendChild(categoryTitle); 
           for(var n = 0; n < value.length; n++){
-            //console.log(value[n]);
             dataDivCategory.appendChild(value[n]); 
           }
           dataDivMain.appendChild(dataDivCategory); 
@@ -525,16 +509,11 @@ class wikibaseEntry {
       if('upperBound' in preferredProperty['mainsnak']['datavalue']['value']){
         upperbound = preferredProperty['mainsnak']['datavalue']['value']['upperBound']; 
       }
-      //console.log(lowerbound, upperbound, propertyUnit);
-      //console.log(preferredProperty['mainsnak']['datavalue']); 
-      //console.log('QT', property, label, value); 
-      //console.log(property, propertyset);
       //Displaystrategy: 
       // Bounded data (lower/upper) is no showen at the moment.
       // if propertyUnit === URL to wikidata with Q-ID ==> fetch it (return promise ) (check using regex)
       // if not URL ==> just show it in DOM. 
       //test pattern:
-      //console.log(propertyUnit);
       if(/^(http.*wikidata.org\/entity\/Q[0-9]*)$/.test(propertyUnit)){
         //true: so matching pattern, but URL does not pass CORS: modify URL. 
         let Qmatch = propertyUnit.match(/Q[0-9]*/); 
@@ -544,7 +523,6 @@ class wikibaseEntry {
         .then(response => {
           //get unit symbol: property P5061.
           //if missing ==> use label. 
-          //console.log(response); 
           let labelList = response['entities'][Qmatch]['labels'];
           let claimslist = response['entities'][Qmatch]['claims'];
           //get claim P5061: 

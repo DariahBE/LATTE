@@ -110,7 +110,7 @@ class Annotation{
       $query = 'MATCH (t:'.TEXNODE.'),(e)
       WHERE id(t) = $texid AND id(e) = $etid 
       CREATE
-        (a:Annotation {starts: $startnumb, stops: $endnumb, uid: apoc.create.uuid(), priv_creator: $creatorid } ),
+        (a:'.ANNONODE.' {'.ANNOSTART.': $startnumb, '.ANNOSTOP.': $endnumb, uid: apoc.create.uuid(), priv_creator: $creatorid } ),
         (a)<-[r1:contains]-(t),
         (a)-[r2:references]->(e)
       RETURN a,t,e,r1,r2,id(a)';
@@ -124,7 +124,7 @@ class Annotation{
 
       //connect (a) to $user
       $annotationNeoID = $annotdata[0]['id(a)']; 
-      $query2 = 'MATCH (u:priv_user), (a:Annotation)
+      $query2 = 'MATCH (u:priv_user), (a:'.ANNONODE.')
       WHERE id(u) = $userid AND id(a) = $annotationid
       CREATE (u)-[r:priv_created]->(a)
       RETURN u,r'; 

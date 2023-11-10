@@ -16,6 +16,7 @@ function wdprompt(string, offset = 0){
   let by = 10; 
   let promptURL = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search="+string+"&origin=*&format=json&errorformat=plaintext&type=item&language="+language+extra1+"&limit="+by+"&continue="+offset+extra2; 
   const target = document.getElementById('wdpromptBox');
+  target.classList.remove('hidden');
   let table = document.createElement('table'); 
   table.classList.add('table-auto'); 
   fetch(promptURL)
@@ -121,14 +122,10 @@ function acceptQID(qid = -1){
   if (qid !== -1){
     document.getElementById('embeddedWDConfirmationGroup').remove();
     document.getElementById('wdsearchpromptbox').remove(); 
-    //BUG10 FIX: async/await promise here. 
     checkIfConnectionExists(qid)
     .then((data)=>{
-      //console.warn('checkIfConnectionExists needs to be a promise to fix BUG10!!');
-      //console.log(data);
       if (data==0){
         let baseElem = document.getElementById('embeddedET'); 
-        //console.warn('related to BUG10: when using the SHOWHIT call; baseElem gets removed at a later stage causing the UI to blink!'); 
         baseElem.classList.remove('hidden'); 
         let creationElement = document.getElementById('etcreate'); 
         creationElement.classList.add('getAttention');
@@ -143,7 +140,7 @@ function pickThisQID(qid){
   chosenQID = qid;
   //console.log(qid); 
   //clear the promptbox:
-  document.getElementById('wdpromptBox').remove();
+  document.getElementById('wdpromptBox').classList.add('hidden');
   //load the wikidata.js class and set qidmode on qid!
   var wd = new wikibaseEntry(qid, wdProperties, 'slideover', 'qid');
   wd.getWikidata()
@@ -158,7 +155,9 @@ function pickThisQID(qid){
   let acceptText = document.createTextNode('Accept');
   rejectButton.addEventListener('click', function(){
     wd = null; //destroy wikidataObject
-    console.log('rejected'); 
+    wdprompt(document.getElementById('wikidataInputPrompter').value, 0);
+    document.getElementById('embeddedWDConfirmationGroup').remove();
+    document.getElementById('WDResponseTarget').remove();
   });
   acceptButton.addEventListener('click', function(){
     acceptQID(qid);
@@ -259,7 +258,7 @@ let checkIfConnectionExists = async(qid)=>{
             navigateState.innerHTML = '';
             navigateState.appendChild(document.createTextNode((j+1)+' of '+hits.length));
             paginationIndicator(j);
-            showHit(hits[j]); 
+            showHit(hits[j]);
           }
         })
         navigateBack.addEventListener('click', function(){
