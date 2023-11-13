@@ -38,8 +38,9 @@ foreach ($annotationInformation['properties'] as $key => $value) {
 }
 
 //Find the connecting entity that is linked to the annotation and labelvariants associated with this entity: 
-$etData = $graph->findEntityAndVariants($annotationId);
-$formattedResponse['variants'][]=$etData['labelVariants']; 
+$etData = $graph->findEntity($annotationId);
+$varData = $graph->findVariants($etData['entity']['neoID']);
+$formattedResponse['variants'][]=$varData; 
 $formattedResponse['entity'][]=$etData['entity'];
 
 echo json_encode($formattedResponse);

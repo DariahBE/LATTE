@@ -554,7 +554,8 @@ class Node{
   }
 
 
-  public function findEntityAndVariants($id){
+  public function findEntity($id){
+    //move variant code to seperate method!
     $result = array('entity'=> array(), 'labelVariants'=>array());
     $query = 'match(n)-[r:references]-(p) where n.uid = $graphid return p, id(p) as entityID'; 
     $data = $this->client->run($query, ['graphid'=>$id]); 
@@ -577,6 +578,7 @@ class Node{
       }
       $result['entity']['stableURI'] = $etStableUri; 
     }
+    /*
     $query2 = 'match(v)-[r:same_as]-(n) where id(n) = $entityid return v' ;
     $data2 = $this->client->run($query2, ['entityid'=> $data[0]['entityID']]);
     $variantModel = NODEMODEL['Variant'];
@@ -588,8 +590,29 @@ class Node{
           $result['labelVariants'][] = $showAs;
         }
       }
-    }
+    }*/
     return $result; 
+  }
+
+
+
+  public function findVariants($id){
+    /**
+     *      PROBLEM > Solved
+     * findvariants should return the variant property. This is a required property, so it can be hardcoded.
+     * also return the NEOID
+     * and the uid. 
+     */
+    //finds the variants of a node when given the internal NEO ID: 
+    $result = array();
+    $query2 = 'match(v)-[r:same_as]-(n) where id(n) = $entityid return v' ;
+    $data2 = $this->client->run($query2, ['entityid'=> (int)$id]);
+    foreach($data2 as $labelvariant){
+      $variantRow = $labelvariant['v'];
+      $rowProperties = $variantRow['properties']; 
+      $result['labelVariants'][] = ['Label', $rowProperties['variant'], $rowProperties['uid']]; 
+    }
+    return $result;
   }
 
   public function checkUniqueness($label, $property, $value, $castTo){

@@ -1,5 +1,5 @@
 let spellingVariantTracker = [];
-function binVariant(elem){
+function binVariant(e){
     //gets the attribute of e: sends XHR request to delete. 
     console.log(e); 
     const DOMElement = e.parentElement; 
@@ -20,13 +20,20 @@ function binVariant(elem){
 }
 
 function saveNewVariant(){
+
+}
+
+function neoVarsToDom(variants){
+    //if there are known variant spellings in the DOM: put them in the boxes at load. 
     
 }
 
-function displayET_Variant(data){
+function displayET_variant(data){
+    // TODO: process data: ==> use neoVarsToDom!
+    console.warn('DATA given to displayET_variant: ', data);
     //where to put the box that interacts with variantdata: 
-    console.warn('MISSING TARGET DECLARATION IN et_variants.js'); 
-    const target = document.getElementById('something'); 
+    //etVariantsTarget is the only ID you should use to display variant collection. 
+    const target = document.getElementById('etVariantsTarget'); 
     spellingVariantTracker = [];
     var spellingVariantMainBox = document.createElement('div');
     spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
@@ -66,6 +73,6 @@ function displayET_Variant(data){
     spellingVariantMainBox.appendChild(spellingVariantCreation);
     spellingVariantMainBox.appendChild(addToStorageBox);
     spellingVariantMainBox.appendChild(spellingVariantSubBox);
-    console.log(spellingVariantMainBox); 
+    target.appendChild(spellingVariantMainBox); 
     return spellingVariantMainBox;
 }

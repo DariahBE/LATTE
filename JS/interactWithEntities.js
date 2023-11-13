@@ -98,6 +98,10 @@ function showdata(data){
   statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
   annotationTarget.innerHTML = '';
   gateWay.appendChild(statsTarget);
+  var variantsTarget = document.createElement('div'); 
+  variantsTarget.setAttribute('id', 'etVariantsTarget')
+  variantsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
+  gateWay.appendChild(variantsTarget); 
   var authorData = data['author'];
   var annotationData = data['annotation']['properties'];
   //sends the node neoID (unstable, do not use for identifying purposes on exposed API's):
@@ -201,7 +205,7 @@ function showdata(data){
   gateWay.appendChild(createStableLinkingBlock(data['entity'][0]['neoID'], etStable)); 
   annotationTarget.appendChild(gateWay);
   //display the variant data: 
-  displayET_Variant(data['variants']); 
+  displayET_variant(data['variants']); 
   //With the type known: look up if there's a wikidata attribute: 
   var qidArr = data['entity'][0]['properties'].filter(ar => ar[2]== 'wikidata');
   if (qidArr.length === 1){
@@ -257,10 +261,12 @@ function addInteractionToEntities(){
   }
 };
 
-
+/*
 //global scope
-let spellingVariantTracker = [];
+//let spellingVariantTracker = [];
 function binVariant(e){
+  // Part of BUG 9 patch: 
+  // code moved to et_variants.js
   //gets the attribute of e: sends XHR request to delete. 
   console.log(e); 
   const DOMElement = e.parentElement; 
@@ -280,7 +286,7 @@ function binVariant(e){
   //tehn removes it from the DOM: 
   e.parentElement.remove();
 }
-
+*/
 
 // debug process of BUG9 ==> code disabled 
 // should be moved to /JS/et_variants.js
