@@ -25,7 +25,8 @@ function saveNewVariant(){
 
 function neoVarsToDom(variants){
     //if there are known variant spellings in the DOM: put them in the boxes at load. 
-    
+    //
+
 }
 
 function displayET_variant(data){

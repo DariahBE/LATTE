@@ -605,12 +605,13 @@ class Node{
      */
     //finds the variants of a node when given the internal NEO ID: 
     $result = array();
-    $query2 = 'match(v)-[r:same_as]-(n) where id(n) = $entityid return v' ;
+    $query2 = 'match(v)-[r:same_as]-(n) where id(n) = $entityid return v, id(v) as neoid' ;
     $data2 = $this->client->run($query2, ['entityid'=> (int)$id]);
     foreach($data2 as $labelvariant){
       $variantRow = $labelvariant['v'];
+      $neoID = (int)$labelvariant['neoid']; 
       $rowProperties = $variantRow['properties']; 
-      $result['labelVariants'][] = ['Label', $rowProperties['variant'], $rowProperties['uid']]; 
+      $result['labelVariants'][] = ['DOMstring'=>'Label', 'value'=>$rowProperties['variant'], 'uid'=>$rowProperties['uid'], 'neoID'=>$neoID]; 
     }
     return $result;
   }
