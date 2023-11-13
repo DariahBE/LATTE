@@ -477,6 +477,8 @@ function spellingVariantCreation(data){
   //if data is empty == no known variants ==> just create the interface
   //ALWAYS return that to to the original call
   //adding function return values should happen when the function is called. 
+  alert('Outdated call to selectInText.js > spellingVariantCreation(arg:data)');
+  /*
   var spellingVariantTracker = [];
   var spellingVariantMainBox = document.createElement('div');
   spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
@@ -517,7 +519,7 @@ function spellingVariantCreation(data){
   spellingVariantMainBox.appendChild(addToStorageBox);
   spellingVariantMainBox.appendChild(spellingVariantSubBox);
   return spellingVariantMainBox;
-
+  */
 }
 
 function triggerSidePanelAction(entityData){

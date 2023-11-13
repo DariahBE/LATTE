@@ -200,7 +200,8 @@ function showdata(data){
   annotationTarget.appendChild(etType); 
   gateWay.appendChild(createStableLinkingBlock(data['entity'][0]['neoID'], etStable)); 
   annotationTarget.appendChild(gateWay);
-
+  //display the variant data: 
+  displayET_Variant(data['variants']); 
   //With the type known: look up if there's a wikidata attribute: 
   var qidArr = data['entity'][0]['properties'].filter(ar => ar[2]== 'wikidata');
   if (qidArr.length === 1){
@@ -280,7 +281,12 @@ function binVariant(e){
   e.parentElement.remove();
 }
 
+
+// debug process of BUG9 ==> code disabled 
+// should be moved to /JS/et_variants.js
 function displayWrittenVariants(variantData){
+  alert('Outdated call to interactWithEntities.js > displayWrittenVariants(arg:variantData)');
+  /*
       //    allow the user to generate a list of spelling variants: 
       let varbox = document.getElementById('embeddedSpellingVariants');
       // TODO
@@ -328,7 +334,7 @@ function displayWrittenVariants(variantData){
   //used by showdata() and showDBInfoFor() functions. 
   let varTarget = document.getElementById('variantStorageBox');
   console.warn('variantStorageBox missing in DOM'); 
-  //console.log(varTarget); 
+  console.log(varTarget); 
   for(let i = 0; i < variantData.length; i++){
     let variant = variantData[i]; 
     let varbox = document.createElement('div'); 
@@ -345,7 +351,7 @@ function displayWrittenVariants(variantData){
     varbox.appendChild(varboxDelete);
     varTarget.appendChild(varbox);
   }
-
+*/
 }
 
 function showDBInfoFor(id, extra=''){

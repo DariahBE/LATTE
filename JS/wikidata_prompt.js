@@ -174,6 +174,7 @@ function pickThisQID(qid){
 }
 
 function showHit(id){
+  //Used for disambiguation between one-to-many relations!
   let replaceContent = document.getElementById('displayHitEt'); 
   replaceContent.innerHTML = '';  
   let etPropContainer = document.createElement('div'); 

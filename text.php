@@ -61,6 +61,7 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
     <script src="/JS/selectInText.js"></script>
     <script src="/JS/showStoredAnnotations.js"></script>
     <script src="/JS/interactWithEntities.js"></script>
+    <script src="/JS/et_variants.js"></script>
     <!-- wikidata SDK and custom code! SDK docs: https://github.com/maxlath/wikibase-sdk-->
     <script src="/JS/wikidata_SDK/wikibase-sdk.js"></script>
     <script src="/JS/wikidata_SDK/wikidata-sdk.js"></script>
