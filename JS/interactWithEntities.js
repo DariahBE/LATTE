@@ -89,10 +89,12 @@ function createStableLinkingBlock(nodeid, stableURI){
 function showdata(data){
   //frameWorkBase();
   toggleSlide(1);
+  createSideSkelleton(); 
   var annotationTarget = document.getElementById('slideoverDynamicContent');
   //superimpose the slideover on top of the nabar: 
   annotationTarget.classList.add("z-50");
   var gateWay = document.createElement('div');
+  gateWay.setAttribute('id', 'neobox');
   var statsTarget = document.createElement('div');
   statsTarget.setAttribute('id', 'relatedTextStats');
   statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
@@ -202,10 +204,11 @@ function showdata(data){
   var etTypeText = document.createTextNode('Entity: '+data['entity'][0]['type']); 
   etType.appendChild(etTypeText);
   annotationTarget.appendChild(etType); 
-  gateWay.appendChild(createStableLinkingBlock(data['entity'][0]['neoID'], etStable)); 
+  let neoid = data['entity'][0]['neoID']; 
+  gateWay.appendChild(createStableLinkingBlock(neoid, etStable)); 
   annotationTarget.appendChild(gateWay);
   //display the variant data: 
-  displayET_variant(data['variants']); 
+  displayET_variant(data['variants'], neoid); 
   //With the type known: look up if there's a wikidata attribute: 
   var qidArr = data['entity'][0]['properties'].filter(ar => ar[2]== 'wikidata');
   if (qidArr.length === 1){

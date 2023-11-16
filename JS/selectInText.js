@@ -472,68 +472,48 @@ function showET(etdata){
 
 }
 
-function spellingVariantCreation(data){
-  //takes the data, if there's any parses it
-  //if data is empty == no known variants ==> just create the interface
-  //ALWAYS return that to to the original call
-  //adding function return values should happen when the function is called. 
-  alert('Outdated call to selectInText.js > spellingVariantCreation(arg:data)');
-  /*
-  var spellingVariantTracker = [];
-  var spellingVariantMainBox = document.createElement('div');
-  spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
-  var spellingVariantTitle = document.createElement('h3'); 
-  spellingVariantTitle.appendChild(document.createTextNode('Naming variants: '));
-  spellingVariantTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');
-  spellingVariantMainBox.appendChild(spellingVariantTitle);
-  spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'); 
-  var spellingVariantCreation = document.createElement('input'); 
-  spellingVariantCreation.setAttribute('id', 'variantInputBox'); 
-  spellingVariantCreation.classList.add('border-solid', 'border-2')
-  var spellingVariantSubBox = document.createElement('div');
-  spellingVariantSubBox.setAttribute('id', 'variantStorageBox'); 
-  spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex', 'flex-wrap');
-  var addToStorageBox = document.createElement('button'); 
-  addToStorageBox.appendChild(document.createTextNode('Add')); 
-  addToStorageBox.addEventListener('click', function(){
-    var writtenValue = document.getElementById('variantInputBox').value; 
-    document.getElementById('variantInputBox').value = ''; 
-    if(spellingVariantTracker.includes(writtenValue)){
-      return;
-    }
-    spellingVariantTracker.push(writtenValue);
-    var storeIn = document.getElementById('variantStorageBox'); 
-    var variantDisplayDiv = document.createElement('div'); 
-    variantDisplayDiv.classList.add('m-1','p-1','spellingvariantbox', 'bg-amber-100', 'flex');
-    var variantDisplayTex = document.createElement('p');
-    variantDisplayTex.classList.add('writtenvariantvalue');
-    variantDisplayTex.appendChild(document.createTextNode(writtenValue));
-    var variantDisplayBin = document.createElement('p');
-    variantDisplayBin.classList.add('xsbinicon', 'bg-amber-200', 'm-1','p-1', 'rounded-full'); 
-    variantDisplayBin.addEventListener('click', function(){binVariant(this);});
-    variantDisplayDiv.appendChild(variantDisplayTex);
-    variantDisplayDiv.appendChild(variantDisplayBin);
-    storeIn.appendChild(variantDisplayDiv);
-  }); 
-  spellingVariantMainBox.appendChild(spellingVariantCreation);
-  spellingVariantMainBox.appendChild(addToStorageBox);
-  spellingVariantMainBox.appendChild(spellingVariantSubBox);
-  return spellingVariantMainBox;
-  */
+
+function createSideSkelleton(){
+  const mainblock = document.getElementById('slideoverDynamicContent'); 
+  mainblock.innerHTML = ''; 
+  //3 sections: 
+  //1   Data section
+  const textblock = document.createElement('div'); 
+  textblock.setAttribute('id', 'topblock');
+  //2   Variants section
+  const middleblock = document.createElement('div'); 
+  middleblock.setAttribute('id', 'neobox'); 
+  //    2.1:    relatedtextstats: shows amount of connections. 
+  const statsTarget = document.createElement('div');
+  statsTarget.setAttribute('id', 'relatedTextStats');
+  statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
+  middleblock.appendChild(statsTarget);
+  //    2.2:    variants: creates a div where the variants interaction is held. 
+  const variantsTarget = document.createElement('div'); 
+  variantsTarget.setAttribute('id', 'etVariantsTarget'); 
+  variantsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
+  middleblock.appendChild(variantsTarget); 
+  //    2.3:    stablebox: sets stable identifier and link to explorer. 
+  //3   Wikidata section. ==> content gets fully built by wd code.
+  const wdblock = document.createElement('div'); 
+  wdblock.setAttribute('id', 'WDResponseTarget'); 
+  wdblock.classList.add('border-t-2', 'mt-1', 'pt-1'); 
+  mainblock.appendChild(textblock); 
+  mainblock.appendChild(middleblock); 
+  mainblock.appendChild(wdblock); 
 }
 
 function triggerSidePanelAction(entityData){
   toggleSlide(1);
   //console.log(entityData);
   let = dataDictionary = {};
-  const targetOfInfo = document.getElementById('slideoverDynamicContent'); 
-  targetOfInfo.innerHTML = ''; 
+  createSideSkelleton(); 
   //backend returned one or more nodes that have  spellingvariant/label matching the request: 
- // console.warn('BUG10: triggerSidePanelAction function');
+  // console.warn('BUG10: triggerSidePanelAction function');
+  const targetOfInfo = document.getElementById('slideoverDynamicContent'); 
+  const topbox = document.getElementById('topblock');
   if(entityData['nodes'].length){
     //create a title that show the information about the matching entities: 
-    let topbox = document.createElement('div'); 
-    topbox.classList.add('w-full');
     let topTex = document.createElement('h3'); 
     topTex.classList.add('w-full'); 
     //create a box notice where the information is shown: 
@@ -544,20 +524,15 @@ function triggerSidePanelAction(entityData){
 
     topTex.appendChild(document.createTextNode("Found "+dataDictionary.length+" nodes based on matching string.")); 
     topbox.appendChild(topTex);
-    targetOfInfo.appendChild(topbox);
-
-
     for (let k of Object.keys(dataDictionary)) {
       dataDictionary[k]['weight'] = entityData['weights'][dataDictionary[k][0]]; 
     }
     //sort the entities according to their score coming from the backend: 
-    let sortedEntityKeys = []; 
     Object.keys(dataDictionary).sort(score);
     function score(a, b){
       return dataDictionary[a]['weight'] - dataDictionary[b]['weight'];
     }
-    //node with the heighest weight is presented first: 
-    //load the first node: 
+    //node with the heighest weight is presented first: >> load the first node: 
     var firstNode = dataDictionary[0]; 
     var etMainBox = document.createElement('div'); 
     var etSubNavBox = document.createElement('div');
@@ -573,6 +548,8 @@ function triggerSidePanelAction(entityData){
     var pageLength = dataDictionary.length; 
 
     function navET(dir){
+      //navigates through the dataDictionary and picks a page(entity). 
+      //only used when 2 or more possible entities are part of the selection.
       if(dir === '-'){
         //go back
         datadictpage--;
@@ -596,6 +573,7 @@ function triggerSidePanelAction(entityData){
       }
       document.getElementById('xofindicator').innerHTML = datadictpage+1;
       showET(dataDictionary[datadictpage]);
+      //OK
     }
 
     if(Object.keys(dataDictionary).length>1){
@@ -612,7 +590,7 @@ function triggerSidePanelAction(entityData){
       xof.appendChild(navBlock2);
       xof.appendChild(navBlock3);
       document.getElementById('etnav').appendChild(navdisp); 
-      //create Nav arraow: 
+      //create Nav arrow: 
       var prevET = document.createElement('span');
       var nextET = document.createElement('span');
       prevET.appendChild(document.createTextNode('<<'));
@@ -626,8 +604,10 @@ function triggerSidePanelAction(entityData){
       prevET.addEventListener('click', function(){navET('-')})
       nextET.addEventListener('click', function(){navET('+')})
     }
+    /*    not needed???: 16/11/2023  
     let midbox = document.createElement('div'); 
     midbox.classList.add('w-full'); 
+    */
   }else{
     //nothing found in the backend: no matching variants or nodelabels: 
     function binVariant(e){
@@ -689,9 +669,7 @@ function triggerSidePanelAction(entityData){
             newFieldContainer.appendChild(newFieldInput);
             topBox.appendChild(newFieldContainer); 
           }
-
         });
-
       });
 
 
@@ -820,7 +798,22 @@ function triggerSidePanelAction(entityData){
     spellingVariantMainBox.appendChild(spellingVariantCreation);
     spellingVariantMainBox.appendChild(addToStorageBox);
     spellingVariantMainBox.appendChild(spellingVariantSubBox); */
-    let spellingVariantDOMReturn = spellingVariantCreation(null); 
+    //DELETED:16/11/2023 //let spellingVariantDOMReturn = spellingVariantCreation(null); 
+    //TODO: this variant spelling data needs to be performed by a call to et_variants > displayET_variant()
+
+    var gateWay = document.createElement('div');
+    gateWay.setAttribute('id', 'neobox');
+    var statsTarget = document.createElement('div');
+    statsTarget.setAttribute('id', 'relatedTextStats');
+    statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
+    annotationTarget.innerHTML = '';
+    gateWay.appendChild(statsTarget);
+    var variantsTarget = document.createElement('div'); 
+    variantsTarget.setAttribute('id', 'etVariantsTarget')
+    variantsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
+    gateWay.appendChild(variantsTarget); 
+    targetOfInfo.appendChild(gateWay); 
+    let spellingVariantDOMReturn = displayET_variant(null, null); 
     //wikidataPrompt: 
     var wikidataQLabel = document.createElement('div');
     wikidataQLabel.setAttribute('readonly', true);

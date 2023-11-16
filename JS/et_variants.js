@@ -1,11 +1,10 @@
 let spellingVariantTracker = [];
 function binVariant(e){
     //gets the attribute of e: sends XHR request to delete. 
-    console.log(e); 
     const DOMElement = e.parentElement; 
-    let nodeInternalId = e.getAttribute('data-neoid'); 
-    let etInternalId = document.getElementById('connectSuggestion').getAttribute('data-neoid'); 
-    fetch('/AJAX/variants/delete.php?variantid='+nodeInternalId+'&entityid='+etInternalId)
+    let nodeInternalId = DOMElement.getElementsByClassName('writtenvariantvalue')[0].getAttribute('data-neo');
+    console.log(nodeInternalId);
+    fetch('/AJAX/variants/delete.php?variantid='+nodeInternalId+'&entityid='+variantNeoId)
         .then(data => function(){
         console.log(data);
     });
@@ -17,10 +16,6 @@ function binVariant(e){
     delete(spellingVariantTracker[idx]); 
     //tehn removes it from the DOM: 
     e.parentElement.remove();
-}
-
-function saveNewVariant(){
-
 }
 
 function addVariantInBox(varname, uid, nid){
@@ -43,7 +38,6 @@ function addVariantInBox(varname, uid, nid){
       variantDisplayDiv.appendChild(variantDisplayTex);
       variantDisplayDiv.appendChild(variantDisplayBin);
       storeIn.appendChild(variantDisplayDiv);
-
 }
 
 function neoVarsToDom(variants){
@@ -54,8 +48,10 @@ function neoVarsToDom(variants){
         addVariantInBox(element['value'], element['uid'], element['neoID']);
     });
 }
-
-function displayET_variant(data){
+let variantNeoId = -1;
+function displayET_variant(data, relatedET){
+    variantNeoId = relatedET; 
+    //required is the extra nod ID (relatedET)
     // TODO: process data: ==> use neoVarsToDom!
     //where to put the box that interacts with variantdata: 
     //etVariantsTarget is the only ID you should use to display variant collection. 
@@ -81,25 +77,30 @@ function displayET_variant(data){
         if(spellingVariantTracker.includes(writtenValue)){
             return;
         }else{
+            //CAREFULL!!! if relatedET === FALSE you'll need to submit a new entity node first!!
+            //      might be prone to race conditions (test this!)
+            console.log("SENDING: ", writtenValue, relatedET); 
             //send it to BE ==> return the NEOID and UID!
             //first get a token from the DB: 
             fetch("/AJAX/getdisposabletoken.php")
             .then(response => response.json())
             .then(data => {
               const token = data;
-              console.log(token);
-            })
-            let relatedET = '';         //TODO: 
-            //do a call to AJAX/variants/make.php
-            // pass two URL arguments: 
-            //     $_GET['varlabel'] ==> for the written variant label
-            //     (int)$_GET['entity'] ==> for the Neo ID of the enity
-            /*fetch("/AJAX/variants/make.php?varlabel="+writtenValue+"&entity="+relatedET)
-            .then()
-            .then;*/
+                //do a call to AJAX/variants/make.php
+                // pass two URL arguments: 
+                //     $_GET['varlabel'] ==> for the written variant label
+                //     (int)$_GET['entity'] ==> for the Neo ID of the enity
+                fetch("/AJAX/variants/make.php?varlabel="+writtenValue+"&entity="+relatedET+"&token="+token)
+                .then(response => response.json())
+                .then(data => {
+                    console.log(data); 
+                    let nid = data['data']['nid']; 
+                    let uuid = data['data']['uuid'];
+                    document.getElementById('variantInputBox').value = ''; 
+                    addVariantInBox(writtenValue, uuid, nid); //TODO: push to server, get UUID en NID in return
+                });
+            });
         }
-        document.getElementById('variantInputBox').value = ''; 
-        addVariantInBox(writtenValue, false, false); //TODO: push to server, get UUID en NID in return
     }); 
     spellingVariantMainBox.appendChild(spellingVariantCreation);
     spellingVariantMainBox.appendChild(addToStorageBox);

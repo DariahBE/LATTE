@@ -110,7 +110,9 @@ class CUDNode extends Node {
     //$label    =string   = string label to be inserted in the database and used as spellingvariant for the node. 
     //$entitySource =int  = neoID of the entity-node(multilabel)
     //1: check variant.
-    $query = 'MATCH (n:Variant) WHERE n.variant = $varlabel RETURN id(n) as id';
+    $existingVariantId = -1;                //THE NEO ID OF THE VARIANT 
+    $variant_uuid = -1;                     //THE APOC GENERATED UUID OF THE VARIANT
+    $query = 'MATCH (n:Variant) WHERE n.variant = $varlabel RETURN id(n) as id, n.uid as uuid';
     $existsResult = $this->client->run($query, array('varlabel'=>$label));
     $hasResult = !($existsResult->isempty()); 
     //2: check if the entity is an actual entity.
@@ -120,6 +122,7 @@ class CUDNode extends Node {
       if(array_key_exists($labelCheck, CORENODES)){
         //there is a matching request!
         $existingVariantId = $existsResult->first()->get('id'); 
+        $variant_uuid = $existsResult->first()->get('uuid'); 
         //3: Check that there is no connection between $entitySource and $existingVariantId: 
         $checkResult = $this->client->run('MATCH (n:Variant)-[r:same_as]-(t) WHERE id(n) = $varid AND id(t) = $etid RETURN count(r) AS relations;', array('varid'=>$existingVariantId, 'etid'=>$entitySource));
         //is empty when there is no node found ==> otherwise it will have a property set where relations could be 0 or more. 
@@ -132,11 +135,11 @@ class CUDNode extends Node {
           //required to make a new relation
           $matchAndConnectResult = $this->tsx->run('MATCH (n), (t) WHERE id(n) = $varid AND id(t) = $etid CREATE (n)-[r:same_as]->(t)', array('varid'=> $existingVariantId, 'etid'=>$entitySource));
           //TODO: is it safe to return the $matchAndConnectResult variable? 
-          return array('msg'=> 'New relation created', 'node' => $matchAndConnectResult); 
+          return array('msg'=> 'New relation created', 'node' => $matchAndConnectResult, 'data' => ['uuid'=> $variant_uuid, 'nid'=> $existingVariantId] ); 
           die(); 
         }else{
           //do not modify anything: a relation already exists
-          return (array('msg'=>'A relation already exists, no changes made to the database.')); 
+          return (array('msg'=>'A relation already exists, no changes made to the database.', 'data' => ['uuid'=> $variant_uuid, 'nid'=> $existingVariantId])); 
           die();
         }
       }else{
@@ -147,8 +150,10 @@ class CUDNode extends Node {
       //the variant has no label registered in the DB that matches the request: create one. 
       //and create the relationship IF the related entity node exists: 
       if(array_key_exists($labelCheck, CORENODES)){
-        $createAndConnectResult = $this->client->run('MATCH (e) WHERE id(e) = $etid CREATE (n:Variant {variant: $varname, uid: apoc.create.uuid()})-[:same_as]->(e)', array('etid'=>$entitySource, 'varname'=>$label));
-        return array('msg'=>'New variant and link created.'); 
+        $createAndConnectResult = $this->client->run('MATCH (e) WHERE id(e) = $etid CREATE (n:Variant {variant: $varname, uid: apoc.create.uuid()})-[:same_as]->(e) return id(n) as id, n.uid as uuid', array('etid'=>$entitySource, 'varname'=>$label));
+        $existingVariantId = $createAndConnectResult->first()->get('id'); 
+        $variant_uuid = $createAndConnectResult->first()->get('uuid'); 
+        return array('msg'=>'New variant and link created.', 'data' => ['uuid'=> $variant_uuid, 'nid'=> $existingVariantId]); 
         //var_dump($createAndConnectResult); 
       }else{
         //the variant label is not found in the DB and the entity node doesn't have a valid ID:

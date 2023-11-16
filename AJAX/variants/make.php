@@ -21,8 +21,21 @@ $node = new CUDNode($client);
 $varstring = $_GET['varlabel'];
 $connectToEt = (int)$_GET['entity'];
 
+
+//CSRF token : same way of checking it as elsewhere. 
+if(!isset($_GET['token'])){
+  die();
+}else{
+  $token = $_GET['token']; 
+}
+$tokenManager = new CsrfTokenManager(); 
+$validToken = $tokenManager->checkToken($token); 
+if(!($validToken)){
+  echo json_encode(array('msg' => 'Invalid session token')); 
+  die();
+}
+
 $node->startTransaction(); 
-//TODO; update to transactional architecture required here!!
 try {
   $repl = $node->createVariantRelation($varstring, $connectToEt);
 } catch (\Throwable $th) {
