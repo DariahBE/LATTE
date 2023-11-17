@@ -10,6 +10,8 @@ include_once(ROOT_DIR.'/includes/export.inc.php');
 
 //mode and neoID as input ==> logic in export.inc.php
 
+//variants still not showing in export!
+
 $mode = $_GET['mode']; 
 $neoId = (int)$_GET['neoid'];
 

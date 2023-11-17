@@ -480,22 +480,28 @@ function createSideSkelleton(){
   //1   Data section
   const textblock = document.createElement('div'); 
   textblock.setAttribute('id', 'topblock');
+  textblock.innerHTML = '<p>HAS CONTENT??</p>'; 
   //2   Variants section
   const middleblock = document.createElement('div'); 
   middleblock.setAttribute('id', 'neobox'); 
+  middleblock.innerHTML = '<p>HAS CONTENT??</p>'; 
+
   //    2.1:    relatedtextstats: shows amount of connections. 
   const statsTarget = document.createElement('div');
   statsTarget.setAttribute('id', 'relatedTextStats');
   statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
+  statsTarget.innerHTML = '<p>HAS STATS??</p>'; 
   middleblock.appendChild(statsTarget);
   //    2.2:    variants: creates a div where the variants interaction is held. 
   const variantsTarget = document.createElement('div'); 
   variantsTarget.setAttribute('id', 'etVariantsTarget'); 
   variantsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
+  variantsTarget.innerHTML = '<p>HAS VARS??</p>'; 
   middleblock.appendChild(variantsTarget); 
   //    2.3:    stablebox: sets stable identifier and link to explorer. 
   //3   Wikidata section. ==> content gets fully built by wd code.
   const wdblock = document.createElement('div'); 
+  wdblock.innerHTML = '<p>HAS WD??</p>'; 
   wdblock.setAttribute('id', 'WDResponseTarget'); 
   wdblock.classList.add('border-t-2', 'mt-1', 'pt-1'); 
   mainblock.appendChild(textblock); 
@@ -610,9 +616,6 @@ function triggerSidePanelAction(entityData){
     */
   }else{
     //nothing found in the backend: no matching variants or nodelabels: 
-    function binVariant(e){
-      e.parentElement.remove();
-    }
     var createNodeDiv = document.createElement('div'); 
     createNodeDiv.classList.add('w-full'); 
     createNodeDiv.setAttribute('id', 'etcreate'); 
@@ -801,19 +804,22 @@ function triggerSidePanelAction(entityData){
     //DELETED:16/11/2023 //let spellingVariantDOMReturn = spellingVariantCreation(null); 
     //TODO: this variant spelling data needs to be performed by a call to et_variants > displayET_variant()
 
-    var gateWay = document.createElement('div');
+    /*var gateWay = document.createElement('div');
     gateWay.setAttribute('id', 'neobox');
     var statsTarget = document.createElement('div');
     statsTarget.setAttribute('id', 'relatedTextStats');
     statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
-    annotationTarget.innerHTML = '';
+    //annotationTarget.innerHTML = '';
     gateWay.appendChild(statsTarget);
     var variantsTarget = document.createElement('div'); 
     variantsTarget.setAttribute('id', 'etVariantsTarget')
     variantsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
     gateWay.appendChild(variantsTarget); 
-    targetOfInfo.appendChild(gateWay); 
+    targetOfInfo.appendChild(gateWay); */
     let spellingVariantDOMReturn = displayET_variant(null, null); 
+    //variantbox has to be invisible in this phase: entity still needs to be created!!
+    document.getElementById('embeddedSpellingVariants').classList.add('hidden');
+    alert('#embeddedSpellingVariants is hidden, make visible again when ET is created.'); 
     //wikidataPrompt: 
     var wikidataQLabel = document.createElement('div');
     wikidataQLabel.setAttribute('readonly', true);

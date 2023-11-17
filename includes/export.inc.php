@@ -102,9 +102,11 @@ class Exporter {
         $referencedNode->appendChild($referencedNodePrimary);
         $annotationReference->appendChild($referencedNode);
         $linkAnnoNode->appendChild($annotationReference);
+
       }
       //adding entityLinks: 
-      foreach($this->entityDict as $key => $value){
+      // missing NEO id in entitydict. 
+      foreach($this->entityDict as $annotkey => $value){
         $oneEt = $dom->createElement('entity');
         $etAtrid = new DOMAttr('id', $value['primaryKey']['value']); 
         $etURI = new DOMAttr('uri', $value['primaryKey']['URI']); 
@@ -114,6 +116,7 @@ class Exporter {
         $oneEt->appendChild($etURI);
         $etLabel = $dom->createElement('URI', $value['primaryKey']['URI']);
         $oneEt->appendChild($etLabel); 
+        $etkey = $value['et_neo']; 
         foreach($value['properties'] as $key => $subvalue){
           $prop = $dom->createElement('property');
           $propAtr = new DOMAttr('name', $subvalue['name']); 
@@ -121,8 +124,30 @@ class Exporter {
           $propValue = $dom->createElement('value', $subvalue['value']); 
           $prop->appendChild($propValue); 
           $oneEt->appendChild($prop);
+
+          //start of code update causing a mess
+
+
+          // TODO //  BUG: variant spellings aren't showing!!!
+          // at the moment varspellings holds the NEO id of the ANNOTIONS not the ENTITIES. 
+          if (array_key_exists($etkey, $this->varspellings)){
+            $variantBox = $dom->createElement('spelling_variants'); 
+            foreach($this->varspellings as $subkey =>$subvalue){
+              //var_dump($subvalue);
+              $var = $dom->createElement('variant'); 
+              $varAtr = new DOMAttr('value', '$subvalue'); 
+              $var->appendChild($varAtr); 
+              $variantBox->appendChild($var);
+            }
+            $oneEt->appendChild($variantBox); 
+          }
+
+
+          //end of code update causing a mess
         }
+
         $linkEntityNode->appendChild($oneEt); 
+
       }
       $root->appendChild($metaNode);
       $root->appendChild($texNode);
@@ -151,7 +176,7 @@ class Exporter {
       $entityLinks = array(); 
       foreach($this->entityDict as $key => $value){
         //$entityLinks[$key] = $value;
-        //var_dump($value);
+        //var_dump($key);
         $properties = array(); 
         foreach($value['properties'] as $propkey =>$propvalue){
           $properties[]=$propvalue;
@@ -218,17 +243,28 @@ class Exporter {
     $this->XMLTaggedText[$blockKey] = array($blockKey, $prevtype, $baseString, $prevAnnotationKey); 
   }
 
+/*  //If you want to add variants to the export. It needs to happen here!
+  $variants = $db->findVariants($neoID); 
+  $entities['variants'] = array(); 
+  $entities['variants'] = $variants; 
+*/
   public function outputAnnotations($db){
     $neoKeys = array_unique(array_column($this->annotations['relations'],'neoid'));
     $entities = array(); 
     $doneEts = array(); 
     $this->annotationToEt = array();
+    $this->varspellings = array(); 
     foreach($this->annotations['relations'] as $keyUID => $valueArr){
       $neoID = $valueArr['neoid']; 
+      //you sent the wrong NEO ID to the fetchvariants method!
+      
       $data = $db->getAnnotationInfo($neoID);
       $entityLabel = $data['entity']['labels'][0];
       $modelOfEntity = NODEMODEL[$entityLabel];
       $entityPrimaryKey = helper_extractPrimary($entityLabel);
+      $entityNeoId = $data['entity_neo_id']; 
+      $variants = $db->fetchVariants($entityNeoId); 
+      //echo die($entityNeoId); 
       $primaryKeyValue = $data['entity']['properties'][$entityPrimaryKey];
       $this->annotationToEt[$keyUID] = array($entityLabel, $primaryKeyValue);
       if (!(in_array($entityLabel.$primaryKeyValue, $doneEts))){
@@ -251,6 +287,11 @@ class Exporter {
             $entities[$neoID]['properties'][$key]['value'] = $value; 
           }
         }
+        //update this to fit the actual neo id key . 
+        $entities[$neoID]['et_neo'] = $entityNeoId;
+        $this->varspellings[$entityNeoId] = $variants; 
+        //$entities[$neoID]['variants'] = array(); 
+        //$entities[$neoID]['variants'] = $variants;       
         $doneEts[]=$entityLabel.$primaryKeyValue;
       }
 

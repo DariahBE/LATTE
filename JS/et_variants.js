@@ -106,6 +106,10 @@ function displayET_variant(data, relatedET){
     spellingVariantMainBox.appendChild(addToStorageBox);
     spellingVariantMainBox.appendChild(spellingVariantSubBox);
     target.appendChild(spellingVariantMainBox); 
-    neoVarsToDom(data);
+    if (data !== null && relatedET !== null){
+        //if no data is passed; only generate an empty box with all functionality. 
+        neoVarsToDom(data);
+    }
+
     return spellingVariantMainBox;
 }

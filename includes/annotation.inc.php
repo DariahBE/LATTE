@@ -50,7 +50,7 @@ class Annotation{
       $resultAuthor = false;
     }
     //////
-    $queryEntity = 'MATCH (a:Annotation)-[r:references]-(b) WHERE id(a) = $ego RETURN b, a';
+    $queryEntity = 'MATCH (a:Annotation)-[r:references]-(b) WHERE id(a) = $ego RETURN id(b) as et_neo_id, b, a';
     $resultEntity = $this->client->run($queryEntity, ['ego'=>$nodeId]);
     //////
 
@@ -59,6 +59,7 @@ class Annotation{
       'annotation' =>$resultEntity[0]->get('a'),
       'annotationModel' => $this->getAnnotationModel(),
       'entity'=>$resultEntity[0]->get('b'),
+      'entity_neo_id'=>$resultEntity[0]->get('et_neo_id'),
     ); 
   }
 
@@ -81,6 +82,19 @@ class Annotation{
       $connectToContainingText = 'MATCH (a:Annotation {uid:$anno_uid}), (t:T'.TEXNODE.'{texid:$texid}) CREATE (t)-[r:contains]->(a)';
       $result = $this->client->run($connectToContainingText, ['anno_uid'=>$uqid, 'texid'=>$texid]);
     }
+  }
+
+  public function fetchVariants($ofEntityByNeoid){
+    $result = array();
+    $query2 = 'match(v)-[r:same_as]-(n) where id(n) = $entityid return v, id(v) as neoid' ;
+    $data2 = $this->client->run($query2, ['entityid'=> (int)$ofEntityByNeoid]);
+    foreach($data2 as $labelvariant){
+      $variantRow = $labelvariant['v'];
+      //$neoID = (int)$labelvariant['neoid']; 
+      $rowProperties = $variantRow['properties']; 
+      $result['labelVariants'][] = ['DOMstring'=>'Label', 'value'=>$rowProperties['variant'], 'uid'=>$rowProperties['uid']]; 
+    }
+    return $result;
   }
 
   public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user, $start, $end){
