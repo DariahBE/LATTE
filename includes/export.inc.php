@@ -124,30 +124,22 @@ class Exporter {
           $propValue = $dom->createElement('value', $subvalue['value']); 
           $prop->appendChild($propValue); 
           $oneEt->appendChild($prop);
-
-          //start of code update causing a mess
-
-
-          // TODO //  BUG: variant spellings aren't showing!!!
-          // at the moment varspellings holds the NEO id of the ANNOTIONS not the ENTITIES. 
-          if (array_key_exists($etkey, $this->varspellings)){
-            $variantBox = $dom->createElement('spelling_variants'); 
-            foreach($this->varspellings as $subkey =>$subvalue){
-              //var_dump($subvalue);
-              $var = $dom->createElement('variant'); 
-              $varAtr = new DOMAttr('value', '$subvalue'); 
-              $var->appendChild($varAtr); 
-              $variantBox->appendChild($var);
-            }
-            $oneEt->appendChild($variantBox); 
-          }
-
-
-          //end of code update causing a mess
         }
-
+        if (array_key_exists($etkey, $this->varspellings)){
+          $variantBox = $dom->createElement('spelling_variants'); 
+          if(array_key_exists('labelVariants', $this->varspellings[$etkey])){
+            foreach($this->varspellings[$etkey]['labelVariants'] as $showkey => $showvalue){
+              $variantRow = $dom->createElement('variant'); 
+              $varValue = new DOMAttr('string', $showvalue['value']);
+              $varUID = new DOMAttr('uuid', $showvalue['uid']); 
+              $variantRow->appendChild($varValue);
+              $variantRow->appendChild($varUID);
+              $variantBox->appendChild($variantRow); 
+            }
+          }
+          $oneEt->appendChild($variantBox); 
+        }
         $linkEntityNode->appendChild($oneEt); 
-
       }
       $root->appendChild($metaNode);
       $root->appendChild($texNode);
@@ -157,6 +149,16 @@ class Exporter {
       $dom->appendChild($root);
       return $dom->saveXML();
     }else if ($this->mode == 'json'){
+      //var_dump($this->varspellings[3202]['labelVariants']); 
+      foreach($this->varspellings as $subkey =>$subvalue){
+        var_dump($subkey); 
+        if(array_key_exists('labelVariants', $subvalue)){
+          foreach($subvalue['labelVariants'] as $showkey => $showvalue){
+            //var_dump($showvalue['value']); 
+            //var_dump($showvalue['uid']);
+          }
+        }
+      }
       $taggedTextArray = array(); 
       foreach($this->XMLTaggedText as $key => $value){
         $taggedTextArray[] = array(
