@@ -134,7 +134,7 @@ class Exporter {
               $varUID = new DOMAttr('uuid', $showvalue['uid']); 
               $variantRow->appendChild($varValue);
               $variantRow->appendChild($varUID);
-              $variantoBx->appendChild($variantRow); 
+              $variantBox->appendChild($variantRow); 
             }
           }
           $oneEt->appendChild($variantBox); 
