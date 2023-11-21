@@ -134,7 +134,7 @@ class Exporter {
               $varUID = new DOMAttr('uuid', $showvalue['uid']); 
               $variantRow->appendChild($varValue);
               $variantRow->appendChild($varUID);
-              $variantBox->appendChild($variantRow); 
+              $variantoBx->appendChild($variantRow); 
             }
           }
           $oneEt->appendChild($variantBox); 
@@ -150,6 +150,7 @@ class Exporter {
       return $dom->saveXML();
     }else if ($this->mode == 'json'){
       //var_dump($this->varspellings[3202]['labelVariants']); 
+      /*
       foreach($this->varspellings as $subkey =>$subvalue){
         var_dump($subkey); 
         if(array_key_exists('labelVariants', $subvalue)){
@@ -158,7 +159,10 @@ class Exporter {
             //var_dump($showvalue['uid']);
           }
         }
-      }
+      }*/
+
+
+
       $taggedTextArray = array(); 
       foreach($this->XMLTaggedText as $key => $value){
         $taggedTextArray[] = array(
@@ -176,6 +180,7 @@ class Exporter {
         );
       }
       $entityLinks = array(); 
+      //var_dump($this->entityDict);
       foreach($this->entityDict as $key => $value){
         //$entityLinks[$key] = $value;
         //var_dump($key);
@@ -183,13 +188,34 @@ class Exporter {
         foreach($value['properties'] as $propkey =>$propvalue){
           $properties[]=$propvalue;
         }
+
+        // new code for variant display
+        //$oneEt = array();
+        $etkey = $value['et_neo'];
+        //var_dump($etkey);
+        $variantBox = array(); 
+        if(array_key_exists('labelVariants', $this->varspellings[$etkey])){
+          foreach($this->varspellings[$etkey]['labelVariants'] as $showkey => $showvalue){
+            //OK //var_dump($showvalue);
+            $variantRow = array(); 
+            $varValue = $showvalue['value'];
+            $varUID = $showvalue['uid']; 
+            $variantRow[] = array('value'=>$varValue, 'uuid'=>$varUID);
+            $variantBox[]=$variantRow; 
+          }
+        }
+
         $entityLinks[]  =  array(
           'label' => $value['label'],
           'pk' => $value['primaryKey']['value'],
           'uri' => $value['primaryKey']['URI'],
-          'properties' => $properties
+          'properties' => $properties,
+          'variants'=> $variantBox
         );
+        //$oneEt[]= $variantBox; 
       }
+        
+      
       $root = array(
         'metadata' => array(
           'requestTime' => $date,
