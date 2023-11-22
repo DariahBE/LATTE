@@ -160,6 +160,7 @@ function toggleSlide(dir = 0){
   if(dir === 0){
     document.getElementById('slideover-container').classList.add('invisible');
     document.getElementById('slideover').classList.add('translate-x-full');
+    
   }else{
     document.getElementById('slideover-container').classList.remove('invisible');
     document.getElementById('slideover').classList.remove('translate-x-full');
@@ -554,6 +555,7 @@ function triggerSidePanelAction(entityData){
     var pageLength = dataDictionary.length; 
 
     function navET(dir){
+      alert('moving ET'); 
       //navigates through the dataDictionary and picks a page(entity). 
       //only used when 2 or more possible entities are part of the selection.
       if(dir === '-'){
@@ -706,11 +708,19 @@ function triggerSidePanelAction(entityData){
     embeddedCreateDiv.appendChild(entityTypeDiv);
     embeddedCreateDiv.appendChild(setEntityType);
     createNodeDiv.appendChild(embeddedCreateDiv);
-    //Dropdown added: Show positional info: 
-    var text = getTextSelection();
-    var startPositionInText = text[1];
-    var endPositionInText = text[2];
-    var selectedString = text[0];
+    /* BUG: undefined errors when starting selection from outside the text div. 
+      //Dropdown added: Show positional info: 
+      //var text = getTextSelection();
+      //globalSelectionText, globalSelectionStart, globalSelectionEnd;
+      var startPositionInText = text[1];
+      var endPositionInText = text[2];
+      var selectedString = text[0];
+    */
+    //bugfix ==> When clicking outside the text div and having a selection
+    //old code would cause undefined errors! This works. 
+    var startPositionInText = globalSelectionStart; 
+    var endPositionInText = globalSelectionEnd; 
+    var selectedString = globalSelectionText;
     var positionDiv = document.createElement('div'); 
     positionDiv.setAttribute('id', 'embeddedAnnotation'); 
     var positionTitle = document.createElement('h3'); 
@@ -968,21 +978,26 @@ let globalSelectionText = null;
 let globalSelectionStart = null;
 let globalSelectionEnd = null;
 function getTextSelection(){
-    //you need a map filter on selection based on length of childnodes!
-    var selection = rangy.getSelection().getRangeAt(0).getNodes().filter(s => s.childNodes.length == 0);
-    if(selection.length > 0){
-      //get first and last selection elements to extract data attribute:
-      globalSelectionText = rangy.getSelection().toString().trim();
-      globalSelectionStart = parseInt(selection[0].parentElement.dataset.itercounter);
-      globalSelectionEnd = parseInt(selection[selection.length-1].parentElement.dataset.itercounter);
-      return [globalSelectionText, globalSelectionStart, globalSelectionEnd];
-    }else{
-      return false;
-    }
+  console.log('call into gettextselection() here you have the rangy class loaded'); 
+  //you need a map filter on selection based on length of childnodes!
+  //In some cases you can get undefined back when the selecting happens in the wrong DOM
+  //if that's the case, just return false!
+  var selection = rangy.getSelection().getRangeAt(0).getNodes().filter(s => s.childNodes.length == 0);
+  if(selection.length > 0){
+    //get first and last selection elements to extract data attribute:
+    globalSelectionText = rangy.getSelection().toString().trim();
+    globalSelectionStart = parseInt(selection[0].parentElement.dataset.itercounter);
+    globalSelectionEnd = parseInt(selection[selection.length-1].parentElement.dataset.itercounter);
+    return [globalSelectionText, globalSelectionStart, globalSelectionEnd];
+  }else{
+    return false;
+  }
 }
 
 function triggerSelection(){
+  console.log('call into triggerselection()'); 
   var selectedTextProperties = getTextSelection();
+  console.log('callresult', selectedTextProperties); 
   var selectedText = selectedTextProperties[0];
   console.log('Properties: ', selectedTextProperties);
   var selectedTextStart = selectedTextProperties[1];

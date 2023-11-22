@@ -225,7 +225,7 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
 <div id="slideover-container" class="right-0 w-1/2 h-full fixed top-0 invisible z-50">
   <!--<div id="slideover-bg" class="w-full h-full duration-500 ease-out transition-all top-0 absolute bg-gray-900 opacity-0"></div>-->
   <div id="slideover" class="w-full bg-white h-full absolute left-0 duration-300 ease-out transition-all translate-x-full overflow-y-scroll overflow-x-hidden">
-  <svg onclick='toggleSlide(0)' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
+  <svg onclick='toggleSlide(0); ignoreSuggestion();' xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor" class="w-6 h-6">
     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 
