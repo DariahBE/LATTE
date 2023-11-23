@@ -3,13 +3,8 @@ function binVariant(e){
     //gets the attribute of e: sends XHR request to delete. 
     const DOMElement = e.parentElement; 
     let nodeInternalId = DOMElement.getElementsByClassName('writtenvariantvalue')[0].getAttribute('data-neo');
-    console.log(nodeInternalId);
     fetch('/AJAX/variants/delete.php?variantid='+nodeInternalId+'&entityid='+variantNeoId)
-        .then(data => function(){
-        console.log(data);
-    });
-    console.log(nodeInternalId); 
-    console.log(DOMElement); 
+        .then(data => function(){});
     const writtenValue = DOMElement.textContent; 
     //then removes it from the spellingvarianttracker
     let idx = spellingVariantTracker.indexOf(writtenValue); 
@@ -43,10 +38,11 @@ function addVariantInBox(varname, uid, nid){
 function neoVarsToDom(variants){
     //if there are known variant spellings in the DOM: put them in the boxes at load. 
     //use neo4Jid and UID to identify variant labels. 
-    console.warn('DATA given to displayET_variant: ', variants);
-    variants[0]['labelVariants'].forEach(element => {
-        addVariantInBox(element['value'], element['uid'], element['neoID']);
-    });
+    if(variants.length > 0 && 'labelVariants' in variants[0]){
+        variants[0]['labelVariants'].forEach(element => {
+            addVariantInBox(element['value'], element['uid'], element['neoID']);
+        });
+    }
 }
 let variantNeoId = -1;
 function displayET_variant(data, relatedET){
@@ -79,7 +75,6 @@ function displayET_variant(data, relatedET){
         }else{
             //CAREFULL!!! if relatedET === FALSE you'll need to submit a new entity node first!!
             //      might be prone to race conditions (test this!)
-            console.log("SENDING: ", writtenValue, relatedET); 
             //send it to BE ==> return the NEOID and UID!
             //first get a token from the DB: 
             fetch("/AJAX/getdisposabletoken.php")
@@ -93,7 +88,6 @@ function displayET_variant(data, relatedET){
                 fetch("/AJAX/variants/make.php?varlabel="+writtenValue+"&entity="+relatedET+"&token="+token)
                 .then(response => response.json())
                 .then(data => {
-                    console.log(data); 
                     let nid = data['data']['nid']; 
                     let uuid = data['data']['uuid'];
                     document.getElementById('variantInputBox').value = ''; 

@@ -68,8 +68,9 @@ class Annotation{
     die("redo this, do not rely on static properties!!! (starts, texid.... bad idea)");
     //keep the $texid even though it is implied as part of the edge target!
     //DO NOT rely on id(): https://stackoverflow.com/questions/64796146/how-stable-are-the-neo4j-ids
-    $query = 'CREATE (a:Annotation {uid: apoc.create.uuid(), starts: $start, stops: $stop, creator: $user, private:$hidden}) RETURN a.uid as uid;';
-    $result = $this->client->run($query, ['start'=>$start, 'stop'=>$stop, 'user'=>$user, 'hidden'=>$hidden]);
+
+    $query = 'CREATE (a:'.ANNONODE.' {uid: apoc.create.uuid(), '.ANNOSTART.': $start, '.ANNOSTOP.': $stop}) RETURN a.uid as uid;';
+    $result = $this->client->run($query, ['start'=>$start, 'stop'=>$stop, 'user'=>$user]);
     if(boolval(count($result))){
       $uqid = $result[0]['uid'];
       //connect creator to node:
@@ -124,7 +125,7 @@ class Annotation{
       $query = 'MATCH (t:'.TEXNODE.'),(e)
       WHERE id(t) = $texid AND id(e) = $etid 
       CREATE
-        (a:'.ANNONODE.' {'.ANNOSTART.': $startnumb, '.ANNOSTOP.': $endnumb, uid: apoc.create.uuid(), priv_creator: $creatorid } ),
+        (a:'.ANNONODE.' {'.ANNOSTART.': $startnumb, '.ANNOSTOP.': $endnumb, uid: apoc.create.uuid() } ),
         (a)<-[r1:contains]-(t),
         (a)-[r2:references]->(e)
       RETURN a,t,e,r1,r2,id(a)';
@@ -132,8 +133,7 @@ class Annotation{
         'texid' => $neoIDText,
         'etid' => $neoIDEt, 
         'startnumb' => $start,
-        'endnumb' => $end, 
-        'creatorid' => $userAppId, 
+        'endnumb' => $end
       ]); 
 
       //connect (a) to $user

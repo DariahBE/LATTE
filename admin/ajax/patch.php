@@ -24,7 +24,7 @@ if(isset($_SESSION["userid"])){
   //check CSRF
 
   $tokenManager = new CsrfTokenManager();
-  $tokenIsValid = $tokenManager->checkToken(); 
+  $tokenIsValid = $tokenManager->checkToken(); //TODO which token are you checkin???
 
   if(!($tokenIsValid && $adminMode)){
     header("HTTP/1.0 403 Forbidden");

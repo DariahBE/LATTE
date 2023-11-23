@@ -4,6 +4,10 @@ include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/navbar.inc.php');
+include_once(ROOT_DIR.'includes/csrf.inc.php'); 
+
+$tokenmanager = new CsrfTokenManager();
+$token = $tokenManager->generateToken(); 
 
 
 if(!(isset($_SESSION) && boolval($_SESSION['userid']))){

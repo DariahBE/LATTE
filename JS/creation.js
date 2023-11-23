@@ -28,6 +28,7 @@ class nodeCreator{
     var nodeType = document.getElementById('nodeTypeSelection').firstChild.value;
     var form = document.getElementById('inputformSecondStage');
     console.log(nodeType, form);
+    
   }
 
   createFormForType(eventhandle){

@@ -38,7 +38,21 @@ ________________________
     * identify.php
     * resolve.php
 
-9) When clicking on an annotation in a text, the spelling variants are not being shown. There's also no option to add spelling variants. Problem is that this code is dupblicated. 
+11) Bug in getnode.inc.php
+  - Code fetching the entity based on a string does realy on a hardcoded property name 'label'. 
+    * Get the hardcoded dependency out of there
+    * Make sure all names used to select an an entity become part of the variants connected to the Entity!
+
+12) creation.js not working 
+  - There's an issue with the submit event, 
+    * the verification gets triggered propperly, but the actual storage of a new et doesn't work
+    * as it is now, the only test has been done with Text type entities. 
+    * preSubmitCheck() is missing a submit event!
+________________________________________________________________________________________________________________________________________________
+
+
+
+9) OK When clicking on an annotation in a text, the spelling variants are not being shown. There's also no option to add spelling variants. Problem is that this code is dupblicated. 
   - There is code to deal with variants in interactWithEntities.js > displayWrittenVariants 
   - Other code block is in: selectInText.js > spellingVariantCreation 
 
@@ -51,8 +65,3 @@ ________________________
     SOLUTION (todo:):
         make the call to checkIfConnectionExists async. If there's no existing connection - carry on.
         if a connection exists let the code clear its content BEFORE removing the hidden class!
-
-________________________________________________________________________________________________________________________________________________
-
-
-

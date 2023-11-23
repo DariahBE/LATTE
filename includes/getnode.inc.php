@@ -379,7 +379,7 @@ class Node{
     if($caseSensitive){
       $cypherQuery = '
           OPTIONAL MATCH (p'.$entityType.' {label:$nameValue1})
-          OPTIONAL MATCH (v:Variant {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
+          OPTIONAL MATCH (v {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
           OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
           OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
           WITH COALESCE(size((p)--()), 0)+COALESCE(size((q)--()), 0) as collectiveScore, p as p, v as v, q as q, r1 as r1, r2 as r2, r3 as r3, i as i, j as j
@@ -394,7 +394,7 @@ class Node{
       $entityValueCleaned = ignoreRegex($entityValue);
       $cypherQuery = '
           OPTIONAL MATCH (p'.$entityType.') WHERE p.label =~ $nameValue1
-          OPTIONAL MATCH (v:Variant)-[r1:same_as]-(q'.$entityType.') WHERE v.variant =~ $nameValue2
+          OPTIONAL MATCH (v)-[r1:same_as]-(q'.$entityType.') WHERE v.variant =~ $nameValue2
           OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
           OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
           WITH COALESCE(size((p)--()), 0)+COALESCE(size((q)--()), 0) as collectiveScore, p as p, v as v, q as q, r1 as r1, r2 as r2, r3 as r3, i as i, j as j
@@ -426,6 +426,8 @@ class Node{
         if(!(is_null($result['i']))){
           //$iPartner = process_relationshipNodes($result['i']);
           $iPartner = process_entityNodes($result['i']);
+          $iPartner['siloForEt'] = 0;//todo
+
           if(!(in_array($iPartner[0], $registeredNodes))){
             $registeredNodes[] = $iPartner[0];
             $formattedResults['silo'][] = $iPartner;
@@ -434,6 +436,7 @@ class Node{
         if(!(is_null($result['j']))){
           //$jPartner = process_relationshipNodes($result['j']);
           $jPartner = process_entityNodes($result['j']);
+          $jPartner['siloForEt'] = 0; //todo
           if(!(in_array($jPartner[0], $registeredNodes))){
             $registeredNodes[] = $jPartner[0];
             $formattedResults['silo'][] = $jPartner;
