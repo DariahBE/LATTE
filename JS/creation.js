@@ -28,6 +28,16 @@ class nodeCreator{
     var nodeType = document.getElementById('nodeTypeSelection').firstChild.value;
     var form = document.getElementById('inputformSecondStage');
     console.log(nodeType, form);
+    /**
+      send the form together with the TOKEN here. 
+      TODO: send the content of the call to the insert.php page in ajax using the disposable token. 
+    */
+      fetch("/AJAX/getdisposabletoken.php")
+      .then(response => response.json())
+      .then(data => {
+        const token = data;
+        console.log(token); 
+      });   
     
   }
 
