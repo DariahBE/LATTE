@@ -27,7 +27,7 @@ class nodeCreator{
     //backend should also validate the input!
     var nodeType = document.getElementById('nodeTypeSelection').firstChild.value;
     var form = document.getElementById('inputformSecondStage');
-    console.log(nodeType, form);
+    //console.log(nodeType, form);
     /**
       send the form together with the TOKEN here. 
       TODO: send the content of the call to the insert.php page in ajax using the disposable token. 
@@ -37,7 +37,18 @@ class nodeCreator{
       .then(data => {
         const token = data;
         console.log(token); 
+        console.log('go', form); 
+        const url = "/AJAX/crud/insert.php"; 
+        $.ajax({
+          type: "POST",
+          url: url,
+          data: form
+        });
+        //BUG: Uncaught (in promise) TypeError: 'checkValidity' called on an object that does not implement interface HTMLTextAreaElement. 
+        // don't know why. 
+
       });   
+
     
   }
 

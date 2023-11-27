@@ -24,8 +24,10 @@ include_once(ROOT_DIR.'\includes\user.inc.php');
 include_once(ROOT_DIR.'\includes\csrf.inc.php');
 
 $submitdata = $_POST; 
+var_dump($submitdata);
 
 $token = $submitdata['token']; 
 var_dump($token); 
+
 
 ?>

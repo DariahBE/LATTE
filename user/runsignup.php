@@ -10,6 +10,8 @@ $csrf_name = 'registrationtoken';
 $user = new User($client);
 $graph = new Node($client);
 
+//TODO: user invite code should be rewritten to use the SQLITE database. 
+
 
 /**
  *          WARNING: 
@@ -119,34 +121,6 @@ if(!empty($missing)) {
         echo json_encode(array('msg' => 'Invalid Captcha'));
         die();
     }
-
-
-    //$newUserId = (int)$user->autoIncrementControllableUserId(); 
-
-    // all checks have passed: 
-    // perform registration using the User class
-
-
-    /*
-    $hashedUserPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
-    if(REGISTRATIONPOLICY === 1){
-        //update the record: 
-        $query = 'MATCH (n:priv_user) WHERE id(n) = $neoidKnown SET n.logon_attempts = 0, n.name = $setName, n.userid = $userid, n.wd_property_preferences	= "", n.wd_titlestring_preferences	= "", n.wd_wikilink_preferences	= "", n.password = $passwordhash '; 
-        $data = array(
-            'neoidKnown' => '',
-            'setName' => $_POST['fullname'], 
-            'role' => 'editor', 
-            'userid' => '' ,//TODO
-            'passwordhash' => $hashedUserPassword
-        );
-        $message = 'You now have full access to this project.'; 
-    } else if(REGISTRATIONPOLICY === 2){
-        //insert a new record:
-        $query = ''; 
-        $data = array();
-        $message = 'You have successfully registered a new account.'; 
-
-    }*/
 
     $result = $graph->executionOfParameterizedQuery($query, $data); 
     var_dump($result); 

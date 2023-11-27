@@ -24,6 +24,7 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
   <head>
     <meta charset="utf-8">
     <title><?php echo PROJECTNAME ?></title>
+    <script src="/JS/jquery-3.6.0.min.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">

@@ -386,6 +386,7 @@ function showET(etdata){
   fetch('/user/AJAX/profilestate.php')
   .then((response) => response.json())
   .then((data) =>{
+    console.log('profilestate', data); 
     if(data['valid']){
       var csrf = data['csrf'];
       var acceptLink = document.createElement('button');
@@ -558,6 +559,7 @@ function triggerSidePanelAction(entityData){
       alert('moving ET'); 
       //navigates through the dataDictionary and picks a page(entity). 
       //only used when 2 or more possible entities are part of the selection.
+      //TODO: update of DOM isn't working!
       if(dir === '-'){
         //go back
         datadictpage--;
@@ -708,7 +710,7 @@ function triggerSidePanelAction(entityData){
     embeddedCreateDiv.appendChild(entityTypeDiv);
     embeddedCreateDiv.appendChild(setEntityType);
     createNodeDiv.appendChild(embeddedCreateDiv);
-    /* BUG: undefined errors when starting selection from outside the text div. 
+    /* OK: undefined errors when starting selection from outside the text div. 
       //Dropdown added: Show positional info: 
       //var text = getTextSelection();
       //globalSelectionText, globalSelectionStart, globalSelectionEnd;
@@ -812,7 +814,7 @@ function triggerSidePanelAction(entityData){
     spellingVariantMainBox.appendChild(addToStorageBox);
     spellingVariantMainBox.appendChild(spellingVariantSubBox); */
     //DELETED:16/11/2023 //let spellingVariantDOMReturn = spellingVariantCreation(null); 
-    //TODO: this variant spelling data needs to be performed by a call to et_variants > displayET_variant()
+    //OK : this variant spelling data needs to be performed by a call to et_variants > displayET_variant()
 
     /*var gateWay = document.createElement('div');
     gateWay.setAttribute('id', 'neobox');
@@ -829,7 +831,7 @@ function triggerSidePanelAction(entityData){
     let spellingVariantDOMReturn = displayET_variant(null, null); 
     //variantbox has to be invisible in this phase: entity still needs to be created!!
     document.getElementById('embeddedSpellingVariants').classList.add('hidden');
-    alert('#embeddedSpellingVariants is hidden, make visible again when ET is created.'); 
+    //TODO!!: alert('#embeddedSpellingVariants is hidden, make visible again when ET is created.'); 
     //wikidataPrompt: 
     var wikidataQLabel = document.createElement('div');
     wikidataQLabel.setAttribute('readonly', true);

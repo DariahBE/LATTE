@@ -26,9 +26,6 @@
 
     // TODO : spelling variants are not handled yet!
 
-    //die('TODO:  missing variants'); 
-
-
     //interpretation of the post request!
     $data = $_POST['data']; 
     //parse parts of the data: 

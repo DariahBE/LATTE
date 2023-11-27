@@ -73,7 +73,7 @@ function displayET_variant(data, relatedET){
         if(spellingVariantTracker.includes(writtenValue)){
             return;
         }else{
-            //CAREFULL!!! if relatedET === FALSE you'll need to submit a new entity node first!!
+            //BUG: CAREFULL!!! if relatedET === FALSE you'll need to submit a new entity node first!!
             //      might be prone to race conditions (test this!)
             //send it to BE ==> return the NEOID and UID!
             //first get a token from the DB: 
