@@ -31,6 +31,7 @@ class nodeCreator{
     /**
       send the form together with the TOKEN here. 
       TODO: send the content of the call to the insert.php page in ajax using the disposable token. 
+      BUG: if you drop form as part of the data request, then it works!!! somethinw wrong with the form!! ==> But the receiving page does not show any data coming from the post request!
     */
       fetch("/AJAX/getdisposabletoken.php")
       .then(response => response.json())
@@ -42,7 +43,7 @@ class nodeCreator{
         $.ajax({
           type: "POST",
           url: url,
-          data: form
+          data: $(form).serialize()
         });
         //BUG: Uncaught (in promise) TypeError: 'checkValidity' called on an object that does not implement interface HTMLTextAreaElement. 
         // don't know why. 
@@ -96,7 +97,7 @@ class nodeCreator{
         var submit = document.createElement('input');
         submit.setAttribute('type', 'submit');
         submit.addEventListener('click', event => this.preSubmitCheck(event)); 
-        formGrid.appendChild(submit)
+        formGrid.appendChild(submit);
         form.appendChild(formGrid); 
         formTarget.appendChild(form);
         const validation = new Validator;
