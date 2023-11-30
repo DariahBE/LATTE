@@ -132,7 +132,8 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
       <div id="textcontent">
       <?php
         $textString = $text['data'][0]->first()['node']['properties'][TEXNODETEXT];
-        $textLanguage = isset($text['data'][0]->first()['node']['properties']['language']) ? $text['data']['properties']['language']: False;
+        //var_dump($text['data'][0]->first()['node']['properties']['language']); 
+        $textLanguage = isset($text['data'][0]->first()['node']['properties']['language']) ? $text['data'][0]->first()['node']['properties']['language']: False;
         $i = 0;
         foreach(new MbStrIterator($textString) as $c) {
           echo "<span class='ltr' data-itercounter=$i>".nl2br($c)."</span>";

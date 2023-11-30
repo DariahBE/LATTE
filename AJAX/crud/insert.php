@@ -68,7 +68,7 @@ foreach ($submitdata['formdata'] as $key => $value) {
 $node->startTransaction();
 $graphResult = $node->createNewNode($entity_type, $submitdata['formdata'], true); 
 $node->commitTransaction(); 
-var_dump($graphResult); 
+// var_dump($graphResult); 
 
 
 ?>
