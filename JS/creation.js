@@ -26,7 +26,15 @@ class nodeCreator{
     //make it return the stable URI for the newly created node if possible. 
     //backend should also validate the input!
     var nodeType = document.getElementById('nodeTypeSelection').firstChild.value;
-    var form = document.getElementById('inputformSecondStage');
+    var formcontent = document.getElementById('inputformSecondStage').getElementsByClassName('form-group');
+    let submissiondata = {'formdata': {}, 'etype': nodeType, 'token': null};
+    for (let j = 0; j < formcontent.length; j++){
+      let group = formcontent[j]; 
+      let group_box = group.getElementsByClassName('attachValidator')[0]; 
+      let group_name = group_box.getAttribute('data-name');
+      let group_value = group_box.value; 
+      submissiondata['formdata'][group_name] = group_value; 
+    }
     //console.log(nodeType, form);
     /**
       send the form together with the TOKEN here. 
@@ -37,20 +45,14 @@ class nodeCreator{
       .then(response => response.json())
       .then(data => {
         const token = data;
-        console.log(token); 
-        console.log('go', form); 
         const url = "/AJAX/crud/insert.php"; 
+        submissiondata['token'] = token; 
         $.ajax({
           type: "POST",
           url: url,
-          data: $(form).serialize()
+          data: submissiondata
         });
-        //BUG: Uncaught (in promise) TypeError: 'checkValidity' called on an object that does not implement interface HTMLTextAreaElement. 
-        // don't know why. 
-
-      });   
-
-    
+      });      
   }
 
   createFormForType(eventhandle){

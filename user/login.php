@@ -86,9 +86,7 @@
                           <p class="mb-0 mr-2">Don't have an account? Then <a href='register.php'>register for one</a>.</p>
                         <?php }?>
                         <script>
-                          console.log('click event');
-                          var elem = document.getElementById('loginbutton');
-                          elem.addEventListener('click', function(){
+                          function run_login(){
                             var logindata = {
                               mail: document.getElementById('mailfield').value,
                               password: document.getElementById('pwfield').value
@@ -114,7 +112,15 @@
                                 }
                             }
                             });
-                          });
+                          }
+                          var elem = document.getElementById('loginbutton');
+                          elem.addEventListener('click', function(){run_login();});
+                          var elem2 = document.getElementById('pwfield'); 
+                          elem2.addEventListener("keypress", function(event){
+                            if (event.key === "Enter"){
+                              elem.click();
+                            }
+                          })
                         </script>
 
                       </div>
