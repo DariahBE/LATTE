@@ -9,6 +9,15 @@ class nodeCreator{
     this.createNodeTypeSelector();
   }
 
+  reset(){
+    /**
+     * Resets the node creation form. 
+     */
+    document.getElementById('propertySection').innerHTML = '';      //clears the div itself. 
+    document.getElementById('select_dd_element').selectedIndex  = 0;    //resets the selector. 
+  }
+
+
   preSubmitCheck(eventhandle){
     eventhandle.preventDefault();
     //if everything is valid: submit to creation endpoint and create the node!
@@ -35,13 +44,8 @@ class nodeCreator{
       let group_value = group_box.value; 
       submissiondata['formdata'][group_name] = group_value; 
     }
-    //console.log(nodeType, form);
-    /**
-      send the form together with the TOKEN here. 
-      TODO: send the content of the call to the insert.php page in ajax using the disposable token. 
-      BUG: if you drop form as part of the data request, then it works!!! somethinw wrong with the form!! ==> But the receiving page does not show any data coming from the post request!
-    */
-      fetch("/AJAX/getdisposabletoken.php")
+
+    fetch("/AJAX/getdisposabletoken.php")
       .then(response => response.json())
       .then(data => {
         const token = data;
@@ -50,9 +54,16 @@ class nodeCreator{
         $.ajax({
           type: "POST",
           url: url,
-          data: submissiondata
+          data: submissiondata, 
+          success: function(data, status, xhttp){     
+            if (data){
+              //resets the form: prevents resubmission.
+              this.reset(); 
+              //show hyperlink to ET. 
+            }
+          }
         });
-      });      
+      });
   }
 
   createFormForType(eventhandle){
@@ -70,7 +81,6 @@ class nodeCreator{
       .then((response) => response.json())
       .then((data) =>{
         var keys = Object.keys(data['data']); 
-        console.log(keys); 
         data = data['data'];
         for(var i=0; i<keys.length; i++){
           //var fieldName = 'field_name_'+toString(i); 
@@ -111,6 +121,7 @@ class nodeCreator{
     var target = document.getElementById('nodeTypeSelection');
     target.innerHTML = '';
     var selectBlock = document.createElement('select');
+    selectBlock.setAttribute('id', 'select_dd_element'); 
     var prompt = document.createElement('option');
     prompt.setAttribute('disabled', 1);
     prompt.setAttribute('selected', 1);
@@ -123,7 +134,7 @@ class nodeCreator{
       o.text = this.coreNodes[i];
       selectBlock.appendChild(o);
     }
-    selectBlock.addEventListener('click', event => this.createFormForType(event));
+    selectBlock.addEventListener('change', event => this.createFormForType(event));
     target.appendChild(selectBlock); 
   }
 }

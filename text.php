@@ -132,7 +132,11 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
       <div id="textcontent">
       <?php
         $textString = $text['data'][0]->first()['node']['properties'][TEXNODETEXT];
-        //var_dump($text['data'][0]->first()['node']['properties']['language']); 
+        /**
+         * //TODO: 
+         * bad design: what happens when language is not a property anymore?? Either set it to be a hardcoded property. 
+         * OR get rid of this dependency!!
+         */
         $textLanguage = isset($text['data'][0]->first()['node']['properties']['language']) ? $text['data'][0]->first()['node']['properties']['language']: False;
         $i = 0;
         foreach(new MbStrIterator($textString) as $c) {

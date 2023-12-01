@@ -39,7 +39,7 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
         $navbar = new Navbar($adminMode); 
         echo $navbar->nav;  
         //DO NOT add annotations in this environment (nodename: Annotation) !
-        echo '<script>var core = '.json_encode(array_diff(array_keys(CORENODES), array('Annotation'))).';</script>';
+        echo '<script>var core = '.json_encode(array_values(array_diff(array_keys(CORENODES), array('Annotation')))).';</script>';
     ?>
     <div class= "2xl:w-1/2 xl:w-2/3 items-center m-auto p-8">
 
@@ -71,6 +71,8 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
 
     <script>
     var creator = new nodeCreator(core); 
+
+
   </script>
   </body>
 </html>
