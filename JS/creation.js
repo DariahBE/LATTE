@@ -13,10 +13,13 @@ class nodeCreator{
     /**
      * Resets the node creation form. 
      */
+    let present_error = document.getElementById('detectedPresentError'); 
+    if(present_error !== null){
+      present_error.remove(); 
+    }
     document.getElementById('propertySection').innerHTML = '';      //clears the div itself. 
     document.getElementById('select_dd_element').selectedIndex  = 0;    //resets the selector. 
   }
-
 
   preSubmitCheck(eventhandle){
     eventhandle.preventDefault();
@@ -24,6 +27,7 @@ class nodeCreator{
     var errrormessagesOnScreen = document.getElementsByClassName('errorNotification'); 
     if(errrormessagesOnScreen.length){
       var notification = document.createElement('p'); 
+      notification.setAttribute('id', 'detectedPresentError'); 
       var notificationText = document.createTextNode('One or more properties have an invalid value. Data was not submitted.');
       notification.appendChild(notificationText); 
       document.getElementById('formMessageBox').appendChild(notification);
@@ -45,9 +49,12 @@ class nodeCreator{
       submissiondata['formdata'][group_name] = group_value; 
     }
 
+     
     fetch("/AJAX/getdisposabletoken.php")
       .then(response => response.json())
       .then(data => {
+      //this.test(4);   //OK
+
         const token = data;
         const url = "/AJAX/crud/insert.php"; 
         submissiondata['token'] = token; 
@@ -55,15 +62,27 @@ class nodeCreator{
           type: "POST",
           url: url,
           data: submissiondata, 
-          success: function(data, status, xhttp){     
+          success: function(data){     
             if (data){
+              //test(5);   // not OK!
+
               //resets the form: prevents resubmission.
               this.reset(); 
               //show hyperlink to ET. 
+              console.log(data['stable']); 
             }
+          }, 
+          //TODO: test failure component, doesn't trigger. 
+          failure: function(){
+            alert('nope, that didn"t work out as intended'); 
           }
         });
       });
+  }
+
+  test(a){
+    //TODO: delete this
+    console.warn('Testfunction call', a); 
   }
 
   createFormForType(eventhandle){

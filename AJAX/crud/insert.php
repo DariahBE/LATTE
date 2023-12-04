@@ -38,10 +38,14 @@ foreach ($submitdata['formdata'] as $key => $value) {
 
 //foreach loop has passed ==> new to be created node is definitely valid: SO create it. 
 $node->startTransaction();
-$graphResult = $node->createNewNode($entity_type, $submitdata['formdata'], true); 
+$graphResult = $node->createNewNode($entity_type, $submitdata['formdata'], true);       //returns ID() of created node
 $node->commitTransaction(); 
 
-//get the stable identifier of the element. 
-$uri = $node->generateURI($graphResult); 
-echo json_encode(array('stable'=> $uri)); 
+if (boolval($graphResult)){
+    //get the stable identifier of the element. 
+    $uri = $node->generateURI($graphResult); 
+    echo json_encode(array('stable'=> $uri)); 
+}else{
+    echo json_encode(array('stable'=> false)); 
+}
 ?>
