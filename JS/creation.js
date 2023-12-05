@@ -7,9 +7,12 @@ class nodeCreator{
   constructor(coreDictionary){
     this.coreNodes = coreDictionary; 
     this.createNodeTypeSelector();
+    this.reset = this.reset.bind(this);
+
   }
 
   reset(){
+    alert('resetting'); 
     /**
      * Resets the node creation form. 
      */
@@ -62,20 +65,12 @@ class nodeCreator{
           type: "POST",
           url: url,
           data: submissiondata, 
-          success: function(data){     
-            if (data){
-              //test(5);   // not OK!
-
-              //resets the form: prevents resubmission.
-              this.reset(); 
-              //show hyperlink to ET. 
-              console.log(data['stable']); 
-            }
-          }, 
-          //TODO: test failure component, doesn't trigger. 
-          failure: function(){
-            alert('nope, that didn"t work out as intended'); 
-          }
+          success: (e) => {
+            this.reset();
+            console.log(e);
+          },
+          
+          dataType: "JSON"    // datatype as optional parameter. 
         });
       });
   }
