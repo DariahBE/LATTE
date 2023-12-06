@@ -12,7 +12,6 @@ class nodeCreator{
   }
 
   reset(){
-    alert('resetting'); 
     /**
      * Resets the node creation form. 
      */
@@ -56,8 +55,6 @@ class nodeCreator{
     fetch("/AJAX/getdisposabletoken.php")
       .then(response => response.json())
       .then(data => {
-      //this.test(4);   //OK
-
         const token = data;
         const url = "/AJAX/crud/insert.php"; 
         submissiondata['token'] = token; 
@@ -67,17 +64,26 @@ class nodeCreator{
           data: submissiondata, 
           success: (e) => {
             this.reset();
-            console.log(e);
+            let result = document.createElement('p'); 
+            if(e.hasOwnProperty('stable') && Array.isArray(e['stable']) && e['stable'].length > 0){
+              let resultText = document.createTextNode('A new entry was succesfully added to the database. You can access this new node here: '); 
+              let resultSubLink= document.createElement('a');
+              let resultSubLinkText = document.createTextNode(e['stable'][0]);
+              resultSubLink.setAttribute('href', e['stable'][0]);
+              resultSubLink.appendChild(resultSubLinkText); 
+              result.appendChild(resultText); 
+              result.appendChild(resultSubLink); 
+              result.classList.add('border-green-500'); 
+              document.getElementById('formMessageBox').appendChild(result);  
+            }else{
+              let resultText = document.createTextNode('This element could not be added to the database.');
+              result.appendChild(resultText);
+              document.getElementById('formMessageBox').appendChild(result);
+            } 
           },
-          
           dataType: "JSON"    // datatype as optional parameter. 
         });
       });
-  }
-
-  test(a){
-    //TODO: delete this
-    console.warn('Testfunction call', a); 
   }
 
   createFormForType(eventhandle){
