@@ -36,14 +36,16 @@ function ignoreRegex($strIn){
   return $strOut;
 }
 
+/*
 function process_relationshipNodes($nodeIn){
   //data is controlled: only a single node.
+  //TODO: code is not being referenced, should you keep it then??
   // BUG:
   /*
       Flawed datamodel: code should use dynamic properties as they are set by
       the config.inc.php file. Do not rely on static hardcoded models!
       SAME bugfix as in ghet process_entityNodes method!
-  */
+  * /
   $id = $nodeIn['id'];
   $label = $nodeIn['labels'][0];
   $data = array(
@@ -53,7 +55,7 @@ function process_relationshipNodes($nodeIn){
     'uri'=>$nodeIn['properties']['partner_uri'],
   );
   return array($id, $label, $data);
-}
+}*/
 
 function valueExtract($node, $key){
   try {

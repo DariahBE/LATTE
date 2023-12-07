@@ -163,6 +163,8 @@ function showdata(data){
         //alert('Bool field should be dropdown');
       }else if(fieldType === 'uri'){
         fieldvalue.setAttribute('type', 'url');
+        //TODO
+        //BUG: URI field has to generate a clickable link. Not working at the moment/ 
       }else{
         fieldvalue.setAttribute('type', 'text');
       }

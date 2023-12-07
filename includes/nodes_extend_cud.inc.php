@@ -35,31 +35,12 @@ class CUDNode extends Node {
             //then cast to boolval!
             return boolval($value); 
         }elseif($type === 'uri'){
-            //URIS are tricky: you need a valid scheme to begin with. But not all users give this. 
-            // use parse_url() to detect the scheme, if it is missing, prepend with https://
+            $inputvariable = trim($inputvariable); 
             $parsed = parse_url($inputvariable); //returns the components. Should include a host!!!
             //if there's no host: reject! Can't do anything with this. 
             if(!(array_key_exists('host', $parsed))){
                 throw new Exception('No host defined, URI rejected'); 
             }
-            /*
-            //If there's no scheme: prepend it with 'https://
-            if(!(array_key_exists('scheme', $parsed))){
-                $parsed['scheme']='https://'; 
-            }*/
-            
-            //re-assemble $parsed into a URI: 
-            /*$scheme   = isset($parsed['scheme']) ? $parsed['scheme'] . '://' : '';
-            $host     = isset($parsed['host']) ? $parsed['host'] : '';
-            $port     = isset($parsed['port']) ? ':' . $parsed['port'] : '';
-            $user     = isset($parsed['user']) ? $parsed['user'] : '';
-            $pass     = isset($parsed['pass']) ? ':' . $parsed['pass']  : '';
-            $pass     = ($user || $pass) ? "$pass@" : '';
-            $path     = isset($parsed['path']) ? $parsed['path'] : '';
-            $query    = isset($parsed['query']) ? '?' . $parsed['query'] : '';
-            $fragment = isset($parsed['fragment']) ? '#' . $parsed['fragment'] : '';
-            $url =  "$scheme$user$pass$host$port$path$query$fragment";*/
-            //throw new Exception('Encoding of URIs has not been tested (nodes_extended_cud.inc.php::helper_enforceType)'); 
             $filtered = filter_var($inputvariable, FILTER_VALIDATE_URL);
             if($filtered){
                 return $inputvariable;
@@ -225,6 +206,7 @@ class CUDNode extends Node {
     }
 
     //TODO: update needs transactional model!
+    // BUG: code is not even being called, does it make sense to keep??
     public function update($id, $data, $changePrivateProperties=False){
         /**
          * changePrivateProperties IS IT EVEN NEEDED??
@@ -330,13 +312,4 @@ class CUDNode extends Node {
 
 
 }
-
-/*
-                IMPORTANT
-there are a few todos in this file to make all nodes
-transactionally safe!                
-
-*/
-
-
 ?>
