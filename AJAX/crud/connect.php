@@ -23,8 +23,7 @@ $token = $data['csrf'];
 
 //connectiontoken should not be older than 5 minutes. 
 //check if token equals the session variable and that the session did not yet expire 
-//TODO: 1==1 should be removed here, it's breaking the security system: find impact!!
-if (1== 1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connectiontoken']) && $token === $_SESSION['connectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
+if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connectiontoken']) && $token === $_SESSION['connectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
   //destroy the token: can only be used once. 
   unset($_SESSION['connectiontoken']);
   unset($_SESSION['connectiontokencreatetime']);

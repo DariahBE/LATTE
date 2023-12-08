@@ -17,7 +17,7 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
     <div>
       <?php
         $navbar = new Navbar(); 
-        echo $navbar->nav; 
+        echo $navbar->getNav(); 
       ?>
 
     </div>

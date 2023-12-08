@@ -207,7 +207,6 @@ function showHit(id){
 let checkIfConnectionExists = async(qid)=>{
   var existingConnection = new Promise((resolve, reject) =>{
   //make a .fetch call in javascript
-  //BUG10 FIX: make this function return a promise
   console.warn('checking if QID exists.'); 
   fetch("/AJAX/checkWDExists.php?qid="+qid)
   .then((response) => response.json())

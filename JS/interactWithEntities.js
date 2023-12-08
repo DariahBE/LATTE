@@ -116,17 +116,12 @@ function showdata(data){
       var field = document.createElement('p');
       var fieldkey = document.createElement('span');
       fieldkey.classList.add('labelKey', 'font-bold');
-      var fieldvalue = document.createElement('span');
       var fieldType = annotationStructure[key] !== undefined ? annotationStructure[key][1] : 'string';
       var keytex = annotationStructure[key] !== undefined ? annotationStructure[key][0] : key;
       var fieldkeyString = document.createTextNode(keytex+': ');
-      var fieldvalueString = document.createTextNode(data);
-      //console.log(fieldvalueString); 
       if (data !== false && data!==''){
-        fieldvalue.appendChild(fieldvalueString);
         fieldkey.appendChild(fieldkeyString);
         field.appendChild(fieldkey);
-        field.appendChild(fieldvalue);
       }
 
     //}else{
@@ -158,18 +153,37 @@ function showdata(data){
       //numberfields should have a live function on them to strip all non-numeric values.
    // }
       if(fieldType === 'bool'){
+        var fieldvalue = document.createElement('span');
+        var fieldvalueString = document.createTextNode(data);
+        fieldvalue.appendChild(fieldvalueString);
+        field.appendChild(fieldvalue);
+  
         fieldvalue.setAttribute('type', 'boolean');
         console.log('work required in interactWithEntities.js line 108');
         //alert('Bool field should be dropdown');
       }else if(fieldType === 'uri'){
+        var fieldvalue = document.createElement('a');
+        fieldvalue.setAttribute('href', data); 
+        fieldvalue.setAttribute('target', '_blank'); 
+        fieldvalue.appendChild(document.createTextNode(data)); 
+        //var fieldvalueString = document.createTextNode(data);
+        //fieldvalue.appendChild(fieldvalueString);
+        field.appendChild(fieldvalue);
         fieldvalue.setAttribute('type', 'url');
-        //TODO
-        //BUG: URI field has to generate a clickable link. Not working at the moment/ 
+        //let clickhref = document.createElement('a'); 
+        //clickhref.setAttribute('href', data); 
+        //clickhref.setAttribute('target', '_blank'); 
+        //clickhref.appendChild(document.createTextNode(data)); 
+        //fieldvalue.appendChild(clickhref); 
       }else{
+        var fieldvalue = document.createElement('span');
+        var fieldvalueString = document.createTextNode(data);
+        fieldvalue.appendChild(fieldvalueString);
+        field.appendChild(fieldvalue);  
         fieldvalue.setAttribute('type', 'text');
+        fieldvalue.value = data;
+        field.appendChild(fieldvalue);  
       }
-      fieldvalue.value = data;
-      field.appendChild(fieldvalue);
       console.log('created textfield', field);    
     return field;
   }
@@ -192,14 +206,16 @@ function showdata(data){
   for (var i = 0; i < annotationExtraFields.length; i++){
     annotationTarget.appendChild(writeField(annotationExtraFields[i], '', false));
   }
+  /*
+  // TODO determine if this codeblock has to go back into production. 
   //work with the Author of the annotation:
   Object.keys(authorData).forEach(key =>{
     var row = authorData[key];
     var rowkey = row[0];
     var rowdata = row[1];
     var protected = row[2];
-  });
-  //show the type of the annotation as an enlarged entry: 
+  });*/
+  //show the type of the annotation as a header entry: 
   var etType = document.createElement('h3'); 
   var etStable = data['entity'][0]['stableURI']; 
   etType.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex',  'justify-center'); 

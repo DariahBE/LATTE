@@ -42,7 +42,12 @@ if(!boolval($text) or !array_key_exists('coreID', $text)){
 $nodeId = $text['coreID'];
 $neoId = $text['neoID'];  
 $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_uuid);
-//$relations = $node->getEdges($nodeId);
+
+//TODO implement code for recognized entities which aren't linked yet. 
+// on a DB level: store the annotation in there; 
+// don't link through to an entity. 
+// on interaction ==> run logic!
+
 ?>
 
 <!DOCTYPE html>

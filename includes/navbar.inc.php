@@ -1,5 +1,6 @@
 <?php
   class Navbar{
+    public $nav; 
     function __construct($admin=False){
     $this->nav = '
 <nav class="fixed w-full bg-gray-50 dark:bg-gray-700 z-50">
@@ -55,6 +56,13 @@
   }else{
     return ''; 
   }
+  }
+
+
+  //TODO: replace ALL calls to -->nav by call to method getNav(); 
+  #POC implemented on index page of etly. 
+  public function getNav(){
+    return $this->nav; 
   }
 
 }

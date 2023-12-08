@@ -64,11 +64,16 @@ class Annotation{
   }
 
   public function createAnnotation($texid, $start, $stop, $user, $targetNode, $hidden=false){
-    //todo: 
+    //todo: actually considere deleting this. It is not used at all!
     die("redo this, do not rely on static properties!!! (starts, texid.... bad idea)");
     //keep the $texid even though it is implied as part of the edge target!
+    // bad idea: Id() is actually stable as long as it is not deleted!!
+    //    You can use it for short-lived transaction.
+    //    You shouldn't use it for stable identifiers. 
     //DO NOT rely on id(): https://stackoverflow.com/questions/64796146/how-stable-are-the-neo4j-ids
-
+    //BUG: go back to id()-dependency
+    //   : make passtrough link to entities optional 
+    //   : add a property to annotation which indicates it was auto-recognized. 
     $query = 'CREATE (a:'.ANNONODE.' {uid: apoc.create.uuid(), '.ANNOSTART.': $start, '.ANNOSTOP.': $stop}) RETURN a.uid as uid;';
     $result = $this->client->run($query, ['start'=>$start, 'stop'=>$stop, 'user'=>$user]);
     if(boolval(count($result))){
@@ -158,6 +163,19 @@ class Annotation{
         'msg'=>'One or more constraints failed.'
       );
     }
+  }
+
+  public function createRecognizedAnnotation($texneoid, $rangetuples){
+    // TODO: implement pending code.
+    //rangetuples is an array that has start and stop organized per tuple. 
+    /*
+      Function called whenever the external NER-tool finds an entity and wants to save it in the project
+      marks a part of the text as an annotation, without linking it to an entity. 
+      for lower overhead you should allow to process multiple annotations at once. 
+     */
+
+    $query = 'MATCH (t:'.TEXNODE.') WHERE id(t) = $neo'; 
+    $data = array('neo'=>(int)$texneoid); 
   }
 
 

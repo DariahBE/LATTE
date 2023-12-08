@@ -980,16 +980,28 @@ let globalSelectionText = null;
 let globalSelectionStart = null;
 let globalSelectionEnd = null;
 function getTextSelection(){
-  console.log('call into gettextselection() here you have the rangy class loaded'); 
   //you need a map filter on selection based on length of childnodes!
   //In some cases you can get undefined back when the selecting happens in the wrong DOM
   //if that's the case, just return false!
   var selection = rangy.getSelection().getRangeAt(0).getNodes().filter(s => s.childNodes.length == 0);
   if(selection.length > 0){
     //get first and last selection elements to extract data attribute:
-    globalSelectionText = rangy.getSelection().toString().trim();
+    globalSelectionText = rangy.getSelection().toString();
     globalSelectionStart = parseInt(selection[0].parentElement.dataset.itercounter);
     globalSelectionEnd = parseInt(selection[selection.length-1].parentElement.dataset.itercounter);
+    //FIXED: on Windows systems the trailing space and newline symbol is part of entity text: 
+    let trimmedText = globalSelectionText.trim()
+    if (trimmedText !== globalSelectionText){
+      while (!(globalSelectionText.startsWith(trimmedText))){
+        globalSelectionStart += 1; 
+        globalSelectionText = globalSelectionText.slice(1, globalSelectionText.length); 
+      }
+      while (!(globalSelectionText.endsWith(trimmedText))){
+        globalSelectionEnd -= 1;
+        globalSelectionText = globalSelectionText.slice(0, globalSelectionText.length - 1);
+      }
+    }
+
     return [globalSelectionText, globalSelectionStart, globalSelectionEnd];
   }else{
     return false;
@@ -1004,6 +1016,7 @@ function triggerSelection(){
   console.log('Properties: ', selectedTextProperties);
   var selectedTextStart = selectedTextProperties[1];
   var selectedTextEnd = selectedTextProperties[2];
+
   //fetch from BE:
   if(selectedText){
     $baseURL = '/AJAX/getEntitySuggestion.php?';
