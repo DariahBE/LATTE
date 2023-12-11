@@ -36,7 +36,7 @@ $preferences->buildPreferences();
   <body class="bg-neutral-200 w-full">
   <?php
     $navbar = new Navbar(); 
-    echo $navbar->nav;  
+    echo $navbar->getNav();
   ?>
     <div class="top navbar">
 

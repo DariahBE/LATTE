@@ -66,7 +66,7 @@ if($requestedNodeLabel === TEXNODE){
     <div>
       <?php
         $navbar = new Navbar(); 
-        echo $navbar->nav; 
+        echo $navbar->getNav();
       ?>
 
     </div>

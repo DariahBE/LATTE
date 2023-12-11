@@ -46,7 +46,7 @@
   <body class="bg-neutral-200 w-full">
   <?php
     $navbar = new Navbar($adminMode); 
-    echo $navbar->nav;  
+    echo $navbar->getNav();
     $integrity = new Integrity($client);
     $tokenManager = new CsrfTokenManager();
     $token = $tokenManager->generateToken(); 

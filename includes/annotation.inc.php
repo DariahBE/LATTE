@@ -165,7 +165,7 @@ class Annotation{
     }
   }
 
-  public function createRecognizedAnnotation($texneoid, $rangetuples){
+  public function createRecognizedAnnotation(int $texid, array $connections){
     // TODO: implement pending code.
     //rangetuples is an array that has start and stop organized per tuple. 
     /*
@@ -174,8 +174,21 @@ class Annotation{
       for lower overhead you should allow to process multiple annotations at once. 
      */
 
-    $query = 'MATCH (t:'.TEXNODE.') WHERE id(t) = $neo'; 
-    $data = array('neo'=>(int)$texneoid); 
+     //$texid = 10001; 
+     //$connections = array(array(30,44));
+     $cypher = '
+     UNWIND $connections AS connection
+     MATCH (n) WHERE id(n) = $texid
+     WITH n, connection
+     OPTIONAL MATCH(a) WHERE ((n)--(a) AND a.start = connection[0] AND a.stop = connection[1])
+      MERGE (n)-[:HAS_CONNECTION]->(a:Annotation_Test)
+      SET a.start = a[0], a.stop = a[1]
+    ';
+
+    $this->client->run($cypher, [
+      'connections' => $connections,
+      'texid' => $texid,
+    ]);
   }
 
 

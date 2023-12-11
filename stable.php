@@ -96,7 +96,7 @@ if(array_key_exists('coreID', $core)){
   <body class="bg-neutral-200">
     <?php
       $navbar = new Navbar(); 
-      echo $navbar->nav;
+      echo $navbar->getNav();
     ?>
     <div class="w-full centerCustom">
     <div class="md:grid md:grid-cols-2 grid-cols-1 w-7/8 m-4 mx-auto px-4 ">

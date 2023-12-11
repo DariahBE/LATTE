@@ -87,7 +87,7 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
   <body class="bg-neutral-200 w-full">
   <?php
     $navbar = new Navbar(); 
-    echo $navbar->nav; 
+    echo $navbar->getNav();
   ?>
 
     <div class=" 2xl:w-1/2 xl:w-2/3 items-center m-auto"> 

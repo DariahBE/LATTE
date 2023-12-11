@@ -40,7 +40,7 @@ $limit = 20;
     <body class="bg-neutral-200 w-full">
     <?php
         $navbar = new Navbar($adminMode); 
-        echo $navbar->nav;
+        echo $navbar->getNav();
     ?>
 
       <div class= "2xl:w-1/2 xl:w-2/3 items-center m-auto p-8">

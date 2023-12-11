@@ -33,7 +33,7 @@
   <body class="bg-neutral-200 w-full">
   <?php
     $navbar = new Navbar($adminMode); 
-    echo $navbar->nav;  
+    echo $navbar->getNav();
     include_once('admin_tasks.php');
   ?>
 
