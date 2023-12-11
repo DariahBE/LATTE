@@ -66,13 +66,11 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
                 <ul>
                   <li><a href="users/login.php">Log in</a></li>
                   <li><a href="search/node.php">search for a node</a></li>
-                  <li><a href="search/edge.php">search for an edge</a></li>
                   <li><a href="search/text.php">search for a text</a></li>
                 </ul>
               </div>
               <div class="">
                 <!-- // TODO code cleanup! -->
-                <p>Hello world</p>
               </div>
 
             </div>
