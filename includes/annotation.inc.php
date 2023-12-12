@@ -173,22 +173,24 @@ class Annotation{
       marks a part of the text as an annotation, without linking it to an entity. 
       for lower overhead you should allow to process multiple annotations at once. 
      */
-
      //$texid = 10001; 
      //$connections = array(array(30,44));
-     $cypher = '
-     UNWIND $connections AS connection
-     MATCH (n) WHERE id(n) = $texid
-     WITH n, connection
-     OPTIONAL MATCH(a) WHERE ((n)--(a) AND a.start = connection[0] AND a.stop = connection[1])
-      MERGE (n)-[:HAS_CONNECTION]->(a:Annotation_Test)
-      SET a.start = a[0], a.stop = a[1]
-    ';
+     foreach($connections as $connection){
 
-    $this->client->run($cypher, [
-      'connections' => $connections,
-      'texid' => $texid,
-    ]);
+       $start = $connection[0];
+       $stop = $connection[1]; 
+       $cypher = '
+       MATCH (n) WHERE id(n) = $texid
+       OPTIONAL MATCH (a:Annotation_test) WHERE (n)--(a) AND a.start = $start AND a.stop = $stop
+       MERGE (n)-[:HAS_CONNECTION]->(newA:Annotation_test {start: $start, stop: $stop})
+       ';
+       
+       $this->client->run($cypher, [
+         'start' => $start,
+         'stop' => $stop,
+         'texid' => $texid
+        ]);
+      }
   }
 
 
