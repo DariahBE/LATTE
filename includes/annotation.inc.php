@@ -182,7 +182,7 @@ class Annotation{
        $cypher = '
        MATCH (n) WHERE id(n) = $texid
        OPTIONAL MATCH (a:Annotation_test) WHERE (n)--(a) AND a.start = $start AND a.stop = $stop
-       MERGE (n)-[:HAS_CONNECTION]->(newA:Annotation_test {start: $start, stop: $stop})
+       MERGE (n)-[:HAS_CONNECTION]->(newA:Annotation_test {start: $start, stop: $stop, uid: apoc.create.uuid()})
        ';
        
        $this->client->run($cypher, [
