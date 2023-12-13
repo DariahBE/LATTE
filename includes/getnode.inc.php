@@ -21,6 +21,9 @@ function helper_parseEntityStyle(){
   foreach (CORENODES as $key => $value) {
     echo '.'.$key.'{background-color:'.$value.';}';
   }
+  if (boolval(NERCOLOR)){
+    echo '.app_automatic{background-color:'.$value.';}';
+  }
 }
 
 
@@ -105,23 +108,23 @@ class Node{
 
   function countTextsConnectedToEntityWithID($value){
     //this function starts from the automatically generated NEO ID and counts all TEXT nodes that are related to it. 
-    $connectedAnnotations = $this->client->run('MATCH (x)--(n:Annotation) WHERE id(x) = $nodeval RETURN COUNT(n) AS result', ['nodeval'=>$value]);
+    $connectedAnnotations = $this->client->run('MATCH (x)--(n:'.ANNONODE.') WHERE id(x) = $nodeval RETURN COUNT(n) AS result', ['nodeval'=>$value]);
     //echo $connectedAnnotations[0]->get('result');
     //var_dump($connectedAnnotations);
-    $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:'.TEXNODE.') WHERE id(x) = $nodeval RETURN COUNT(DISTINCT t) AS result', ['nodeval'=>$value]);
+    $connectedTexts = $this->client->run('MATCH (x)--(n:'.ANNONODE.')--(t:'.TEXNODE.') WHERE id(x) = $nodeval RETURN COUNT(DISTINCT t) AS result', ['nodeval'=>$value]);
     //b7ba61b4-0985-489f-86af-6d60c206ac5e
     return array('Annotations'=> (int)$connectedAnnotations[0]->get('result'), 'Texts'=>(int)$connectedTexts[0]->get('result'));
   }
   function listTextsConnectedToEntityWithID($value){
     //this function start form the automatically generated NEO ID and lists all TEXT nodes that are related to it.
-    $connectedTexts = $this->client->run('MATCH (x)--(n:Annotation)--(t:'.TEXNODE.') WHERE id(x) = $nodeval RETURN x, t, n', ['nodeval'=>$value]);
+    $connectedTexts = $this->client->run('MATCH (x)--(n:'.ANNONODE.')--(t:'.TEXNODE.') WHERE id(x) = $nodeval RETURN x, t, n', ['nodeval'=>$value]);
     $result = array(
       'annotations'=>array(),
       'entities'=>array(),
       'texts'=>array()
     ); 
     $primaryForText = helper_extractPrimary(TEXNODE);
-    $primaryForAnnotation = helper_extractPrimary('Annotation'); 
+    $primaryForAnnotation = helper_extractPrimary(ANNONODE); 
     //return the PK of each Text and Annotation. 
     foreach($connectedTexts as $key => $value){
       $primaryForEt = helper_extractPrimary($value['x']['labels'][0]);
@@ -361,7 +364,7 @@ class Node{
     if ($publicOnly){
       $constraintOnAnnotationLevel = '{private:false}';
     }
-    $query = "MATCH (n)<-[q:references]-(a:Annotation{$constraintOnAnnotationLevel})<-[s:contains]-(t:".TEXNODE.") where id(n)=$nodeId return t";
+    $query = "MATCH (n)<-[q:references]-(a:".ANNONODE."{$constraintOnAnnotationLevel})<-[s:contains]-(t:".TEXNODE.") where id(n)=$nodeId return t";
     $result = $this->client->run($query, [$nodeId]);
     return $result;
   }

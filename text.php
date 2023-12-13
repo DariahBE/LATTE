@@ -42,6 +42,8 @@ if(!boolval($text) or !array_key_exists('coreID', $text)){
 $nodeId = $text['coreID'];
 $neoId = $text['neoID'];  
 $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_uuid);
+$unlinkedAnnotations = $annotations->getUnlinkedAnnotationsInText($neoId); 
+
 
 //TODO implement code for recognized entities which aren't linked yet. 
 // on a DB level: store the annotation in there; 
@@ -247,13 +249,14 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
   </div>
 </div>
 <!--<div id='setNodeDetailOverlay' class='hiddenOverlay'></div>-->
-  <?php echo "<script> var storedAnnotations = ".json_encode($existingAnnotation)."</script>";
-  if(count($existingAnnotation['relations']) > 0){
+  <?php echo "<script> const storedAnnotations = ".json_encode($existingAnnotation)."</script>";
+  echo "<script> const automatic_annotations = ".json_encode($unlinkedAnnotations)."</script>"; 
+  if(count($existingAnnotation['relations']) > 0 || count($unlinkedAnnotations) > 0 ){
     echo "<script>visualizeStoredAnnotations();</script>";
   }
-
   ?>
   <script>
+
     helper_setWDLanguages(document.getElementById('wdlookuplanguage')); 
   </script>
 </div>

@@ -39,6 +39,21 @@ function visualizeStoredAnnotations(){
     }
   }
 
+  for (const auto_anno of automatic_annotations){
+    console.log(auto_anno); 
+    var starts = auto_anno['start']; 
+    var stops = auto_anno['stop']; 
+    var key = auto_anno['annotation']; 
+    for(var i = starts; i <= stops; i++){
+      var j = i.toString();
+      if(!(j in positions)){
+        positions[j] = [[key],['app_automatic']];
+      }else{
+        positions[j][0].push(key);
+        positions[j][1].push(type);
+      }
+    }
+  }
   //Mark the positions where the index matches the data-attribute.
   //Add the annotation UUID to a new data-attribute.
   //cases: 0, 1, > 1;

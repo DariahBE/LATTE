@@ -5,13 +5,14 @@
 $value = $_GET['value'];
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 //to identify a node use:
-if(isset($_GET['property'])){
+if(isset($_GET['property'])){ 
   include_once(ROOT_DIR."\includes\getnode.inc.php");
   $node = new Node($client);
   $keyname = $_GET['property'];
   $subresult = $node->matchSingleNode(false, $keyname, $value);
   $value = $subresult['data'][0][0]->get('ID');
 }
+//var_dump($value); 
 echo '<script> var colorDefinitions = '. json_encode(CORENODES) .'</script>';
 unset($node); 
 ?>

@@ -1,4 +1,10 @@
 <?php
+
+  //BUG (critical) : http://entitylinker.test/AJAX/browseDataProvider.php?value=7513 
+  //  nodes that are somehow connected to a nodetype which isn't part of the datamodel trigger fatal errors. 
+  //  You need to catch the fatal errors
+  //  entities recognized by the NER-tool should be displayed!!! (parameter is hardcoded, so easy enough). 
+
   header('Content-Type: application/json; charset=utf-8');
   include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
   include_once(ROOT_DIR."\includes\getnode.inc.php");

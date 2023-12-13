@@ -197,6 +197,9 @@ $nodes_translate = array(
   'priv_user' => 'Users'
 );
 
+########## HOW TO DISPLAY PICKUP BY NER-TOOL: ############
+$ner_color = 'rgba(200,150,0,0.6)';       //RGBA value or False!
+
 ########### SET DATA VISIBILITY FOR THE PUBLIC: ###############################
 $textsPublic = False;            //  True/False; True = texts are publicly visible on the internet.
 $entityPublic = False;          //  True/False; True = stable pages are publicly visible. 
@@ -252,6 +255,7 @@ define("SMPTPPATCH", $selfSignedCertificates);
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL
 define("ENTITYEXTRACTOR", $extractor);
+define("NERCOLOR", $ner_color); 
 
 /*PYTHON ENVIRONMENT:*/
 $pyenv = "C:/Workdir/MyApps/Python/Python311/python.exe";
