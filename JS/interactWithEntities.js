@@ -107,7 +107,9 @@ function showdata(data){
   var authorData = data['author'];
   var annotationData = data['annotation']['properties'];
   //sends the node neoID (unstable, do not use for identifying purposes on exposed API's):
-  findRelatedTexts(data['entity'][0]['neoID']); 
+  if(data['mode'] === 'controll'){
+    findRelatedTexts(data['entity'][0]['neoID']); 
+  }
   var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
   function writeField(key, data, protected){
@@ -188,6 +190,7 @@ function showdata(data){
     return field;
   }
   //work with the Annotations:
+  console.log(annotationData);
   Object.keys(annotationData).forEach(key => {
     var row = annotationData[key];
     var rowkey = row[0];

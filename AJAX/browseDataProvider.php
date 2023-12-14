@@ -1,10 +1,5 @@
 <?php
 
-  //BUG (critical) : http://entitylinker.test/AJAX/browseDataProvider.php?value=7513 
-  //  nodes that are somehow connected to a nodetype which isn't part of the datamodel trigger fatal errors. 
-  //  You need to catch the fatal errors
-  //  entities recognized by the NER-tool should be displayed!!! (parameter is hardcoded, so easy enough). 
-
   header('Content-Type: application/json; charset=utf-8');
   include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
   include_once(ROOT_DIR."\includes\getnode.inc.php");
@@ -39,16 +34,24 @@
 
     if(!in_array($labels, $excludeNodesOfType)){
       $valueForLabel = $labels; 
-      $found_key = array_search(true, array_column(NODEMODEL[$labels], 3), true);
-      //array_search can return 0, but that's the index; don't use falsy statements!!
-      if ($found_key !== false){
-        $nodeKeyName  = array_keys(NODEMODEL[$labels])[$found_key];
-        $valueForLabel = $nodeCypherMap['properties'][$nodeKeyName];
+      if($labels === 'Annotation_auto'){
+        $nodeKeyName = 'Annotation_auto';
+        $valueForLabel = 'Unlinked Entity'; 
+        $props = $nodeCypherMap['properties'];
+        //var_dump($props); 
+        $propSettings = array('uid'=>['uid'], 'stop'=>['stop'], 'start'=>['start']); 
+      }else{
+        $found_key = array_search(true, array_column(NODEMODEL[$labels], 3), true);
+        //array_search can return 0, but that's the index; don't use falsy statements!!
+        if ($found_key !== false){
+          $nodeKeyName  = array_keys(NODEMODEL[$labels])[$found_key];
+          $valueForLabel = $nodeCypherMap['properties'][$nodeKeyName];
+        }
+        //get all node properties that have a translation in the config file and 
+        //add them here in the graph on the nodelevel.
+        $props = $nodeCypherMap['properties'];
+        $propSettings = NODEMODEL[$labels]; 
       }
-      //get all node properties that have a translation in the config file and 
-      //add them here in the graph on the nodelevel.
-      $props = $nodeCypherMap['properties'];
-      $propSettings = NODEMODEL[$labels]; 
       $showProperty= [];
       foreach($props as $key => $value){
         //var_dump($key, $propSettings[$key][0]);
@@ -56,7 +59,7 @@
           $showProperty[$propSettings[$key][0]][] = $value;
         }
       }
-      
+      //var_dump($valueForLabel);
       return ['id'=>$nodeId, 'label'=>strval($valueForLabel), 'nodetype'=>$labels, 'properties'=>$showProperty];
     }
 

@@ -32,6 +32,13 @@ class Annotation{
       $this->tsx->commit();
     }
 
+    //describe the model used for Automatic_annotation nodes. This should match the structure as per NODESMODEL constant. 
+    public $auto_model = [
+      'Automatic_annotation' => [
+        "starts" => ["AnnotionStart", "int", false, false, false],
+        "stops" => ["AnnotationEnd", "int", false, false, false],
+      ]
+    ]; 
     //TODO: implement transactional model in every implementation of the ANNOTATION class. 
 
   public function isProtectedKey($key){
@@ -41,6 +48,12 @@ class Annotation{
 
   private function getAnnotationModel(){
     return NODES[ANNONODE];
+  }
+
+  public function fetchAutomaticAnnotationById($neoId){
+    $query = 'MATCH (a:Annotation_auto) WHERE id(a) = $neo RETUN a; '; 
+    $result = $this->client->run($query, array('neo'=>(int)$neoId)); 
+    return $result; 
   }
 
   public function countPersonalAnnotations($userid){

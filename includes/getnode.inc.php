@@ -267,6 +267,31 @@ class Node{
     return $result->first()['n']['properties'];
   }
 
+
+  function fetchLabelByUUID($uuid){
+    /**
+     * returns the label of a node that has a specific UUID; only required for the ANNONODE on Annotation_auto-node
+     * ANNONODE is config dependent, Annotation_auto is based on application logic. So can be coded in. 
+    */
+    $allowed_labels = array(ANNONODE, 'Annotation_auto');
+    $query = 'MATCH (n) WHERE n.uid = $uuid RETURN labels(n) as label';
+    $data = $this->client->run($query, array('uuid' => $uuid));
+    if(count($data)===0){
+      return False;
+    }
+    try{
+      $label = $data[0]->get('label')[0]; 
+    }catch(Exception){
+      return False; 
+    }
+    if(in_array($label, $allowed_labels)){
+      return $label;
+    }else{
+      return False; 
+    }
+  }
+
+
   function matchSingleNode($type, $key, $value){
     if (is_numeric($value)){
       $value = $value + 0;   //can be float too . adding +0 will allow php to automatically set the correct type.
@@ -781,6 +806,7 @@ class Node{
 
   public function fetchEtById($id){
     //returns the properties of a node with the human readable labels provided!
+    // BUG: potential security breach here: it will return private nodes too!
     $query = 'MATCH (n) WHERE id(n)= $neoid AND NOT n:priv_user RETURN n'; 
     $data = $this->client->run($query, array('neoid'=>$id)); 
     $repl = array();

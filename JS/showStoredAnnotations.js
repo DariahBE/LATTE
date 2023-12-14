@@ -40,7 +40,6 @@ function visualizeStoredAnnotations(){
   }
 
   for (const auto_anno of automatic_annotations){
-    console.log(auto_anno); 
     var starts = auto_anno['start']; 
     var stops = auto_anno['stop']; 
     var key = auto_anno['annotation']; 
@@ -70,7 +69,6 @@ function visualizeStoredAnnotations(){
         var origin = event.source || event.target;
         var countOfRelatedAnnotations = origin.dataset.annotationCount;
         var relatedAnnotationIDS = origin.dataset.annotation;
-        //console.log(relatedAnnotationIDS);
         markBasedOnId(relatedAnnotationIDS);
       })
     }
