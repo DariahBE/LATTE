@@ -63,17 +63,25 @@ if ($annotation_type === ANNONODE){
   $formattedResponse['entity'][]=$etData['entity'];
 }else if($annotation_type === 'Annotation_auto'){
   $mode = 'automated'; 
+  $annot_key  = 'Automatic_annotation'; 
   $autodata = $annotation->fetchAutomaticAnnotationById($egoId);    // TODO stuck here!!
-  var_dump($autodata); 
+  //var_dump($autodata); 
   //structure of Annotation_auto is pulled from the annotation.inc.php class as private property. 
   // it is structured the same way as the nodesmodel in config.inc.php; 
-  $formattedResponse['annotationFields'] = $annotation->auto_model; 
+  $formattedResponse['annotationFields']= $annotation->auto_model[$annot_key]; 
   //TODO: implement key and value here. True and 0 should remain. 
 
   //$formattedResponse['annotation']['properties'] = ['starts' => ['starts', 'vl', true, 0], 'stops' => ['stops', 'vl', true, 0]];
-  foreach ($annotation->auto_model as $key => $value) {
-    $allowedToEdit = false;   //non-editable by default!
-    $formattedResponse['annotation']['properties'][$key] = array($key, $value, True, $allowedToEdit);
+  //var_dump($egodata['data'][0][0]);
+  //var_dump($egodata['data'][0][0]->get('node')->getProperty('uid')); 
+  $node = $egodata['data'][0][0]->get('node'); 
+  //var_dump($node); 
+  foreach ($annotation->auto_model[$annot_key] as $key => $value) {
+    $allowedToEdit = False;   //non-editable by default!
+    $protected = True;        //always protect autogen values!
+    $value = $node->getProperty($key); 
+    
+    $formattedResponse['annotation']['properties'][$key]= array($key, $value, $protected, $allowedToEdit);
   }
   /**
   foreach ($annotationInformation['properties'] as $key => $value) {

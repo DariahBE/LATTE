@@ -35,8 +35,8 @@ class Annotation{
     //describe the model used for Automatic_annotation nodes. This should match the structure as per NODESMODEL constant. 
     public $auto_model = [
       'Automatic_annotation' => [
-        "starts" => ["AnnotionStart", "int", false, false, false],
-        "stops" => ["AnnotationEnd", "int", false, false, false],
+        "start" => ["AnnotionStart", "int", false, false, false],
+        "stop" => ["AnnotationEnd", "int", false, false, false],
       ]
     ]; 
     //TODO: implement transactional model in every implementation of the ANNOTATION class. 
@@ -51,7 +51,7 @@ class Annotation{
   }
 
   public function fetchAutomaticAnnotationById($neoId){
-    $query = 'MATCH (a:Annotation_auto) WHERE id(a) = $neo RETUN a; '; 
+    $query = 'MATCH (a:Annotation_auto) WHERE id(a) = $neo RETURN a; '; 
     $result = $this->client->run($query, array('neo'=>(int)$neoId)); 
     return $result; 
   }

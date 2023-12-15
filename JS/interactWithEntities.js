@@ -1,3 +1,5 @@
+let datamode = null; 
+
 function getInfoFromBackend(url){
   var myPromise = new Promise ((resolve, reject)=>{
     $.ajax({
@@ -87,6 +89,8 @@ function createStableLinkingBlock(nodeid, stableURI){
 
 
 function showdata(data){
+  //set the global datamode: 
+  datamode = data['mode'];
   //frameWorkBase();
   toggleSlide(1);
   createSideSkelleton(); 
@@ -107,7 +111,7 @@ function showdata(data){
   var authorData = data['author'];
   var annotationData = data['annotation']['properties'];
   //sends the node neoID (unstable, do not use for identifying purposes on exposed API's):
-  if(data['mode'] === 'controll'){
+  if(datamode === 'controll'){
     findRelatedTexts(data['entity'][0]['neoID']); 
   }
   var annotationStructure = data['annotationFields'];
@@ -219,24 +223,37 @@ function showdata(data){
     var protected = row[2];
   });*/
   //show the type of the annotation as a header entry: 
-  var etType = document.createElement('h3'); 
-  var etStable = data['entity'][0]['stableURI']; 
-  etType.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex',  'justify-center'); 
-  var etTypeText = document.createTextNode('Entity: '+data['entity'][0]['type']); 
-  etType.appendChild(etTypeText);
-  annotationTarget.appendChild(etType); 
-  let neoid = data['entity'][0]['neoID']; 
-  gateWay.appendChild(createStableLinkingBlock(neoid, etStable)); 
-  annotationTarget.appendChild(gateWay);
-  //display the variant data: 
-  displayET_variant(data['variants'], neoid); 
-  //With the type known: look up if there's a wikidata attribute: 
-  var qidArr = data['entity'][0]['properties'].filter(ar => ar[2]== 'wikidata');
-  if (qidArr.length === 1){
-    var qid = qidArr[0][1];
-    var wd = new wikibaseEntry(qid, wdProperties, 'slideover', 'qid');
-    wd.getWikidata()
-      .then(function(){wd.renderEntities(qid)}); 
+  if(datamode === 'controll'){
+    var etType = document.createElement('h3'); 
+    var etStable = data['entity'][0]['stableURI']; 
+    etType.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex',  'justify-center'); 
+    var etTypeText = document.createTextNode('Entity: '+data['entity'][0]['type']); 
+    etType.appendChild(etTypeText);
+    annotationTarget.appendChild(etType); 
+    let neoid = data['entity'][0]['neoID']; 
+    gateWay.appendChild(createStableLinkingBlock(neoid, etStable)); 
+    annotationTarget.appendChild(gateWay);
+    //display the variant data: 
+    displayET_variant(data['variants'], neoid); 
+    //With the type known: look up if there's a wikidata attribute: 
+    var qidArr = data['entity'][0]['properties'].filter(ar => ar[2]== 'wikidata');
+    if (qidArr.length === 1){
+      var qid = qidArr[0][1];
+      var wd = new wikibaseEntry(qid, wdProperties, 'slideover', 'qid');
+      wd.getWikidata()
+        .then(function(){wd.renderEntities(qid)}); 
+    }
+  } else if (datamode === 'automated'){
+    // TODO: CRITICAL
+    /**
+     *        1) code needs to perform a lookup in the DOM and see what the annotated text is. 
+     *        2) This annotated text should be treated as if you select a part of the DOM text and look it up in the DB. 
+     *        3) UPON approval= 
+     *            - update annotation Label from annoation_auto to annoation
+     *            - add other fields in DOM to approve edit and let the user annotate properly. 
+     * 
+     */
+    //alert('todo'); 
   }
 }
 
