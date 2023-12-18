@@ -244,6 +244,31 @@ function showdata(data){
         .then(function(){wd.renderEntities(qid)}); 
     }
   } else if (datamode === 'automated'){
+    console.log('start here.'); 
+    //find the selected text: 
+    let highlighted = document.getElementsByClassName("markedAnnotation"); 
+    let highlightedText = ''; 
+    console.log(highlighted.innerHTML); 
+    for (const element of highlighted) {
+      highlightedText+=element.textContent;
+    }
+    console.log(highlightedText); 
+    //loadAnnotationData(); 
+    //send selected text + start + stop to backend!
+    //loadIntoSuggestionBox(highlightedText, 17, 80);
+    /*
+    $baseURL = '/AJAX/getEntitySuggestion.php?';
+    $parameters = {
+      'type':'',    //type is empty as there was no pickup by NERtool
+      'value':highlightedText,
+      'casesensitive':false
+    };
+    $sendTo = $baseURL+jQuery.param($parameters);
+    makeSuggestionBox();
+    getInfoFromBackend($sendTo)
+    .then((data)=>{
+      loadIntoSuggestionBox(highlightedText, 17, 50);
+    })*/
     // TODO: CRITICAL
     /**
      *        1) code needs to perform a lookup in the DOM and see what the annotated text is. 
