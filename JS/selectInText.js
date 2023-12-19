@@ -952,6 +952,7 @@ function loadIntoSuggestionBox(data, from, to){
   keySpanNode.appendChild(nodesKey);
   keySpanNode.classList.add('font-bold');
   keySpanEdge.classList.add('font-bold');
+  console.log(data); 
   var retrievedCoreElements = data.nodes.filter(node => coreNodes.includes(node[1]));
   var valueSpanEdge = document.createTextNode(data.edges.length);
   var valueSpanNode = document.createTextNode(data.nodes.length+' | '+retrievedCoreElements.length);
