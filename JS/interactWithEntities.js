@@ -113,6 +113,11 @@ function showdata(data) {
   //sends the node neoID (unstable, do not use for identifying purposes on exposed API's):
   if (datamode === 'controll') {
     findRelatedTexts(data['entity'][0]['neoID']);
+  } else if (datamode === 'automated'){
+    console.warn('extract start and stop from automated ets. '); 
+    console.log(data.annotation.properties.starts[1])
+    globalSelectionEnd = data.annotation.properties.stops[1];
+    globalSelectionStart = data.annotation.properties.starts[1];
   }
   var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
@@ -252,12 +257,8 @@ function showdata(data) {
     for (const element of highlighted) {
       highlightedText += element.textContent;
     }
-    console.log(highlightedText);
-    //BUG: critical find start and stop position for loadIntoSuggestionBox. 
-    //loadAnnotationData(); 
-    //send selected text + start + stop to backend!
-    //loadIntoSuggestionBox(highlightedText, 17, 80);
-
+    console.log('highlight is', highlightedText);
+    globalSelectionText = highlightedText;
     $baseURL = '/AJAX/getEntitySuggestion.php?';
     $parameters = {
       'type': '',    //type is empty as there was no pickup by NERtool
@@ -268,20 +269,16 @@ function showdata(data) {
     makeSuggestionBox();
     getInfoFromBackend($sendTo)
       .then((data) => {
-        loadIntoSuggestionBox(data, 17, 50);
-        document.getElementById('wikidataInputPrompter').value = highlightedText;
-        console.log('domvalue set');
+        loadIntoSuggestionBox(data, globalSelectionStart, globalSelectionEnd);
       })
     // TODO: CRITICAL
     /**
-     *        1) code needs to perform a lookup in the DOM and see what the annotated text is. 
-     *        2) This annotated text should be treated as if you select a part of the DOM text and look it up in the DB. 
+     *        1) code needs to perform a lookup in the DOM and see what the annotated text is.                                        OK
+     *        2) This annotated text should be treated as if you select a part of the DOM text and look it up in the DB.              OK
      *        3) UPON approval= 
      *            - update annotation Label from annoation_auto to annoation
      *            - add other fields in DOM to approve edit and let the user annotate properly. 
-     * 
      */
-    //alert('todo'); 
   }
 }
 

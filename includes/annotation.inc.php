@@ -35,8 +35,8 @@ class Annotation{
     //describe the model used for Automatic_annotation nodes. This should match the structure as per NODESMODEL constant. 
     public $auto_model = [
       'Automatic_annotation' => [
-        "start" => ["AnnotionStart", "int", false, false, false],
-        "stop" => ["AnnotationEnd", "int", false, false, false],
+        "starts" => ["AnnotionStart", "int", false, false, false],
+        "stops" => ["AnnotationEnd", "int", false, false, false],
       ]
     ]; 
     //TODO: implement transactional model in every implementation of the ANNOTATION class. 
@@ -204,16 +204,16 @@ class Annotation{
         $stop = $connection[1]; 
         $cypher = '
         MATCH (n) WHERE id(n) = $texid
-        OPTIONAL MATCH (a:Annotation_auto) WHERE (n)--(a) AND a.start = $start AND a.stop = $stop
-        MERGE (n)-[:contains]->(newA:Annotation_auto {start: $start, stop: $stop, uid: apoc.create.uuid()})
+        OPTIONAL MATCH (a:Annotation_auto) WHERE (n)--(a) AND a.starts = $start AND a.stops = $stop
+        MERGE (n)-[:contains]->(newA:Annotation_auto {starts: $start, stops: $stop, uid: apoc.create.uuid()})
         ';
        
         $this->client->run($cypher, [
           'start' => $start,
           'stop' => $stop,
           'texid' => $texid
-          ]);
-        }
+        ]);
+      }
   }
 
 
@@ -230,8 +230,8 @@ class Annotation{
       //var_dump($node); 
       $annotation = array();
       $annotation['annotation'] = $node->getProperty('uid'); 
-      $annotation['start'] = $node->getProperty('start');
-      $annotation['stop'] = $node->getProperty('stop');
+      $annotation['start'] = $node->getProperty('starts');
+      $annotation['stop'] = $node->getProperty('stops');
       $data[]=$annotation; 
 
 

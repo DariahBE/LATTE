@@ -720,6 +720,7 @@ function triggerSidePanelAction(entityData) {
     */
     //bugfix ==> When clicking outside the text div and having a selection
     //old code would cause undefined errors! This works. 
+    console.log('Bug when clicking recognized unlinked ets.', startPositionInText, globalSelectionStart); 
     var startPositionInText = globalSelectionStart;
     var endPositionInText = globalSelectionEnd;
     var selectedString = globalSelectionText;
@@ -851,6 +852,7 @@ function triggerSidePanelAction(entityData) {
     wikidataRowBox.appendChild(wikidataLogoBox);
     var wikidataInputBox = document.createElement('input');
     wikidataInputBox.setAttribute('id', 'wikidataInputPrompter');
+    console.log('creating wdibox.'); 
     wikidataInputBox.classList.add('border', 'border-gray-300', 'rounded-md', 'shadow-sm', 'focus:outline-none', 'focus:border-indigo-500');
     wikidataInputBox.value = selectedString;
     wikidataRowBox.appendChild(wikidataInputBox);
