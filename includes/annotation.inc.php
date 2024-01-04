@@ -197,7 +197,7 @@ class Annotation{
       for lower overhead you should allow to process multiple annotations at once. 
       
       TODO: this has to be documented!!! 
-      Beware: Annotation_auto is a hardcoded labelname with hardcoded properties (start, stop and uid.)
+      Beware: Annotation_auto is a hardcoded labelname with hardcoded properties (starts, stops and uid.)
      */
      foreach($connections as $connection){
         $start = $connection[0];
@@ -221,22 +221,17 @@ class Annotation{
     /*
       Annotations which are made by the NER-tool are returned without a matching ET. 
     */
-    //{"annotation":"fc26e2c3-915c-46ce-a418-f14d9a7498d5","creator":false,"private":false,"start":138,"stop":141,"type":"Organization","neoid":7517} 
     $query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:Annotation_auto) WHERE id (t)=$neoid RETURN a,r'; 
     $result = $this->client->run($query, ['neoid'=>$neoid]); 
     $data = array(); 
     foreach($result as $row => $value){
       $node = $value["a"]; 
-      //var_dump($node); 
       $annotation = array();
       $annotation['annotation'] = $node->getProperty('uid'); 
       $annotation['start'] = $node->getProperty('starts');
       $annotation['stop'] = $node->getProperty('stops');
       $data[]=$annotation; 
-
-
     }
-
     return $data;
   }
 
