@@ -33,7 +33,8 @@ $export->setText($textString);
 $i = 0; 
 $identifiedText = []; 
 foreach(new MbStrIterator($textString) as $c){
-  $identifiedText[$i] = $c; 
+  //var_dump($c);
+  $identifiedText[$i] = nl2br($c); 
   $i++;
 }
 //set identified
@@ -42,6 +43,10 @@ $export->setIdentifiedText($identifiedText);
 //get annotations: 
 $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_uuid);
 $export->setAnnotations($existingAnnotation); 
+//get automatic annotations: the ones recognized by NER-tools: 
+$autoAnnotation = $annotations->getUnlinkedAnnotationsInText($neoId); 
+$export->setAutoAnnotations($autoAnnotation); 
+//var_dump($autoAnnotation); 
 //set document header depending on requested content. 
 $export->outputHeaders(); 
 $export->generateAnnotatedText();

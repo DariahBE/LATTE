@@ -14,6 +14,7 @@ class Exporter {
   private $rawtext; 
   private $identified; 
   private $annotations; 
+  private $autoAnnotations; 
   private $breakpoints; 
   private $XMLTaggedText;
   function __construct($client, $mode){
@@ -47,6 +48,23 @@ class Exporter {
       }
     }
     $this->breakpoints = $breakpoints; 
+  }
+
+  public function setAutoAnnotations($annotationArray){
+    $this->autoAnnotations = $annotationArray; 
+    //$breakpoints = array();
+    foreach($annotationArray as $key=> $value){
+      for($i = $value['start']; $i <= $value['stop']; $i++){
+        if(!(array_key_exists($i, $this->breakpoints))){
+          $this->breakpoints[$i] = array(); 
+        }
+        $this->breakpoints[$i][] = $value['annotation']; 
+      }
+    }
+    //TODO: add breakpoints to the $this->breakpoints array()  without replacing existing breakpoints!
+    //var_dump($breakpoints); 
+    //$this->breakpoints = array_merge($this->breakpoints, $breakpoints);
+
   }
 
   public function outputHeaders(){
@@ -271,11 +289,6 @@ class Exporter {
     $this->XMLTaggedText[$blockKey] = array($blockKey, $prevtype, $baseString, $prevAnnotationKey); 
   }
 
-/*  //If you want to add variants to the export. It needs to happen here!
-  $variants = $db->findVariants($neoID); 
-  $entities['variants'] = array(); 
-  $entities['variants'] = $variants; 
-*/
   public function outputAnnotations($db){
     $neoKeys = array_unique(array_column($this->annotations['relations'],'neoid'));
     $entities = array(); 
@@ -283,16 +296,13 @@ class Exporter {
     $this->annotationToEt = array();
     $this->varspellings = array(); 
     foreach($this->annotations['relations'] as $keyUID => $valueArr){
-      $neoID = $valueArr['neoid']; 
-      //you sent the wrong NEO ID to the fetchvariants method!
-      
+      $neoID = $valueArr['neoid'];      
       $data = $db->getAnnotationInfo($neoID);
       $entityLabel = $data['entity']['labels'][0];
       $modelOfEntity = NODEMODEL[$entityLabel];
       $entityPrimaryKey = helper_extractPrimary($entityLabel);
       $entityNeoId = $data['entity_neo_id']; 
       $variants = $db->fetchVariants($entityNeoId); 
-      //echo die($entityNeoId); 
       $primaryKeyValue = $data['entity']['properties'][$entityPrimaryKey];
       $this->annotationToEt[$keyUID] = array($entityLabel, $primaryKeyValue);
       if (!(in_array($entityLabel.$primaryKeyValue, $doneEts))){
@@ -315,11 +325,8 @@ class Exporter {
             $entities[$neoID]['properties'][$key]['value'] = $value; 
           }
         }
-        //update this to fit the actual neo id key . 
         $entities[$neoID]['et_neo'] = $entityNeoId;
         $this->varspellings[$entityNeoId] = $variants; 
-        //$entities[$neoID]['variants'] = array(); 
-        //$entities[$neoID]['variants'] = $variants;       
         $doneEts[]=$entityLabel.$primaryKeyValue;
       }
 
@@ -327,10 +334,6 @@ class Exporter {
     $this->entityDict = $entities; 
   }
 
-
-
 }
-
-
 
 ?>
