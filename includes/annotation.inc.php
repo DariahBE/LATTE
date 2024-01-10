@@ -50,6 +50,25 @@ class Annotation{
     return NODES[ANNONODE];
   }
 
+  public function convertAutomaticAnnotationToConfirmedAnnotation($neoId){
+    /**
+     * CONVERTS THE AUTOMATICALLY GENERATED ANNOTATION FROM Annotation_auto to Annotation. 
+     * The OLD UID stays!! This is best to accomodate references/URI's that were generated
+     * in old XML/JSON/API exports/links.
+     * The label changes from Annotation_auto to Annotation
+     * The properties of the label change according to the defined model
+     *    - new fields become available
+     *    - old content gets deleted
+     * The connection to a new/existing entity gets made
+     */
+    //TODO //BUG: this code needs to get triggered by put_anntotation. Still need to figure ou how to do this!
+    $query = 'MATCH (a:Annotation_auto) WHERE id(a) = $neo'; 
+
+
+    $result = $this->client->run($query, array('neo'=>(int)$neoId)); 
+    return $result;
+  }
+
   public function fetchAutomaticAnnotationById($neoId){
     $query = 'MATCH (a:Annotation_auto) WHERE id(a) = $neo RETURN a; '; 
     $result = $this->client->run($query, array('neo'=>(int)$neoId)); 

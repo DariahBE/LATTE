@@ -119,9 +119,7 @@ class Exporter {
         $referencedNode->appendChild($referencedNodeLabel);
         $referencedNode->appendChild($referencedNodePrimary);
         $annotationReference->appendChild($referencedNode);
-        $linkAnnoNode->appendChild($annotationReference);
-
-      }
+        $linkAnnoNode->appendChild($annotatio
       //adding entityLinks: 
       // missing NEO id in entitydict. 
       foreach($this->entityDict as $annotkey => $value){

@@ -26,6 +26,8 @@
 
     // TODO : spelling variants are not handled yet!
 
+    //TODO: conversion from auto to manual annotation is not done correctly
+
     //interpretation of the post request!
     $data = $_POST['data']; 
     //parse parts of the data: 
@@ -135,5 +137,6 @@
     // if database commit was successfull: revoke the token. 
     $tokenManager->revokeToken(); 
     echo json_encode($node); 
+    //TODO or //BUG: figure out why $node is returning the tsx object on completion rather then the newly created elements!
     //die('token revoked');
 ?>

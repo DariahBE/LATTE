@@ -249,7 +249,9 @@ function showdata(data) {
         .then(function () { wd.renderEntities(qid) });
     }
   } else if (datamode === 'automated') {
-    console.log('start here.');
+    console.log('start here: converts automatic annotation to confirmed one. ');
+    //BUG in this section: the entitype dropdown gets triggered twice when assigning ET no auto_anno nodes!
+    
     //find the selected text: 
     let highlighted = document.getElementsByClassName("markedAnnotation");
     let highlightedText = '';
