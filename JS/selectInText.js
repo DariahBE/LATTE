@@ -96,6 +96,7 @@ function saveNewDB() {
         /////// PROPERTIES: 
         let properties = {};
         const etType = document.getElementById('entityTypeSelector').value;
+        console.log('CHOSEN ET: ', etType); 
         let propertyPairs = document.getElementById('propertyBox').getElementsByTagName('div');
         console.log(propertyPairs);
         for (p = 0; p < propertyPairs.length; p++) {
@@ -136,8 +137,10 @@ function saveNewDB() {
           console.log(data);
           console.log(status);
         });
-      })
-    //append token to request
+      }); 
+      //delete the save-button from DOM: 
+      document.getElementById('saveEtToDb').setAttribute('disabled', true); // Prevents dual submission!
+      //append token to request
   } else {
     //  ==> form data is not valid: types don't match config definitions.
     let shakeButton = document.getElementById('saveEtToDb');

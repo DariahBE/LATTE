@@ -250,7 +250,9 @@ function showdata(data) {
     }
   } else if (datamode === 'automated') {
     console.log('start here: converts automatic annotation to confirmed one. ');
-    //BUG in this section: the entitype dropdown gets triggered twice when assigning ET no auto_anno nodes!
+    // BUG  this is related to double trigger of entity dropdown menu, but not the cause!. 
+    // you probably will need a way to pass datamode to the appropriate function! since datamode
+    // is part of the global scope, this shouldn't be difficult!
     
     //find the selected text: 
     let highlighted = document.getElementsByClassName("markedAnnotation");
