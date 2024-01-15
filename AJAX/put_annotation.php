@@ -2,7 +2,9 @@
 /**
  *  this endpoint creates a new node 
  *  then connects an annotation to it and the text
- *  then all spelling variants including the selected text get added to the node as variant
+ *  then all spelling variants including the selected text get added to the node as variant.
+ * If the Annotationmode key is set to 'auto', then the application knows it should update the
+ * annoation_auto to annotation; otherwise annotation is created. 
  */
 
     //header:
@@ -13,6 +15,7 @@
     include_once(ROOT_DIR.'/includes/csrf.inc.php');
     include_once(ROOT_DIR.'/includes/getnode.inc.php');
     include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
+    include_once(ROOT_DIR.'/includes/annotation.inc.php');
 
     //check if the annotation is being created by a valid user: If no user is logged in => die()
     $user = new User($client);
@@ -43,6 +46,14 @@
     $texid = array_key_exists('texid', $data) ? $data['texid'] : false; 
     //// Labeltype of the node to be created:
     $nodelabel = array_key_exists('nodetype', $data) ? $data['nodetype'] : false; 
+    //// Extract the annotation mode: automated (= convert auto to confirmed) or '' (create confirmed directly)
+    ////        Default to manual: only one chain of actions will lead to  automatic-conversion. 
+    $annomode = array_key_exists('annotationmode', $data) ? $data['annotationmode'] : '';         //default to manual! 
+    // BUG: there's an issue in the logic flow of the program: 
+    //      automated nodes should have a way of identifying the existing node based on it's NEO4J internal ID!!!
+
+    var_dump($annomode); 
+    die('Part of debugging!   do not insert!!');
 
     ///////////////////////////////////
     // check if token is part of data dict AND for validity: 
@@ -107,14 +118,28 @@
     }
         
     //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
-    try {
-        $createAnnotation = $node->createNewNode(ANNONODE, $annotation,true);
-    }catch(\Throwable $th){
-        $node->rollbackTransaction();
-        throw $th;
-        die('rollback of changes: annocreation error');
+    die('critical component to be updated!!!'); 
+    if ($annomode === 'automated'){
+        try {
+            //TODO high priority: update annotation_auto to annotation! KEEP the UID and start/stop settings. 
+            
+            $createAnnotation = $annotation->convertAutomaticAnnotationToConfirmedAnnotation(); 
+            
+        }catch(\Throwable $th){
+            $node->rollbackTransaction();
+            throw $th;
+            die('rollback of changes: annoupdate error');
+        }
+    }else{
+        try {
+            $createAnnotation = $node->createNewNode(ANNONODE, $annotation,true);
+        }catch(\Throwable $th){
+            $node->rollbackTransaction();
+            throw $th;
+            die('rollback of changes: annocreation error');
+        }
     }
-
+        
     //connect the entity with the annotation !
     try{
         $node->connectNodes($createAnnotation, $createdEntity, 'references');

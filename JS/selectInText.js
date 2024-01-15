@@ -67,13 +67,12 @@ function extractValueType(htmlElem) {
 }
 
 function saveNewDB() {
+  console.warn('Double ET NODE BUG: calliing into saveNewDB'); 
   let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
   //IS erverything valid 
   //validate in backend too!!
   let dataObject = {};
   if (mistakes.length == 0) {
-    //  Y
-    console.log('no mistakes made.');
     //get a CSRF token
     fetch("/AJAX/getdisposabletoken.php")
       .then(response => response.json())
@@ -129,11 +128,15 @@ function saveNewDB() {
         dataObject['annotation'] = annotationCollectionBox;
         dataObject['variants'] = foundVariants;
         dataObject['properties'] = properties;
+        //BUG: need to find a way to let the BE know the diff between auto an manual annotations. 
+        //    datamode = controll OR automated
+        dataObject['annotationmode'] = datamode;
         console.log('Sending to server: ');
         console.log("savenewdb", dataObject);
         //send dataobject to backend: 
         console.warn('sending data:');
-        $.post("/AJAX/put_annotation.php", { data: dataObject }, function (data, status) {
+        // backend needs to know if this is an update or insert operation! Annotation or Annotation_auto node
+        $.post("/AJAX/put_annotation.php", { data: dataObject }, function (data, status){
           console.log(data);
           console.log(status);
         });
@@ -1022,6 +1025,8 @@ function triggerSelection() {
   console.log('Properties: ', selectedTextProperties);
   var selectedTextStart = selectedTextProperties[1];
   var selectedTextEnd = selectedTextProperties[2];
+  //Always set datamode to null when you select an et and go through the manual annotation proces. 
+  datamode = null;
 
   //fetch from BE:
   if (selectedText) {

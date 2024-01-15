@@ -253,7 +253,7 @@ function showdata(data) {
     // BUG  this is related to double trigger of entity dropdown menu, but not the cause!. 
     // you probably will need a way to pass datamode to the appropriate function! since datamode
     // is part of the global scope, this shouldn't be difficult!
-    
+
     //find the selected text: 
     let highlighted = document.getElementsByClassName("markedAnnotation");
     let highlightedText = '';
@@ -287,6 +287,7 @@ function showdata(data) {
 }
 
 function handleError() {
+  // TODO: is not actually being called at the moment!
   alert('handleError function needs to be rewritten for a more uniform layout. ');
   return;
   //frameWorkBase();
@@ -308,7 +309,8 @@ function handleError() {
 }
 
 function loadAnnotationData() {
-  console.log('Normal Entry!');
+  console.log('Loading annotation data from recognized annotation!');
+  //BUG: existing auto_annotation ID gets retained and added after confirming a recognized ET
   var eventsource = event.source || event.target;
   //event.preventDefault();
   var annotationID = eventsource.dataset.annotation;
