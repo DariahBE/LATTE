@@ -73,7 +73,7 @@ function saveNewDB() {
   //validate in backend too!!
   let dataObject = {};
   if (mistakes.length == 0) {
-    //get a CSRF token
+    //get a CSRF tokenà
     fetch("/AJAX/getdisposabletoken.php")
       .then(response => response.json())
       .then(data => {
@@ -128,9 +128,12 @@ function saveNewDB() {
         dataObject['annotation'] = annotationCollectionBox;
         dataObject['variants'] = foundVariants;
         dataObject['properties'] = properties;
-        //BUG: need to find a way to let the BE know the diff between auto an manual annotations. 
         //    datamode = controll OR automated
         dataObject['annotationmode'] = datamode;
+        //if the datamode indicates it's an automated node: you need to pass the NEO4J Internal ID so it can be updated. 
+        let internal_id = null; 
+        //TODO set internal_ID!
+        dataObject['neo_id_internal'] = internal_id; 
         console.log('Sending to server: ');
         console.log("savenewdb", dataObject);
         //send dataobject to backend: 
