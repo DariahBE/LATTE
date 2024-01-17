@@ -130,16 +130,17 @@ function saveNewDB() {
         dataObject['properties'] = properties;
         //    datamode = controll OR automated
         dataObject['annotationmode'] = datamode;
-        //if the datamode indicates it's an automated node: you need to pass the NEO4J Internal ID so it can be updated. 
-        let internal_id = null; 
+        //if the datamode indicates it's an automated node: you need to pass the node UID so it can be updated. 
+        //auto_annotation nodes always have a UID, so that's a feasable solution.
         //TODO set internal_ID!
-        dataObject['neo_id_internal'] = internal_id; 
+        dataObject['neo_id_internal'] = auto_annotation_internal_id; 
         console.log('Sending to server: ');
         console.log("savenewdb", dataObject);
         //send dataobject to backend: 
         console.warn('sending data:');
         // backend needs to know if this is an update or insert operation! Annotation or Annotation_auto node
         $.post("/AJAX/put_annotation.php", { data: dataObject }, function (data, status){
+          auto_annotation_internal_id= NaN; 
           console.log(data);
           console.log(status);
         });

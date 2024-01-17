@@ -31,7 +31,7 @@ $annotation_type = $graph->fetchLabelByUUID($annotationId);
 //end of dealing with the annotation type
 // Prevent leaking any other nodes than the annotation and automatic annotations!!
 if(!(in_array($annotation_type, array(ANNONODE, 'Annotation_auto')))){
-  die(json_encode(array('error'=>'Annotation type not supported!')));
+  die(json_encode(array('code'=> -1, 'error'=>'Annotation type not supported!')));
 }
 //$annotation type is now constrained to one of two valid options: use the UID which is always present as means of identification. 
 $egodata = $graph->matchSingleNode($annotation_type, 'uid', $annotationId);
@@ -69,6 +69,7 @@ if ($annotation_type === ANNONODE){
   //structure of Annotation_auto is pulled from the annotation.inc.php class as private property. 
   // it is structured the same way as the nodesmodel in config.inc.php; 
   $formattedResponse['annotationFields']= $annotation->auto_model[$annot_key]; 
+  $formattedResponse['neo_id_of_auto_anno']  = $egoId;       //pass the internal NEOID to js; needed at later stage for update. 
   //TODO: implement key and value here. True and 0 should remain. 
 
   //$formattedResponse['annotation']['properties'] = ['starts' => ['starts', 'vl', true, 0], 'stops' => ['stops', 'vl', true, 0]];
@@ -96,6 +97,7 @@ if ($annotation_type === ANNONODE){
 }
 
 $formattedResponse['mode'] = $mode; 
+$formattedResponse['code'] = 1;
 echo json_encode($formattedResponse);
 
 ?>

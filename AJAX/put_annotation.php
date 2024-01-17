@@ -37,7 +37,7 @@
     //// csrf: 
     $token = array_key_exists('token', $data) ? $data['token'] : false;
     //// annotation: 
-    $annotation = array_key_exists('annotation', $data) ? $data['annotation'] : false; 
+    $annotationNode = array_key_exists('annotation', $data) ? $data['annotation'] : false; 
     //// variants: 
     $variants = array_key_exists('variants', $data) ? $data['variants'] : false; 
     //// properties: 
@@ -51,9 +51,6 @@
     $annomode = array_key_exists('annotationmode', $data) ? $data['annotationmode'] : '';         //default to manual! 
     // BUG: there's an issue in the logic flow of the program: 
     //      automated nodes should have a way of identifying the existing node based on it's NEO4J internal ID!!!
-
-    var_dump($annomode); 
-    die('Part of debugging!   do not insert!!');
 
     ///////////////////////////////////
     // check if token is part of data dict AND for validity: 
@@ -73,6 +70,7 @@
     }
 
     $node = new CUDNode($client);
+    $annotation = new Annotation($client); 
 
     ///////////////////////////////////
     // check if the provided annotation matches the structure in config. 
@@ -118,13 +116,11 @@
     }
         
     //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
-    die('critical component to be updated!!!'); 
     if ($annomode === 'automated'){
         try {
             //TODO high priority: update annotation_auto to annotation! KEEP the UID and start/stop settings. 
-            
-            $createAnnotation = $annotation->convertAutomaticAnnotationToConfirmedAnnotation(); 
-            
+            $annotation_neo_id = $data['neo_id_internal']; 
+            $createAnnotation = $annotation->convertAutomaticAnnotationToConfirmedAnnotation($annotation_neo_id); 
         }catch(\Throwable $th){
             $node->rollbackTransaction();
             throw $th;
@@ -132,7 +128,7 @@
         }
     }else{
         try {
-            $createAnnotation = $node->createNewNode(ANNONODE, $annotation,true);
+            $createAnnotation = $node->createNewNode(ANNONODE, $annotationNode,true);
         }catch(\Throwable $th){
             $node->rollbackTransaction();
             throw $th;

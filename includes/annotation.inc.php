@@ -62,12 +62,13 @@ class Annotation{
      * The connection to a new/existing entity gets made
      */
     //TODO //BUG: this code needs to get triggered by put_anntotation. Still need to figure ou how to do this!
-    $query = "    MATCH (n:Annotation_auto)
+    $query = '    MATCH (n:Annotation_auto)
     WHERE id(n) = $neo
     CREATE (newNode:Annotation)
     SET newNode = n
     WITH n
-    DETACH DELETE n"; 
+    DETACH DELETE n;
+    '; 
 
 
     $result = $this->client->run($query, array('neo'=>(int)$neoId)); 

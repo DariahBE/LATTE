@@ -87,7 +87,7 @@ function createStableLinkingBlock(nodeid, stableURI) {
   return subdivGateway;
 }
 
-
+let auto_annotation_internal_id = NaN; 
 function showdata(data) {
   //set the global datamode: 
   datamode = data['mode'];
@@ -118,6 +118,7 @@ function showdata(data) {
     console.log(data.annotation.properties.starts[1])
     globalSelectionEnd = data.annotation.properties.stops[1];
     globalSelectionStart = data.annotation.properties.starts[1];
+    auto_annotation_internal_id = data['neo_id_of_auto_anno']; 
   }
   var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
@@ -319,9 +320,13 @@ function loadAnnotationData() {
       /*console.log('interactWithEntities.js: rewrite loadAnnotationData, handeError & showdata functions'); 
       console.warn('showdata data:'); 
       console.log(data); */
-      showdata(data);
+      if (data['code']==-1){
+        handleError(); 
+      }else{
+        showdata(data);
+      }
     })
-  //.catch(err => handleError() );
+  .catch(err => handleError() );
 }
 
 function addInteractionToEntities() {
