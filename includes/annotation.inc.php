@@ -92,7 +92,7 @@ class Annotation{
     DETACH DELETE oldNode;';*/
     //new approach:  
     // HAS BEEN TEsted: old properties are retained!
-    $query = 'MATCH (n:Annotation_TEST) WHERE id(n) = $neo
+    $query = 'MATCH (n:Annotation_auto) WHERE id(n) = $neo
     REMOVE n:Annotation_auto
     SET n:Annotation_CLONED;'; 
     $result = $this->client->run($query, array('neo'=>(int)$neoId)); 
