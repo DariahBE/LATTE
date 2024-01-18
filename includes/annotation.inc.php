@@ -62,17 +62,41 @@ class Annotation{
      * The connection to a new/existing entity gets made
      */
     //TODO //BUG: this code needs to get triggered by put_anntotation. Still need to figure ou how to do this!
-    $query = '    MATCH (n:Annotation_auto)
+    /*$query = '    MATCH (n:n:Annotation_auto)
     WHERE id(n) = $neo
     CREATE (newNode:Annotation)
     SET newNode = n
     WITH n
     DETACH DELETE n;
-    '; 
-
-
+    '; */
+    // BugFIX: there was no problem in the code related to the Annotation and Node classes. The bug
+    // was a wrong query causing the old relations to be dropped before copying them over. 
+    // Bug is now fixed (pending test!!)  //TEST FAILED: //BUG still exists.
+    /*$query = 'MATCH (oldNode:Annotation_auto)-[rel]->()
+    WHERE id(oldNode) = $neo
+    CREATE (newNode:Annotation)
+    SET newNode = oldNode
+    WITH rel, TYPE(rel) AS reltype, oldNode
+    CREATE (newNode)-[r:reltype]->(endNode)
+    SET r = rel
+    DETACH DELETE oldNode;';
+    //this query changes the label of the node, but it doesn't integrate it in the existing graph: you keep having
+    //floating nodes which are isolated from the rest of the kb
+    $query = 'MATCH (oldNode:Annotation_auto)<-[rel]-()
+    WHERE id(oldNode) = $neo
+    CREATE (newNode:Annotation_TEST)
+    SET newNode = oldNode
+    WITH rel, TYPE(rel) AS reltype, oldNode
+    CREATE (newNode)<-[r:reltype]-(endNode)
+    SET r = rel
+    DETACH DELETE oldNode;';*/
+    //new approach:  
+    // HAS BEEN TEsted: old properties are retained!
+    $query = 'MATCH (n:Annotation_TEST) WHERE id(n) = $neo
+    REMOVE n:Annotation_auto
+    SET n:Annotation_CLONED;'; 
     $result = $this->client->run($query, array('neo'=>(int)$neoId)); 
-    return $result;
+    return $neoId;
   }
 
   public function fetchAutomaticAnnotationById($neoId){
@@ -162,9 +186,9 @@ class Annotation{
     $userNeo = $user->neoId;
     $userAppId = $user->myId;  
     //put a constraint on the label of t: ensure that this is the text!
-    $query = 'MATCH (t:'.TEXNODE.') WHERE id(t) = $texid RETURN t';        
+    $query = 'MATCH (t:'.TEXNODE.') WHERE id(t) = $texid RETURN t';
     $result = $this->client->run($query, ['texid'=>$neoIDText]);
-    $constraintOne = boolval(count($result)); 
+    $constraintOne = boolval(count($result));
     //put a constraint on the lable of e: ensure that this is an entity! The label should be used in CORENODES
     $query2 = 'MATCH (e) WHERE id(e) = $etid RETURN labels(e) AS labels';
     $result2 = $this->client->run($query2, ['etid'=>$neoIDEt]); 

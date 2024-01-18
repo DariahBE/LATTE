@@ -146,6 +146,7 @@
     }
 
     //connect the text with the annotation !
+    //BUG: should only be triggered when using manual annotations. Not on nodes which where of the Annotation_auto-type!
     try{
         $node->connectNodes($texid, $createAnnotation, 'contains');
     }catch(\Throwable $th){
