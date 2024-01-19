@@ -67,6 +67,7 @@ function extractValueType(htmlElem) {
 }
 
 function saveNewDB() {
+  //TODO: variants need to be generated when you're converting annotation_auto to annation nodes!
   console.warn('Double ET NODE BUG: calliing into saveNewDB'); 
   let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
   //IS erverything valid 

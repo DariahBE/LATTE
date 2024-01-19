@@ -51,7 +51,6 @@
     $annomode = array_key_exists('annotationmode', $data) ? $data['annotationmode'] : '';         //default to manual! 
     // BUG: there's an issue in the logic flow of the program: 
     //      automated nodes should have a way of identifying the existing node based on it's NEO4J internal ID!!!
-
     ///////////////////////////////////
     // check if token is part of data dict AND for validity: 
     if(!($token)){
@@ -119,8 +118,11 @@
     if ($annomode === 'automated'){
         try {
             //TODO high priority: update annotation_auto to annotation! KEEP the UID and start/stop settings. 
+            //TODO: the update dict with values writtin in the DOM are still missin in here: you need to remove the start/stop properties!
+            unset($annotationNode[ANNOSTART]);
+            unset($annotationNode[ANNOSTOP]);
             $annotation_neo_id = $data['neo_id_internal']; 
-            $createAnnotation = $annotation->convertAutomaticAnnotationToConfirmedAnnotation($annotation_neo_id); 
+            $createAnnotation = $annotation->convertAutomaticAnnotationToConfirmedAnnotation($annotation_neo_id, $annotationNode); 
         }catch(\Throwable $th){
             $node->rollbackTransaction();
             throw $th;

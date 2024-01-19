@@ -50,7 +50,7 @@ class Annotation{
     return NODES[ANNONODE];
   }
 
-  public function convertAutomaticAnnotationToConfirmedAnnotation($neoId){
+  public function convertAutomaticAnnotationToConfirmedAnnotation($neoId, $data){
     /**
      * CONVERTS THE AUTOMATICALLY GENERATED ANNOTATION FROM Annotation_auto to Annotation. 
      * The OLD UID stays!! This is best to accomodate references/URI's that were generated
@@ -62,40 +62,21 @@ class Annotation{
      * The connection to a new/existing entity gets made
      */
     //TODO //BUG: this code needs to get triggered by put_anntotation. Still need to figure ou how to do this!
-    /*$query = '    MATCH (n:n:Annotation_auto)
-    WHERE id(n) = $neo
-    CREATE (newNode:Annotation)
-    SET newNode = n
-    WITH n
-    DETACH DELETE n;
-    '; */
-    // BugFIX: there was no problem in the code related to the Annotation and Node classes. The bug
-    // was a wrong query causing the old relations to be dropped before copying them over. 
-    // Bug is now fixed (pending test!!)  //TEST FAILED: //BUG still exists.
-    /*$query = 'MATCH (oldNode:Annotation_auto)-[rel]->()
-    WHERE id(oldNode) = $neo
-    CREATE (newNode:Annotation)
-    SET newNode = oldNode
-    WITH rel, TYPE(rel) AS reltype, oldNode
-    CREATE (newNode)-[r:reltype]->(endNode)
-    SET r = rel
-    DETACH DELETE oldNode;';
-    //this query changes the label of the node, but it doesn't integrate it in the existing graph: you keep having
-    //floating nodes which are isolated from the rest of the kb
-    $query = 'MATCH (oldNode:Annotation_auto)<-[rel]-()
-    WHERE id(oldNode) = $neo
-    CREATE (newNode:Annotation_TEST)
-    SET newNode = oldNode
-    WITH rel, TYPE(rel) AS reltype, oldNode
-    CREATE (newNode)<-[r:reltype]-(endNode)
-    SET r = rel
-    DETACH DELETE oldNode;';*/
-    //new approach:  
+    //TODO: pending implementation of ANNONODE properties:  ==> //CRITICAL PRIORITY: requires testing. 
+    $subset = ''; 
+    $data_iter = array('neo'=>(int)$neoId); 
+    $iter = 0; 
+    foreach ($data as $key => $value) {
+      $iter+=1; 
+      $ph_name = "var_ref_".strval($iter);
+      $subset .= "n.$key=$ph_name"; 
+      $data_iter[$ph_name] = $value; 
+    }
     // HAS BEEN TEsted: old properties are retained!
     $query = 'MATCH (n:Annotation_auto) WHERE id(n) = $neo
     REMOVE n:Annotation_auto
     SET n:Annotation_CLONED;'; 
-    $result = $this->client->run($query, array('neo'=>(int)$neoId)); 
+    $result = $this->client->run($query, $data_iter); 
     return $neoId;
   }
 
@@ -140,7 +121,7 @@ class Annotation{
   }
 
   public function createAnnotation($texid, $start, $stop, $user, $targetNode, $hidden=false){
-    //todo: actually considere deleting this. It is not used at all!
+    //TODO: actually considere deleting this. It is not used at all!
     die("redo this, do not rely on static properties!!! (starts, texid.... bad idea)");
     //keep the $texid even though it is implied as part of the edge target!
     // bad idea: Id() is actually stable as long as it is not deleted!!
