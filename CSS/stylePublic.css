@@ -605,14 +605,14 @@ Ensure the default browser behavior of the `hidden` attribute.
 .mb-6 {
   margin-bottom: 1.5rem;
 }
+.mt-1 {
+  margin-top: 0.25rem;
+}
 .mr-2 {
   margin-right: 0.5rem;
 }
 .mt-auto {
   margin-top: auto;
-}
-.mt-1 {
-  margin-top: 0.25rem;
 }
 .ml-4 {
   margin-left: 1rem;
@@ -1562,13 +1562,13 @@ Ensure the default browser behavior of the `hidden` attribute.
   --tw-border-opacity: 1;
   border-color: rgb(91 33 182 / var(--tw-border-opacity));
 }
-.border-gray-600 {
-  --tw-border-opacity: 1;
-  border-color: rgb(75 85 99 / var(--tw-border-opacity));
-}
 .border-green-500 {
   --tw-border-opacity: 1;
   border-color: rgb(34 197 94 / var(--tw-border-opacity));
+}
+.border-gray-600 {
+  --tw-border-opacity: 1;
+  border-color: rgb(75 85 99 / var(--tw-border-opacity));
 }
 .border-red-500 {
   --tw-border-opacity: 1;
@@ -2452,7 +2452,7 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 
 .markedAnnotation{
-  color: red;
+  font-weight: bold;
 }
 
 hr.vertical{
@@ -2805,6 +2805,9 @@ hr.vertical{
     width: 80%;
   }
   .md\:w-1\/2 {
+    width: 50%;
+  }
+  .md\:w-6\/12 {
     width: 50%;
   }
   .md\:w-2\/3 {

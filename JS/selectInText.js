@@ -1,3 +1,7 @@
+let globalSelectionText = null;
+let globalSelectionStart = null;
+let globalSelectionEnd = null;
+
 function ignoreSuggestion() {
   var isOpen = document.getElementById("suggestionOnSelect");
   if (isOpen) {
@@ -990,9 +994,6 @@ function loadIntoSuggestionBox(data, from, to) {
   document.getElementById('suggestionboxspinner').remove();
 }
 
-let globalSelectionText = null;
-let globalSelectionStart = null;
-let globalSelectionEnd = null;
 function getTextSelection() {
   //you need a map filter on selection based on length of childnodes!
   //In some cases you can get undefined back when the selecting happens in the wrong DOM

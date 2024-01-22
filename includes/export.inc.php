@@ -7,6 +7,7 @@
  *    Should be able to fetch annotations and encode them according to the mode. 
  */
 
+ //TODO: what's going on with annotationToEt property?
 class Exporter {
   protected $client; 
   private $allowedModes; 
@@ -119,7 +120,8 @@ class Exporter {
         $referencedNode->appendChild($referencedNodeLabel);
         $referencedNode->appendChild($referencedNodePrimary);
         $annotationReference->appendChild($referencedNode);
-        $linkAnnoNode->appendChild($annotatio
+        $linkAnnoNode->appendChild($annotationReference);
+      }
       //adding entityLinks: 
       // missing NEO id in entitydict. 
       foreach($this->entityDict as $annotkey => $value){

@@ -72,10 +72,9 @@ class Annotation{
       $subset .= "n.$key=$ph_name"; 
       $data_iter[$ph_name] = $value; 
     }
-    // HAS BEEN TEsted: old properties are retained!
     $query = 'MATCH (n:Annotation_auto) WHERE id(n) = $neo
     REMOVE n:Annotation_auto
-    SET n:Annotation_CLONED;'; 
+    SET n:Annotation;'; 
     $result = $this->client->run($query, $data_iter); 
     return $neoId;
   }
