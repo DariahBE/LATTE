@@ -105,6 +105,10 @@
     //user ID is not connected to variants.
     //Connect the variants: 
     //TODO  test variant creation! ==> Are not being created at the moment: //BUG!!
+    // Possibly caused by the dictionary type in the POST request being buggy: 
+    //      data[variants][] = value <=> should be: data[variants] = [var1, var2]
+
+    
     foreach($variants as $variant){
         try{
             $node->createVariantRelation($variant, $createdEntity); 

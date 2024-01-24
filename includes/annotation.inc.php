@@ -58,23 +58,26 @@ class Annotation{
      * The label changes from Annotation_auto to Annotation
      * The properties of the label change according to the defined model
      *    - new fields become available
-     *    - old content gets deleted
      * The connection to a new/existing entity gets made
      */
-    //TODO //BUG: this code needs to get triggered by put_anntotation. Still need to figure ou how to do this!
-    //TODO: pending implementation of ANNONODE properties:  ==> //CRITICAL PRIORITY: requires testing. 
-    $subset = ''; 
+    //BUG: Relationship between text and annotation gets duplicated
+    //BUG: Naming variants are missing when you update annotation_auto to annotation. 
+     $subset = array(); 
     $data_iter = array('neo'=>(int)$neoId); 
     $iter = 0; 
     foreach ($data as $key => $value) {
       $iter+=1; 
       $ph_name = "var_ref_".strval($iter);
-      $subset .= "n.$key=$ph_name"; 
+      $subset[] = "n.$key=$$ph_name"; 
       $data_iter[$ph_name] = $value; 
+    }
+    $annotation_properties = implode(', ',$subset); 
+    if (count($subset)>0){
+      $annotation_properties = ', '.$annotation_properties; 
     }
     $query = 'MATCH (n:Annotation_auto) WHERE id(n) = $neo
     REMOVE n:Annotation_auto
-    SET n:Annotation;'; 
+    SET n:Annotation'.$annotation_properties.';';  
     $result = $this->client->run($query, $data_iter); 
     return $neoId;
   }
