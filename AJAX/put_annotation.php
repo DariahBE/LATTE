@@ -117,7 +117,6 @@
     //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
     if ($annomode === 'automated'){
         try {
-            //TODO high priority: update annotation_auto to annotation! KEEP the UID and start/stop settings. 
             //TODO: the update dict with values writtin in the DOM are still missin in here: you need to remove the start/stop properties!
             unset($annotationNode[ANNOSTART]);
             unset($annotationNode[ANNOSTOP]);

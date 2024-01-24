@@ -29,7 +29,14 @@
     // if the config file has a setting to override the node's label by a value rather than the type
     // it should be done here. 
     // HOWEVER, the color of the node depends on the node type, so both values should be present in the output.
+    //var_dump($nodeCypherMap); 
+    //$labels = 'Text'; 
+    //CATCH cases where labels are missing!
+    if(count($nodeCypherMap['labels']) === 0) {
+      return Null;  
+    }
     $labels = $nodeCypherMap['labels'][0];
+    //var_dump($labels); 
     $excludeNodesOfType = array('priv_user');
 
     if(!in_array($labels, $excludeNodesOfType)){
