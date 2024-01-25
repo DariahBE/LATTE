@@ -10,6 +10,7 @@ include_once(ROOT_DIR."\includes\annotation.inc.php");
 include_once(ROOT_DIR."\includes\user.inc.php");
 include_once(ROOT_DIR."\includes\mail.inc.php");
 include_once(ROOT_DIR."\includes\datasilo.inc.php");
+//include_once(ROOT_DIR."\includes\\nodes_extend_cud.inc.php"); 
 /*
 
 $user = new User($client); 
@@ -96,6 +97,12 @@ $annotation->createAnnotation(78, 1561, 1568, 'c42c4c15-b546-46c5-bdc5-23ea20c7c
 $annotation->createAnnotation(78, 1561, 1568, 'c42c4c15-b546-46c5-bdc5-23ea20c7c628','85541469-4a69-4732-b8fa-7e8e32487225');
 $annotation->createAnnotation(78, 1561, 1568, 'c42c4c15-b546-46c5-bdc5-23ea20c7c628','85541469-4a69-4732-b8fa-7e8e32487225');
 */
+
+$node = new CUDNode($client); 
+$node->createVariantRelation(" people i", 7730); 
+
+var_dump($node); 
+die('exit');
 $annotation = new Annotation($client);
 $connections = array(
     array(0,14), 

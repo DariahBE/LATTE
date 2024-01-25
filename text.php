@@ -45,11 +45,6 @@ $existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_u
 $unlinkedAnnotations = $annotations->getUnlinkedAnnotationsInText($neoId); 
 
 
-//TODO implement code for recognized entities which aren't linked yet. 
-// on a DB level: store the annotation in there; 
-// don't link through to an entity. 
-// on interaction ==> run logic!
-
 ?>
 
 <!DOCTYPE html>

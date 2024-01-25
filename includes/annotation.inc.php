@@ -60,8 +60,6 @@ class Annotation{
      *    - new fields become available
      * The connection to a new/existing entity gets made
      */
-    //BUG: Relationship between text and annotation gets duplicated
-    //BUG: Naming variants are missing when you update annotation_auto to annotation. 
      $subset = array(); 
     $data_iter = array('neo'=>(int)$neoId); 
     $iter = 0; 
@@ -229,6 +227,7 @@ class Annotation{
       for lower overhead you should allow to process multiple annotations at once. 
       
       TODO: this has to be documented!!! 
+      TODO: Pending implementation. Still waiting on final code!
       Beware: Annotation_auto is a hardcoded labelname with hardcoded properties (starts, stops and uid.)
      */
      foreach($connections as $connection){

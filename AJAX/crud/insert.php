@@ -21,7 +21,7 @@ if(!($tokenManager->checkToken($token))){
 }
 
 if(!(array_key_exists($entity_type,NODEMODEL))){
-    die(json_encode(array('error'=>'Invalid request. (invalid nodetyped)'))); 
+    die(json_encode(array('error'=>'Invalid request. (invalid nodetype)'))); 
 }
 
 if(!array_key_exists('formdata', $submitdata)){

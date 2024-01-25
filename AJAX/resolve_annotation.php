@@ -1,6 +1,5 @@
 <?php
 
-//BUG: critical: http://entitylinker.test/AJAX/resolve_annotation.php?annotation=77405f18-f6c7-4d47-98d3-ad73721b4f8b 
 /**
  * Annotations which are loaded in having the Annotation_auto label don't fit the pattern expected here. 
  * You need to run an extra check and split logic!
@@ -26,7 +25,7 @@ $formattedResponse = array(
 $graph = new Node($client);
 $annotation = new Annotation($client);
 $user = new User($client);
-//PATCH TODO: generate a new method which acts as classifier to distinguish Annotation and Annotation_auto nodes! 
+//TODO PATCH: generate a new method which acts as classifier to distinguish Annotation and Annotation_auto nodes! 
 $annotation_type = $graph->fetchLabelByUUID($annotationId); 
 //end of dealing with the annotation type
 // Prevent leaking any other nodes than the annotation and automatic annotations!!

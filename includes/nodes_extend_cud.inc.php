@@ -54,7 +54,8 @@ class CUDNode extends Node {
     }
   private function is_entity($neoID){
     //helper function that checks if the given $neoID has a label that belongs to an entity. 
-    $labelResult =  $this->client->run('MATCH (n) WHERE id(n) = $id RETURN labels(n) AS labels;', array('id'=>$neoID)); 
+    //needs access to transaction scope!
+    $labelResult =  $this->tsx->run('MATCH (n) WHERE id(n) = $id RETURN labels(n) AS labels;', array('id'=>$neoID)); 
     if($labelResult->isempty()){return false;}
     $label = $labelResult->first()->get('labels')[0];
     return $label; 
@@ -94,18 +95,18 @@ class CUDNode extends Node {
     $existingVariantId = -1;                //THE NEO ID OF THE VARIANT 
     $variant_uuid = -1;                     //THE APOC GENERATED UUID OF THE VARIANT
     $query = 'MATCH (n:Variant) WHERE n.variant = $varlabel RETURN id(n) as id, n.uid as uuid';
-    $existsResult = $this->client->run($query, array('varlabel'=>$label));
+    $existsResult = $this->tsx->run($query, array('varlabel'=>$label));
     $hasResult = !($existsResult->isempty()); 
     //2: check if the entity is an actual entity.
     //Label exists AND is not yet connected to et: SO connect it ==> verify that $entitySource is an $entity.
-    $labelCheck = $this->is_entity($entitySource);      
+    $labelCheck = $this->is_entity($entitySource);      // NEEDS TO BE IN TRANSACTIONAL SCOPE TO WORK!!
     if($hasResult){
       if(array_key_exists($labelCheck, CORENODES)){
         //there is a matching request!
         $existingVariantId = $existsResult->first()->get('id'); 
         $variant_uuid = $existsResult->first()->get('uuid'); 
         //3: Check that there is no connection between $entitySource and $existingVariantId: 
-        $checkResult = $this->client->run('MATCH (n:Variant)-[r:same_as]-(t) WHERE id(n) = $varid AND id(t) = $etid RETURN count(r) AS relations;', array('varid'=>$existingVariantId, 'etid'=>$entitySource));
+        $checkResult = $this->tsx->run('MATCH (n:Variant)-[r:same_as]-(t) WHERE id(n) = $varid AND id(t) = $etid RETURN count(r) AS relations;', array('varid'=>$existingVariantId, 'etid'=>$entitySource));
         //is empty when there is no node found ==> otherwise it will have a property set where relations could be 0 or more. 
         if ($checkResult->isempty()){
           return array('msg'=>'Invalid request: one or more nodes do not exists.'); 
@@ -115,7 +116,6 @@ class CUDNode extends Node {
         if($checkResult->first()->get('relations') === 0){
           //required to make a new relation
           $matchAndConnectResult = $this->tsx->run('MATCH (n), (t) WHERE id(n) = $varid AND id(t) = $etid CREATE (n)-[r:same_as]->(t)', array('varid'=> $existingVariantId, 'etid'=>$entitySource));
-          //TODO: is it safe to return the $matchAndConnectResult variable? 
           return array('msg'=> 'New relation created', 'node' => $matchAndConnectResult, 'data' => ['uuid'=> $variant_uuid, 'nid'=> $existingVariantId] ); 
           die(); 
         }else{
@@ -128,14 +128,14 @@ class CUDNode extends Node {
         die();
       }
     }else{
+      // this is currently the case for auto node converts. 
       //the variant has no label registered in the DB that matches the request: create one. 
       //and create the relationship IF the related entity node exists: 
       if(array_key_exists($labelCheck, CORENODES)){
-        $createAndConnectResult = $this->client->run('MATCH (e) WHERE id(e) = $etid CREATE (n:Variant {variant: $varname, uid: apoc.create.uuid()})-[:same_as]->(e) return id(n) as id, n.uid as uuid', array('etid'=>$entitySource, 'varname'=>$label));
+        $createAndConnectResult = $this->tsx->run('MATCH (e) WHERE id(e) = $etid CREATE (n:Variant {variant: $varname, uid: apoc.create.uuid()})-[:same_as]->(e) return id(n) as id, n.uid as uuid', array('etid'=>$entitySource, 'varname'=>$label));
         $existingVariantId = $createAndConnectResult->first()->get('id'); 
         $variant_uuid = $createAndConnectResult->first()->get('uuid'); 
         return array('msg'=>'New variant and link created.', 'data' => ['uuid'=> $variant_uuid, 'nid'=> $existingVariantId]); 
-        //var_dump($createAndConnectResult); 
       }else{
         //the variant label is not found in the DB and the entity node doesn't have a valid ID:
         return array('msg'=> 'Invalid entity node.');
@@ -151,10 +151,10 @@ class CUDNode extends Node {
     //$detachQuery= bool  = if true ==> runs a detach delete query; if false remove all relations between $variantID and $entityID that have the same_as-label
     if($detachQuery){
       //deletes all relationships where n is part of and deletes the node. 
-      $result = $this->client->run('MATCH (n) WHERE id(n)=$varid DETACH DELETE n;', array('varid'=>$variantID));
+      $result = $this->tsx->run('MATCH (n) WHERE id(n)=$varid DETACH DELETE n;', array('varid'=>$variantID));
     }else{
       //deletes all relationships with the same_as label between n and m;
-      $result = $this->client->run('MATCH (n)-[r:same_as]-(m) WHERE id(n) = $varid AND id(m) = $etid DELETE(r);', array('varid'=>$variantID, 'etid'=>$entityID)); 
+      $result = $this->tsx->run('MATCH (n)-[r:same_as]-(m) WHERE id(n) = $varid AND id(m) = $etid DELETE(r);', array('varid'=>$variantID, 'etid'=>$entityID)); 
     }
     return $result;
   }
@@ -181,12 +181,13 @@ class CUDNode extends Node {
      * the dryRun argument will report how many
      * edges are to be deleted in addition to the node.
     */
+    //TODO: test implementation of transactions!
     public function delete($id, $dryRun=False){
         if($dryRun){
             $query_EdgesToBeRemoved = 'MATCH (n)-[r]-() WHERE id(n) = $nodeid RETURN count(r) as count'; 
             $query_NodesToBecomeIsolated = 'MATCH (n)--(p) WHERE id(n) = $nodeid OPTIONAL MATCH (n)--(p)--(i) RETURN n,  p as directlyConnected, i as nullIfIsolated';        //if i == null, then p is only connected to the n-node which will be deleted!
-            $deletedEdges = $this->client->run($query_EdgesToBeRemoved, ['nodeid'=>$id]); 
-            $isolationDetection = $this->client->run($query_NodesToBecomeIsolated, ['nodeid'=>$id]);
+            $deletedEdges = $this->tsx->run($query_EdgesToBeRemoved, ['nodeid'=>$id]); 
+            $isolationDetection = $this->tsx->run($query_NodesToBecomeIsolated, ['nodeid'=>$id]);
             $returnData = array('impactedEdges'=> 0, 'disconnectedNodes' => 0);
 
             foreach($deletedEdges as $record){

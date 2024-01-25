@@ -26,9 +26,6 @@
         die(); 
     }
 
-
-    // TODO : spelling variants are not handled yet!
-
     //interpretation of the post request!
     $data = $_POST['data']; 
     //parse parts of the data: 
@@ -100,14 +97,12 @@
     //connect variant spellings to the $createdentity:
     //user ID is not connected to variants.
     //Connect the variants: 
-    //TODO  test variant creation! ==> Are not being created at the moment: //BUG!!
-    // Possibly caused by the dictionary type in the POST request being buggy: 
-    //      data[variants][] = value <=> should be: data[variants] = [var1, var2]
-
-    
     foreach($variants as $variant){
         try{
-            $node->createVariantRelation($variant, $createdEntity); 
+            //DEBUG: OK var_dump($createdEntity); 
+            //DEBUG: OK var_dump($variant); 
+            $r= $node->createVariantRelation($variant, $createdEntity); 
+            var_dump($r);       //triggers invalid entity node!
         }catch(\Throwable $th){
             $node->rollbackTransaction();
             die('Rejected variant node. '); 
