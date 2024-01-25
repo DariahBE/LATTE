@@ -2,7 +2,10 @@
 /*
   how to process queryresults according to queryType.
 */
-
+die('ENTITYVIEWS NEEDS TO BE DELETED.'); 
+//TODO URGENT!: you have to get completely rid of this!
+// STATUS/ technically this file is completely osbolete. There are no class implementations any more!
+// TODO: Test test test!!
 /**
  *
  */
@@ -271,6 +274,7 @@ class View {
 
   }
 
+  /*
   public function textsMentioningEntity($useNEO = true){
     $data = $this->data['relatedTexts'];
     //var_dump($data);
@@ -294,8 +298,9 @@ class View {
     }
     $relatedTexts = array_unique($relatedTexts, SORT_REGULAR);
     $this->relatedText = $relatedTexts;
-  }
+  }*/
 
+  /*
   public function generateJSONOnly($withNeoID){
     $this->relatedVariants($withNeoID);
     $this->relatedDataSiloEntries($withNeoID);
@@ -306,7 +311,7 @@ class View {
 
   public function outputHeader(){
     echo $this->header;
-  }
+  }*/
 
 }
 

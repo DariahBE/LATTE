@@ -1,4 +1,0 @@
-step1
-step2: Reading args
-step3: using configfile C:/Users/u0118112/Downloads/pyzotero/production/settings_ea.py
-step4: exec OS command

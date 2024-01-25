@@ -38,7 +38,8 @@ if(!($uuid)){
 
 
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/entityviews.inc.php');
+// include_once(ROOT_DIR.'/includes/entityviews.inc.php');
+//TODO test identify.php before removing the link to the entityviews class. 
 
 $graph = new Node($client);
 $silo = new Siloconnector($client); 

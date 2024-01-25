@@ -30,7 +30,6 @@ $partnerURI = $_GET['partneruri'];
 
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/entityviews.inc.php');
 
 $graph = new Node($client);
 $core = $graph->matchSingleNode("See_Also", "partner_uri", $partnerURI);
@@ -39,9 +38,8 @@ $projectData = array();
 
 if (array_key_exists('coreID', $core)){
   $coreId = $core['neoID'];
-  $references = $graph->crossreferenceSilo($coreId);
-  $view = new View('Silos', $references);
-  $projectData['knowledgeBases'][]= array($view->datasilos); 
+  $datasilos = $graph->buildSilos($coreId); 
+  $projectData['knowledgeBases'][]= array($datasilos); 
 
   //You have to extend this: Show which entity this URI is connected to: 
   $relatedEtResult = $graph->getNeighbours($coreId,'see_also'); 

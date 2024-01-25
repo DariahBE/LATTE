@@ -267,6 +267,23 @@ class Node{
     return $result->first()['n']['properties'];
   }
 
+  function buildSilos($id){
+    $crossrefdata = $this->crossreferenceSilo($id);
+    $siloData = array();
+    foreach ($crossrefdata as $record) {
+      $row = array();
+      foreach (NODES["See_Also"] as $p){
+        try{
+          $v = $record->get("t")->getProperty($p);
+        }catch(e){
+          $v = null;
+        }
+        $row[$p] = $v;
+      }
+      $siloData[] = $row;
+    }
+    return $siloData;
+  }
 
   function fetchLabelByUUID($uuid){
     /**
