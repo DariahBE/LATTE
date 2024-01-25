@@ -29,8 +29,6 @@
 
     // TODO : spelling variants are not handled yet!
 
-    //TODO: conversion from auto to manual annotation is not done correctly
-
     //interpretation of the post request!
     $data = $_POST['data']; 
     //parse parts of the data: 
@@ -49,8 +47,6 @@
     //// Extract the annotation mode: automated (= convert auto to confirmed) or '' (create confirmed directly)
     ////        Default to manual: only one chain of actions will lead to  automatic-conversion. 
     $annomode = array_key_exists('annotationmode', $data) ? $data['annotationmode'] : '';         //default to manual! 
-    // BUG: there's an issue in the logic flow of the program: 
-    //      automated nodes should have a way of identifying the existing node based on it's NEO4J internal ID!!!
     ///////////////////////////////////
     // check if token is part of data dict AND for validity: 
     if(!($token)){
@@ -121,7 +117,6 @@
     //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
     if ($annomode === 'automated'){
         try {
-            //TODO: the update dict with values writtin in the DOM are still missin in here: you need to remove the start/stop properties!
             unset($annotationNode[ANNOSTART]);
             unset($annotationNode[ANNOSTOP]);
             $annotation_neo_id = $data['neo_id_internal']; 
@@ -151,14 +146,16 @@
     }
 
     //connect the text with the annotation !
-    //BUG: should only be triggered when using manual annotations. Not on nodes which where of the Annotation_auto-type!
-    try{
-        $node->connectNodes($texid, $createAnnotation, 'contains');
-    }catch(\Throwable $th){
-        //throw $th;
-        $node->rollbackTransaction();
-        die('rollback of changes: annotation ID error');
+    if($annomode !== 'automated'){
+        try{
+            $node->connectNodes($texid, $createAnnotation, 'contains');
+        }catch(\Throwable $th){
+            //throw $th;
+            $node->rollbackTransaction();
+            die('rollback of changes: annotation ID error');
+        }
     }
+
 
     $node->commitTransaction();
     // if database commit was successfull: revoke the token. 
