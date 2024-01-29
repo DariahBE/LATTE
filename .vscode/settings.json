@@ -1,3 +1,5 @@
 {
-    "editor.inlineSuggest.showToolbar": "onHover"
+    "editor.inlineSuggest.showToolbar": "onHover",
+    "todo-tree.tree.scanMode": "workspace only",
+    "todo-tree.tree.showBadges": true
 }

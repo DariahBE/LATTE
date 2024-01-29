@@ -132,8 +132,6 @@ try {
 }
 die('exit');
 
-$data = $annotation->createAnnotation(78, 21, 29, 'c42c4c15-b546-46c5-bdc5-23ea20c7c628', '120d4d51-9db4-437d-842e-dbde3fc869a9' );
-$data = $annotation->getExistingAnnotationsInText(78, 'c42c4c15-b546-46c5-bdc5-23ea20c7c628');
 
 echo json_encode($data);
 ?>

@@ -36,17 +36,21 @@ if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connection
     'success'=> $annotationState
   );
   if($annotationState){
+    $annotationprimary = 'uid';
+    // $type = ANNONODE;
+    if (array_key_exists(ANNONODE, PRIMARIES) && boolval(PRIMARIES[ANNONODE])){
+      $annotationprimary = PRIMARIES[ANNONODE];
+    }
     $assignedID = $data['data'][0]['id(a)']; 
     $annotationNode = $data['data'][0]['a'];
     $entityNode = $data['data'][0]['e'];
     $entityLabel = $entityNode['labels'][0];
     $user = $data['user'][0]['u'];
-    //TODO: this code is not dynamic! properties shouldn't be static!
-    $mergeToDict['annotation'] = $annotationNode['properties']['uid'];
+    $mergeToDict['annotation'] = $annotationNode['properties'][$annotationprimary];     //SOLVED??? 
     $mergeToDict['creator'] = $user['properties']['userid'];
     $mergeToDict['private'] = false;
-    $mergeToDict['start'] = $annotationNode['properties']['starts'];
-    $mergeToDict['stop'] = $annotationNode['properties']['stops'];
+    $mergeToDict['start'] = $annotationNode['properties'][ANNOSTART];   //solved (test needed)
+    $mergeToDict['stop'] = $annotationNode['properties'][ANNOSTOP];     //solved (test needed)
     $mergeToDict['type'] = $entityLabel;
     $mergeToDict['neoid'] = $assignedID;
     /** Don't show the other attributes */

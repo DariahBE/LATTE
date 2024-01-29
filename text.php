@@ -244,7 +244,8 @@ $unlinkedAnnotations = $annotations->getUnlinkedAnnotationsInText($neoId);
   </div>
 </div>
 <!--<div id='setNodeDetailOverlay' class='hiddenOverlay'></div>-->
-  <?php echo "<script> const storedAnnotations = ".json_encode($existingAnnotation)."</script>";
+  <?php
+  echo "<script> const storedAnnotations = ".json_encode($existingAnnotation)."</script>";
   echo "<script> const automatic_annotations = ".json_encode($unlinkedAnnotations)."</script>"; 
   if(count($existingAnnotation['relations']) > 0 || count($unlinkedAnnotations) > 0 ){
     echo "<script>visualizeStoredAnnotations();</script>";

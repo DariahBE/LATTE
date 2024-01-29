@@ -120,33 +120,6 @@ class Annotation{
     ); 
   }
 
-  public function createAnnotation($texid, $start, $stop, $user, $targetNode, $hidden=false){
-    //TODO: actually considere deleting this. It is not used at all!
-    die("redo this, do not rely on static properties!!! (starts, texid.... bad idea)");
-    //keep the $texid even though it is implied as part of the edge target!
-    // bad idea: Id() is actually stable as long as it is not deleted!!
-    //    You can use it for short-lived transaction.
-    //    You shouldn't use it for stable identifiers. 
-    //DO NOT rely on id(): https://stackoverflow.com/questions/64796146/how-stable-are-the-neo4j-ids
-    //BUG: go back to id()-dependency
-    //   : make passtrough link to entities optional 
-    //   : add a property to annotation which indicates it was auto-recognized. 
-    $query = 'CREATE (a:'.ANNONODE.' {uid: apoc.create.uuid(), '.ANNOSTART.': $start, '.ANNOSTOP.': $stop}) RETURN a.uid as uid;';
-    $result = $this->client->run($query, ['start'=>$start, 'stop'=>$stop, 'user'=>$user]);
-    if(boolval(count($result))){
-      $uqid = $result[0]['uid'];
-      //connect creator to node:
-      $connectCreatorToAnnotation = 'MATCH (a:priv_user), (b:'.ANNONODE.') WHERE a.userid = $uid_person AND b.uid = $uid_anno CREATE (a)-[r:created]->(b)';
-      $result = $this->client->run($connectCreatorToAnnotation, ['uid_person'=>$user, 'uid_anno'=>$uqid]);
-      //connect annotation to targetNode:
-      $connectToTargetNode = 'MATCH (a:'.ANNONODE.' {uid:$anno_uid}), (n{uid:$entity_uid}) CREATE (a)-[r:references]->(n) RETURN a,r,n';
-      $result = $this->client->run($connectToTargetNode, ['anno_uid'=>$uqid, 'entity_uid'=>$targetNode]);
-      //connect annotation to containing text:
-      $connectToContainingText = 'MATCH (a:'.ANNONODE.' {uid:$anno_uid}), (t:T'.TEXNODE.'{texid:$texid}) CREATE (t)-[r:contains]->(a)';
-      $result = $this->client->run($connectToContainingText, ['anno_uid'=>$uqid, 'texid'=>$texid]);
-    }
-  }
-
   public function fetchVariants($ofEntityByNeoid){
     $result = array();
     $query2 = 'match(v)-[r:same_as]-(n) where id(n) = $entityid return v, id(v) as neoid' ;
@@ -163,6 +136,10 @@ class Annotation{
   public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user, $start, $end){
     //OK; static properties! OK
     // TODO: test required from connect.php 
+    // BUG: Test found that creating the annoation work,
+    // it is however failing to connect the user to the annotation node when triggered from 
+    // wikidata interface. This method is bugfree, but you need the code from here to patch the bug. 
+    //      - SEE BUG 13
     $constraintTwo = False;
     $userNeo = $user->neoId;
     $userAppId = $user->myId;  

@@ -43,6 +43,10 @@ ________________________
     * the verification gets triggered propperly, but the actual storage of a new et doesn't work
     * as it is now, the only test has been done with Text type entities. 
     * preSubmitCheck() is missing a submit event!
+
+13) HIGH PRIORITY: FIX THIS TOMORROW!!
+  - when linking an existing entity-node to a new annotation: Priv_user gets connected to the annotation. 
+  - HOWEVER: when creating a new annotation using the wikidata interface; the connection to the annotation is missing!!!
 ________________________________________________________________________________________________________________________________________________
 
 (OK: 8) remove all use cases of entityviews.inc.php:
