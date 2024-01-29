@@ -31,12 +31,7 @@ ________________________
   - rewrite it so that you extract it from the DB based on the id()-attribute
   - pass the name where the text is stored as an additional property!
 
-8) remove all use cases of entityviews.inc.php:
-  - the used architecture is not scalable!
-  - currently in: 
-    * stable.php
-    * identify.php
-    * resolve.php
+
 
 11) Bug in getnode.inc.php
   - Code fetching the entity based on a string does realy on a hardcoded property name 'label'. 
@@ -50,7 +45,12 @@ ________________________
     * preSubmitCheck() is missing a submit event!
 ________________________________________________________________________________________________________________________________________________
 
-
+(OK: 8) remove all use cases of entityviews.inc.php:
+  - the used architecture is not scalable!
+  - currently in: 
+    * stable.php
+    * identify.php
+    * resolve.php
 
 9) OK When clicking on an annotation in a text, the spelling variants are not being shown. There's also no option to add spelling variants. Problem is that this code is dupblicated. 
   - There is code to deal with variants in interactWithEntities.js > displayWrittenVariants 

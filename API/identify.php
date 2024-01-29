@@ -38,9 +38,6 @@ if(!($uuid)){
 
 
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
-// include_once(ROOT_DIR.'/includes/entityviews.inc.php');
-//TODO test identify.php before removing the link to the entityviews class. 
-
 $graph = new Node($client);
 $silo = new Siloconnector($client); 
 $propertyWithPK = 'uid';
@@ -102,6 +99,7 @@ if (array_key_exists('coreID', $core)){
   }
 
   //sending it to the views-class:
+  //TODO: this still needs an update!!!
   //$view = new View($type, array('egoNode' => $core, 'neighbours' => $neighbours, 'relatedTexts' => $textSharingEt));
   //$view->generateJSONOnly(false);
 }else{
