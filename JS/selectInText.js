@@ -136,7 +136,7 @@ function saveNewDB() {
         //    datamode = controll OR automated
         dataObject['annotationmode'] = datamode;
         //if the datamode indicates it's an automated node: you need to pass the node UID so it can be updated. 
-        //auto_annotation nodes always have a UID, so that's a feasable solution.
+        //Annotation_auto nodes always have a UID, so that's a feasable solution.
         //TODO set internal_ID!
         dataObject['neo_id_internal'] = auto_annotation_internal_id; 
         console.log('Sending to server: ');

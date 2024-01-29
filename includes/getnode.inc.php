@@ -689,29 +689,33 @@ class Node{
     // if true, returns QID else, return false. 
     $query = 'MATCH (n) WHERE id(n) = $graphid RETURN n'; 
     $data = $this->client->run($query, ['graphid'=>$neoid]); 
+    //var_dump($data); 
     foreach($data as $row){
       //get nodeLabel:
       $selectedLabel = $row['n']->getLabels()[0];
-      $model = NODEMODEL[$selectedLabel];
-      
-      $x = array_filter($model, function ($value, $key){
-        //var_dump($value); 
-        if($value[1]==='wikidata'){
-          return $key;
-        } return false;     //no wd property for this node!!
-      }, ARRAY_FILTER_USE_BOTH);
-      if(boolval($x)){
-        foreach ($row['n']['properties'] as $prop=> $assumedQID){
-          if ($prop ===  key($x)){
-            return $assumedQID; 
-            //validate Qid: should match regex ^Q[0-9]*$
-            if(preg_match("/^Q[0-9]*$/", $assumedQID)){
+      if (array_key_exists($selectedLabel, NODEMODEL)){
+        $model = NODEMODEL[$selectedLabel];
+        $x = array_filter($model, function ($value, $key){
+          //var_dump($value); 
+          if($value[1]==='wikidata'){
+            return $key;
+          } return false;     //no wd property for this node!!
+        }, ARRAY_FILTER_USE_BOTH);
+        if(boolval($x)){
+          foreach ($row['n']['properties'] as $prop=> $assumedQID){
+            if ($prop ===  key($x)){
               return $assumedQID; 
+              //validate Qid: should match regex ^Q[0-9]*$
+              if(preg_match("/^Q[0-9]*$/", $assumedQID)){
+                return $assumedQID; 
+              }
             }
           }
+          
         }
-        
       }
+      
+
     }
     return false;     //default!
   }

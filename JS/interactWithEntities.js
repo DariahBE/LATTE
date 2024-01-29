@@ -311,7 +311,7 @@ function handleError() {
 
 function loadAnnotationData() {
   console.log('Loading annotation data from recognized annotation!');
-  //BUG: existing auto_annotation ID gets retained and added after confirming a recognized ET
+  //BUG: existing Annotation_auto ID gets retained and added after confirming a recognized ET
   var eventsource = event.source || event.target;
   //event.preventDefault();
   var annotationID = eventsource.dataset.annotation;

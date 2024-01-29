@@ -13,6 +13,9 @@ $typeOK = false;
 $uuid = false;
 if(isset($_GET['type'])){
   $type = ucfirst($_GET['type']);
+  //BUG this design does not allow the usage of Annotation_auto: 
+  // e.g.= entitylinker.test/URI/Annotation/77405f18-f6c7-4d47-98d3-ad73721b4f8b
+  //entitylinker.test/URI/Annotation_auto/77405f18-f6c7-4d47-98d3-ad73721b4f8b
   $approvedTypes = array_keys(NODEMODEL);
   if(in_array($type, $approvedTypes)){
     $typeOK = true;
@@ -50,6 +53,11 @@ if (array_key_exists($type, PRIMARIES) && boolval(PRIMARIES[$type])){
   $propertyWithPK = PRIMARIES[$type];
 }
 $core = $graph->matchSingleNode($type, $propertyWithPK, $uuid);
+// for Annotation_auto nodes you'll need to perform a separate check: 
+
+if ($type == 'Annotation' && !(array_key_exists('coreID', $core))){
+  $core = $graph->matchSingleNode('Annotation_auto', $propertyWithPK, $uuid);
+}
 if(array_key_exists('coreID', $core)){
   $coreNeoID = $core["neoID"]; 
   $coreId = $core['coreID'];
