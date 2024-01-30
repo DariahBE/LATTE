@@ -517,13 +517,14 @@ function createSideSkelleton() {
   middleblock.appendChild(variantsTarget);
   //    2.3:    stablebox: sets stable identifier and link to explorer. 
   //3   Wikidata section. ==> content gets fully built by wd code.
-  const wdblock = document.createElement('div');
+  console.warn('SECTION 3 of top header: WDResponseTarget is disabled!!!'); 
+  /*const wdblock = document.createElement('div');
   wdblock.innerHTML = '<p>HAS WD??</p>';
   wdblock.setAttribute('id', 'WDResponseTarget');
-  wdblock.classList.add('border-t-2', 'mt-1', 'pt-1');
+  wdblock.classList.add('border-t-2', 'mt-1', 'pt-1');*/
   mainblock.appendChild(textblock);
   mainblock.appendChild(middleblock);
-  mainblock.appendChild(wdblock);
+  //mainblock.appendChild(wdblock);
 }
 
 function triggerSidePanelAction(entityData) {

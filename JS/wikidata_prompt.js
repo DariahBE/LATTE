@@ -1,4 +1,14 @@
 function wdprompt(string, offset = 0) {
+  /**
+   *  uses the given search string to look up wd entities; offset is the xth page that'll be loaded 
+   * by performing the request. 
+   * 
+   * This call should empty the div with ID WDResponseTarget otherwise a new search will retain old
+   * properties in the DOM causing confusion. 
+   * 
+   */
+  let wdboxToDrop = document.getElementById('WDResponseTarget');
+  if (wdboxToDrop) { wdboxToDrop.remove(); }
   let language = document.getElementById('wdlookuplanguage').value;         //&language=language
   let strictLookup = document.getElementById('strictLookup').checked;       //&strictlanguage=true
   let useFallback = document.getElementById('returnSameAsLookup').checked;  //&uselang=language
@@ -155,6 +165,11 @@ function pickThisQID(qid) {
   acceptButton.classList.add('bg-green-500', 'hover:bg-green-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
   let rejectText = document.createTextNode('Reject');
   let acceptText = document.createTextNode('Accept');
+  const element = document.getElementById('embeddedWDConfirmationGroup');
+  // If the element exists, remove it from the DOM
+  if (element) {
+    element.remove();
+  }
   rejectButton.addEventListener('click', function () {
     wd = null; //destroy wikidataObject
     wdprompt(document.getElementById('wikidataInputPrompter').value, 0);
