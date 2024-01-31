@@ -24,6 +24,10 @@ $formattedResponse = array(
 
 $graph = new Node($client);
 $annotation = new Annotation($client);
+//TODO (critical): Test transaction implementation. 
+$annotation->startTransaction(); 
+
+
 $user = new User($client);
 //TODO PATCH: generate a new method which acts as classifier to distinguish Annotation and Annotation_auto nodes! 
 $annotation_type = $graph->fetchLabelByUUID($annotationId); 

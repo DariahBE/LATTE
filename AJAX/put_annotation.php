@@ -62,7 +62,9 @@
     }
 
     $node = new CUDNode($client);
-    $annotation = new Annotation($client); 
+    $node->startTransaction();
+
+    $annotation = new Annotation(False, $node->gettsx()); 
 
     ///////////////////////////////////
     // check if the provided annotation matches the structure in config. 
@@ -71,7 +73,8 @@
     $endProperty = ANNOSTOP; 
 
     //make database commits a transaction!
-    $node->startTransaction();
+    //TODO (critical): Test transaction implementation. 
+    //$annotation->startTransaction(); 
     //entire chain is conditional and should only be committed if all queries succeed!!
     ///////////////////////////////////
     // creates a new node with a shortlived NEOID; properties are checked in the 
@@ -102,7 +105,8 @@
             //DEBUG: OK var_dump($createdEntity); 
             //DEBUG: OK var_dump($variant); 
             $r= $node->createVariantRelation($variant, $createdEntity); 
-            var_dump($r);       //triggers invalid entity node!
+            //TODO; test variants!!
+            //var_dump($r);       //triggers invalid entity node!
         }catch(\Throwable $th){
             $node->rollbackTransaction();
             die('Rejected variant node. '); 
@@ -123,6 +127,10 @@
         }
     }else{
         try {
+            //BUG: createNewNode has access to another tsx instance than $this defined in annotation.inc.php
+            //meaning it cannot access the nodes' id just yet!! HENCE: fetchAnnotationUUID is not working. 
+            //Solution ==> copy createNewNode to annotation.inc.php and give it access to the same scope there. 
+            // BUT!! what about connecting $node and $annotation then??? 
             $createAnnotation = $node->createNewNode(ANNONODE, $annotationNode,true);
         }catch(\Throwable $th){
             $node->rollbackTransaction();
@@ -130,7 +138,10 @@
             die('rollback of changes: annocreation error');
         }
     }
-        
+
+    //todo (Low): needs to be done more efficiently, get the UUID directly when creating annotationnode!
+    $createdAnnotationUUID = $annotation->fetchAnnotationUUID($createAnnotation); 
+    
     //connect the entity with the annotation !
     try{
         $node->connectNodes($createAnnotation, $createdEntity, 'references');
@@ -153,9 +164,16 @@
 
 
     $node->commitTransaction();
+    $node_reply = array();
+    $node_reply['data'] = array(
+        'intid' => $createAnnotation,
+        'uuid' => $createdAnnotationUUID
+    );
+    $node_reply['tsx'] = $node;
+
     // if database commit was successfull: revoke the token. 
     $tokenManager->revokeToken(); 
-    echo json_encode($node); 
+    echo json_encode($node_reply); 
     //TODO or //BUG: figure out why $node is returning the tsx object on completion rather then the newly created elements!
     //die('token revoked');
 ?>

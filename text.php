@@ -26,7 +26,9 @@ if(isset($_GET['texid'])){
 
 $user = new User($client);
 $user->checkAccess(TEXTSAREPUBLIC);
-$annotations = new Annotation($client);
+$annotation = new Annotation($client);
+//TODO (critical): test transaction behaviour of annotation. 
+$annotation->startTransaction(); 
 $wikidata = new Wikidata_user($client);
 
 $user_uuid = $user->checkSession();
@@ -41,8 +43,8 @@ if(!boolval($text) or !array_key_exists('coreID', $text)){
 }
 $nodeId = $text['coreID'];
 $neoId = $text['neoID'];  
-$existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_uuid);
-$unlinkedAnnotations = $annotations->getUnlinkedAnnotationsInText($neoId); 
+$existingAnnotation = $annotation->getExistingAnnotationsInText($neoId, $user_uuid);
+$unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId); 
 
 
 ?>

@@ -18,6 +18,8 @@ $neoId = (int)$_GET['neoid'];
 $export = new Exporter($client, $mode);
 $node = new Node($client);
 $annotations = new Annotation($client);
+//TODO (critical) test transaction behaviour of annotation 
+$annotation->startTransaction(); 
 $user = new User($client);
 //check user
 $user_uuid = $user->checkSession();

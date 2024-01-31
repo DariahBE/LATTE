@@ -16,8 +16,14 @@
 class Annotation{
   private $client;
   private $protectedKeys = array(ANNOSTART, ANNOSTOP, 'uid', 'creator');
-  function __construct($client){
-    $this->client = $client;
+  function __construct($client, $hook=false){
+    if (!($client)){
+      var_dump($hook); 
+      $this->tsx = $hook; 
+    }else{
+      $this->client = $client;
+    }
+    var_dump($this->tsx);
   }
 
     //transaction management.
@@ -76,13 +82,21 @@ class Annotation{
     $query = 'MATCH (n:Annotation_auto) WHERE id(n) = $neo
     REMOVE n:Annotation_auto
     SET n:Annotation'.$annotation_properties.';';  
-    $result = $this->client->run($query, $data_iter); 
+    $result = $this->tsx->run($query, $data_iter); 
     return $neoId;
+  }
+
+  public function fetchAnnotationUUID($neoId){
+    //BUG: When running this function directly, it has no acces to transactional content!
+    //var_dump($neoId); 
+    $query = 'MATCH (a) where id(a) = $neo RETURN a.uid as uid;'; 
+    $result = $this->tsx->run($query, array('neo'=>(int)$neoId)); 
+    return $result[0]['uid']; 
   }
 
   public function fetchAutomaticAnnotationById($neoId){
     $query = 'MATCH (a:Annotation_auto) WHERE id(a) = $neo RETURN a; '; 
-    $result = $this->client->run($query, array('neo'=>(int)$neoId)); 
+    $result = $this->tsx->run($query, array('neo'=>(int)$neoId)); 
     return $result; 
   }
 
@@ -90,8 +104,8 @@ class Annotation{
     $query = ('MATCH (a:'.ANNONODE.')<-[r:priv_created]-(u:priv_user) WHERE u.userid = $userid RETURN COUNT(a) as annotationcount');
     $queryPrivate = ('MATCH (a:'.ANNONODE.')<-[r:priv_created]-(u:priv_user) WHERE u.userid = $userid AND a.private=True RETURN COUNT(a) as annotationcount');
     $data = ['userid'=>$userid]; 
-    $result = $this->client->run($query, $data);
-    $resultPrivate = $this->client->run($queryPrivate, $data); 
+    $result = $this->tsx->run($query, $data);
+    $resultPrivate = $this->tsx->run($queryPrivate, $data); 
     //var_dump($resultPrivate);
     return(array('public' => $result[0]['annotationcount'], 'private' => $resultPrivate[0]['annotationcount']));
   }
@@ -100,7 +114,7 @@ class Annotation{
     //takes the apoc created uid of a node with label Annotation and generates all information about it.
     //1: Information about the author of the annotation:
     $queryAuthor = 'MATCH (a:'.ANNONODE.')<-[r:priv_created]-(u:priv_user) WHERE id(a) = $ego RETURN u.role AS role, u.name AS name';
-    $resultAuthor = $this->client->run($queryAuthor, ['ego'=>$nodeId]);
+    $resultAuthor = $this->tsx->run($queryAuthor, ['ego'=>$nodeId]);
     if(boolval(count($resultAuthor))){
       $resultAuthor = $resultAuthor[0];
     }else{
@@ -108,7 +122,7 @@ class Annotation{
     }
     //////
     $queryEntity = 'MATCH (a:'.ANNONODE.')-[r:references]-(b) WHERE id(a) = $ego RETURN id(b) as et_neo_id, b, a';
-    $resultEntity = $this->client->run($queryEntity, ['ego'=>$nodeId]);
+    $resultEntity = $this->tsx->run($queryEntity, ['ego'=>$nodeId]);
     //////
 
     return array(
@@ -123,7 +137,7 @@ class Annotation{
   public function fetchVariants($ofEntityByNeoid){
     $result = array();
     $query2 = 'match(v)-[r:same_as]-(n) where id(n) = $entityid return v, id(v) as neoid' ;
-    $data2 = $this->client->run($query2, ['entityid'=> (int)$ofEntityByNeoid]);
+    $data2 = $this->tsx->run($query2, ['entityid'=> (int)$ofEntityByNeoid]);
     foreach($data2 as $labelvariant){
       $variantRow = $labelvariant['v'];
       //$neoID = (int)$labelvariant['neoid']; 
@@ -145,11 +159,11 @@ class Annotation{
     $userAppId = $user->myId;  
     //put a constraint on the label of t: ensure that this is the text!
     $query = 'MATCH (t:'.TEXNODE.') WHERE id(t) = $texid RETURN t';
-    $result = $this->client->run($query, ['texid'=>$neoIDText]);
+    $result = $this->tsx->run($query, ['texid'=>$neoIDText]);
     $constraintOne = boolval(count($result));
     //put a constraint on the lable of e: ensure that this is an entity! The label should be used in CORENODES
     $query2 = 'MATCH (e) WHERE id(e) = $etid RETURN labels(e) AS labels';
-    $result2 = $this->client->run($query2, ['etid'=>$neoIDEt]); 
+    $result2 = $this->tsx->run($query2, ['etid'=>$neoIDEt]); 
     if(boolval(count($result2))){
       if(array_key_exists($result2[0]['labels'][0], CORENODES)){
         $constraintTwo = True;
@@ -166,7 +180,7 @@ class Annotation{
         (a)<-[r1:contains]-(t),
         (a)-[r2:references]->(e)
       RETURN a,t,e,r1,r2,id(a)';
-      $annotdata = $this->client->run($query, [
+      $annotdata = $this->tsx->run($query, [
         'texid' => $neoIDText,
         'etid' => $neoIDEt, 
         'startnumb' => $start,
@@ -179,7 +193,7 @@ class Annotation{
       WHERE id(u) = $userid AND id(a) = $annotationid
       CREATE (u)-[r:priv_created]->(a)
       RETURN u,r'; 
-      $userdata = $this->client->run($query2, [
+      $userdata = $this->tsx->run($query2, [
         'userid' => $userNeo, 
         'annotationid' => $annotationNeoID
       ]);
@@ -216,7 +230,7 @@ class Annotation{
         MERGE (n)-[:contains]->(newA:Annotation_auto {starts: $start, stops: $stop, uid: apoc.create.uuid()})
         ';
        
-        $this->client->run($cypher, [
+        $this->tsx->run($cypher, [
           'start' => $start,
           'stop' => $stop,
           'texid' => $texid
@@ -230,7 +244,7 @@ class Annotation{
       Annotations which are made by the NER-tool are returned without a matching ET. 
     */
     $query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:Annotation_auto) WHERE id (t)=$neoid RETURN a,r'; 
-    $result = $this->client->run($query, ['neoid'=>$neoid]); 
+    $result = $this->tsx->run($query, ['neoid'=>$neoid]); 
     $data = array(); 
     foreach($result as $row => $value){
       $node = $value["a"]; 
@@ -251,7 +265,7 @@ class Annotation{
     $query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) where id(t)=$neoid return t,a,p;';
 
     //patch: consider returning the property and extracting that; by default cypher will nullify non-existing properties.
-    $result = $this->client->run($query, ['neoid'=>$neoid]);
+    $result = $this->tsx->run($query, ['neoid'=>$neoid]);
     $data = array();
     $data['user'] = $user;
     $annotationData = array();

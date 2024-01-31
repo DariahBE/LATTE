@@ -61,6 +61,10 @@ class CUDNode extends Node {
     return $label; 
   }
 
+  public function gettsx(){
+    return $this->tsx;
+  }
+
   //transaction management.
   public $tsx;
   public function startTransaction(){

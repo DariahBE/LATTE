@@ -309,12 +309,18 @@ function handleError() {
   target.appendChild(errmessage);
 }
 
-function loadAnnotationData() {
+function loadAnnotationData(annotationID = false) {
   console.log('Loading annotation data from recognized annotation!');
   //BUG: existing Annotation_auto ID gets retained and added after confirming a recognized ET
-  var eventsource = event.source || event.target;
-  //event.preventDefault();
-  var annotationID = eventsource.dataset.annotation;
+  if (!(annotationID)){
+    //get annotationID in case of clickevent trigger: find the source of the event. 
+    var eventsource = event.source || event.target;
+    //event.preventDefault();
+    var annotationID = eventsource.dataset.annotation;
+  }
+  //otherwise the annotationID is given as of the function call parameter(in case of
+  //  programatically triggering the event). 
+    
   getInfoFromBackend("/AJAX/resolve_annotation.php?annotation=" + annotationID)
     .then((data) => {
       /*console.log('interactWithEntities.js: rewrite loadAnnotationData, handeError & showdata functions'); 

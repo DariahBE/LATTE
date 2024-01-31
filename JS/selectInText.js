@@ -139,16 +139,27 @@ function saveNewDB() {
         //Annotation_auto nodes always have a UID, so that's a feasable solution.
         //TODO set internal_ID!
         dataObject['neo_id_internal'] = auto_annotation_internal_id; 
-        console.log('Sending to server: ');
         console.log("savenewdb", dataObject);
         //send dataobject to backend: 
-        console.warn('sending data:');
+        console.warn('sending data put_annotation.php:');
         // backend needs to know if this is an update or insert operation! Annotation or Annotation_auto node
-        $.post("/AJAX/put_annotation.php", { data: dataObject }, function (data, status){
-          auto_annotation_internal_id= NaN; 
-          console.log(data);
-          console.log(status);
-        });
+        
+
+        $.post("/AJAX/put_annotation.php", { data: dataObject })
+          .then(function( data ) {
+            //alert( "Data Loaded: " + data );
+            console.log('DATA', data);
+            console.log('uuid', data['uuid']); 
+            loadAnnotationData(data['uuid']);
+            //console.log('STATUS',  status);
+          })
+          .always(function(){
+            console.log('DOING ALWAYS'); 
+            auto_annotation_internal_id= NaN; 
+          })
+          //TODO: now you need to find a way of showing the submitted data in the DOM. 
+          // you can just extract the UID which is returned and use that to mimic a click event. 
+        //alert('READY??'); 
       }); 
       //delete the save-button from DOM: 
       document.getElementById('saveEtToDb').setAttribute('disabled', true); // Prevents dual submission!
