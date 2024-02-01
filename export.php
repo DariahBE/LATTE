@@ -17,8 +17,7 @@ $neoId = (int)$_GET['neoid'];
 
 $export = new Exporter($client, $mode);
 $node = new Node($client);
-$annotations = new Annotation($client);
-//TODO (critical) test transaction behaviour of annotation 
+$annotation = new Annotation($client);
 $annotation->startTransaction(); 
 $user = new User($client);
 //check user
@@ -26,8 +25,8 @@ $user_uuid = $user->checkSession();
 //get text: set it to the exporter together with identified text.
 $text = $node->matchTextByNeo($neoId);
 if (!boolval($text)){
-    //todo: redirect to error page!
-    die();
+    header('Location: /error.php');
+    die('rejected node');
 }
 $textString = $text['text'];
 //set raw text: 
@@ -35,7 +34,6 @@ $export->setText($textString);
 $i = 0; 
 $identifiedText = []; 
 foreach(new MbStrIterator($textString) as $c){
-  //var_dump($c);
   $identifiedText[$i] = nl2br($c); 
   $i++;
 }
@@ -43,16 +41,16 @@ foreach(new MbStrIterator($textString) as $c){
 
 $export->setIdentifiedText($identifiedText); 
 //get annotations: 
-$existingAnnotation = $annotations->getExistingAnnotationsInText($neoId, $user_uuid);
+$existingAnnotation = $annotation->getExistingAnnotationsInText($neoId, $user_uuid);
 $export->setAnnotations($existingAnnotation); 
 //get automatic annotations: the ones recognized by NER-tools: 
-$autoAnnotation = $annotations->getUnlinkedAnnotationsInText($neoId); 
+$autoAnnotation = $annotation->getUnlinkedAnnotationsInText($neoId); 
 $export->setAutoAnnotations($autoAnnotation); 
 //var_dump($autoAnnotation); 
 //set document header depending on requested content. 
 $export->outputHeaders(); 
 $export->generateAnnotatedText();
-$export->outputAnnotations($annotations);
+$export->outputAnnotations($annotation);
 echo $export->outputContent(); 
 //var_dump($export->outputContent());
 

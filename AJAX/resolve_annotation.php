@@ -29,6 +29,7 @@ $annotation->startTransaction();
 
 
 $user = new User($client);
+//BUG: potential conflict with graph and annotation class. Could be that both need to exchange the data stored in a transaction!!
 //TODO PATCH: generate a new method which acts as classifier to distinguish Annotation and Annotation_auto nodes! 
 $annotation_type = $graph->fetchLabelByUUID($annotationId); 
 //end of dealing with the annotation type
@@ -88,12 +89,12 @@ if ($annotation_type === ANNONODE){
     $formattedResponse['annotation']['properties'][$key]= array($key, $value, $protected, $allowedToEdit);
   }
   /**
-  foreach ($annotationInformation['properties'] as $key => $value) {
-    $allowedToEdit = $user->hasEditRights($user->myRole, $user->myName === $owner);
-    $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key), $allowedToEdit);
-  }
-   * 
-   */
+  *foreach ($annotationInformation['properties'] as $key => $value) {
+  *  $allowedToEdit = $user->hasEditRights($user->myRole, $user->myName === $owner);
+  *  $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key), $allowedToEdit);
+  *}
+  * 
+  */
 
 }else{
   die(); 

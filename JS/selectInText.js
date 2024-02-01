@@ -70,8 +70,26 @@ function extractValueType(htmlElem) {
   }
 }
 
+function displayUpdatedText(type, start, stop, uuid){
+  let text = document.querySelectorAll('.ltr');
+  //filter text with start/stop values: 
+  Array.from(text).forEach((e) => {
+    const iterCounter = parseInt(e.dataset.itercounter);
+    if (iterCounter >= start && iterCounter <= stop) {
+      //newly created ANNOs have to be clickable, marked and receive their UUID!
+      e.classList.add(type, 'linked', 'underline');
+      e.dataset.annotation = uuid;
+      e.addEventListener('click', function(){
+        loadAnnotationData(); 
+      }); 
+    }
+  });
+}
+
 function saveNewDB() {
-  //TODO: variants need to be generated when you're converting annotation_auto to annation nodes!
+  //TODO: (consider closed) variants need to be generated when you're converting annotation_auto to annation nodes!
+  //    Auto to confirmed = OK
+  //    Manual select to confirmed = OK
   console.warn('Double ET NODE BUG: calliing into saveNewDB'); 
   let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
   //IS erverything valid 
@@ -143,27 +161,23 @@ function saveNewDB() {
         //send dataobject to backend: 
         console.warn('sending data put_annotation.php:');
         // backend needs to know if this is an update or insert operation! Annotation or Annotation_auto node
-        
-
         $.post("/AJAX/put_annotation.php", { data: dataObject })
           .then(function( data ) {
-            //alert( "Data Loaded: " + data );
-            console.log('DATA', data);
-            console.log('uuid', data['uuid']); 
-            loadAnnotationData(data['uuid']);
-            //console.log('STATUS',  status);
+            let put_rs = data['data']; 
+            loadAnnotationData(put_rs['uuid']);
+            //TODO: inject and update the text DOM with the new data: 
+            displayUpdatedText(put_rs['type'], put_rs['start'], put_rs['stop'], put_rs['uuid']); 
+            //TODO update in TEXTDOM that there's an annotation there:
+            //    Needs access to start and stop property of node select
+            //    Needs acces to set type....
+            //    Best coarse of action is to extend put_annotation.php and make it return the data from there.
           })
           .always(function(){
-            console.log('DOING ALWAYS'); 
+            //console.log('DOING ALWAYS'); 
             auto_annotation_internal_id= NaN; 
           })
-          //TODO: now you need to find a way of showing the submitted data in the DOM. 
-          // you can just extract the UID which is returned and use that to mimic a click event. 
-        //alert('READY??'); 
       }); 
-      //delete the save-button from DOM: 
       document.getElementById('saveEtToDb').setAttribute('disabled', true); // Prevents dual submission!
-      //append token to request
   } else {
     //  ==> form data is not valid: types don't match config definitions.
     let shakeButton = document.getElementById('saveEtToDb');
@@ -452,7 +466,7 @@ function showET(etdata) {
               let annotationEnd = repldata['stop'];
               let annotationUID = repldata['annotation'];
               let annotationForType = repldata['type'];
-              console.warn('UNUSED variables of CRUD/Connect call!!: ', annotationStart, annotationEnd, annotationUID, annotationForType);
+              console.warn('connect.php result; still needs to go in DOM: UNUSED variables of CRUD/Connect call!!: ', annotationStart, annotationEnd, annotationUID, annotationForType);
             }
           }).always(
             function () {

@@ -2,6 +2,7 @@
 $title = 'An unspecified error occurred.';
 $record = 0;
 $fullErrMsg = '';
+if (isset($_GET['type'])){
   switch ($_GET['type']){
     case '':
       $title = 'An unspecified error occurred.';
@@ -23,9 +24,9 @@ $fullErrMsg = '';
       $fullErrMsg = 'The provided ID does not seem to have a maching record. The node is probably deleted or never existed.';
       break;
     default:
-      // code...
       break;
   }
+} 
 ?>
 
 

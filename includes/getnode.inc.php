@@ -163,37 +163,6 @@ class Node{
     return $data;
   }
 
-  /*
-            !!!!!!!!!!!!  unused code -- consider deleting.    !!!!!!!!!!!!!!!!!!!!!!!!
-
-  function getDistinctProperties($ofLabel){
-    $label = $this->sanitizeInput($ofLabel);
-    $query = 'MATCH (n:'. $label .') UNWIND keys(n) AS keys RETURN DISTINCT keys';
-    $result = $this->client->run($query);
-    $data = array();
-    foreach($result as $record){
-      $key = $record['keys'];
-      if($this->isValidKey($label, $key)){
-        $keyTranslation = NODEMODEL[$label][$key][0];
-        $data[] = array($key, $keyTranslation);
-      }else{
-        $keyTranslation = false;
-      }
-    }
-    return $data;
-  }
-  
-  function sanitizeInput($input){
-    if(array_key_exists())
-    return $input;
-  }
-  
-  function isValidKey($ofLabel, $key){
-    // Perform validation of key here
-    // ...
-    return true; // Return true if the key is valid, false otherwise
-  }*/
-
   function getConnections($label){
     $result = $this->client->run('MATCH(n:'.$label.')-[r]-() UNWIND(r) AS relations RETURN DISTINCT type(relations) AS relationtype'); 
     $data = array();
@@ -213,8 +182,7 @@ class Node{
 
   function findEntitiesWithVariantValue($entityLabel, $variantValue){
     //looks for entities with a known label that have a connection to a given variant!
-    // TODO: confirm that the variant model will not change, here you have a hard-set 'variant' property!
-    // TODO: confirm that the Variant node label will not change. Here it is a hard-set 'node' label!!!
+    //Variant.variant is a hardcoded node/propery name. It is is required to be in the datamodel!
     $query = "OPTIONAL MATCH (e:$entityLabel)-[]-(v:Variant {variant: '$variantValue'}) RETURN e";
     $results = $this->client->run($query);
     return $results;

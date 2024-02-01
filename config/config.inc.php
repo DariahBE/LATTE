@@ -58,8 +58,8 @@ $nodesDatamodel = array(
     "region" => ["Regionname", "string", false, false, true], 
     "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
   ],
-  'Variant' => [                                                //'Variant' label is a required nodelabel in the current model!
-    "variant" => ["Label", "string", false, true, true],        //'variant' proprety is a required property in the current model!
+  'Variant' => [                                                //'Variant' label is a required nodelabel in the current model! IS not allowed to change. 
+    "variant" => ["Label", "string", false, true, true],        //'variant' proprety is a required property in the current model! IS not allowed to change.
     "remark" => ["Remark", "string", false, false, true]
   ],
   'See_Also' => [

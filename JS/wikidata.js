@@ -454,6 +454,7 @@ class wikibaseEntry {
       return await fetch(urlForValueLookup)
         .then(response => response.json())
         .then(response => {
+          //BUG: !!critical!! Code fails when triggered from Person-node. Unclear why. Place etc... are okay!!
           let labelList = response['entities'][value]['labels'];
           let showToUser = value; 
           if(labelLanguagePreference in labelList){

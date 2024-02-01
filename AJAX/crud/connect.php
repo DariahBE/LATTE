@@ -9,7 +9,7 @@ include_once(ROOT_DIR."\includes\user.inc.php");
 if(isset($_SESSION['userid'])){
   $user = new User($client);
   $annotation = new Annotation($client);
-  //TODO(critical) test transactional model!
+  //TODO test transactional model!
   $annotation->startTransaction(); 
 }else{
   die();

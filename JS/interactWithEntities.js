@@ -87,6 +87,29 @@ function createStableLinkingBlock(nodeid, stableURI) {
   return subdivGateway;
 }
 
+function showETProps(props){
+  // todo: update styling here. 
+  let div = document.createElement('div'); 
+  props.forEach(prop => {
+    let displayName = prop[0];
+    let displayValue = prop[1];
+    // TODO: var unused, needs to be set as data attribute!!
+    let displayType = prop[2];
+    let subdiv = document.createElement('div')
+    let key = document.createElement('span');
+    key.classList.add('font-weight-bold')
+    let val = document.createElement('span');
+    key.appendChild(document.createTextNode(displayName));
+    val.appendChild(document.createTextNode(displayValue));
+    subdiv.appendChild(key);
+    subdiv.appendChild(val);
+    div.appendChild(subdiv);
+  });
+  console.log(div); 
+  return div; 
+}
+
+
 let auto_annotation_internal_id = NaN; 
 function showdata(data) {
   //set the global datamode: 
@@ -234,8 +257,16 @@ function showdata(data) {
     var etStable = data['entity'][0]['stableURI'];
     etType.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex', 'justify-center');
     var etTypeText = document.createTextNode('Entity: ' + data['entity'][0]['type']);
+    // TODO: LOW PRIORITY: styling. properties of entity needs to be shown here!! 
+    let etpropdiv = document.createElement('div'); 
+    etpropdiv.classList.add('blabla'); 
+    //console.log(data['entity'][0]); 
+    etpropdiv.appendChild(showETProps(data['entity'][0].properties));
+    // todo ==> get rid of showETProps and put a call to call to writeField subfunction here
+
     etType.appendChild(etTypeText);
     annotationTarget.appendChild(etType);
+    annotationTarget.appendChild(etpropdiv); 
     let neoid = data['entity'][0]['neoID'];
     gateWay.appendChild(createStableLinkingBlock(neoid, etStable));
     annotationTarget.appendChild(gateWay);

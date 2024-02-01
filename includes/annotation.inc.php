@@ -17,13 +17,19 @@ class Annotation{
   private $client;
   private $protectedKeys = array(ANNOSTART, ANNOSTOP, 'uid', 'creator');
   function __construct($client, $hook=false){
+    /**
+     * If the transaction needs to be shared between two or more classes
+     * pass False as the $client argument. For the $hook argument use 
+     * the transaction object which was created in the other class: 
+     * e.g.: $a = Annotation(False, $node->tsx); 
+     * 
+     * Transactions will need sharing if the an action is chained over multiple classes.
+     */
     if (!($client)){
-      var_dump($hook); 
       $this->tsx = $hook; 
     }else{
       $this->client = $client;
     }
-    var_dump($this->tsx);
   }
 
     //transaction management.
