@@ -25,7 +25,8 @@ function wdprompt(string, offset = 0) {
 
   let by = 10;
   console.warn('STRINGVAL WD', string);
-  let promptURL = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search=" + string + "&origin=*&format=json&errorformat=plaintext&type=item&language=" + language + extra1 + "&limit=" + by + "&continue=" + offset + extra2;
+  //make sure to use encodeURIComponent for strings that have special characters (e.g. P&G)
+  let promptURL = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search=" + encodeURIComponent(string) + "&origin=*&format=json&errorformat=plaintext&type=item&language=" + language + extra1 + "&limit=" + by + "&continue=" + offset + extra2;
   const target = document.getElementById('wdpromptBox');
   target.classList.remove('hidden');
   let table = document.createElement('table');
@@ -136,6 +137,7 @@ function acceptQID(qid = -1) {
     document.getElementById('wdsearchpromptbox').remove();
     checkIfConnectionExists(qid)
       .then((data) => {
+        console.log('dataresult', data); 
         if (data == 0) {
           let baseElem = document.getElementById('embeddedET');
           baseElem.classList.remove('hidden');
@@ -191,6 +193,11 @@ function pickThisQID(qid) {
 }
 
 function showHit(id) {
+  /**
+   * When a wikidata ID is shared among multiple entities. This 
+   * fucntion will display each given entity in a DIV until the 
+   * user assigns the selected string to a given entity. 
+   */
   //Used for disambiguation between one-to-many relations!
   let replaceContent = document.getElementById('displayHitEt');
   replaceContent.innerHTML = '';
@@ -198,8 +205,8 @@ function showHit(id) {
   etPropContainer.classList.add('w-full');
   etPropContainer.setAttribute('id', 'connectSuggestion');
   etPropContainer.setAttribute('data-neoid', id);
-  //get mentions of this et and connected texts: 
-  console.warn('NEO ID; ', id);
+  //get mentions of this et and connected texts: //OK
+  console.warn('NEO ID (showhit call); ', id);
   replaceContent.appendChild(etPropContainer);
   // if relatedTextStats is missing from the DOM: 
   //race condition in etcreate! Elem does not exist when WD check hasn't been performed.
@@ -222,6 +229,13 @@ function showHit(id) {
 }
 
 let checkIfConnectionExists = async (qid) => {
+  /**
+   *  checks if the request QID (wikidata identifier) is already used by any
+   *  entity in the backend. If so it will return a JSON object with a list of
+   *  nodes that have this QID as wd identifier and a counter (int): hits for quick
+   *  assessment of connectectd entities. You need to keep in mind that a single
+   *  wikidata entity can be spread over multiple entities in the given project! 
+   */
   var existingConnection = new Promise((resolve, reject) => {
     //make a .fetch call in javascript
     console.warn('checking if QID exists.');

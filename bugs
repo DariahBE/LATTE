@@ -1,9 +1,3 @@
-1OK:) inexisting nodes are not caught properly in the Text portal:   OK
-  - e.g.: http://entitylinker.test/text/518105
-  ==> VAR BUG:
-  1A: inexisting node is not caught properly when relying on the coreID return value:     OK
-    -e.g.: http://entitylinker.test/API/place/bf3861df-78ef-4b2e-b0c3-3e639287a7a ((should be: http://entitylinker.test/API/place/bf3861df-78ef-4b2e-b0c3-3e639287a7ae))
-
 2) nodes of the type: Annotation with property private set to True are not matched against cypherstatements!
 
 ________________________
@@ -17,11 +11,6 @@ ________________________
   - you need to figure a way out to deal with non-existing properties of a node
   - Do not rely on static properties when creating an annotation: createAnnotation & createAnnotationWithExistingEt are both affected by this bug!
 
-5) integration with entityview.inc.php:
-  - Static code!! what if node does not exist: 
-  - .htaccess has the same flaw: what if node does not exist. 
-      <-> Fixed by using URI prefix - already implemented. 
-      TODO: test /URI/ prefix in other views!!
 
 6) annotatoin.inc.php ==> method:  createAnnotation:
   - Uses static code, what if a property does not exist, rewrite!
@@ -30,7 +19,6 @@ ________________________
   - Assumes static text property for a static node Text;
   - rewrite it so that you extract it from the DB based on the id()-attribute
   - pass the name where the text is stored as an additional property!
-
 
 
 11) Bug in getnode.inc.php
@@ -69,3 +57,15 @@ ________________________________________________________________________________
     SOLUTION (todo:):
         make the call to checkIfConnectionExists async. If there's no existing connection - carry on.
         if a connection exists let the code clear its content BEFORE removing the hidden class!
+
+1OK:) inexisting nodes are not caught properly in the Text portal:   OK
+  - e.g.: http://entitylinker.test/text/518105
+  ==> VAR BUG:
+  1A: inexisting node is not caught properly when relying on the coreID return value:     OK
+    -e.g.: http://entitylinker.test/API/place/bf3861df-78ef-4b2e-b0c3-3e639287a7a ((should be: http://entitylinker.test/API/place/bf3861df-78ef-4b2e-b0c3-3e639287a7ae))
+    
+5 OK ) integration with entityview.inc.php:
+  - Static code!! what if node does not exist: 
+  - .htaccess has the same flaw: what if node does not exist. 
+      <-> Fixed by using URI prefix - already implemented. 
+      TO-DO: test /URI/ prefix in other views!!

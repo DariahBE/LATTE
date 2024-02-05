@@ -29,8 +29,12 @@ if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connection
   //destroy the token: can only be used once. 
   unset($_SESSION['connectiontoken']);
   unset($_SESSION['connectiontokencreatetime']);
-
-  $data = $annotation->createAnnotationWithExistingEt($texID, $entityID, $user, $selectionStart, $selectionEnd);
+  try {
+    $data = $annotation->createAnnotationWithExistingEt($texID, $entityID, $user, $selectionStart, $selectionEnd);
+  } catch (\Throwable $th) {
+    $annotation->rollbackTransaction(); 
+    die(echo json_encode("An unexpected error occurred.")); 
+  }
   $annotationState = $data['success'];
   $annotationMsg = $data['msg']; 
   $mergeToDict = array(

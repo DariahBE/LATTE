@@ -51,7 +51,6 @@ class Annotation{
         "stops" => ["AnnotationEnd", "int", false, false, false],
       ]
     ]; 
-    //TODO: implement transactional model in every implementation of the ANNOTATION class. 
 
   public function isProtectedKey($key){
     //protected Keys are immutable.

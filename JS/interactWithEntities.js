@@ -25,7 +25,6 @@ function findRelatedTexts(neoID) {
     .then((data) => {
       var showToUser = `Mentioned ${data.Annotations} time${isPlural(data.Annotations)} in ${data.Texts} text${isPlural(data.Texts)}`;
       document.getElementById("relatedTextStats").innerHTML = `<p>${showToUser}</p>`;
-      //console.log(showToUser);
     });
 }
 /*
@@ -87,6 +86,23 @@ function createStableLinkingBlock(nodeid, stableURI) {
   return subdivGateway;
 }
 
+function fieldWriter(key, val, keyclasses = [], valclasses = []){
+  /**   TODO: integration of fieldwriter is not working!
+   * returns a P element with two span elements embedded in.
+   * each of the spanelements receives either the keyclasses or valclasses if defined
+   */
+  let p = document.createElement('p'); 
+  let keyspan = document.createElement('span');
+  keyspan.appendChild(document.createTextNode(key));
+  let valspan = document.createElement('span');
+  valspan.appendChild(document.createTextNode(val));
+  keyspan.classList.add(...keyclasses);
+  valspan.classList.add(...valclasses);
+  p.appendChild(keyspan); 
+  p.appendChild(valspan); 
+  return p; 
+}
+
 function showETProps(props){
   // todo: update styling here. 
   let div = document.createElement('div'); 
@@ -95,17 +111,14 @@ function showETProps(props){
     let displayValue = prop[1];
     // TODO: var unused, needs to be set as data attribute!!
     let displayType = prop[2];
-    let subdiv = document.createElement('div')
-    let key = document.createElement('span');
-    key.classList.add('font-weight-bold')
-    let val = document.createElement('span');
-    key.appendChild(document.createTextNode(displayName));
-    val.appendChild(document.createTextNode(displayValue));
-    subdiv.appendChild(key);
-    subdiv.appendChild(val);
-    div.appendChild(subdiv);
+    let subelem = fieldWriter(displayName, displayValue, ['labelKey', 'font-bold'], []); 
+    // let key = document.createElement('span');
+    // key.classList.add('font-weight-bold')
+    // let val = document.createElement('span');
+    // key.appendChild(document.createTextNode(displayName));
+    // val.appendChild(document.createTextNode(displayValue));
+    div.appendChild(subelem);
   });
-  console.log(div); 
   return div; 
 }
 
@@ -475,18 +488,60 @@ function displayWrittenVariants(variantData) {
 }
 
 function showDBInfoFor(id, extra = '') {
-  //gets the neoID of an entity node after having found a matching Q-id.
-  //sends it to the BE
+  /*
+  * Uses the internal NEOID identifier to fetch all information of a given entity.
+  * given info includes: variants, properties, stable id, label and the datamodel!
+  * THIS is a function specific to the disambiguation process coming from showhit()-calls
+  */
   let extended = '';
   if (extra) {
     extended = '&extended=1'
   }
   // shows all data there's stored about it.
-  console.warn('fetching database info');
   getInfoFromBackend('/AJAX/getETById.php?id=' + id + extended)
     .then((data) => {
-      //process entity information
+      //process entity information: 
+      //  Use the order defined by the model to show properties: 
+      const model = data['extra']['model']; 
       const info = data['props'];
+      console.warn('start iter'); 
+      // Iterate over properties
+      //console.log(model); 
+      //console.log(info); 
+      let reduced = info.map(sublist => sublist[0]);    //OK: 
+      console.log(reduced); 
+      for (let mod of Object.values(model)){ 
+        let modName = mod[0]; 
+        if(reduced.indexOf(modName)>-1){
+
+          //TODO: put found properties in the DOM: 
+          let domElement = document.createElement('span')
+          console.log('PROP FOUND: ', modName, info[reduced.indexOf(modName)]);
+          //console.log(info[reduced.indexOf(modName)]); 
+        }
+      }
+
+      /*for (let prop of info) {
+        let propName = prop[0];
+        // Check if the property name is present in the model
+        console.log(propName, model, model.hasOwnProperty(propName)); 
+        if (model.hasOwnProperty(propName)) {
+
+          // Perform desired actions
+          let modelValue = model[propName];
+          console.log(`Matching property found: ${propName}, Model value: ${modelValue}`);
+          // You can use modelValue or perform additional actions here
+        }
+      }*/
+
+      console.warn('stop iter'); 
+
+
+      for (let i = 0; i < model.length; i++) {
+        let modelBlock = model[i]; 
+        let domName = modelBlock[0]; 
+        let domType = modelBlock[1]; 
+      }
       for (let i = 0; i < info.length; i++) {
         let infoBlock = info[i];
         let blockName = infoBlock[0];

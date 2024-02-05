@@ -450,6 +450,7 @@ function showET(etdata) {
             stop: globalSelectionEnd,
             selection: globalSelectionText
           };
+          alert('INIT connect.php'); 
           $.ajax({
             type: "POST",
             url: "/AJAX/crud/connect.php",
@@ -466,6 +467,7 @@ function showET(etdata) {
               let annotationEnd = repldata['stop'];
               let annotationUID = repldata['annotation'];
               let annotationForType = repldata['type'];
+              //TODO
               console.warn('connect.php result; still needs to go in DOM: UNUSED variables of CRUD/Connect call!!: ', annotationStart, annotationEnd, annotationUID, annotationForType);
             }
           }).always(
