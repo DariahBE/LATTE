@@ -450,11 +450,16 @@ class wikibaseEntry {
     }else if (propertyDataType === 'wikibase-item'){
       //look up the labels: ==> prefer to use the label that's selected in the lookup; if that's missing; use 'en'
       //if both fail, don't show the labelstring, but fallback on the qid, stored in the variable 'value'; 
+      console.warn('WIKIDATA VALUE: ', value); 
       var urlForValueLookup = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+value+"&props=labels&format=json&origin=*"; 
       return await fetch(urlForValueLookup)
         .then(response => response.json())
         .then(response => {
           //BUG: !!critical!! Code fails when triggered from Person-node. Unclear why. Place etc... are okay!!
+          /**the problem is more grannular than that; For some cases where there are multiple Q-ids in the enities call the reponse object does not adhere to expected values
+           * and then fails!
+           */
+          console.log(response); 
           let labelList = response['entities'][value]['labels'];
           let showToUser = value; 
           if(labelLanguagePreference in labelList){

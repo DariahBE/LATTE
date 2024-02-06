@@ -103,15 +103,17 @@ function fieldWriter(key, val, keyclasses = [], valclasses = []){
   return p; 
 }
 
-function showETProps(props){
-  // todo: update styling here. 
+function showETProps(props, structure){
+  //TODO (ok): update code and make call to writeField better.
   let div = document.createElement('div'); 
   props.forEach(prop => {
     let displayName = prop[0];
     let displayValue = prop[1];
     // TODO: var unused, needs to be set as data attribute!!
     let displayType = prop[2];
-    let subelem = fieldWriter(displayName, displayValue, ['labelKey', 'font-bold'], []); 
+    //TODO (ok): change access to fieldwriter to writeField()call
+    let subelem = writeField(displayName, displayValue, true, structure);  //BUG: structure missing in call!!
+    //let subelem = fieldWriter(displayName, displayValue, ['labelKey', 'font-bold'], []); 
     // let key = document.createElement('span');
     // key.classList.add('font-weight-bold')
     // let val = document.createElement('span');
@@ -119,19 +121,97 @@ function showETProps(props){
     // val.appendChild(document.createTextNode(displayValue));
     div.appendChild(subelem);
   });
-  return div; 
+  return div;  
 }
 
+
+function writeField(key, data, protected, structure) {
+  // TODO (ok): writeField needs to be rewritten to fit global scope!
+  console.log('Method A', key, data, protected);
+  //if(!(decideOnEdit(protected, rights))){
+  var field = document.createElement('p');
+  var fieldkey = document.createElement('span');
+  fieldkey.classList.add('labelKey', 'font-bold');
+  var fieldType = structure[key] !== undefined ? structure[key][1] : 'string';
+  var keytex = structure[key] !== undefined ? structure[key][0] : key;
+  var fieldkeyString = document.createTextNode(keytex + ': ');
+  if (data !== false && data !== '') {
+    fieldkey.appendChild(fieldkeyString);
+    field.appendChild(fieldkey);
+  }
+
+  //}else{
+  /*  alert( 'B Block');
+  
+  //if a field is write enabled. you need to type the field accordinly:
+  console.log('B');
+  console.log(structure[key]);
+  var field = document.createElement('div');
+  var fieldkey = document.createElement('p');
+  var keytex = structure[key] !== undefined ? structure[key][0] : key;
+  var fieldType = structure[key] !== undefined ? structure[key][1] : 'string';
+  var fieldkeyString = document.createTextNode(keytex);
+  fieldkey.appendChild(fieldkeyString);
+  field.appendChild(fieldkey);
+  var fieldvalue = document.createElement('input');
+  fieldvalue.setAttribute('pattern', '^[-0-9][0-9]+$');
+  var prevVal = '';
+  fieldvalue.addEventListener('keyup', function(e){
+    if (this.value === '-'){
+      prevVal = '-';
+    }
+    if(this.checkValidity()){
+      prevVal = this.value;
+    } else {
+      this.value = prevVal;
+    }
+  });*/
+  //numberfields should have a live function on them to strip all non-numeric values.
+  // }
+  if (fieldType === 'bool') {
+    var fieldvalue = document.createElement('span');
+    var fieldvalueString = document.createTextNode(data);
+    fieldvalue.appendChild(fieldvalueString);
+    field.appendChild(fieldvalue);
+
+    fieldvalue.setAttribute('type', 'boolean');
+    console.log('work required in interactWithEntities.js line 108');
+    //alert('Bool field should be dropdown');
+  } else if (fieldType === 'uri') {
+    var fieldvalue = document.createElement('a');
+    fieldvalue.setAttribute('href', data);
+    fieldvalue.setAttribute('target', '_blank');
+    fieldvalue.appendChild(document.createTextNode(data));
+    //var fieldvalueString = document.createTextNode(data);
+    //fieldvalue.appendChild(fieldvalueString);
+    field.appendChild(fieldvalue);
+    fieldvalue.setAttribute('type', 'url');
+    //let clickhref = document.createElement('a'); 
+    //clickhref.setAttribute('href', data); 
+    //clickhref.setAttribute('target', '_blank'); 
+    //clickhref.appendChild(document.createTextNode(data)); 
+    //fieldvalue.appendChild(clickhref); 
+  } else {
+    var fieldvalue = document.createElement('span');
+    var fieldvalueString = document.createTextNode(data);
+    fieldvalue.appendChild(fieldvalueString);
+    field.appendChild(fieldvalue);
+    fieldvalue.setAttribute('type', 'text');
+    fieldvalue.value = data;
+    field.appendChild(fieldvalue);
+  }
+  console.log('created textfield', field);
+  return field;
+}
 
 let auto_annotation_internal_id = NaN; 
 function showdata(data) {
   //set the global datamode: 
   datamode = data['mode'];
-  //frameWorkBase();
   toggleSlide(1);
   createSideSkelleton();
   var annotationTarget = document.getElementById('slideoverDynamicContent');
-  //superimpose the slideover on top of the nabar: 
+  //superimpose the slideover on top of the navbar: 
   annotationTarget.classList.add("z-50");
   var gateWay = document.createElement('div');
   gateWay.setAttribute('id', 'neobox');
@@ -141,7 +221,7 @@ function showdata(data) {
   annotationTarget.innerHTML = '';
   gateWay.appendChild(statsTarget);
   var variantsTarget = document.createElement('div');
-  variantsTarget.setAttribute('id', 'etVariantsTarget')
+  variantsTarget.setAttribute('id', 'etVariantsTarget');
   variantsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0');
   gateWay.appendChild(variantsTarget);
   var authorData = data['author'];
@@ -158,83 +238,7 @@ function showdata(data) {
   }
   var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
-  function writeField(key, data, protected) {
-    console.log('Method A', key, data, protected);
-    //if(!(decideOnEdit(protected, rights))){
-    var field = document.createElement('p');
-    var fieldkey = document.createElement('span');
-    fieldkey.classList.add('labelKey', 'font-bold');
-    var fieldType = annotationStructure[key] !== undefined ? annotationStructure[key][1] : 'string';
-    var keytex = annotationStructure[key] !== undefined ? annotationStructure[key][0] : key;
-    var fieldkeyString = document.createTextNode(keytex + ': ');
-    if (data !== false && data !== '') {
-      fieldkey.appendChild(fieldkeyString);
-      field.appendChild(fieldkey);
-    }
 
-    //}else{
-    /*  alert( 'B Block');
-    
-    //if a field is write enabled. you need to type the field accordinly:
-    console.log('B');
-    console.log(annotationStructure[key]);
-    var field = document.createElement('div');
-    var fieldkey = document.createElement('p');
-    var keytex = annotationStructure[key] !== undefined ? annotationStructure[key][0] : key;
-    var fieldType = annotationStructure[key] !== undefined ? annotationStructure[key][1] : 'string';
-    var fieldkeyString = document.createTextNode(keytex);
-    fieldkey.appendChild(fieldkeyString);
-    field.appendChild(fieldkey);
-    var fieldvalue = document.createElement('input');
-    fieldvalue.setAttribute('pattern', '^[-0-9][0-9]+$');
-    var prevVal = '';
-    fieldvalue.addEventListener('keyup', function(e){
-      if (this.value === '-'){
-        prevVal = '-';
-      }
-      if(this.checkValidity()){
-        prevVal = this.value;
-      } else {
-        this.value = prevVal;
-      }
-    });*/
-    //numberfields should have a live function on them to strip all non-numeric values.
-    // }
-    if (fieldType === 'bool') {
-      var fieldvalue = document.createElement('span');
-      var fieldvalueString = document.createTextNode(data);
-      fieldvalue.appendChild(fieldvalueString);
-      field.appendChild(fieldvalue);
-
-      fieldvalue.setAttribute('type', 'boolean');
-      console.log('work required in interactWithEntities.js line 108');
-      //alert('Bool field should be dropdown');
-    } else if (fieldType === 'uri') {
-      var fieldvalue = document.createElement('a');
-      fieldvalue.setAttribute('href', data);
-      fieldvalue.setAttribute('target', '_blank');
-      fieldvalue.appendChild(document.createTextNode(data));
-      //var fieldvalueString = document.createTextNode(data);
-      //fieldvalue.appendChild(fieldvalueString);
-      field.appendChild(fieldvalue);
-      fieldvalue.setAttribute('type', 'url');
-      //let clickhref = document.createElement('a'); 
-      //clickhref.setAttribute('href', data); 
-      //clickhref.setAttribute('target', '_blank'); 
-      //clickhref.appendChild(document.createTextNode(data)); 
-      //fieldvalue.appendChild(clickhref); 
-    } else {
-      var fieldvalue = document.createElement('span');
-      var fieldvalueString = document.createTextNode(data);
-      fieldvalue.appendChild(fieldvalueString);
-      field.appendChild(fieldvalue);
-      fieldvalue.setAttribute('type', 'text');
-      fieldvalue.value = data;
-      field.appendChild(fieldvalue);
-    }
-    console.log('created textfield', field);
-    return field;
-  }
   //work with the Annotations:
   console.log(annotationData);
   Object.keys(annotationData).forEach(key => {
@@ -248,12 +252,12 @@ function showdata(data) {
         annotationExtraFields.splice(idx, 1);
       }
     }
-    var fieldFormatted = writeField(rowkey, rowdata, protected);
+    var fieldFormatted = writeField(rowkey, rowdata, protected, annotationStructure);
     annotationTarget.appendChild(fieldFormatted);
   });
   //for all annotationExtraFields create a new editable field:
   for (var i = 0; i < annotationExtraFields.length; i++) {
-    annotationTarget.appendChild(writeField(annotationExtraFields[i], '', false));
+    annotationTarget.appendChild(writeField(annotationExtraFields[i], '', false, annotationStructure));
   }
   /*
   // TODO determine if this codeblock has to go back into production. 
@@ -274,8 +278,8 @@ function showdata(data) {
     let etpropdiv = document.createElement('div'); 
     etpropdiv.classList.add('blabla'); 
     //console.log(data['entity'][0]); 
-    etpropdiv.appendChild(showETProps(data['entity'][0].properties));
-    // todo ==> get rid of showETProps and put a call to call to writeField subfunction here
+    etpropdiv.appendChild(showETProps(data['entity'][0].properties, annotationStructure));
+    //TODO ==> get rid of showETProps and put a call to call to writeField subfunction here
 
     etType.appendChild(etTypeText);
     annotationTarget.appendChild(etType);
