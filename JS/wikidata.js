@@ -293,11 +293,11 @@ class wikibaseEntry {
           if(wdProcessAs === 'uri'){
             promisses.push(this.displayURI(wdPropLabel, wikidata_response, qid, e));
           }else if(wdProcessAs === 'geo'){
-            this.displayCoordinateData(wikidata_response, qid, e);
+            promisses.push(this.displayCoordinateData(wikidata_response, qid, e));
           }else if(wdProcessAs === 'img'){
-            this.displayImageData(wdPropLabel,wikidata_response, qid, e);
+            promisses.push(this.displayImageData(wdPropLabel,wikidata_response, qid, e));
           }else if(wdProcessAs === 'str'){
-            this.displayStringData(wdPropLabel, wikidata_response, qid, e);
+            promisses.push(this.displayStringData(wdPropLabel, wikidata_response, qid, e));
           }
         }
       });
@@ -444,33 +444,46 @@ class wikibaseEntry {
     if(propertyDataType === 'time'){
       //format the literal into a nice datetime field: 
       var date = new Date(value); 
-      var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+date+"</span>"; 
+      var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: <span>"+date+"</span>"; 
       pelement.innerHTML = showAs; 
       into.push(pelement); 
     }else if (propertyDataType === 'wikibase-item'){
+      let newElements = []; 
+      let multidata = []; 
       //look up the labels: ==> prefer to use the label that's selected in the lookup; if that's missing; use 'en'
       //if both fail, don't show the labelstring, but fallback on the qid, stored in the variable 'value'; 
-      console.warn('WIKIDATA VALUE: ', value); 
-      var urlForValueLookup = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+value+"&props=labels&format=json&origin=*"; 
+    //if you receive multiple values for value, you have to explicitly implode it with | for the API to work!: 
+      var urlForValueLookup = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+value.join('|')+"&props=labels&format=json&origin=*"; 
       return await fetch(urlForValueLookup)
         .then(response => response.json())
         .then(response => {
-          //BUG: !!critical!! Code fails when triggered from Person-node. Unclear why. Place etc... are okay!!
-          /**the problem is more grannular than that; For some cases where there are multiple Q-ids in the enities call the reponse object does not adhere to expected values
-           * and then fails!
-           */
-          console.log(response); 
-          let labelList = response['entities'][value]['labels'];
-          let showToUser = value; 
-          if(labelLanguagePreference in labelList){
-            showToUser = labelList[labelLanguagePreference]['value'];
-          }else if('en' in labelList){
-            showToUser = labelList['en']['value'];
-          }
-          var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+showToUser+"</span>"; 
+          value.forEach(qvalue => {
+            //var pelement = document.createElement('p');
+            let labelList = response['entities'][qvalue]['labels'];
+            let showToUser = qvalue; 
+            if(labelLanguagePreference in labelList){
+              showToUser = labelList[labelLanguagePreference]['value'];
+            }else if('en' in labelList){    //default to english
+              showToUser = labelList['en']['value'];
+            }
+            multidata.push([showToUser, qvalue]); 
+            //var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: <span>"+showToUser+"</span>"; 
+            //pelement.innerHTML = showAs; 
+            //into.push(pelement); 
+          });
+          let showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: "; 
+          const anchors = multidata.map(([text, href]) => {
+            const anchor = "<a href = 'https://www.wikidata.org/wiki/"+href+"' target='_blank'>"+text+"</a>"; 
+            return anchor;
+          });
+          showAs = showAs+ "<span>"+anchors.join(', ')+"</span>"; 
           pelement.innerHTML = showAs; 
-          into.push(pelement); 
-        })
+          newElements.push(pelement);
+        }).then(function(){
+          into.push(...newElements); 
+        }
+        )
+
       }else if (propertyDataType === 'monolingualtext'){
         if (value.length === 1){
           // show as paragraph
@@ -569,6 +582,8 @@ class wikibaseEntry {
     }else{
       console.warn('Unsupported datatype: ', propertyDataType); 
     }
+    //console.log(newElements.length); 
+    //into.push(...newElements);
   }
 
   async displayURI (parent, identifierOfEntity, q, p){
