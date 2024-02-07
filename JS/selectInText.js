@@ -899,6 +899,15 @@ function triggerSidePanelAction(entityData) {
     wikidataInputBox.classList.add('border', 'border-gray-300', 'rounded-md', 'shadow-sm', 'focus:outline-none', 'focus:border-indigo-500');
     wikidataInputBox.value = selectedString;
     wikidataRowBox.appendChild(wikidataInputBox);
+    //You need to make it possible for users to create an entity in the database that have no existing wikidata ID: 
+    var noWikidataId = document.createElement('button'); 
+    var noWikidataIdText = document.createTextNode('Don\'t link'); 
+    noWikidataId.appendChild(noWikidataIdText);
+    noWikidataId.classList.add('bg-orange-500', 'border-solid', 'hover:bg-orange-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
+    noWikidataId.addEventListener('click', function () {
+      //IF you pass -1 the application won't store the QID. Any newly created entity won't have a value set in the wikidata field. 
+      acceptQID(-1);
+    });
     var searchButtonForWDPrompt = document.createElement('button');
     var searchButtonForWDPromptText = document.createTextNode('Search');
     searchButtonForWDPrompt.classList.add('bg-green-500', 'border-solid', 'hover:bg-green-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
@@ -913,6 +922,7 @@ function triggerSidePanelAction(entityData) {
     wikidataPromptMainbox.appendChild(wikidataQLabel);
     wikidataPromptMainbox.appendChild(wikidataRowBox);
     wikidataPromptMainbox.appendChild(searchButtonForWDPrompt);
+    wikidataPromptMainbox.appendChild(noWikidataId);
     wikidataPromptMainbox.appendChild(wikidataResultsBox);
 
 

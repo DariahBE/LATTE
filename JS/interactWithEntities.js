@@ -140,57 +140,49 @@ function writeField(key, data, protected, structure) {
     field.appendChild(fieldkey);
   }
 
-  //}else{
-  /*  alert( 'B Block');
+  // //}else{
+  // /*  alert( 'B Block');
   
-  //if a field is write enabled. you need to type the field accordinly:
-  console.log('B');
-  console.log(structure[key]);
-  var field = document.createElement('div');
-  var fieldkey = document.createElement('p');
-  var keytex = structure[key] !== undefined ? structure[key][0] : key;
-  var fieldType = structure[key] !== undefined ? structure[key][1] : 'string';
-  var fieldkeyString = document.createTextNode(keytex);
-  fieldkey.appendChild(fieldkeyString);
-  field.appendChild(fieldkey);
-  var fieldvalue = document.createElement('input');
-  fieldvalue.setAttribute('pattern', '^[-0-9][0-9]+$');
-  var prevVal = '';
-  fieldvalue.addEventListener('keyup', function(e){
-    if (this.value === '-'){
-      prevVal = '-';
-    }
-    if(this.checkValidity()){
-      prevVal = this.value;
-    } else {
-      this.value = prevVal;
-    }
-  });*/
-  //numberfields should have a live function on them to strip all non-numeric values.
-  // }
+  // //if a field is write enabled. you need to type the field accordinly:
+  // console.log('B');
+  // console.log(structure[key]);
+  // var field = document.createElement('div');
+  // var fieldkey = document.createElement('p');
+  // var keytex = structure[key] !== undefined ? structure[key][0] : key;
+  // var fieldType = structure[key] !== undefined ? structure[key][1] : 'string';
+  // var fieldkeyString = document.createTextNode(keytex);
+  // fieldkey.appendChild(fieldkeyString);
+  // field.appendChild(fieldkey);
+  // var fieldvalue = document.createElement('input');
+  // fieldvalue.setAttribute('pattern', '^[-0-9][0-9]+$');
+  // var prevVal = '';
+  // fieldvalue.addEventListener('keyup', function(e){
+  //   if (this.value === '-'){
+  //     prevVal = '-';
+  //   }
+  //   if(this.checkValidity()){
+  //     prevVal = this.value;
+  //   } else {
+  //     this.value = prevVal;
+  //   }
+  // });*/
+  // //numberfields should have a live function on them to strip all non-numeric values.
+  // // }
   if (fieldType === 'bool') {
+    //TODO make boolfield dropdown. 
+    console.log('setting behaviour for bool field'); 
     var fieldvalue = document.createElement('span');
     var fieldvalueString = document.createTextNode(data);
     fieldvalue.appendChild(fieldvalueString);
     field.appendChild(fieldvalue);
-
     fieldvalue.setAttribute('type', 'boolean');
-    console.log('work required in interactWithEntities.js line 108');
-    //alert('Bool field should be dropdown');
   } else if (fieldType === 'uri') {
     var fieldvalue = document.createElement('a');
     fieldvalue.setAttribute('href', data);
     fieldvalue.setAttribute('target', '_blank');
     fieldvalue.appendChild(document.createTextNode(data));
-    //var fieldvalueString = document.createTextNode(data);
-    //fieldvalue.appendChild(fieldvalueString);
     field.appendChild(fieldvalue);
     fieldvalue.setAttribute('type', 'url');
-    //let clickhref = document.createElement('a'); 
-    //clickhref.setAttribute('href', data); 
-    //clickhref.setAttribute('target', '_blank'); 
-    //clickhref.appendChild(document.createTextNode(data)); 
-    //fieldvalue.appendChild(clickhref); 
   } else {
     var fieldvalue = document.createElement('span');
     var fieldvalueString = document.createTextNode(data);
@@ -332,6 +324,26 @@ function showdata(data) {
      *            - update annotation Label from annoation_auto to annoation
      *            - add other fields in DOM to approve edit and let the user annotate properly. 
      */
+
+    // TODO: TESTPROCEDURES you need a good test procedure to finish the JS components: 
+    /**     TAKE TEXT 10004 for this:
+     * 1) Create a new entity ==>
+     *    - Q-id is not used yet
+     *    - Does not match any known variant.
+     * 2) Connect annotation to entity ==>
+     *    - Via Q-id 
+     *    - Without known variant
+     * 3) Connect annotation to entity ==>
+     *    - Via Q-id
+     *    - Witch matching variant which you wish to ignore!
+     * 4) Connect annotation to entity ==> 
+     *    - No known Q-id:
+     *    - With matching variant to use
+     * 5) Connection annotation to entity ==>
+     *    - Known Q-id, you wish to ignore
+     *    - With matchin variant to use!
+     * 
+     */
   }
 }
 
@@ -371,9 +383,6 @@ function loadAnnotationData(annotationID = false) {
     
   getInfoFromBackend("/AJAX/resolve_annotation.php?annotation=" + annotationID)
     .then((data) => {
-      /*console.log('interactWithEntities.js: rewrite loadAnnotationData, handeError & showdata functions'); 
-      console.warn('showdata data:'); 
-      console.log(data); */
       if (data['code']==-1){
         handleError(); 
       }else{
@@ -392,32 +401,6 @@ function addInteractionToEntities() {
   }
 };
 
-/*
-//global scope
-//let spellingVariantTracker = [];
-function binVariant(e){
-  // Part of BUG 9 patch: 
-  // code moved to et_variants.js
-  //gets the attribute of e: sends XHR request to delete. 
-  console.log(e); 
-  const DOMElement = e.parentElement; 
-  let nodeInternalId = e.getAttribute('data-neoid'); 
-  let etInternalId = document.getElementById('connectSuggestion').getAttribute('data-neoid'); 
-  fetch('/AJAX/variants/delete.php?variantid='+nodeInternalId+'&entityid='+etInternalId)
-  .then(data => function(){
-    console.log(data);
-  });
-
-  console.log(nodeInternalId); 
-  console.log(DOMElement); 
-  const writtenValue = DOMElement.textContent; 
-  //then removes it from the spellingvarianttracker
-  let idx = spellingVariantTracker.indexOf(writtenValue); 
-  delete(spellingVariantTracker[idx]); 
-  //tehn removes it from the DOM: 
-  e.parentElement.remove();
-}
-*/
 
 // debug process of BUG9 ==> code disabled 
 // should be moved to /JS/et_variants.js
@@ -508,12 +491,8 @@ function showDBInfoFor(id, extra = '') {
       //  Use the order defined by the model to show properties: 
       const model = data['extra']['model']; 
       const info = data['props'];
-      console.warn('start iter'); 
       // Iterate over properties
-      //console.log(model); 
-      //console.log(info); 
       let reduced = info.map(sublist => sublist[0]);    //OK: 
-      console.log(reduced); 
       for (let mod of Object.values(model)){ 
         let modName = mod[0]; 
         if(reduced.indexOf(modName)>-1){
@@ -521,25 +500,8 @@ function showDBInfoFor(id, extra = '') {
           //TODO: put found properties in the DOM: 
           let domElement = document.createElement('span')
           console.log('PROP FOUND: ', modName, info[reduced.indexOf(modName)]);
-          //console.log(info[reduced.indexOf(modName)]); 
         }
       }
-
-      /*for (let prop of info) {
-        let propName = prop[0];
-        // Check if the property name is present in the model
-        console.log(propName, model, model.hasOwnProperty(propName)); 
-        if (model.hasOwnProperty(propName)) {
-
-          // Perform desired actions
-          let modelValue = model[propName];
-          console.log(`Matching property found: ${propName}, Model value: ${modelValue}`);
-          // You can use modelValue or perform additional actions here
-        }
-      }*/
-
-      console.warn('stop iter'); 
-
 
       for (let i = 0; i < model.length; i++) {
         let modelBlock = model[i]; 
@@ -556,6 +518,7 @@ function showDBInfoFor(id, extra = '') {
       const variants = data['variantSpellings'];
       const uri = data['stable'];
       displayWrittenVariants(variants);
+      neoVarsToDom(variants); 
       console.log(info, variants);
 
       let referenceNode = document.getElementById('relatedTextStats').parentElement;

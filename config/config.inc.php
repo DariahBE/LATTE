@@ -78,14 +78,14 @@ $nodesDatamodel = array(
     "label" => ["Label", "string", false, true, true],
     "uid" => ["Label", "string", false, false, true],
     "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
-  ]
-  /*'Dog' => [
+  ],
+  'Dog' => [
     "breed" => ["Breed", "string", false, false, true],
     "age" => ["Age", "int", false, false, false],
     "label" => ["Name", "string", false, true, true],
     "Wikidata" => ["Wikidata Label", 'wikidata', false, false, false],
     "smart" => ["Did tricks", 'bool', false, false, false],
-  ], 
+  ] /*
   'Organization' => [
     "label" => ["Label", "string", false, false, true]
   ], 
@@ -149,8 +149,8 @@ $matchOnNodes = array(
   //'Event' => 'rgba(39, 245, 123, 0.6)',
   'Text' => 'rgba(28, 200, 28, 0.6)',
   'Annotation' => 'rgba(200, 28, 28, 0.6)', 
-  'Organization' => 'rgba(145,100,52,0.6)'
-  //'Disease' => 'rgba(145,100,52,0.6)'
+  'Organization' => 'rgba(145,100,52,0.6)', 
+  'Dog' => 'rgba(145,100,52,0.6)'
 );
 
 //automatically fill out below config based on nodesDatamodel:
@@ -194,6 +194,7 @@ $nodes_translate = array(
   'Place' => 'Places',
   'Text' => 'Texts',
   'Annotation' => 'Annotations',
+  'Dog' => 'Dogs',
   'priv_user' => 'Users'
 );
 

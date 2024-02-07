@@ -131,23 +131,36 @@ function acceptQID(qid = -1) {
   /* Start lookup if an entity in this database has the assigned QID.
     *IF TRUE: it will load the entity
     *IF FALSE: it will suggest you to make a new one.
+    You pass -1 to skip the check and go straight to the entity creation process.
+    Your newly created entity will NOT have extra information generatio by WD. 
   */
-  if (qid !== -1) {
-    document.getElementById('embeddedWDConfirmationGroup').remove();
-    document.getElementById('wdsearchpromptbox').remove();
+ //Always delete the promptbox!
+ let element = document.getElementById('wdsearchpromptbox')
+ if(element !== null){
+  element.remove(); 
+ }
+ //document.getElementById('wdsearchpromptbox').remove();
+ if (qid !== -1) {
+  //if a valid QID is passed it means it comes from within an env where the confirmationgroup was visible.
+   document.getElementById('embeddedWDConfirmationGroup').remove();
     checkIfConnectionExists(qid)
       .then((data) => {
-        console.log('dataresult', data); 
+        //console.log('dataresult', data); 
         if (data == 0) {
-          let baseElem = document.getElementById('embeddedET');
-          baseElem.classList.remove('hidden');
-          let creationElement = document.getElementById('etcreate');
-          creationElement.classList.add('getAttention');
+          console.log('ZEROReturn');
+          //TODO required??
         } else {
+          console.log('DATARETURN');
+          //TODO required?
           //NO changes needed to DOM in here.
         }
       })
   }
+  //delete all elements that are related to WD, get started with creating the ET
+  let baseElem = document.getElementById('embeddedET');
+  baseElem.classList.remove('hidden');
+  let creationElement = document.getElementById('etcreate');
+  creationElement.classList.add('getAttention');
 }
 
 function pickThisQID(qid) {
