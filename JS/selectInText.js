@@ -2,6 +2,8 @@ let globalSelectionText = null;
 let globalSelectionStart = null;
 let globalSelectionEnd = null;
 
+const selectInTexDebug = false; 
+
 function ignoreSuggestion() {
   var isOpen = document.getElementById("suggestionOnSelect");
   if (isOpen) {
@@ -14,8 +16,7 @@ function extractAnnotationPropertiesFromDOM(domBlock) {
   let prop = {}
   for (let i = 0; i < domBlock.length; i++) {
     let box = domBlock[i].getElementsByClassName('inputelement')[0];
-    //console.log(box);
-    //todo => boxes that are checkboxes should use .checked not .value method
+    //TODO => boxes that are checkboxes should use .checked not .value method
     let boxName = box.name;
     console.log('eetse beetsy bugfixing required!');
     let boxValue = extractValueType(box);
@@ -371,11 +372,8 @@ function showET(etdata) {
   if (wdboxToDrop) { wdboxToDrop.remove(); }
   const subtarget = document.getElementById('entitycontent');
   subtarget.innerHTML = '';
-  //console.log(etdata);
   var label = etdata[1];
   var properties = etdata[2];
-  //console.log('propers: '); 
-  //console.log(properties);
   var propdiv = document.createElement('div');
   for (let k in properties) {
     let show = null;
@@ -387,8 +385,6 @@ function showET(etdata) {
     if (valueType == 'uri') {
       show = generateHyperlink(valueDOM, datavalue, ['externalURILogo']);
     } else if (valueType == 'wikidata' && datavalue !== null) {
-      //console.log("wikidata box: ");
-      //console.log(value);
       show = document.createElement('p')
       var wdprefix = document.createElement('span');
       wdprefix.appendChild(document.createTextNode(valueDOM + ': '));
@@ -420,7 +416,6 @@ function showET(etdata) {
   }
   //with the data displayed: allow the user to accept the suggestion => this creates a new annotation between
   //the text and existing ET. 
-  //console.log('accept/reject suggestion'); 
   var d = document.getElementById('assignEtToSelection');
   if (d !== null) { d.remove(); }
   fetch('/user/AJAX/profilestate.php')
@@ -429,15 +424,33 @@ function showET(etdata) {
       console.log('profilestate', data);
       if (data['valid']) {
         var csrf = data['csrf'];
-        var acceptLink = document.createElement('button');
-        acceptLink.setAttribute('id', 'assignEtToSelection')
-        //console.log(selectedText, selectedTextStart,  selectedTextEnd); 
-        var acceptText = document.createTextNode('Create annotation');
+        let acceptLink = document.createElement('button');
+        let rejectLink = document.createElement('button'); 
+        acceptLink.setAttribute('id', 'assignEtToSelection'); 
+        rejectLink.setAttribute('id', 'assignNewEtToSelection'); 
+        //show the user what is going on and explain why it is in this mode: 
+        document.getElementById('usernoticekey').textContent = 'State: ';
+        document.getElementById('usernoticevalue').textContent = 'An entity with matching spelling was found. You can link this attestation to this entity or reject the link and create a new entity with the same spelling.';
+        
+        let rejectText = document.createTextNode('Reject link'); 
+        let acceptText = document.createTextNode('Create annotation');
         acceptLink.appendChild(acceptText);
+        rejectLink.appendChild(rejectText); 
         acceptLink.classList.add('bg-green-400');
-        acceptLink.addEventListener('click', function () {
-          //make button unresponsive: 
+        rejectLink.classList.add('bg-orange-400'); 
+        rejectLink.addEventListener('click', function (){
           acceptLink.disabled = true;
+          rejectLink.disabled = true;
+          
+          acceptQID(-1);
+          // at this stage: the user rejects the link to the provided entity and wants to manually create a new entity. 
+          //TODO critical 
+          alert('NEEDS TO BE IMPLEMENTED FURTHER'); 
+        })
+        acceptLink.addEventListener('click', function () {
+          //make buttons unresponsive: 
+          acceptLink.disabled = true;
+          rejectLink.disabled = true;
           //data to send to server
           //read the content of the div that holds annotation data when connecting nodes 
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
@@ -459,7 +472,7 @@ function showET(etdata) {
             success: function (repldata) {
               //console.log(data); 
               //let repldata = JSON.parse(json);
-              console.log(repldata);
+              //console.log(repldata);
               let repl = document.createElement('p');
               repl.appendChild(document.createTextNode(repldata['msg']));
               document.getElementById('etmain').appendChild(repl);
@@ -511,15 +524,124 @@ function showET(etdata) {
           saveNewDB();
         });
         document.getElementById('etmain').appendChild(acceptLink);
+        document.getElementById('etmain').appendChild(rejectLink);
       }
     })
 
 }
 
+function buildAnnotationCreationBox() {
+  //TODO critical
+  let annotationDiv = document.createElement('div');
+  annotationDiv.classList.add('hidden');
+  annotationDiv.setAttribute('id', 'annotationCreationDiv');
+
+  var topTex = document.createElement('h3');
+  topTex.classList.add('uppercase', 'text-xl', 'underline', 'decoration-4', 'underline-offset-2');
+  topTex.appendChild(document.createTextNode('Create a new annotation'));
+  //get annotation structure: 
+  let topBox = document.createElement('div');
+  fetch('/AJAX/get_structure.php?type=createNewAnnotation')
+  .then((response) => response.json())
+  .then((data) => {
+    //exclude: start, stop and selectedtext info!
+    Object.entries(data['data']).forEach(entry => {
+      const [key, value] = entry;
+      var humanLabel = value[0];
+      var datatype = value[1];
+      if (data['exclude'] && data['exclude'].includes(key)) {
+        //do not use the key:
+      } else {
+        //console.warn('new key created for: ', key); 
+        //console.log(key, datatype);
+        let newFieldContainer = document.createElement('div');
+        newFieldContainer.classList.add('property');
+        let newFieldLabel = document.createElement('label');
+        newFieldLabel.appendChild(document.createTextNode(humanLabel));
+        let newFieldInput;
+        if (datatype === 'longtext') {
+          newFieldInput = document.createElement('textarea');
+        } else {
+          newFieldInput = document.createElement('input');
+        }
+        newFieldInput.classList.add('inputelement');
+        newFieldLabel.setAttribute('for', key);
+        newFieldInput.setAttribute('name', key);
+        let htmlType = typeToHtml(datatype);
+        if (htmlType !== false) {
+          newFieldInput.setAttribute('type', htmlType);
+        }
+        newFieldInput.setAttribute('type', htmlType);
+        let expectedPattern = typeToPattern(datatype);
+        if (expectedPattern) {
+          newFieldInput.setAttribute('pattern', expectedPattern);
+        }
+        newFieldInput.classList.add('attachValidator');
+        newFieldInput.classList.add('validateAs_' + datatype);
+        newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
+        newFieldContainer.appendChild(newFieldLabel);
+        newFieldContainer.appendChild(newFieldInput);
+        topBox.appendChild(newFieldContainer);
+      }
+    });
+  });
+  //TODO complete (this is now testcode)
+  document.getElementsByTagName('body')[0].innerHTML = '';
+  console.log(annotationDiv); 
+  document.getElementsByTagName('body')[0].appendChild(annotationDiv); 
+  document.getElementById('annotationCreationDiv').classList.remove('hidden'); 
+  return; 
+}
+function buildEntityCreationBox() {
+  //TODO critical
+  let createNodeDiv = document.createElement('div');
+  createNodeDiv.classList.add('w-full');
+  createNodeDiv.setAttribute('id', 'etcreate');
+  var embeddedCreateDiv = document.createElement('div');
+  embeddedCreateDiv.setAttribute('id', 'embeddedET');
+  embeddedCreateDiv.classList.add('hidden');
+
+
+
+
+  //TODO needs to be completed. 
+  alert('ERROR'); 
+  return something; 
+}
 
 function createSideSkelleton() {
   const mainblock = document.getElementById('slideoverDynamicContent');
   mainblock.innerHTML = '';
+  //user override/notice section: 
+  /**
+   * New userblock where the program informs the user of what's been found
+   * in the backend/wikidata and how to proceed. 
+   * //TODO: User can also override certain decisions
+   */
+  const userblock = document.createElement('div');
+  userblock.setAttribute('id', 'usermetablock'); 
+  const notificationblock = document.createElement('div'); 
+  notificationblock.setAttribute('id', 'usernotificationblock'); 
+  const notificationpelement = document.createElement('p'); 
+  const notificationkey = document.createElement('span'); 
+  notificationkey.setAttribute('id', 'usernoticekey'); 
+  notificationkey.classList.add('font-bold'); 
+  const notificationvalue = document.createElement('span'); 
+  notificationvalue.setAttribute('id', 'usernoticevalue'); 
+  const overrideblock = document.createElement('div'); 
+  overrideblock.setAttribute('id', 'overrideblock'); 
+  //style the userblock distinctly from the rest: 
+  //userblock.classlist.add('bg-gray-300', 'border-solid', 'border-2'); 
+
+  //TEMPORARY: delete
+  notificationvalue.appendChild(document.createTextNode('delete me')); 
+
+  //put it all together. 
+  notificationpelement.appendChild(notificationkey);
+  notificationpelement.appendChild(notificationvalue);
+  notificationblock.appendChild(notificationpelement);
+  userblock.appendChild(notificationblock);
+  userblock.appendChild(overrideblock);
   //3 sections: 
   //1   Data section
   const textblock = document.createElement('div');
@@ -549,6 +671,7 @@ function createSideSkelleton() {
   wdblock.innerHTML = '<p>HAS WD??</p>';
   wdblock.setAttribute('id', 'WDResponseTarget');
   wdblock.classList.add('border-t-2', 'mt-1', 'pt-1');*/
+  mainblock.appendChild(userblock); 
   mainblock.appendChild(textblock);
   mainblock.appendChild(middleblock);
   //mainblock.appendChild(wdblock);
@@ -663,6 +786,7 @@ function triggerSidePanelAction(entityData) {
     */
   } else {
     //nothing found in the backend: no matching variants or nodelabels: 
+    //let createNodeDiv = buildEntityCreationBox(); 
     var createNodeDiv = document.createElement('div');
     createNodeDiv.classList.add('w-full');
     createNodeDiv.setAttribute('id', 'etcreate');
@@ -753,17 +877,7 @@ function triggerSidePanelAction(entityData) {
     embeddedCreateDiv.appendChild(entityTypeDiv);
     embeddedCreateDiv.appendChild(setEntityType);
     createNodeDiv.appendChild(embeddedCreateDiv);
-    /* OK: undefined errors when starting selection from outside the text div. 
-      //Dropdown added: Show positional info: 
-      //var text = getTextSelection();
-      //globalSelectionText, globalSelectionStart, globalSelectionEnd;
-      var startPositionInText = text[1];
-      var endPositionInText = text[2];
-      var selectedString = text[0];
-    */
-    //bugfix ==> When clicking outside the text div and having a selection
-    //old code would cause undefined errors! This works. 
-    console.log('Bug when clicking recognized unlinked ets.', startPositionInText, globalSelectionStart); 
+   // console.log('Bug when clicking recognized unlinked ets.', startPositionInText, globalSelectionStart); 
     var startPositionInText = globalSelectionStart;
     var endPositionInText = globalSelectionEnd;
     var selectedString = globalSelectionText;
@@ -895,7 +1009,7 @@ function triggerSidePanelAction(entityData) {
     wikidataRowBox.appendChild(wikidataLogoBox);
     var wikidataInputBox = document.createElement('input');
     wikidataInputBox.setAttribute('id', 'wikidataInputPrompter');
-    console.log('creating wdibox.'); 
+    //console.log('creating wdibox.'); 
     wikidataInputBox.classList.add('border', 'border-gray-300', 'rounded-md', 'shadow-sm', 'focus:outline-none', 'focus:border-indigo-500');
     wikidataInputBox.value = selectedString;
     wikidataRowBox.appendChild(wikidataInputBox);
@@ -906,8 +1020,12 @@ function triggerSidePanelAction(entityData) {
     noWikidataId.classList.add('bg-orange-500', 'border-solid', 'hover:bg-orange-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
     noWikidataId.addEventListener('click', function () {
       //IF you pass -1 the application won't store the QID. Any newly created entity won't have a value set in the wikidata field. 
+      //TODO: 
+      //      You still need to reset the entity container:
+      //      build element with ID : embeddedET
+      //      trigger element with ID: etcreate
       acceptQID(-1);
-    });
+    }); 
     var searchButtonForWDPrompt = document.createElement('button');
     var searchButtonForWDPromptText = document.createTextNode('Search');
     searchButtonForWDPrompt.classList.add('bg-green-500', 'border-solid', 'hover:bg-green-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
@@ -1007,7 +1125,9 @@ function loadIntoSuggestionBox(data, from, to) {
   keySpanNode.appendChild(nodesKey);
   keySpanNode.classList.add('font-bold');
   keySpanEdge.classList.add('font-bold');
-  console.log(data);
+  if(selectInTexDebug){
+    console.log(data);
+  }
   var retrievedCoreElements = data.nodes.filter(node => coreNodes.includes(node[1]));
   var valueSpanEdge = document.createTextNode(data.edges.length);
   var valueSpanNode = document.createTextNode(data.nodes.length + ' | ' + retrievedCoreElements.length);
@@ -1062,11 +1182,13 @@ function getTextSelection() {
 }
 
 function triggerSelection() {
-  console.log('call into triggerselection()');
   var selectedTextProperties = getTextSelection();
-  console.log('callresult', selectedTextProperties);
   var selectedText = selectedTextProperties[0];
-  console.log('Properties: ', selectedTextProperties);
+  if(selectInTexDebug){
+    console.log('call into triggerselection()');
+    console.log('callresult', selectedTextProperties);
+    console.log('Properties: ', selectedTextProperties);
+  }
   var selectedTextStart = selectedTextProperties[1];
   var selectedTextEnd = selectedTextProperties[2];
   //Always set datamode to null when you select an et and go through the manual annotation proces. 

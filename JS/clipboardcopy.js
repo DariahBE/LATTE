@@ -1,3 +1,5 @@
+
+//TODO: dormant code; not being used by DOM. 
 function clippy(idOfElement,idOfOkay){
   var source = document.getElementById(idOfElement);
   let target = document.createElement('textarea');
@@ -7,9 +9,11 @@ function clippy(idOfElement,idOfOkay){
   target.value = source.innerText;
   let selector = document.querySelector('#temp_copy_elem');
   selector.select();
+  //BUG very low priority! execCommand is deprecated, but there's no alternative yet.
+  // You can consider the clipboard API, but this requires https!!! which when deployed
+  // locally will complicate setup for endusers. 
   document.execCommand('copy');
   document.body.removeChild(target);
-  console.log(idOfOkay)
   if(idOfOkay){
     document.getElementById(idOfOkay).innerText = "URI has been copied.";
     toggle(idOfElement, idOfOkay);

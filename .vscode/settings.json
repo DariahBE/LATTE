@@ -1,5 +1,12 @@
 {
     "editor.inlineSuggest.showToolbar": "onHover",
     "todo-tree.tree.scanMode": "workspace",
-    "todo-tree.tree.showBadges": true
+    "todo-tree.tree.showBadges": true,
+    "javascript.referencesCodeLens.enabled": true,
+    "javascript.referencesCodeLens.showOnAllFunctions": true,
+    "typescript.implementationsCodeLens.enabled": true,
+    "typescript.implementationsCodeLens.showOnInterfaceMethods": true,
+    "typescript.referencesCodeLens.enabled": true,
+    "typescript.referencesCodeLens.showOnAllFunctions": true,
+    "editor.codeLens": true
 }

@@ -22,7 +22,7 @@ function helper_parseEntityStyle(){
     echo '.'.$key.'{background-color:'.$value.';}';
   }
   if (boolval(NERCOLOR)){
-    echo '.app_automatic{background-color:'.$value.';}';
+    echo '.app_automatic{background-color:'.NERCOLOR.';}';
   }
 }
 

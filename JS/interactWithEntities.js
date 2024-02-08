@@ -201,6 +201,7 @@ function showdata(data) {
   //set the global datamode: 
   datamode = data['mode'];
   toggleSlide(1);
+  //console.log('creating side skelleton'); 
   createSideSkelleton();
   var annotationTarget = document.getElementById('slideoverDynamicContent');
   //superimpose the slideover on top of the navbar: 
@@ -210,12 +211,13 @@ function showdata(data) {
   var statsTarget = document.createElement('div');
   statsTarget.setAttribute('id', 'relatedTextStats');
   statsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0');
-  annotationTarget.innerHTML = '';
+  //annotationTarget.innerHTML = ''; (TODO: delete test is this okay? so far so good)
   gateWay.appendChild(statsTarget);
-  var variantsTarget = document.createElement('div');
+  //TODO: test if this was a good idea to delete, so far it all looks okay. goal is to deduplicate code!!
+  /*var variantsTarget = document.createElement('div');
   variantsTarget.setAttribute('id', 'etVariantsTarget');
   variantsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0');
-  gateWay.appendChild(variantsTarget);
+  gateWay.appendChild(variantsTarget);*/
   var authorData = data['author'];
   var annotationData = data['annotation']['properties'];
   //sends the node neoID (unstable, do not use for identifying purposes on exposed API's):
@@ -404,9 +406,10 @@ function addInteractionToEntities() {
 
 // debug process of BUG9 ==> code disabled 
 // should be moved to /JS/et_variants.js
+//TODO: Complete delete of displayWrittenVariants
+/*
 function displayWrittenVariants(variantData) {
   alert('Outdated call to interactWithEntities.js > displayWrittenVariants(arg:variantData)');
-  /*
       //    allow the user to generate a list of spelling variants: 
       let varbox = document.getElementById('embeddedSpellingVariants');
       // TODO
@@ -471,8 +474,8 @@ function displayWrittenVariants(variantData) {
     varbox.appendChild(varboxDelete);
     varTarget.appendChild(varbox);
   }
-*/
 }
+*/
 
 function showDBInfoFor(id, extra = '') {
   /*
@@ -517,7 +520,8 @@ function showDBInfoFor(id, extra = '') {
       //process: variants
       const variants = data['variantSpellings'];
       const uri = data['stable'];
-      displayWrittenVariants(variants);
+      //TODO: final confirmation of successfull port!
+      //displayWrittenVariants(variants);
       neoVarsToDom(variants); 
       console.log(info, variants);
 

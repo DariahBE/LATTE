@@ -150,7 +150,7 @@ $matchOnNodes = array(
   'Text' => 'rgba(28, 200, 28, 0.6)',
   'Annotation' => 'rgba(200, 28, 28, 0.6)', 
   'Organization' => 'rgba(145,100,52,0.6)', 
-  'Dog' => 'rgba(145,100,52,0.6)'
+  'Dog' => 'rgba(200,20,200,0.6)'
 );
 
 //automatically fill out below config based on nodesDatamodel:
@@ -199,7 +199,7 @@ $nodes_translate = array(
 );
 
 ########## HOW TO DISPLAY PICKUP BY NER-TOOL: ############
-$ner_color = 'rgba(200,150,0,0.6)';       //RGBA value or False!
+$ner_color = 'rgba(94,94,94,0.6)';       //RGBA value or False!
 
 ########### SET DATA VISIBILITY FOR THE PUBLIC: ###############################
 $textsPublic = False;            //  True/False; True = texts are publicly visible on the internet.
