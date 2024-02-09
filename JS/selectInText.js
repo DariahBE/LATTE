@@ -1,7 +1,7 @@
 let globalSelectionText = null;
 let globalSelectionStart = null;
 let globalSelectionEnd = null;
-
+let targetOfInfo = null; 
 const selectInTexDebug = false; 
 
 function ignoreSuggestion() {
@@ -531,82 +531,217 @@ function showET(etdata) {
 }
 
 function buildAnnotationCreationBox() {
-  //TODO critical
-  let annotationDiv = document.createElement('div');
+  alert('calling here'); 
+  var createNodeDiv = document.createElement('div');
+  createNodeDiv.classList.add('w-full');
+  createNodeDiv.setAttribute('id', 'etcreate');
+
+  var embeddedCreateDiv = document.createElement('div');
+  embeddedCreateDiv.setAttribute('id', 'embeddedET');
+  embeddedCreateDiv.classList.add('hidden');
+  var annotationDiv = document.createElement('div');
   annotationDiv.classList.add('hidden');
   annotationDiv.setAttribute('id', 'annotationCreationDiv');
-
   var topTex = document.createElement('h3');
   topTex.classList.add('uppercase', 'text-xl', 'underline', 'decoration-4', 'underline-offset-2');
   topTex.appendChild(document.createTextNode('Create a new annotation'));
   //get annotation structure: 
   let topBox = document.createElement('div');
   fetch('/AJAX/get_structure.php?type=createNewAnnotation')
-  .then((response) => response.json())
-  .then((data) => {
-    //exclude: start, stop and selectedtext info!
-    Object.entries(data['data']).forEach(entry => {
-      const [key, value] = entry;
-      var humanLabel = value[0];
-      var datatype = value[1];
-      if (data['exclude'] && data['exclude'].includes(key)) {
-        //do not use the key:
-      } else {
-        //console.warn('new key created for: ', key); 
-        //console.log(key, datatype);
-        let newFieldContainer = document.createElement('div');
-        newFieldContainer.classList.add('property');
-        let newFieldLabel = document.createElement('label');
-        newFieldLabel.appendChild(document.createTextNode(humanLabel));
-        let newFieldInput;
-        if (datatype === 'longtext') {
-          newFieldInput = document.createElement('textarea');
+    .then((response) => response.json())
+    .then((data) => {
+      //exclude: start, stop and selectedtext info!
+      Object.entries(data['data']).forEach(entry => {
+        const [key, value] = entry;
+        var humanLabel = value[0];
+        var datatype = value[1];
+        if (data['exclude'] && data['exclude'].includes(key)) {
+          //do not use the key:
         } else {
-          newFieldInput = document.createElement('input');
-        }
-        newFieldInput.classList.add('inputelement');
-        newFieldLabel.setAttribute('for', key);
-        newFieldInput.setAttribute('name', key);
-        let htmlType = typeToHtml(datatype);
-        if (htmlType !== false) {
+          //console.warn('new key created for: ', key); 
+          //console.log(key, datatype);
+          let newFieldContainer = document.createElement('div');
+          newFieldContainer.classList.add('property');
+          let newFieldLabel = document.createElement('label');
+          newFieldLabel.appendChild(document.createTextNode(humanLabel));
+          let newFieldInput;
+          if (datatype === 'longtext') {
+            newFieldInput = document.createElement('textarea');
+          } else {
+            newFieldInput = document.createElement('input');
+          }
+          newFieldInput.classList.add('inputelement');
+          newFieldLabel.setAttribute('for', key);
+          newFieldInput.setAttribute('name', key);
+          let htmlType = typeToHtml(datatype);
+          if (htmlType !== false) {
+            newFieldInput.setAttribute('type', htmlType);
+          }
           newFieldInput.setAttribute('type', htmlType);
+          let expectedPattern = typeToPattern(datatype);
+          if (expectedPattern) {
+            newFieldInput.setAttribute('pattern', expectedPattern);
+          }
+          newFieldInput.classList.add('attachValidator');
+          newFieldInput.classList.add('validateAs_' + datatype);
+          newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
+          newFieldContainer.appendChild(newFieldLabel);
+          newFieldContainer.appendChild(newFieldInput);
+          topBox.appendChild(newFieldContainer);
         }
-        newFieldInput.setAttribute('type', htmlType);
-        let expectedPattern = typeToPattern(datatype);
-        if (expectedPattern) {
-          newFieldInput.setAttribute('pattern', expectedPattern);
-        }
-        newFieldInput.classList.add('attachValidator');
-        newFieldInput.classList.add('validateAs_' + datatype);
-        newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
-        newFieldContainer.appendChild(newFieldLabel);
-        newFieldContainer.appendChild(newFieldInput);
-        topBox.appendChild(newFieldContainer);
-      }
+      });
     });
+
+
+  annotationDiv.appendChild(topTex);
+  annotationDiv.appendChild(topBox);
+  //      customizable annoation information: 
+  embeddedCreateDiv.appendChild(annotationDiv);
+  //add code to create a node from selection!
+  //append newly created Div to the DOM: 
+  targetOfInfo.appendChild(createNodeDiv);
+  //dropdown: select the entity type ==> use the color dict available.
+  var entityTypeDiv = document.createElement('div');
+  var entityTypePrompt = document.createElement('p');
+  entityTypePrompt.classList.add('text-lg', 'p-2', 'm-2');
+  //console.warn('Related to BUG10: race condition.');
+  entityTypePrompt.appendChild(document.createTextNode('1) Set entity type: '));
+  entityTypeDiv.appendChild(entityTypePrompt);
+  var setEntityType = document.createElement('select');
+  setEntityType.setAttribute('id', 'entityTypeSelector');
+  var entityTypeOptionPrompt = document.createElement('option');
+  entityTypeOptionPrompt.appendChild(document.createTextNode('Entities: '));
+  entityTypeOptionPrompt.setAttribute('selected', true);
+  entityTypeOptionPrompt.setAttribute('disabled', true);
+  setEntityType.appendChild(entityTypeOptionPrompt);
+  for (var c = 0; c < coreNodes.length; c++) {
+    var o = document.createElement('option');
+    o.appendChild(document.createTextNode(coreNodes[c]));
+    o.setAttribute('value', coreNodes[c]);
+    setEntityType.appendChild(o);
+  }
+  embeddedCreateDiv.appendChild(entityTypeDiv);
+  embeddedCreateDiv.appendChild(setEntityType);
+  createNodeDiv.appendChild(embeddedCreateDiv);
+ // console.log('Bug when clicking recognized unlinked ets.', startPositionInText, globalSelectionStart); 
+  var startPositionInText = globalSelectionStart;   //pull from global scope
+  var endPositionInText = globalSelectionEnd;       //pull from global scope
+  var selectedString = globalSelectionText;         //pull from global scope
+  var positionDiv = document.createElement('div');
+  positionDiv.setAttribute('id', 'embeddedAnnotation');
+  var positionTitle = document.createElement('h3');
+  //console.log('annoinformationHere');
+  positionTitle.appendChild(document.createTextNode('Annotation information: '));
+  setEntityType.addEventListener('change', function () {
+    //clear out properties if they exist: 
+    let d = document.getElementById('propertyBox');
+    if (d !== null) { d.remove(); }
+    loadPropertiesOfSelectedType(selectedString);
+    document.getElementById('annotationCreationDiv').classList.remove('hidden');
+  })
+
+  //      startposition
+  var positionStart = document.createElement('p');
+  var positionStartSpan = document.createElement('span');
+  var startData = document.createElement('span');
+  startData.appendChild(document.createTextNode(startPositionInText));
+  startData.setAttribute('data-postname', startcode);
+  positionStartSpan.appendChild(document.createTextNode('Starts: '));
+  positionStartSpan.classList.add('font-bold');
+  positionStart.appendChild(positionStartSpan);
+  positionStart.appendChild(startData);
+  //      endposition
+  var positionEnd = document.createElement('p');
+  var positionEndSpan = document.createElement('span');
+  var endData = document.createElement('span');
+  endData.setAttribute('data-postname', stopcode);
+  endData.appendChild(document.createTextNode(endPositionInText));
+  positionEndSpan.appendChild(document.createTextNode('Stops: '));
+  positionEndSpan.classList.add('font-bold');
+  positionEnd.appendChild(positionEndSpan);
+  positionEnd.appendChild(endData);
+  //    selection
+  var selectedText = document.createElement('p');
+  var selectedTextSpan = document.createElement('span');
+  var textData = document.createElement('span');
+  textData.appendChild(document.createTextNode(selectedString));
+  selectedTextSpan.appendChild(document.createTextNode('Text: '));
+  selectedTextSpan.classList.add('font-bold');
+  selectedText.appendChild(selectedTextSpan);
+  selectedText.appendChild(textData);
+  //    add it to the block: 
+  positionDiv.appendChild(positionTitle);
+  positionDiv.appendChild(positionStart);
+  positionDiv.appendChild(positionEnd);
+  positionDiv.appendChild(selectedText);
+  //positional info added: show spellingvariantbox: 
+  //    allow the user to generate a list of spelling variants: 
+  let spellingVariantDOMReturn = displayET_variant(null, null);
+  //variantbox has to be invisible in this phase: entity still needs to be created!!
+  document.getElementById('embeddedSpellingVariants').classList.add('hidden');
+  //TODO!!: alert('#embeddedSpellingVariants is hidden, make visible again when ET is created.'); 
+  //wikidataPrompt: 
+  var wikidataQLabel = document.createElement('div');
+  wikidataQLabel.setAttribute('readonly', true);
+  wikidataQLabel.setAttribute('id', 'chosenQID');
+  var wikidataPromptMainbox = document.createElement('div');
+  wikidataPromptMainbox.setAttribute('id', 'wdsearchpromptbox');
+  wikidataPromptMainbox.classList.add('my-2', 'py-2', 'border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
+  let wikidataPromptExplain = document.createElement('p');
+  wikidataPromptExplain.classList.add('text-sm', 'w-full', 'text-center');
+  wikidataPromptExplain.appendChild(document.createTextNode('Wikidata lookup using this keyword: '));
+  wikidataPromptMainbox.appendChild(wikidataPromptExplain);
+  let wikidataLogoBox = document.createElement('img');
+  wikidataLogoBox.setAttribute('src', '/images/wikidatawiki_small.png');
+  wikidataLogoBox.classList.add('h-auto', 'max-h-10', 'rounded-r-lg', 'p-1');
+  let wikidataRowBox = document.createElement('div');
+  wikidataRowBox.classList.add('flex');
+  wikidataRowBox.appendChild(wikidataLogoBox);
+  var wikidataInputBox = document.createElement('input');
+  wikidataInputBox.setAttribute('id', 'wikidataInputPrompter');
+  //console.log('creating wdibox.'); 
+  wikidataInputBox.classList.add('border', 'border-gray-300', 'rounded-md', 'shadow-sm', 'focus:outline-none', 'focus:border-indigo-500');
+  wikidataInputBox.value = selectedString;
+  wikidataRowBox.appendChild(wikidataInputBox);
+  //You need to make it possible for users to create an entity in the database that have no existing wikidata ID: 
+  var noWikidataId = document.createElement('button'); 
+  var noWikidataIdText = document.createTextNode('Don\'t link'); 
+  noWikidataId.appendChild(noWikidataIdText);
+  noWikidataId.classList.add('bg-orange-500', 'border-solid', 'hover:bg-orange-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
+  noWikidataId.addEventListener('click', function () {
+    //IF you pass -1 the application won't store the QID. Any newly created entity won't have a value set in the wikidata field. 
+    //TODO: 
+    //      You still need to reset the entity container:
+    //      build element with ID : embeddedET
+    //      trigger element with ID: etcreate
+    acceptQID(-1);
+  }); 
+  var searchButtonForWDPrompt = document.createElement('button');
+  var searchButtonForWDPromptText = document.createTextNode('Search');
+  searchButtonForWDPrompt.classList.add('bg-green-500', 'border-solid', 'hover:bg-green-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
+  searchButtonForWDPrompt.appendChild(searchButtonForWDPromptText);
+  searchButtonForWDPrompt.addEventListener('click', function () {
+    //console.log('make function call get the preferred lookup language!'); 
+    //console.log('lookup and display can be connected!'); 
+    wdprompt(wikidataInputBox.value, 0);
   });
-  //TODO complete (this is now testcode)
-  document.getElementsByTagName('body')[0].innerHTML = '';
-  console.log(annotationDiv); 
-  document.getElementsByTagName('body')[0].appendChild(annotationDiv); 
-  document.getElementById('annotationCreationDiv').classList.remove('hidden'); 
-  return; 
-}
-function buildEntityCreationBox() {
-  //TODO critical
-  let createNodeDiv = document.createElement('div');
-  createNodeDiv.classList.add('w-full');
-  createNodeDiv.setAttribute('id', 'etcreate');
-  var embeddedCreateDiv = document.createElement('div');
-  embeddedCreateDiv.setAttribute('id', 'embeddedET');
-  embeddedCreateDiv.classList.add('hidden');
+  var wikidataResultsBox = document.createElement('div');
+  wikidataResultsBox.setAttribute('id', 'wdpromptBox');
+  wikidataPromptMainbox.appendChild(wikidataQLabel);
+  wikidataPromptMainbox.appendChild(wikidataRowBox);
+  wikidataPromptMainbox.appendChild(searchButtonForWDPrompt);
+  wikidataPromptMainbox.appendChild(noWikidataId);
+  wikidataPromptMainbox.appendChild(wikidataResultsBox);
 
-
-
-
-  //TODO needs to be completed. 
-  alert('ERROR'); 
-  return something; 
+  //add all boxes to the DOM: 
+  createNodeDiv.appendChild(positionDiv);
+  //createNodeDiv.appendChild(spellingVariantMainBox);
+  createNodeDiv.appendChild(spellingVariantDOMReturn);
+  //add a WD Promptbox and trigger the function for wikidata_prompting from here:
+  createNodeDiv.appendChild(wikidataPromptMainbox);
+  searchButtonForWDPrompt.click();
+  //done with spelling variants: 
+  return createNodeDiv; 
 }
 
 function createSideSkelleton() {
@@ -684,8 +819,9 @@ function triggerSidePanelAction(entityData) {
   createSideSkelleton();
   //backend returned one or more nodes that have  spellingvariant/label matching the request: 
   // console.warn('BUG10: triggerSidePanelAction function');
-  const targetOfInfo = document.getElementById('slideoverDynamicContent');
   const topbox = document.getElementById('topblock');
+  targetOfInfo = document.getElementById('slideoverDynamicContent');
+
   if (entityData['nodes'].length) {
     //create a title that show the information about the matching entities: 
     let topTex = document.createElement('h3');
@@ -786,272 +922,7 @@ function triggerSidePanelAction(entityData) {
     */
   } else {
     //nothing found in the backend: no matching variants or nodelabels: 
-    //let createNodeDiv = buildEntityCreationBox(); 
-    var createNodeDiv = document.createElement('div');
-    createNodeDiv.classList.add('w-full');
-    createNodeDiv.setAttribute('id', 'etcreate');
-    var embeddedCreateDiv = document.createElement('div');
-    embeddedCreateDiv.setAttribute('id', 'embeddedET');
-    embeddedCreateDiv.classList.add('hidden');
-    var annotationDiv = document.createElement('div');
-    annotationDiv.classList.add('hidden');
-    annotationDiv.setAttribute('id', 'annotationCreationDiv');
-    var topTex = document.createElement('h3');
-    topTex.classList.add('uppercase', 'text-xl', 'underline', 'decoration-4', 'underline-offset-2');
-    topTex.appendChild(document.createTextNode('Create a new annotation'));
-    //get annotation structure: 
-    let topBox = document.createElement('div');
-    fetch('/AJAX/get_structure.php?type=createNewAnnotation')
-      .then((response) => response.json())
-      .then((data) => {
-        //exclude: start, stop and selectedtext info!
-        Object.entries(data['data']).forEach(entry => {
-          const [key, value] = entry;
-          var humanLabel = value[0];
-          var datatype = value[1];
-          if (data['exclude'] && data['exclude'].includes(key)) {
-            //do not use the key:
-          } else {
-            //console.warn('new key created for: ', key); 
-            //console.log(key, datatype);
-            let newFieldContainer = document.createElement('div');
-            newFieldContainer.classList.add('property');
-            let newFieldLabel = document.createElement('label');
-            newFieldLabel.appendChild(document.createTextNode(humanLabel));
-            let newFieldInput;
-            if (datatype === 'longtext') {
-              newFieldInput = document.createElement('textarea');
-            } else {
-              newFieldInput = document.createElement('input');
-            }
-            newFieldInput.classList.add('inputelement');
-            newFieldLabel.setAttribute('for', key);
-            newFieldInput.setAttribute('name', key);
-            let htmlType = typeToHtml(datatype);
-            if (htmlType !== false) {
-              newFieldInput.setAttribute('type', htmlType);
-            }
-            newFieldInput.setAttribute('type', htmlType);
-            let expectedPattern = typeToPattern(datatype);
-            if (expectedPattern) {
-              newFieldInput.setAttribute('pattern', expectedPattern);
-            }
-            newFieldInput.classList.add('attachValidator');
-            newFieldInput.classList.add('validateAs_' + datatype);
-            newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
-            newFieldContainer.appendChild(newFieldLabel);
-            newFieldContainer.appendChild(newFieldInput);
-            topBox.appendChild(newFieldContainer);
-          }
-        });
-      });
-
-
-    annotationDiv.appendChild(topTex);
-    annotationDiv.appendChild(topBox);
-    //      customizable annoation information: 
-    embeddedCreateDiv.appendChild(annotationDiv);
-    //add code to create a node from selection!
-    //append newly created Div to the DOM: 
-    targetOfInfo.appendChild(createNodeDiv);
-    //dropdown: select the entity type ==> use the color dict available.
-    var entityTypeDiv = document.createElement('div');
-    var entityTypePrompt = document.createElement('p');
-    entityTypePrompt.classList.add('text-lg', 'p-2', 'm-2');
-    //console.warn('Related to BUG10: race condition.');
-    entityTypePrompt.appendChild(document.createTextNode('1) Set entity type: '));
-    entityTypeDiv.appendChild(entityTypePrompt);
-    var setEntityType = document.createElement('select');
-    setEntityType.setAttribute('id', 'entityTypeSelector');
-    var entityTypeOptionPrompt = document.createElement('option');
-    entityTypeOptionPrompt.appendChild(document.createTextNode('Entities: '));
-    entityTypeOptionPrompt.setAttribute('selected', true);
-    entityTypeOptionPrompt.setAttribute('disabled', true);
-    setEntityType.appendChild(entityTypeOptionPrompt);
-    for (var c = 0; c < coreNodes.length; c++) {
-      var o = document.createElement('option');
-      o.appendChild(document.createTextNode(coreNodes[c]));
-      o.setAttribute('value', coreNodes[c]);
-      setEntityType.appendChild(o);
-    }
-    embeddedCreateDiv.appendChild(entityTypeDiv);
-    embeddedCreateDiv.appendChild(setEntityType);
-    createNodeDiv.appendChild(embeddedCreateDiv);
-   // console.log('Bug when clicking recognized unlinked ets.', startPositionInText, globalSelectionStart); 
-    var startPositionInText = globalSelectionStart;
-    var endPositionInText = globalSelectionEnd;
-    var selectedString = globalSelectionText;
-    var positionDiv = document.createElement('div');
-    positionDiv.setAttribute('id', 'embeddedAnnotation');
-    var positionTitle = document.createElement('h3');
-    //console.log('annoinformationHere');
-    positionTitle.appendChild(document.createTextNode('Annotation information: '));
-    setEntityType.addEventListener('change', function () {
-      //clear out properties if they exist: 
-      let d = document.getElementById('propertyBox');
-      if (d !== null) { d.remove(); }
-      loadPropertiesOfSelectedType(selectedString);
-      document.getElementById('annotationCreationDiv').classList.remove('hidden');
-    })
-
-    //      startposition
-    var positionStart = document.createElement('p');
-    var positionStartSpan = document.createElement('span');
-    var startData = document.createElement('span');
-    startData.appendChild(document.createTextNode(startPositionInText));
-    startData.setAttribute('data-postname', startcode);
-    positionStartSpan.appendChild(document.createTextNode('Starts: '));
-    positionStartSpan.classList.add('font-bold');
-    positionStart.appendChild(positionStartSpan);
-    positionStart.appendChild(startData);
-    //      endposition
-    var positionEnd = document.createElement('p');
-    var positionEndSpan = document.createElement('span');
-    var endData = document.createElement('span');
-    endData.setAttribute('data-postname', stopcode);
-    endData.appendChild(document.createTextNode(endPositionInText));
-    positionEndSpan.appendChild(document.createTextNode('Stops: '));
-    positionEndSpan.classList.add('font-bold');
-    positionEnd.appendChild(positionEndSpan);
-    positionEnd.appendChild(endData);
-    //    selection
-    var selectedText = document.createElement('p');
-    var selectedTextSpan = document.createElement('span');
-    var textData = document.createElement('span');
-    textData.appendChild(document.createTextNode(selectedString));
-    selectedTextSpan.appendChild(document.createTextNode('Text: '));
-    selectedTextSpan.classList.add('font-bold');
-    selectedText.appendChild(selectedTextSpan);
-    selectedText.appendChild(textData);
-    //    add it to the block: 
-    positionDiv.appendChild(positionTitle);
-    positionDiv.appendChild(positionStart);
-    positionDiv.appendChild(positionEnd);
-    positionDiv.appendChild(selectedText);
-    //positional info added: show spellingvariantbox: 
-    //    allow the user to generate a list of spelling variants: 
-    /*
-    console.warn("code should be rewritten to use function call to displayWrittenVariants()");
-    var spellingVariantTracker = [];
-    var spellingVariantMainBox = document.createElement('div');
-    spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
-    var spellingVariantTitle = document.createElement('h3'); 
-    spellingVariantTitle.appendChild(document.createTextNode('Naming variants: '));
-    spellingVariantTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');
-    spellingVariantMainBox.appendChild(spellingVariantTitle);
-    spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'); 
-    var spellingVariantCreation = document.createElement('input'); 
-    spellingVariantCreation.setAttribute('id', 'variantInputBox'); 
-    spellingVariantCreation.classList.add('border-solid', 'border-2')
-    var spellingVariantSubBox = document.createElement('div');
-    spellingVariantSubBox.setAttribute('id', 'variantStorageBox'); 
-    spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex', 'flex-wrap');
-    var addToStorageBox = document.createElement('button'); 
-    addToStorageBox.appendChild(document.createTextNode('Add')); 
-    addToStorageBox.addEventListener('click', function(){
-      var writtenValue = document.getElementById('variantInputBox').value; 
-      document.getElementById('variantInputBox').value = ''; 
-      if(spellingVariantTracker.includes(writtenValue)){
-        return;
-      }
-      spellingVariantTracker.push(writtenValue);
-      var storeIn = document.getElementById('variantStorageBox'); 
-      var variantDisplayDiv = document.createElement('div'); 
-      variantDisplayDiv.classList.add('m-1','p-1','spellingvariantbox', 'bg-amber-100', 'flex');
-      var variantDisplayTex = document.createElement('p');
-      variantDisplayTex.classList.add('writtenvariantvalue');
-      variantDisplayTex.appendChild(document.createTextNode(writtenValue));
-      var variantDisplayBin = document.createElement('p');
-      variantDisplayBin.classList.add('xsbinicon', 'bg-amber-200', 'm-1','p-1', 'rounded-full'); 
-      variantDisplayBin.addEventListener('click', function(){binVariant(this);});
-      variantDisplayDiv.appendChild(variantDisplayTex);
-      variantDisplayDiv.appendChild(variantDisplayBin);
-      storeIn.appendChild(variantDisplayDiv);
-    }); 
-    spellingVariantMainBox.appendChild(spellingVariantCreation);
-    spellingVariantMainBox.appendChild(addToStorageBox);
-    spellingVariantMainBox.appendChild(spellingVariantSubBox); */
-    //DELETED:16/11/2023 //let spellingVariantDOMReturn = spellingVariantCreation(null); 
-    //OK : this variant spelling data needs to be performed by a call to et_variants > displayET_variant()
-
-    /*var gateWay = document.createElement('div');
-    gateWay.setAttribute('id', 'neobox');
-    var statsTarget = document.createElement('div');
-    statsTarget.setAttribute('id', 'relatedTextStats');
-    statsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
-    //annotationTarget.innerHTML = '';
-    gateWay.appendChild(statsTarget);
-    var variantsTarget = document.createElement('div'); 
-    variantsTarget.setAttribute('id', 'etVariantsTarget')
-    variantsTarget.classList.add('text-gray-600', 'w-full',  'm-2', 'p-2', 'left-0');
-    gateWay.appendChild(variantsTarget); 
-    targetOfInfo.appendChild(gateWay); */
-    let spellingVariantDOMReturn = displayET_variant(null, null);
-    //variantbox has to be invisible in this phase: entity still needs to be created!!
-    document.getElementById('embeddedSpellingVariants').classList.add('hidden');
-    //TODO!!: alert('#embeddedSpellingVariants is hidden, make visible again when ET is created.'); 
-    //wikidataPrompt: 
-    var wikidataQLabel = document.createElement('div');
-    wikidataQLabel.setAttribute('readonly', true);
-    wikidataQLabel.setAttribute('id', 'chosenQID');
-    var wikidataPromptMainbox = document.createElement('div');
-    wikidataPromptMainbox.setAttribute('id', 'wdsearchpromptbox');
-    wikidataPromptMainbox.classList.add('my-2', 'py-2', 'border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
-    let wikidataPromptExplain = document.createElement('p');
-    wikidataPromptExplain.classList.add('text-sm', 'w-full', 'text-center');
-    wikidataPromptExplain.appendChild(document.createTextNode('Wikidata lookup using this keyword: '));
-    wikidataPromptMainbox.appendChild(wikidataPromptExplain);
-    let wikidataLogoBox = document.createElement('img');
-    wikidataLogoBox.setAttribute('src', '/images/wikidatawiki_small.png');
-    wikidataLogoBox.classList.add('h-auto', 'max-h-10', 'rounded-r-lg', 'p-1');
-    let wikidataRowBox = document.createElement('div');
-    wikidataRowBox.classList.add('flex');
-    wikidataRowBox.appendChild(wikidataLogoBox);
-    var wikidataInputBox = document.createElement('input');
-    wikidataInputBox.setAttribute('id', 'wikidataInputPrompter');
-    //console.log('creating wdibox.'); 
-    wikidataInputBox.classList.add('border', 'border-gray-300', 'rounded-md', 'shadow-sm', 'focus:outline-none', 'focus:border-indigo-500');
-    wikidataInputBox.value = selectedString;
-    wikidataRowBox.appendChild(wikidataInputBox);
-    //You need to make it possible for users to create an entity in the database that have no existing wikidata ID: 
-    var noWikidataId = document.createElement('button'); 
-    var noWikidataIdText = document.createTextNode('Don\'t link'); 
-    noWikidataId.appendChild(noWikidataIdText);
-    noWikidataId.classList.add('bg-orange-500', 'border-solid', 'hover:bg-orange-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
-    noWikidataId.addEventListener('click', function () {
-      //IF you pass -1 the application won't store the QID. Any newly created entity won't have a value set in the wikidata field. 
-      //TODO: 
-      //      You still need to reset the entity container:
-      //      build element with ID : embeddedET
-      //      trigger element with ID: etcreate
-      acceptQID(-1);
-    }); 
-    var searchButtonForWDPrompt = document.createElement('button');
-    var searchButtonForWDPromptText = document.createTextNode('Search');
-    searchButtonForWDPrompt.classList.add('bg-green-500', 'border-solid', 'hover:bg-green-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
-    searchButtonForWDPrompt.appendChild(searchButtonForWDPromptText);
-    searchButtonForWDPrompt.addEventListener('click', function () {
-      //console.log('make function call get the preferred lookup language!'); 
-      //console.log('lookup and display can be connected!'); 
-      wdprompt(wikidataInputBox.value, 0);
-    });
-    var wikidataResultsBox = document.createElement('div');
-    wikidataResultsBox.setAttribute('id', 'wdpromptBox');
-    wikidataPromptMainbox.appendChild(wikidataQLabel);
-    wikidataPromptMainbox.appendChild(wikidataRowBox);
-    wikidataPromptMainbox.appendChild(searchButtonForWDPrompt);
-    wikidataPromptMainbox.appendChild(noWikidataId);
-    wikidataPromptMainbox.appendChild(wikidataResultsBox);
-
-
-    //add all boxes to the DOM: 
-    createNodeDiv.appendChild(positionDiv);
-    //createNodeDiv.appendChild(spellingVariantMainBox);
-    createNodeDiv.appendChild(spellingVariantDOMReturn);
-    //add a WD Promptbox and trigger the function for wikidata_prompting from here:
-    createNodeDiv.appendChild(wikidataPromptMainbox);
-    searchButtonForWDPrompt.click();
-    //done with spelling variants: 
+    buildAnnotationCreationBox(); 
   }
 }
 
