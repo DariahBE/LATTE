@@ -13,6 +13,15 @@ function binVariant(e){
     e.parentElement.remove();
 }
 
+function purgeVariantBox() {
+    spellingVariantTracker = []; 
+    let cleanupVarbox = document.getElementById('variantStorageBox'); 
+    console.log(cleanupVarbox); 
+    if (cleanupVarbox !== null){
+      cleanupVarbox.innerHTML = ''; 
+    }
+}
+
 function addVariantInBox(varname, uid, nid){
     if(spellingVariantTracker.includes(varname)){
         return;
@@ -35,11 +44,32 @@ function addVariantInBox(varname, uid, nid){
       storeIn.appendChild(variantDisplayDiv);
 }
 
-function neoVarsToDom(variants){
+function preprocess_variants(data){
+    let repl = [] 
+    data.forEach( variant => {
+        console.log(variant)
+        let varuid = variant['primary'][1]; 
+        let varstring = variant['label']; 
+        let varneo = variant['neoid']; 
+        repl.push({
+            'DOMstring': 'Label', 
+            'value': varstring,
+            'uid': varuid, 
+            'neoID': varneo
+        })
+    }); 
+    return [{'labelVariants': repl}];
+}
+
+function neoVarsToDom(variants, preprocess = 0){
+    let internal_variants = variants; 
+    if (preprocess == 1){
+        internal_variants = preprocess_variants(variants); 
+    }
     //if there are known variant spellings in the DOM: put them in the boxes at load. 
     //use neo4Jid and UID to identify variant labels. 
-    if(variants.length > 0 && 'labelVariants' in variants[0]){
-        variants[0]['labelVariants'].forEach(element => {
+    if(internal_variants.length > 0 && 'labelVariants' in internal_variants[0]){
+        internal_variants[0]['labelVariants'].forEach(element => {
             addVariantInBox(element['value'], element['uid'], element['neoID']);
         });
     }

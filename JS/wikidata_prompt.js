@@ -192,6 +192,7 @@ function pickThisQID(qid) {
     document.getElementById('WDResponseTarget').remove();
   });
   acceptButton.addEventListener('click', function () {
+    //alert(qid); 
     acceptQID(qid);
   });
 
@@ -208,9 +209,11 @@ function pickThisQID(qid) {
 function showHit(id) {
   /**
    * When a wikidata ID is shared among multiple entities. This 
-   * fucntion will display each given entity in a DIV until the 
+   * function will display each given entity in a DIV until the 
    * user assigns the selected string to a given entity. 
    */
+  //stop tracking variants of previous hit if you switch to a new iter
+  purgeVariantBox();
   //Used for disambiguation between one-to-many relations!
   let replaceContent = document.getElementById('displayHitEt');
   replaceContent.innerHTML = '';
@@ -247,7 +250,9 @@ let checkIfConnectionExists = async (qid) => {
    *  entity in the backend. If so it will return a JSON object with a list of
    *  nodes that have this QID as wd identifier and a counter (int): hits for quick
    *  assessment of connectectd entities. You need to keep in mind that a single
-   *  wikidata entity can be spread over multiple entities in the given project! 
+   *  wikidata entity can be spread over multiple entities in the given project!
+   *  Though we don't want this to be done through the interface, situations like
+   *  this are not the norm!. 
    */
   var existingConnection = new Promise((resolve, reject) => {
     //make a .fetch call in javascript
@@ -318,10 +323,11 @@ let checkIfConnectionExists = async (qid) => {
             navigateHits.appendChild(navigateBack);
             navigateHits.appendChild(navigateState);
             navigateHits.appendChild(navigateNext);
+            //TODO: multihit navigator.
+            console.warn('Todo, add navigation for multiple hits!');
             console.log(navigateHits);
             console.log(document.getElementById('navigateETs'));
             document.getElementById('navigateETs').appendChild(navigateHits);
-            console.warn('Todo, add navigation for multiple hits!');
 
           }
           console.log(data['hits'], ' hits found; ');

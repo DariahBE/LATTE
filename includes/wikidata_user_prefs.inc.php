@@ -214,10 +214,15 @@
       $cleanedCookieString_links = implode(',', $this->customPreferences['showWikipediaLinksTo']);
       $cleanedCookieString_language = implode(',', $this->customPreferences['preferredLanguage']); 
       $cleanedCookieString_titleLookup = implode(',', $this->customPreferences['stringmatchWikipediaTitles']);
-      setcookie('wd_properties', $cleanedCookieString_properties, time()+3600*24*365, "/");
-      setcookie('wd_wikilinks', $cleanedCookieString_links, time()+3600*24*365, "/");
-      setcookie('wd_pref_lang', $cleanedCookieString_language, time()+3600*24*365, "/");
-      setcookie('wd_wikipedia_titles', $cleanedCookieString_language, time()+3600*24*365, "/");
+      $cookieOptions = array(
+        'path' => '/',
+        'expires' => time()+3600*24*365, 
+        'samesite' => 'Strict'
+      ); 
+      setcookie('wd_properties', $cleanedCookieString_properties, $cookieOptions);
+      setcookie('wd_wikilinks', $cleanedCookieString_links, $cookieOptions);
+      setcookie('wd_pref_lang', $cleanedCookieString_language, $cookieOptions);
+      setcookie('wd_wikipedia_titles', $cleanedCookieString_language, $cookieOptions);
       }
 
       private function getUserSettingsForKey($key){

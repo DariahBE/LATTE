@@ -531,7 +531,7 @@ function showET(etdata) {
 }
 
 function buildAnnotationCreationBox() {
-  alert('calling here'); 
+  console.warn('call into buildAnnotationCreationBox'); 
   var createNodeDiv = document.createElement('div');
   createNodeDiv.classList.add('w-full');
   createNodeDiv.setAttribute('id', 'etcreate');
@@ -797,7 +797,7 @@ function createSideSkelleton() {
   const variantsTarget = document.createElement('div');
   variantsTarget.setAttribute('id', 'etVariantsTarget');
   variantsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0');
-  variantsTarget.innerHTML = '<p>HAS VARS??</p>';
+  //variantsTarget.innerHTML = '<p>HAS VARS??</p>';
   middleblock.appendChild(variantsTarget);
   //    2.3:    stablebox: sets stable identifier and link to explorer. 
   //3   Wikidata section. ==> content gets fully built by wd code.
@@ -923,6 +923,7 @@ function triggerSidePanelAction(entityData) {
   } else {
     //nothing found in the backend: no matching variants or nodelabels: 
     buildAnnotationCreationBox(); 
+    //alert('call completed'); 
   }
 }
 

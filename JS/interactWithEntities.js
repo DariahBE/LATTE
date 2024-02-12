@@ -86,11 +86,14 @@ function createStableLinkingBlock(nodeid, stableURI) {
   return subdivGateway;
 }
 
+/*
 function fieldWriter(key, val, keyclasses = [], valclasses = []){
-  /**   TODO: integration of fieldwriter is not working!
+  / *  *   
+  Used to be a problem, replaced by writeField function!
+  integration of fieldwriter is not working!
    * returns a P element with two span elements embedded in.
    * each of the spanelements receives either the keyclasses or valclasses if defined
-   */
+   * /
   let p = document.createElement('p'); 
   let keyspan = document.createElement('span');
   keyspan.appendChild(document.createTextNode(key));
@@ -101,17 +104,15 @@ function fieldWriter(key, val, keyclasses = [], valclasses = []){
   p.appendChild(keyspan); 
   p.appendChild(valspan); 
   return p; 
-}
+}*/
 
 function showETProps(props, structure){
-  //TODO (ok): update code and make call to writeField better.
   let div = document.createElement('div'); 
   props.forEach(prop => {
     let displayName = prop[0];
     let displayValue = prop[1];
     // TODO: var unused, needs to be set as data attribute!!
     let displayType = prop[2];
-    //TODO (ok): change access to fieldwriter to writeField()call
     let subelem = writeField(displayName, displayValue, true, structure);  //BUG: structure missing in call!!
     //let subelem = fieldWriter(displayName, displayValue, ['labelKey', 'font-bold'], []); 
     // let key = document.createElement('span');
@@ -126,8 +127,7 @@ function showETProps(props, structure){
 
 
 function writeField(key, data, protected, structure) {
-  // TODO (ok): writeField needs to be rewritten to fit global scope!
-  console.log('Method A', key, data, protected);
+  //console.log('Method A', key, data, protected);
   //if(!(decideOnEdit(protected, rights))){
   var field = document.createElement('p');
   var fieldkey = document.createElement('span');
@@ -139,35 +139,6 @@ function writeField(key, data, protected, structure) {
     fieldkey.appendChild(fieldkeyString);
     field.appendChild(fieldkey);
   }
-
-  // //}else{
-  // /*  alert( 'B Block');
-  
-  // //if a field is write enabled. you need to type the field accordinly:
-  // console.log('B');
-  // console.log(structure[key]);
-  // var field = document.createElement('div');
-  // var fieldkey = document.createElement('p');
-  // var keytex = structure[key] !== undefined ? structure[key][0] : key;
-  // var fieldType = structure[key] !== undefined ? structure[key][1] : 'string';
-  // var fieldkeyString = document.createTextNode(keytex);
-  // fieldkey.appendChild(fieldkeyString);
-  // field.appendChild(fieldkey);
-  // var fieldvalue = document.createElement('input');
-  // fieldvalue.setAttribute('pattern', '^[-0-9][0-9]+$');
-  // var prevVal = '';
-  // fieldvalue.addEventListener('keyup', function(e){
-  //   if (this.value === '-'){
-  //     prevVal = '-';
-  //   }
-  //   if(this.checkValidity()){
-  //     prevVal = this.value;
-  //   } else {
-  //     this.value = prevVal;
-  //   }
-  // });*/
-  // //numberfields should have a live function on them to strip all non-numeric values.
-  // // }
   if (fieldType === 'bool') {
     //TODO make boolfield dropdown. 
     console.log('setting behaviour for bool field'); 
@@ -192,7 +163,7 @@ function writeField(key, data, protected, structure) {
     fieldvalue.value = data;
     field.appendChild(fieldvalue);
   }
-  console.log('created textfield', field);
+  //console.log('created textfield', field);
   return field;
 }
 
@@ -481,7 +452,8 @@ function showDBInfoFor(id, extra = '') {
   /*
   * Uses the internal NEOID identifier to fetch all information of a given entity.
   * given info includes: variants, properties, stable id, label and the datamodel!
-  * THIS is a function specific to the disambiguation process coming from showhit()-calls
+  * THIS is a function specific to the disambiguation process coming from showhit()-calls. 
+  * Needs to be extende so that it shows the actual data in the DOM. 
   */
   let extended = '';
   if (extra) {
@@ -520,10 +492,16 @@ function showDBInfoFor(id, extra = '') {
       //process: variants
       const variants = data['variantSpellings'];
       const uri = data['stable'];
-      //TODO: final confirmation of successfull port!
-      //displayWrittenVariants(variants);
-      neoVarsToDom(variants); 
+      neoVarsToDom(variants, 1); 
+      //make varbox visible!
+      document.getElementById('embeddedSpellingVariants').classList.remove('hidden'); 
       console.log(info, variants);
+      //showing entity in the DOM: 
+      //TODO: complete logic to show ambigious entities here: 
+      document.getElementById('displayHitEt').innerHTML='Show entity content here of NEOid: '+id; 
+      //1:  Make empty
+
+      //2:  use writeField function! //TODO critical
 
       let referenceNode = document.getElementById('relatedTextStats').parentElement;
       //remove the stable block if it exists: 

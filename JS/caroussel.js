@@ -44,6 +44,9 @@ function buildCaroussel(){
             var goToWikidata = '<p class="text-xs"><span class="font-bold">Copyright Notice: </span><a href="'+allImagesInList[i][1]+'" target="_blank">Courtesy of Wikimedia Commons.</a>'; 
             copyRightDiv.innerHTML = goToWikidata; 
             var img = document.createElement('img'); 
+            //BUG: when doing requests of an image: you get a cookie warning. 
+            // https://gerrit.wikimedia.org/r/c/operations/puppet/+/989457
+            // Cookie “NetworkProbeLimit” does not have a proper “SameSite” attribute value 
             img.setAttribute('src', allImagesInList[i][0]);
             innerCarousselDiv.appendChild(img); 
             outerCarousselDiv.appendChild(innerCarousselDiv); 
