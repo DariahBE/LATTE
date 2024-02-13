@@ -85,9 +85,7 @@ function displayET_variant(data, relatedET){
     spellingVariantTracker = [];
     var spellingVariantMainBox = document.createElement('div');
     spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
-    var spellingVariantTitle = document.createElement('h3'); 
-    spellingVariantTitle.appendChild(document.createTextNode('Naming variants: '));
-    spellingVariantTitle.classList.add('font-bold', 'text-lg', 'items-center', 'flex', 'justify-center');
+    let spellingVariantTitle = createDivider('Naming variants: '); 
     spellingVariantMainBox.appendChild(spellingVariantTitle);
     spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'); 
     var spellingVariantCreation = document.createElement('input'); 

@@ -235,10 +235,11 @@ function showdata(data) {
   });*/
   //show the type of the annotation as a header entry: 
   if (datamode === 'controll') {
-    var etType = document.createElement('h3');
+    let etType = createDivider('Entity: ' + data['entity'][0]['type']); 
+    //var etType = document.createElement('h3');
     var etStable = data['entity'][0]['stableURI'];
-    etType.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex', 'justify-center');
-    var etTypeText = document.createTextNode('Entity: ' + data['entity'][0]['type']);
+    //etType.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex', 'justify-center');
+    //var etTypeText = document.createTextNode('Entity: ' + data['entity'][0]['type']);
     // TODO: LOW PRIORITY: styling. properties of entity needs to be shown here!! 
     let etpropdiv = document.createElement('div'); 
     etpropdiv.classList.add('blabla'); 
@@ -246,7 +247,7 @@ function showdata(data) {
     etpropdiv.appendChild(showETProps(data['entity'][0].properties, annotationStructure));
     //TODO ==> get rid of showETProps and put a call to call to writeField subfunction here
 
-    etType.appendChild(etTypeText);
+    //etType.appendChild(etTypeText);
     annotationTarget.appendChild(etType);
     annotationTarget.appendChild(etpropdiv); 
     let neoid = data['entity'][0]['neoID'];
@@ -375,78 +376,14 @@ function addInteractionToEntities() {
 };
 
 
-// debug process of BUG9 ==> code disabled 
-// should be moved to /JS/et_variants.js
-//TODO: Complete delete of displayWrittenVariants
-/*
-function displayWrittenVariants(variantData) {
-  alert('Outdated call to interactWithEntities.js > displayWrittenVariants(arg:variantData)');
-      //    allow the user to generate a list of spelling variants: 
-      let varbox = document.getElementById('embeddedSpellingVariants');
-      // TODO
-      //alert('this still has to be done');
-      if(varbox !== null){
-        varbox.parentNode.removeChild(varbox);
-      }
-      var spellingVariantMainBox = document.createElement('div');
-      spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
-      var spellingVariantTitle = document.createElement('h3'); 
-      spellingVariantTitle.appendChild(document.createTextNode('Naming variants: '));
-      spellingVariantMainBox.appendChild(spellingVariantTitle);
-      spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'); 
-      var spellingVariantCreation = document.createElement('input'); 
-      spellingVariantCreation.setAttribute('id', 'variantInputBox'); 
-      spellingVariantCreation.classList.add('border-solid', 'border-2');
-      var spellingVariantSubBox = document.createElement('div');
-      spellingVariantSubBox.setAttribute('id', 'variantStorageBox'); 
-      spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex', 'flex-wrap');
-      var addToStorageBox = document.createElement('button'); 
-      addToStorageBox.appendChild(document.createTextNode('Add')); 
-      addToStorageBox.addEventListener('click', function(){
-        var writtenValue = document.getElementById('variantInputBox').value; 
-        document.getElementById('variantInputBox').value = ''; 
-        if(spellingVariantTracker.includes(writtenValue)){
-          return;
-        }
-        spellingVariantTracker.push(writtenValue);
-        var storeIn = document.getElementById('variantStorageBox'); 
-        var variantDisplayDiv = document.createElement('div'); 
-        variantDisplayDiv.classList.add('m-1','p-1','spellingvariantbox', 'bg-amber-100', 'flex');
-        var variantDisplayTex = document.createElement('p');
-        variantDisplayTex.appendChild(document.createTextNode(writtenValue));
-        var variantDisplayBin = document.createElement('p');
-        variantDisplayBin.classList.add('xsbinicon', 'bg-amber-200', 'm-1','p-1', 'rounded-full'); 
-        variantDisplayBin.addEventListener('click', function(){binVariant(this);});
-        variantDisplayDiv.appendChild(variantDisplayTex);
-        variantDisplayDiv.appendChild(variantDisplayBin);
-        storeIn.appendChild(variantDisplayDiv);
-      }); 
-      spellingVariantMainBox.appendChild(spellingVariantCreation);
-      spellingVariantMainBox.appendChild(addToStorageBox);
-      spellingVariantMainBox.appendChild(spellingVariantSubBox);
-  
-  //used by showdata() and showDBInfoFor() functions. 
-  let varTarget = document.getElementById('variantStorageBox');
-  console.warn('variantStorageBox missing in DOM'); 
-  console.log(varTarget); 
-  for(let i = 0; i < variantData.length; i++){
-    let variant = variantData[i]; 
-    let varbox = document.createElement('div'); 
-    varbox.classList.add('m-1','p-1', 'spellingvariantbox', 'bg-amber-100', 'flex');
-    let varboxDelete = document.createElement('p'); 
-    let varboxContent = document.createElement('p'); 
-    varboxContent.appendChild(document.createTextNode(variant['label'])); 
-    varboxDelete.setAttribute('data-id', variant['primary'][1]); 
-    varboxDelete.setAttribute('data-key', variant['primary'][0]); 
-    varboxDelete.setAttribute('data-neoid', variant['neoid']); 
-    varboxDelete.classList.add('xsbinicon', 'bg-amber-200', 'm-1', 'p-1', 'rounded-full');
-    varboxDelete.addEventListener('click', function(){binVariant(this);});
-    varbox.appendChild(varboxContent);
-    varbox.appendChild(varboxDelete);
-    varTarget.appendChild(varbox);
-  }
+
+function createDivider(string){
+  const divider = document.createElement('h3');
+  const dividerstring = document.createTextNode(string);
+  divider.appendChild(dividerstring);
+  divider.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex', 'justify-center'); 
+  return divider;
 }
-*/
 
 function showDBInfoFor(id, extra = '') {
   /*
@@ -471,8 +408,6 @@ function showDBInfoFor(id, extra = '') {
       for (let mod of Object.values(model)){ 
         let modName = mod[0]; 
         if(reduced.indexOf(modName)>-1){
-
-          //TODO: put found properties in the DOM: 
           let domElement = document.createElement('span')
           console.log('PROP FOUND: ', modName, info[reduced.indexOf(modName)]);
         }
@@ -497,11 +432,23 @@ function showDBInfoFor(id, extra = '') {
       document.getElementById('embeddedSpellingVariants').classList.remove('hidden'); 
       console.log(info, variants);
       //showing entity in the DOM: 
-      //TODO: complete logic to show ambigious entities here: 
-      document.getElementById('displayHitEt').innerHTML='Show entity content here of NEOid: '+id; 
       //1:  Make empty
-
-      //2:  use writeField function! //TODO critical
+      let proptarget = document.getElementById('displayHitEt'); 
+      proptarget.innerHTML = ''; 
+      //show the type of entity that has a potential match!
+      console.log(data);
+      let typeOfEt = data.extra.label;
+      proptarget.appendChild(createDivider('Entity: '+typeOfEt)); 
+      //2:  use writeField function!
+      Object.values(data['props']).forEach((prop) => {
+        console.log('property: ', prop); 
+        let propKey = prop[0];
+        let propVal = prop[1];
+        console.log(propKey, propVal); 
+        let subelem = writeField(propKey, propVal, true, data.extra.model);
+        console.log(subelem); 
+        proptarget.appendChild(subelem); 
+      });
 
       let referenceNode = document.getElementById('relatedTextStats').parentElement;
       //remove the stable block if it exists: 

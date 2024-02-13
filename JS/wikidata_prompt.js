@@ -298,6 +298,8 @@ let checkIfConnectionExists = async (qid) => {
             navigateBack.appendChild(document.createTextNode('<<'));
             navigateNext = document.createElement('span');
             navigateNext.appendChild(document.createTextNode('>>'));
+            navigateBack.classList.add('text-lg', 'm-1', 'p-1', 'rounded-full', 'bg-amber-200'); 
+            navigateNext.classList.add('text-lg', 'm-1', 'p-1', 'rounded-full', 'bg-amber-200'); 
             navigateState = document.createElement('span');
             navigateState.setAttribute('id', 'optionsIndicatorWD');
             navigateState.appendChild(document.createTextNode((j + 1) + ' of ' + hits.length));
