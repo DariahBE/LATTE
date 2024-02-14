@@ -325,11 +325,19 @@ let checkIfConnectionExists = async (qid) => {
             navigateHits.appendChild(navigateBack);
             navigateHits.appendChild(navigateState);
             navigateHits.appendChild(navigateNext);
-            //TODO: multihit navigator.
-            console.warn('Todo, add navigation for multiple hits!');
-            console.log(navigateHits);
-            console.log(document.getElementById('navigateETs'));
-            document.getElementById('navigateETs').appendChild(navigateHits);
+            let connectButton = document.createElement('button'); 
+            connectButton.appendChild(document.createTextNode('Connect')); 
+            connectButton.classList.add('bg-green-500', 'font-bold'); 
+            connectButton.addEventListener('click', function(){
+              //TODO: multihit connector.
+              
+            })
+
+            //console.log();
+            let navelem = document.getElementById('navigateETs')
+            navelem.appendChild(navigateHits);
+            navelem.appendChild(connectButton); 
+
 
           }
           console.log(data['hits'], ' hits found; ');

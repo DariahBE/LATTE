@@ -33,7 +33,7 @@ if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connection
     $data = $annotation->createAnnotationWithExistingEt($texID, $entityID, $user, $selectionStart, $selectionEnd);
   } catch (\Throwable $th) {
     $annotation->rollbackTransaction(); 
-    die(echo json_encode("An unexpected error occurred.")); 
+    die(json_encode("An unexpected error occurred.")); 
   }
   $annotationState = $data['success'];
   $annotationMsg = $data['msg']; 
@@ -62,8 +62,9 @@ if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connection
     /** Don't show the other attributes */
   }  
   echo json_encode($mergeToDict); 
+  $annotation->commitTransaction();   // you need to commit when the transaction finishes without errors!
 }else{
-  die('Insecure or expired request.'); 
+  die(json_encode('Insecure or expired request.')); 
 }
 #cyper query that creates a new node with label Annotation and connects it to two other nodes by passing the internal ID
 

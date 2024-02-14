@@ -1,5 +1,9 @@
 let spellingVariantTracker = [];
 function binVariant(e){
+    /**
+     * Deletes a variant from the backend 
+     * then deletes it from the global tracker too. 
+     */
     //gets the attribute of e: sends XHR request to delete. 
     const DOMElement = e.parentElement; 
     let nodeInternalId = DOMElement.getElementsByClassName('writtenvariantvalue')[0].getAttribute('data-neo');
@@ -14,6 +18,11 @@ function binVariant(e){
 }
 
 function purgeVariantBox() {
+    /**
+     * When called: empties the variant display and clears the global tracker 
+     * You need to purge the tracker when looping back and forth over a few 
+     * entities. 
+     */
     spellingVariantTracker = []; 
     let cleanupVarbox = document.getElementById('variantStorageBox'); 
     console.log(cleanupVarbox); 
@@ -23,6 +32,11 @@ function purgeVariantBox() {
 }
 
 function addVariantInBox(varname, uid, nid){
+    /**
+     * When a variant is given, it'll put the string in a DOMelement
+     * and adds the UUID (uid) and internal NEO ID (nid) to it as attributes
+     * for helping with delete operations. 
+     */
     if(spellingVariantTracker.includes(varname)){
         return;
       }
@@ -45,6 +59,10 @@ function addVariantInBox(varname, uid, nid){
 }
 
 function preprocess_variants(data){
+    /**
+     *  Helper function for neoVarsToDom: when variants aren't structured as it is expected,
+     *  this function will restructure them to fit the basic logic. 
+     */
     let repl = [] 
     data.forEach( variant => {
         console.log(variant)
@@ -62,6 +80,12 @@ function preprocess_variants(data){
 }
 
 function neoVarsToDom(variants, preprocess = 0){
+    /**
+     * Expects a specifically encoded dict with information of known spelling variants
+     * puts them in the DOM with the help of 
+     *  - preprocess_variants (for poorly structured data)
+     *  - addVariantInBox( builds the DOM elements) 
+     */
     let internal_variants = variants; 
     if (preprocess == 1){
         internal_variants = preprocess_variants(variants); 

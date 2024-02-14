@@ -366,6 +366,48 @@ function buildPropertyInputFieldsFor(label) {
   })
 }
 
+async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selection_end, selected_text, token){
+  console.log(neoid_et, text_neo_id, selection_start, selection_end, selected_text, token); 
+  await new Promise((resolve) => {
+    let postData = {
+      sourceNeoID: neoid_et,
+      texNeoid: text_neo_id,
+      csrf: token,
+      start: selection_start,
+      stop: selection_end,
+      selection: selected_text
+    };
+    $.ajax({
+      type: "POST",
+      url: "/AJAX/crud/connect.php",
+      data: postData,
+      dataType: "json",
+      success: function (repldata) {
+        //console.log(data); 
+        //let repldata = JSON.parse(json);
+        //console.log(repldata);
+        let repl = document.createElement('p');
+        repl.appendChild(document.createTextNode(repldata['msg']));
+        document.getElementById('etmain').appendChild(repl);
+        let annotationStart = repldata['start'];
+        let annotationEnd = repldata['stop'];
+        let annotationUID = repldata['annotation'];
+        let annotationForType = repldata['type'];
+        //TODO
+        console.warn('connect.php result; still needs to go in DOM: UNUSED variables of CRUD/Connect call!!: ', annotationStart, annotationEnd, annotationUID, annotationForType);
+        resolve(); // Resolve the Promise when the fetch operation completes
+      }
+    }).always(
+      function () {
+        document.getElementById('assignEtToSelection').remove(); //delete annotation button
+      }
+    )
+
+  })
+
+
+}
+
 function showET(etdata) {
   let wd = null;
   let wdboxToDrop = document.getElementById('WDResponseTarget');
@@ -447,7 +489,7 @@ function showET(etdata) {
           //TODO critical 
           alert('NEEDS TO BE IMPLEMENTED FURTHER'); 
         })
-        acceptLink.addEventListener('click', function () {
+        acceptLink.addEventListener('click', async function () {
           //make buttons unresponsive: 
           acceptLink.disabled = true;
           rejectLink.disabled = true;
@@ -455,39 +497,8 @@ function showET(etdata) {
           //read the content of the div that holds annotation data when connecting nodes 
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
           let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
-          let postData = {
-            sourceNeoID: etdata[0],
-            texNeoid: languageOptions['nodeid'],
-            csrf: csrf,
-            start: globalSelectionStart,
-            stop: globalSelectionEnd,
-            selection: globalSelectionText
-          };
-          alert('INIT connect.php'); 
-          $.ajax({
-            type: "POST",
-            url: "/AJAX/crud/connect.php",
-            data: postData,
-            dataType: "json",
-            success: function (repldata) {
-              //console.log(data); 
-              //let repldata = JSON.parse(json);
-              //console.log(repldata);
-              let repl = document.createElement('p');
-              repl.appendChild(document.createTextNode(repldata['msg']));
-              document.getElementById('etmain').appendChild(repl);
-              let annotationStart = repldata['start'];
-              let annotationEnd = repldata['stop'];
-              let annotationUID = repldata['annotation'];
-              let annotationForType = repldata['type'];
-              //TODO
-              console.warn('connect.php result; still needs to go in DOM: UNUSED variables of CRUD/Connect call!!: ', annotationStart, annotationEnd, annotationUID, annotationForType);
-            }
-          }).always(
-            function () {
-              document.getElementById('assignEtToSelection').remove(); //delete annotation button
-            }
-          )
+          await connectAnnoToEntity(etdata[0], languageOptions['nodeid'], globalSelectionStart, globalSelectionEnd, globalSelectionText, csrf); 
+
         });
         //calls a helper function that generates the input elements
         //according to their type. All elements are then added to

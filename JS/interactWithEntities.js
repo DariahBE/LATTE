@@ -378,6 +378,10 @@ function addInteractionToEntities() {
 
 
 function createDivider(string){
+  /**
+   * USED to structure the entity sidebar with extended info for
+   * wikidata, variants and entity.  
+   */
   const divider = document.createElement('h3');
   const dividerstring = document.createTextNode(string);
   divider.appendChild(dividerstring);
@@ -404,39 +408,37 @@ function showDBInfoFor(id, extra = '') {
       const model = data['extra']['model']; 
       const info = data['props'];
       // Iterate over properties
-      let reduced = info.map(sublist => sublist[0]);    //OK: 
-      for (let mod of Object.values(model)){ 
+      //let reduced = info.map(sublist => sublist[0]);    //OK: 
+      /*for (let mod of Object.values(model)){ 
         let modName = mod[0]; 
         if(reduced.indexOf(modName)>-1){
-          let domElement = document.createElement('span')
+          //let domElement = document.createElement('span');
           console.log('PROP FOUND: ', modName, info[reduced.indexOf(modName)]);
         }
-      }
+      }*/
 
-      for (let i = 0; i < model.length; i++) {
-        let modelBlock = model[i]; 
-        let domName = modelBlock[0]; 
-        let domType = modelBlock[1]; 
-      }
-      for (let i = 0; i < info.length; i++) {
-        let infoBlock = info[i];
-        let blockName = infoBlock[0];
-        let blockData = infoBlock[1];
-        console.log(infoBlock);
-      }
+      // for (let i = 0; i < model.length; i++) {
+      //   let modelBlock = model[i]; 
+      //   let domName = modelBlock[0]; 
+      //   let domType = modelBlock[1]; 
+      // }
+      // for (let i = 0; i < info.length; i++) {
+      //   let infoBlock = info[i];
+      //   let blockName = infoBlock[0];
+      //   let blockData = infoBlock[1];
+      //   console.log(infoBlock);
+      // }
       //process: variants
       const variants = data['variantSpellings'];
       const uri = data['stable'];
       neoVarsToDom(variants, 1); 
       //make varbox visible!
       document.getElementById('embeddedSpellingVariants').classList.remove('hidden'); 
-      console.log(info, variants);
       //showing entity in the DOM: 
       //1:  Make empty
       let proptarget = document.getElementById('displayHitEt'); 
       proptarget.innerHTML = ''; 
       //show the type of entity that has a potential match!
-      console.log(data);
       let typeOfEt = data.extra.label;
       proptarget.appendChild(createDivider('Entity: '+typeOfEt)); 
       //2:  use writeField function!
@@ -449,6 +451,7 @@ function showDBInfoFor(id, extra = '') {
         console.log(subelem); 
         proptarget.appendChild(subelem); 
       });
+      //TODO: option to connect ET to current selection is still missing!!
 
       let referenceNode = document.getElementById('relatedTextStats').parentElement;
       //remove the stable block if it exists: 
