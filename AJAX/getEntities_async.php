@@ -1,4 +1,6 @@
 <?php
+//TODO: pointless file unless /Js/getEntities gets reinstated 
+/*
 
 include_once("../config/config.inc.php");
 

@@ -344,7 +344,6 @@ function handleError() {
 }
 
 function loadAnnotationData(annotationID = false) {
-  console.log('Loading annotation data from recognized annotation!');
   //BUG: existing Annotation_auto ID gets retained and added after confirming a recognized ET
   if (!(annotationID)){
     //get annotationID in case of clickevent trigger: find the source of the event. 

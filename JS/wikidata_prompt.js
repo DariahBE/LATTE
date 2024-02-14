@@ -328,12 +328,19 @@ let checkIfConnectionExists = async (qid) => {
             let connectButton = document.createElement('button'); 
             connectButton.appendChild(document.createTextNode('Connect')); 
             connectButton.classList.add('bg-green-500', 'font-bold'); 
+            console.log(hits[j])
+            console.log(globalSelectionStart, globalSelectionEnd, globalSelectionText); 
             connectButton.addEventListener('click', function(){
-              //TODO: multihit connector.
-              
+              //fetch a fresh CSRF token: 
+              fetch('/user/AJAX/profilestate.php')
+                .then((response) => response.json())
+                .then((token) => {
+                  if(token.valid){
+                    //                  neoid of e, neoid of text, selectstart, selectistop, selectedtext, securitytoken
+                    connectAnnoToEntity(hits[j], languageOptions.nodeid, globalSelectionStart, globalSelectionEnd, globalSelectionText, token.csrf);
+                  }
+                })
             })
-
-            //console.log();
             let navelem = document.getElementById('navigateETs')
             navelem.appendChild(navigateHits);
             navelem.appendChild(connectButton); 

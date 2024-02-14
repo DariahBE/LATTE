@@ -93,8 +93,10 @@ class CUDNode extends Node {
     //create a variant or connection between an entity and a variant:
     //if the variant is not yet in de DB, the variant is created.
     //if the variant already exists, a relation is created connecting it to the entity. 
-    //$label    =string   = string label to be inserted in the database and used as spellingvariant for the node. 
-    //$entitySource =int  = neoID of the entity-node(multilabel)
+    // You determine the existence of a given variant by matching the string against all nodes
+    // that carry the variant label. The variant label is a hardcoded property of the application. 
+    //$label          =string   = string label to be inserted in the database and used as spellingvariant for the node. 
+    //$entitySource   =int      = neoID of the entity-node(multilabel)
     //1: check variant.
     $existingVariantId = -1;                //THE NEO ID OF THE VARIANT 
     $variant_uuid = -1;                     //THE APOC GENERATED UUID OF THE VARIANT
@@ -147,7 +149,7 @@ class CUDNode extends Node {
     } 
   }
 
-  //TODO: dropVariant needs transactional model!!
+  //transactions OK
   public function dropVariant($variantID, $entityID, $detachQuery){
     //drops a variant or connection between a variant and entity:
     //$variantID  = int   = neoID of the Variant-node.
@@ -210,56 +212,56 @@ class CUDNode extends Node {
         }
     }
 
-    //TODO: update needs transactional model!
-    // BUG: code is not even being called, does it make sense to keep??
-    public function update($id, $data, $changePrivateProperties=False){
-        /**
-         * changePrivateProperties IS IT EVEN NEEDED??
-         */
-        //data is a dictionary: it holds keys-values for the node that should be updated.
-        //extend the query with kv-pairs to run the update. 
-        //Foreach KV in $data ==> extend $query with kvpair. 
-        //step1: validate the ID; get the label and valid propertiekeys. 
-        $validationQuery = 'MATCH (n) WHERE id(n) = $nodeid RETURN labels(n)[0] AS label'; 
-        $label = $this->client->run($validationQuery, array('nodeid'=>(int)$id)); 
-        if(boolval(count($label))){
-            $label = $label->first()->get('label');
-        }else{
-            die('no node matches request');
-        }
-        //once validation of the node has passed: get the model!
-        //only allow models that are defined in the config file: 
-        if(array_key_exists($label, NODEMODEL)){
-            $model = NODEMODEL[$label];
-        }else{
-            throw new Exception("Missing model");
-        }
-        //verify the keys in the $data variable, with the keys in the $model variable. 
-        //you should have a system where $data can differ from $model, but it shouldn't introduce new kvpairs
-        foreach($data as $key => $value){
-            if (!(in_array($key, array_keys($model)))){
-                throw new Exception("Invalid data provided to the backend. No changes commited to the database.");
-            }
-        }
-        if (boolval(count($data))){
-            $query = "MATCH (n) WHERE id(n) = ".(int)$id." SET ";
-            $counter = 1;
-            $values = array();
-            $parameters = array(); 
-            foreach ($data as $key => $value) {
-                $parameters[] = " n.".$key.' = $somevar_'.$counter.' ';
-                $values['somevar_'.$counter] = $value;
-                $counter+=1;
-            }
-            $query.=implode(', ', $parameters);
-            if(boolval($values)){
-                $this->client->run($query, $values);
-                return array('status'=>'Changes committed to the database.'); 
-            }
-        }else{
-            return array('status'=>'No changes sent to the database');
-        }
-    }
+    // //TO DO: update needs transactional model!
+    // // BU G: code is not even being called, does it make sense to keep??
+    // public function update($id, $data, $changePrivateProperties=False){
+    //     /**
+    //      * changePrivateProperties IS IT EVEN NEEDED??
+    //      */
+    //     //data is a dictionary: it holds keys-values for the node that should be updated.
+    //     //extend the query with kv-pairs to run the update. 
+    //     //Foreach KV in $data ==> extend $query with kvpair. 
+    //     //step1: validate the ID; get the label and valid propertiekeys. 
+    //     $validationQuery = 'MATCH (n) WHERE id(n) = $nodeid RETURN labels(n)[0] AS label'; 
+    //     $label = $this->client->run($validationQuery, array('nodeid'=>(int)$id)); 
+    //     if(boolval(count($label))){
+    //         $label = $label->first()->get('label');
+    //     }else{
+    //         die('no node matches request');
+    //     }
+    //     //once validation of the node has passed: get the model!
+    //     //only allow models that are defined in the config file: 
+    //     if(array_key_exists($label, NODEMODEL)){
+    //         $model = NODEMODEL[$label];
+    //     }else{
+    //         throw new Exception("Missing model");
+    //     }
+    //     //verify the keys in the $data variable, with the keys in the $model variable. 
+    //     //you should have a system where $data can differ from $model, but it shouldn't introduce new kvpairs
+    //     foreach($data as $key => $value){
+    //         if (!(in_array($key, array_keys($model)))){
+    //             throw new Exception("Invalid data provided to the backend. No changes commited to the database.");
+    //         }
+    //     }
+    //     if (boolval(count($data))){
+    //         $query = "MATCH (n) WHERE id(n) = ".(int)$id." SET ";
+    //         $counter = 1;
+    //         $values = array();
+    //         $parameters = array(); 
+    //         foreach ($data as $key => $value) {
+    //             $parameters[] = " n.".$key.' = $somevar_'.$counter.' ';
+    //             $values['somevar_'.$counter] = $value;
+    //             $counter+=1;
+    //         }
+    //         $query.=implode(', ', $parameters);
+    //         if(boolval($values)){
+    //             $this->client->run($query, $values);
+    //             return array('status'=>'Changes committed to the database.'); 
+    //         }
+    //     }else{
+    //         return array('status'=>'No changes sent to the database');
+    //     }
+    // }
 
     /**Create a new blank node based on JS input!
      * 

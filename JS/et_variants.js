@@ -5,16 +5,22 @@ function binVariant(e){
      * then deletes it from the global tracker too. 
      */
     //gets the attribute of e: sends XHR request to delete. 
+    //fetch a fresh CSRF token: 
     const DOMElement = e.parentElement; 
     let nodeInternalId = DOMElement.getElementsByClassName('writtenvariantvalue')[0].getAttribute('data-neo');
-    fetch('/AJAX/variants/delete.php?variantid='+nodeInternalId+'&entityid='+variantNeoId)
-        .then(data => function(){});
-    const writtenValue = DOMElement.textContent; 
-    //then removes it from the spellingvarianttracker
-    let idx = spellingVariantTracker.indexOf(writtenValue); 
-    delete(spellingVariantTracker[idx]); 
-    //tehn removes it from the DOM: 
-    e.parentElement.remove();
+    fetch('/AJAX/getdisposabletoken.php')
+        .then((response) => response.json())
+        .then((token) => {
+            fetch('/AJAX/variants/delete.php?variantid='+nodeInternalId+'&entityid='+variantNeoId+'&token='+token)
+            .then(data => function(){});
+        const writtenValue = DOMElement.textContent; 
+        //then removes it from the spellingvarianttracker
+        let idx = spellingVariantTracker.indexOf(writtenValue); 
+        delete(spellingVariantTracker[idx]); 
+        //tehn removes it from the DOM: 
+        e.parentElement.remove();
+        })
+
 }
 
 function purgeVariantBox() {

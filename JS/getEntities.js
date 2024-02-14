@@ -1,5 +1,7 @@
 var foundEntities = false;
+// TODO: file is obsolete. ?? 
 function getEntities(options){
+  //TODO: code is opbsolete. 
   var language = options['ISO_code'];
   var nodeid = options['nodeid'];
   const param = {

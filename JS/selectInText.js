@@ -88,6 +88,9 @@ function displayUpdatedText(type, start, stop, uuid){
 }
 
 function saveNewDB() {
+  /**
+   * Function that saves a newly created entity in the Database.
+   */
   //TODO: (consider closed) variants need to be generated when you're converting annotation_auto to annation nodes!
   //    Auto to confirmed = OK
   //    Manual select to confirmed = OK
@@ -166,7 +169,6 @@ function saveNewDB() {
           .then(function( data ) {
             let put_rs = data['data']; 
             loadAnnotationData(put_rs['uuid']);
-            //TODO: inject and update the text DOM with the new data: 
             displayUpdatedText(put_rs['type'], put_rs['start'], put_rs['stop'], put_rs['uuid']); 
             //TODO update in TEXTDOM that there's an annotation there:
             //    Needs access to start and stop property of node select
@@ -383,9 +385,6 @@ async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selec
       data: postData,
       dataType: "json",
       success: function (repldata) {
-        //console.log(data); 
-        //let repldata = JSON.parse(json);
-        //console.log(repldata);
         let repl = document.createElement('p');
         repl.appendChild(document.createTextNode(repldata['msg']));
         document.getElementById('etmain').appendChild(repl);
@@ -393,17 +392,20 @@ async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selec
         let annotationEnd = repldata['stop'];
         let annotationUID = repldata['annotation'];
         let annotationForType = repldata['type'];
-        //TODO
+        //BUG: ACCES TO etmain missing. 
         console.warn('connect.php result; still needs to go in DOM: UNUSED variables of CRUD/Connect call!!: ', annotationStart, annotationEnd, annotationUID, annotationForType);
-        resolve(); // Resolve the Promise when the fetch operation completes
+        loadAnnotationData(annotationUID);
+        displayUpdatedText(annotationForType, annotationStart, annotationEnd, annotationUID); 
+      
+        resolve(); //Resolve the Promise when the fetch operation completes
       }
     }).always(
       function () {
-        document.getElementById('assignEtToSelection').remove(); //delete annotation button
+        document.getElementById('assignEtToSelectionParent').remove(); //delete annotation button
       }
     )
-
   })
+
 
 
 }
@@ -534,8 +536,14 @@ function showET(etdata) {
         saveNewEntry.addEventListener('click', function () {
           saveNewDB();
         });
-        document.getElementById('etmain').appendChild(acceptLink);
-        document.getElementById('etmain').appendChild(rejectLink);
+        let annoToEtConnectorParent = document.createElement('div'); 
+        annoToEtConnectorParent.setAttribute('id', 'assignEtToSelectionParent'); 
+        annoToEtConnectorParent.classList.add('w-full', 'm-1', 'p-1', 'flex'); 
+        acceptLink.classList.add('flex-1', 'm-1'); 
+        rejectLink.classList.add('flex-1', 'm-1'); 
+        annoToEtConnectorParent.appendChild(acceptLink); 
+        annoToEtConnectorParent.appendChild(rejectLink); 
+        document.getElementById('etmain').appendChild(annoToEtConnectorParent);
       }
     })
 

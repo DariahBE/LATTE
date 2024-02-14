@@ -80,23 +80,29 @@
     // creates a new node with a shortlived NEOID; properties are checked in the 
     // remote function. Invalid input leads to early termination. 
     // use the properties to create a new node if it does not exist: 
+
+    //set the neo id of the user as a global variable, needed in multiple places. 
+    $userNeoId = (int)$user->neoId; 
+
+
     try {
         $createdEntity = $node->createNewNode($nodelabel, $properties, true); 
-        //var_dump($createdEntity);
+        //returns NEO ID of created node. 
     }catch (\Throwable $th){
         //throw $th;
         $node->rollbackTransaction();
         die('rollback of changes: init error');
     }
+
     //connect the user ID to $createdEnditity!
     try{
-        $userNeoId = $user->neoId;
         $node->connectNodes($userNeoId, $createdEntity, 'priv_created');
     }catch(\Throwable $th){
         //throw $th;
         $node->rollbackTransaction();
         die('rollback of changes: user error');
     }
+    
     //connect variant spellings to the $createdentity:
     //user ID is not connected to variants.
     //Connect the variants: 
@@ -135,9 +141,11 @@
         }
     }
 
-    //todo (Low): needs to be done more efficiently, get the UUID directly when creating annotationnode!
+    //TODO (Low): needs to be done more efficiently, get the UUID directly when creating annotationnode!
     $createdAnnotationUUID = $annotation->fetchAnnotationUUID($createAnnotation); 
-    
+    //connect the user to the created annotation: 
+    $node->connectNodes($userNeoId, $createAnnotation, 'priv_created'); 
+
     //connect the entity with the annotation !
     try{
         $node->connectNodes($createAnnotation, $createdEntity, 'references');

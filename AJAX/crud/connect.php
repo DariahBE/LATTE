@@ -1,16 +1,19 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-include_once("../../config/config.inc.php");
-include_once(ROOT_DIR."\includes\getnode.inc.php");
-include_once(ROOT_DIR."\includes\annotation.inc.php");
-include_once(ROOT_DIR."\includes\user.inc.php");
+include_once('../../config/config.inc.php');
+include_once(ROOT_DIR.'\includes\getnode.inc.php');
+include_once(ROOT_DIR.'\includes\nodes_extend_cud.inc.php');
+include_once(ROOT_DIR.'\includes\annotation.inc.php');
+include_once(ROOT_DIR.'\includes\user.inc.php');
 
 //check if the user is logged in; 
 if(isset($_SESSION['userid'])){
   $user = new User($client);
-  $annotation = new Annotation($client);
-  //TODO test transactional model!
-  $annotation->startTransaction(); 
+  //node and client need to share all updates in a single transactino object: 
+  // SHARED TRANSACTION
+  $node = new CUDNode($client); 
+  $node->startTransaction(); 
+  $annotation = new Annotation(False, $node->gettsx());
 }else{
   die();
 }
@@ -55,12 +58,21 @@ if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connection
     $mergeToDict['annotation'] = $annotationNode['properties'][$annotationprimary];     //SOLVED??? 
     $mergeToDict['creator'] = $user['properties']['userid'];
     $mergeToDict['private'] = false;
-    $mergeToDict['start'] = $annotationNode['properties'][ANNOSTART];   //solved (test needed)
-    $mergeToDict['stop'] = $annotationNode['properties'][ANNOSTOP];     //solved (test needed)
+    $mergeToDict['start'] = $annotationNode['properties'][ANNOSTART];
+    $mergeToDict['stop'] = $annotationNode['properties'][ANNOSTOP];
     $mergeToDict['type'] = $entityLabel;
     $mergeToDict['neoid'] = $assignedID;
     /** Don't show the other attributes */
   }  
+
+  //use $texSelection to create a new variant if it does not yet exist. 
+  try{
+    $node->createVariantRelation($texSelection, $entityID); 
+  }catch (\Throwable $th) {
+    $annotation->rollbackTransaction(); 
+    die(json_encode("An unexpected error occurred.")); 
+  }
+
   echo json_encode($mergeToDict); 
   $annotation->commitTransaction();   // you need to commit when the transaction finishes without errors!
 }else{
