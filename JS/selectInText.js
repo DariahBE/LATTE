@@ -14,13 +14,13 @@ function ignoreSuggestion() {
 
 function extractAnnotationPropertiesFromDOM(domBlock) {
   let prop = {}
+  // console.log('extracting DOM properties'); 
   for (let i = 0; i < domBlock.length; i++) {
     let box = domBlock[i].getElementsByClassName('inputelement')[0];
-    //TODO => boxes that are checkboxes should use .checked not .value method
+    // console.log(box);
     let boxName = box.name;
-    console.log('eetse beetsy bugfixing required!');
     let boxValue = extractValueType(box);
-    console.log(boxName, boxValue);
+    // console.log(boxName, boxValue);
     prop[boxName] = boxValue;
   }
   return prop;
@@ -41,7 +41,6 @@ function typeToHtml(type, defaultValue = 'text') {
   if (conversionList.hasOwnProperty(type)) {
     return conversionList[type];
   }
-
   // If type doesn't exist, return the default value
   return defaultValue;
 }
@@ -138,6 +137,8 @@ function saveNewDB() {
         dataObject['nodetype'] = etType;
         //let annotationCollectionBox = {};
         let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
+        //BUG 15/2/24
+        //BUG when you connect an annotation to an existing ET, it fails to capture the properties of the anno; 
         let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties)
         /*for(let i = 0; i < annotationProperties.length; i++){
           let box = annotationProperties[i].getElementsByClassName('inputelement')[0];
@@ -331,6 +332,7 @@ function buildPropertyInputFieldsFor(label) {
             var humanLabel = value[0];
             var datatype = value[1];
             let newFieldContainer = document.createElement('div');
+            newFieldContainer.classList.add('property'); 
             let newFieldLabel = document.createElement('label');
             let newFieldInput;
             if (datatype === 'longtext') {
@@ -368,7 +370,7 @@ function buildPropertyInputFieldsFor(label) {
   })
 }
 
-async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selection_end, selected_text, token){
+async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selection_end, selected_text, extra_properties, token){
   console.log(neoid_et, text_neo_id, selection_start, selection_end, selected_text, token); 
   await new Promise((resolve) => {
     let postData = {
@@ -377,7 +379,8 @@ async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selec
       csrf: token,
       start: selection_start,
       stop: selection_end,
-      selection: selected_text
+      selection: selected_text, 
+      properties: extra_properties
     };
     $.ajax({
       type: "POST",
@@ -472,9 +475,8 @@ function showET(etdata) {
         let rejectLink = document.createElement('button'); 
         acceptLink.setAttribute('id', 'assignEtToSelection'); 
         rejectLink.setAttribute('id', 'assignNewEtToSelection'); 
+        updateState('State: ', 'An entity with matching spelling was found. You can link this attestation to this entity or reject the link and create a new entity with the same spelling.'); 
         //show the user what is going on and explain why it is in this mode: 
-        document.getElementById('usernoticekey').textContent = 'State: ';
-        document.getElementById('usernoticevalue').textContent = 'An entity with matching spelling was found. You can link this attestation to this entity or reject the link and create a new entity with the same spelling.';
         
         let rejectText = document.createTextNode('Reject link'); 
         let acceptText = document.createTextNode('Create annotation');
@@ -497,8 +499,13 @@ function showET(etdata) {
           rejectLink.disabled = true;
           //data to send to server
           //read the content of the div that holds annotation data when connecting nodes 
+          //BUG 15/2/24
+          //BUG when you connect an annotation to an existing ET, it fails to capture the properties of the anno; 
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
           let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
+          console.log(annotationCollectionBox);  
+          //BUG & //TODO: 
+          console.warn('problem pending in selectInText.js > showET(); '); 
           await connectAnnoToEntity(etdata[0], languageOptions['nodeid'], globalSelectionStart, globalSelectionEnd, globalSelectionText, csrf); 
 
         });
@@ -510,13 +517,14 @@ function showET(etdata) {
         annoPromptTitle = document.createElement('h3');
         annoPromptTitle.appendChild(document.createTextNode('Annotation properties:'));
         annotationProperties.appendChild(annoPromptTitle);
-        annoSubContent = document.createElement('div');
+        let annoSubContent = document.createElement('div');
         buildPropertyInputFieldsFor('Annotation').then((content) => {
           for (let i = 0; i < Object.keys(content).length; i++) {
             //don't show: start, stop, selectedtext. 
             let field = content[i];
             let fieldAtr = field.getElementsByTagName('label')[0].getAttribute('for');
             if (fieldAtr != startcode && fieldAtr != stopcode) {
+              //console.log(field); 
               annoSubContent.appendChild(field);
             }
           }
@@ -546,7 +554,14 @@ function showET(etdata) {
         document.getElementById('etmain').appendChild(annoToEtConnectorParent);
       }
     })
+}
 
+function updateState(key, msg){
+  /**
+   * To show the user why the program goes into a specific mode; explain what's going on!
+   */
+  document.getElementById('usernoticekey').textContent = key;
+  document.getElementById('usernoticevalue').textContent = msg;
 }
 
 function buildAnnotationCreationBox() {
@@ -941,8 +956,8 @@ function triggerSidePanelAction(entityData) {
     */
   } else {
     //nothing found in the backend: no matching variants or nodelabels: 
+    updateState('State: ', 'The current database holds no nodes with matching spelling. Wikidata provides the following entities that match your annotation.')
     buildAnnotationCreationBox(); 
-    //alert('call completed'); 
   }
 }
 

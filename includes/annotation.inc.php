@@ -152,7 +152,45 @@ class Annotation{
     return $result;
   }
 
-  public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user, $start, $end){
+  private function setToTypeByModel($entity, $property, $value){
+    //helper function which converts the $value to the expected type
+    //by looking up which type is declared in the NODEMODEL. 
+    //BUG: it's impossible to tell at the moment if an empty string should be used or not!
+    $expectedType = NODEMODEL[$entity][$property][1]; 
+    switch ($expectedType) {
+      case 'string':
+        return [strval($value), boolval($value)]; 
+        break;
+      case 'float':
+        return [floatval($value), true]; 
+        break; 
+      case 'wikidata': 
+        //TODO (regex test)
+        return [strval($value), true];
+        # code...
+        break;
+      case 'int': 
+        return [(int)$value, true]; 
+        break;
+      case 'bool': 
+        # code...
+        return [boolval($value), true];
+        break;
+      case 'longtext': 
+        return [strval($value), boolval($value)];
+        break;
+      case 'uri': 
+        //TODO (regex test)
+        return [strval($value), boolval($value)];
+        # code...
+        break;
+      default:
+        return $value; 
+        break;
+    }
+  }
+
+  public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user, $start, $end, $extra){
     //OK; static properties! OK
     // TODO: test required from connect.php 
     // BUG: Test found that creating the annoation work,
@@ -174,6 +212,30 @@ class Annotation{
         $constraintTwo = True;
       }
     }
+
+    // var_dump($extra);
+    $phval = 0;
+    $querydata = [
+      'texid' => $neoIDText,
+      'etid' => $neoIDEt, 
+      'startnumb' => $start,
+      'endnumb' => $end
+    ]; 
+    $queryparameters = [ANNOSTART.': $startnumb', ANNOSTOP.': $endnumb', 'uid: apoc.create.uuid()']; 
+    foreach ($extra as $key => $value) {
+      $cast_data = $this->setToTypeByModel(ANNONODE, $key, $value); 
+      if($cast_data[1]){
+
+        $phval = $phval+1; 
+        $phstr = 'ph_'.strval($phval); 
+        $queryparameters[] = $key.': '.'$'.$phstr; 
+        $querydata[$phstr] = $cast_data[0];
+        # code...
+      }
+    }
+    // var_dump($querydata); 
+    // var_dump($queryparameters); 
+    // die('early exit'); 
     if($constraintOne && $constraintTwo){
       //both constraints are met; connect;
       #Write a cypher query that creates a new Node with label 'Annotation'.
@@ -181,16 +243,13 @@ class Annotation{
       $query = 'MATCH (t:'.TEXNODE.'),(e)
       WHERE id(t) = $texid AND id(e) = $etid 
       CREATE
-        (a:'.ANNONODE.' {'.ANNOSTART.': $startnumb, '.ANNOSTOP.': $endnumb, uid: apoc.create.uuid() } ),
+        (a:'.ANNONODE.' { '.implode(', ', $queryparameters).' } ),
         (a)<-[r1:contains]-(t),
         (a)-[r2:references]->(e)
       RETURN a,t,e,r1,r2,id(a)';
-      $annotdata = $this->tsx->run($query, [
-        'texid' => $neoIDText,
-        'etid' => $neoIDEt, 
-        'startnumb' => $start,
-        'endnumb' => $end
-      ]); 
+      // var_dump($query); 
+      // var_dump($querydata); 
+      $annotdata = $this->tsx->run($query, $querydata); 
 
       //connect (a) to $user
       $annotationNeoID = $annotdata[0]['id(a)']; 

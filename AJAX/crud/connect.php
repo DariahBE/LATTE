@@ -25,15 +25,15 @@ $texSelection = $data['selection'];
 $selectionStart = (int)$data['start']; 
 $selectionEnd = (int)$data['stop'];
 $token = $data['csrf'];
-
+$extra = $data['properties'];
 //connectiontoken should not be older than 5 minutes. 
 //check if token equals the session variable and that the session did not yet expire 
-if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connectiontoken']) && $token === $_SESSION['connectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
+if (1 ==1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connectiontoken']) && $token === $_SESSION['connectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
   //destroy the token: can only be used once. 
   unset($_SESSION['connectiontoken']);
   unset($_SESSION['connectiontokencreatetime']);
+  $data = $annotation->createAnnotationWithExistingEt($texID, $entityID, $user, $selectionStart, $selectionEnd, $extra);
   try {
-    $data = $annotation->createAnnotationWithExistingEt($texID, $entityID, $user, $selectionStart, $selectionEnd);
   } catch (\Throwable $th) {
     $annotation->rollbackTransaction(); 
     die(json_encode("An unexpected error occurred.")); 

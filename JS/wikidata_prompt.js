@@ -151,7 +151,27 @@ function acceptQID(qid = -1) {
           //TODO required??
         } else {
           console.log('DATARETURN');
-          //TODO required?
+          //add the annotationfields to the DOM as properties. EXCLUDE start, stop and selectedtext fields. 
+          let annotationProperties = document.createElement('div');
+          let annoSubContent = document.createElement('div');
+          buildPropertyInputFieldsFor('Annotation').then((content) => {
+            for (let i = 0; i < Object.keys(content).length; i++) {
+              //don't show: start, stop, selectedtext. 
+              let field = content[i];
+              let fieldAtr = field.getElementsByTagName('label')[0].getAttribute('for');
+              if (fieldAtr != startcode && fieldAtr != stopcode) {
+                //console.log(field); 
+                annoSubContent.appendChild(field);
+              }
+            }
+            annotationProperties.appendChild(annoSubContent);
+  
+            document.getElementById('embeddedAnnotation').appendChild(annotationProperties);
+            //attach validator after content is in the DOM:  
+            let validator = new Validator;
+            validator.pickup();
+  
+          });
           //NO changes needed to DOM in here.
         }
       })
@@ -331,13 +351,18 @@ let checkIfConnectionExists = async (qid) => {
             console.log(hits[j])
             console.log(globalSelectionStart, globalSelectionEnd, globalSelectionText); 
             connectButton.addEventListener('click', function(){
+              //TODO: extra properties need to be tested (OKAY IF implementationtest passes. ). 
+              let annotationProperties = document.getElementById('embeddedAnnotation').getElementsByClassName('property');
+              let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
+              console.log(annotationCollectionBox);      
+
               //fetch a fresh CSRF token: 
               fetch('/user/AJAX/profilestate.php')
                 .then((response) => response.json())
                 .then((token) => {
                   if(token.valid){
                     //                  neoid of e, neoid of text, selectstart, selectistop, selectedtext, securitytoken
-                    connectAnnoToEntity(hits[j], languageOptions.nodeid, globalSelectionStart, globalSelectionEnd, globalSelectionText, token.csrf);
+                    connectAnnoToEntity(hits[j], languageOptions.nodeid, globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox, token.csrf);
                   }
                 })
             })

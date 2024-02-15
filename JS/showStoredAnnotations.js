@@ -67,7 +67,6 @@ function visualizeStoredAnnotations(){
       ltr.addEventListener('click', function(){
         console.log('letterBasedEntry');
         var origin = event.source || event.target;
-        var countOfRelatedAnnotations = origin.dataset.annotationCount;
         var relatedAnnotationIDS = origin.dataset.annotation;
         markBasedOnId(relatedAnnotationIDS);
       })

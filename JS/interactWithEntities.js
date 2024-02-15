@@ -178,6 +178,7 @@ function showdata(data) {
   //superimpose the slideover on top of the navbar: 
   annotationTarget.classList.add("z-50");
   var gateWay = document.createElement('div');
+  //TODO: neobox ID is already used elsewhere, are you sure it's not conflicting?!
   gateWay.setAttribute('id', 'neobox');
   var statsTarget = document.createElement('div');
   statsTarget.setAttribute('id', 'relatedTextStats');
@@ -360,6 +361,8 @@ function loadAnnotationData(annotationID = false) {
         handleError(); 
       }else{
         showdata(data);
+        updateState('State: ', 'An annotated entity was selected, you can now see the data held in the database.'); 
+
       }
     })
   .catch(err => handleError() );
