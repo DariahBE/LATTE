@@ -162,6 +162,9 @@ class Annotation{
         return [strval($value), boolval($value)]; 
         break;
       case 'float':
+        if ($value === ''){
+          return[false, false]; 
+        }
         return [floatval($value), true]; 
         break; 
       case 'wikidata': 
@@ -170,6 +173,9 @@ class Annotation{
         # code...
         break;
       case 'int': 
+        if ($value === ''){
+          return[false, false]; 
+        }
         return [(int)$value, true]; 
         break;
       case 'bool': 
