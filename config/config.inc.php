@@ -85,9 +85,6 @@ $nodesDatamodel = array(
     "label" => ["Name", "string", false, true, true],
     "Wikidata" => ["Wikidata Label", 'wikidata', false, false, false],
     "smart" => ["Did tricks", 'bool', false, false, false],
-  ] /*
-  'Organization' => [
-    "label" => ["Label", "string", false, false, true]
   ], 
   'Test' =>[      //testing all datatypes:
     "id" => ['ID', 'int', true, false, true], 
@@ -97,6 +94,9 @@ $nodesDatamodel = array(
     "wikidata" => ['Wikdata ID', 'wikidata', true, false, true], 
     "name" => ['Name', 'string', true, false, true], 
     "link" => ['Link', 'uri', true, false, true]
+  ] /*
+  'Organization' => [
+    "label" => ["Label", "string", false, false, true]
   ], 
   'Disease' => [
     "name" => ["Name", 'string', true, false, true], 
@@ -150,7 +150,8 @@ $matchOnNodes = array(
   'Text' => 'rgba(28, 200, 28, 0.6)',
   'Annotation' => 'rgba(200, 28, 28, 0.6)', 
   'Organization' => 'rgba(145,100,52,0.6)', 
-  'Dog' => 'rgba(200,20,200,0.6)'
+  'Dog' => 'rgba(200,20,200,0.6)',
+  'Test' => 'rgba(200,200,20,0.6)'
 );
 
 //automatically fill out below config based on nodesDatamodel:

@@ -86,14 +86,15 @@ function displayUpdatedText(type, start, stop, uuid){
   });
 }
 
+function checkPairValidity(value, type){
+
+}
+
+
 function saveNewDB() {
   /**
    * Function that saves a newly created entity in the Database.
    */
-  //TODO: (consider closed) variants need to be generated when you're converting annotation_auto to annation nodes!
-  //    Auto to confirmed = OK
-  //    Manual select to confirmed = OK
-  console.warn('Double ET NODE BUG: calliing into saveNewDB'); 
   let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
   //IS erverything valid 
   //validate in backend too!!
@@ -125,10 +126,13 @@ function saveNewDB() {
         let propertyPairs = document.getElementById('propertyBox').getElementsByTagName('div');
         console.log(propertyPairs);
         for (p = 0; p < propertyPairs.length; p++) {
-          let pair = propertyPairs[p];
-          let pairName = pair.getElementsByTagName('input')[0].name;
-          let pairValue = pair.getElementsByTagName('input')[0].value;
-          properties[pairName] = pairValue;
+          let pair = propertyPairs[p].getElementsByTagName('input')[0];
+          let pairName = pair.name;
+          let pairValue = pair.value;
+          let pairType = pair.type; 
+          if(checkPairValidity(pairValue, pairType)){
+            properties[pairName] = pairValue;
+          } 
         }
 
         //appending to dataObject
@@ -246,6 +250,7 @@ function loadPropertiesOfSelectedType(selectedString) {
           console.log(key, value);
           var humanLabel = value[0];
           var datatype = value[1];
+          let uniqueness = value[2]; 
           let newFieldContainer = document.createElement('div');
           let newFieldLabel = document.createElement('label');
           let newFieldInput;
@@ -270,6 +275,10 @@ function loadPropertiesOfSelectedType(selectedString) {
           let expectedPattern = typeToPattern(datatype);
           if (expectedPattern) {
             newFieldInput.setAttribute('pattern', expectedPattern);
+          }
+          if(uniqueness){
+            //TODO: test if unique is present in DOM
+            newFieldInput.classList.add('validateAs_unique');
           }
           newFieldInput.classList.add('attachValidator');
           newFieldInput.classList.add('validateAs_' + datatype);
@@ -331,6 +340,7 @@ function buildPropertyInputFieldsFor(label) {
             const [key, value] = entry;
             var humanLabel = value[0];
             var datatype = value[1];
+            let uniqueness = value[2]; 
             let newFieldContainer = document.createElement('div');
             newFieldContainer.classList.add('property'); 
             let newFieldLabel = document.createElement('label');
@@ -356,6 +366,10 @@ function buildPropertyInputFieldsFor(label) {
             let expectedPattern = typeToPattern(datatype);
             if (expectedPattern) {
               newFieldInput.setAttribute('pattern', expectedPattern);
+            }
+            if(uniqueness){
+              //TODO: test if unique is present in DOM
+              newFieldInput.classList.add('validateAs_unique');
             }
             newFieldInput.classList.add('attachValidator');
             newFieldInput.classList.add('validateAs_' + datatype);
@@ -589,6 +603,7 @@ function buildAnnotationCreationBox() {
         const [key, value] = entry;
         var humanLabel = value[0];
         var datatype = value[1];
+        let uniqueness = value[2]; 
         if (data['exclude'] && data['exclude'].includes(key)) {
           //do not use the key:
         } else {
@@ -615,6 +630,10 @@ function buildAnnotationCreationBox() {
           let expectedPattern = typeToPattern(datatype);
           if (expectedPattern) {
             newFieldInput.setAttribute('pattern', expectedPattern);
+          }
+          if(uniqueness){
+            //TODO: test if unique is present in DOM
+            newFieldInput.classList.add('validateAs_unique');
           }
           newFieldInput.classList.add('attachValidator');
           newFieldInput.classList.add('validateAs_' + datatype);

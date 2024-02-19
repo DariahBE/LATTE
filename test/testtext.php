@@ -10,7 +10,27 @@ include_once(ROOT_DIR."\includes\annotation.inc.php");
 include_once(ROOT_DIR."\includes\user.inc.php");
 include_once(ROOT_DIR."\includes\mail.inc.php");
 include_once(ROOT_DIR."\includes\datasilo.inc.php");
-//include_once(ROOT_DIR."\includes\\nodes_extend_cud.inc.php"); 
+include_once(ROOT_DIR."\includes\\nodes_extend_cud.inc.php"); 
+
+$node = new CUDNode($client);
+$node->startTransaction();
+
+
+var_dump($node->generateUniqueKey('Text', 'texid'));
+var_dump($node->generateUniqueKey('Test', 'id'));
+var_dump($node->generateUniqueKey('Test', 'id'));
+var_dump($node->generateUniqueKey('Test', 'ids'));
+var_dump($node->generateUniqueKey('Testje', 'id'));
+var_dump($node->generateUniqueKey('Testje', 'ibm'));
+
+
+
+
+
+$node->rollbackTransaction(); 
+
+
+die('exit'); 
 /*
 
 $user = new User($client); 

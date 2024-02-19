@@ -84,9 +84,35 @@
     //set the neo id of the user as a global variable, needed in multiple places. 
     $userNeoId = (int)$user->neoId; 
 
+    /*
+     *          enforce values for properties which are set by
+     *          model primary keys!!!
+    */
+    // do a check of the provided properties: 
+    // is there a uniqueness key defined in the model? If so: 
+    //      check if it is provide, 
+    //      if not, generate a unique value. 
+    $model = NODEMODEL[$nodelabel];
+    //look for access to the primary key data. What key in the returned NODE type is the Primary Key. (unique field)
+    $found_key = array_search(true, array_column($model, 2), true);
+    if ($found_key !== false){
+        $keys = array_keys($model);
+        $primaryKeyName = $keys[$found_key];
+        if(array_key_exists($primaryKeyName, $properties)){
+            //check for uniqueness:
+            $value_to_check = $properties[$primaryKeyName]; 
+            $node->checkKeyUniqueness($nodelabel, $primaryKeyName, $value_to_check);
+        }else{
+            // no unique key provided: let the program generate a new integer ID. 
+            // then assign it into the properties dictionary!
+            $properties[$primaryKeyName] = $node->generateUniqueKey($nodelabel, $primaryKeyName); 
+        }
+    }
+    var_dump($properties); 
 
     try {
         $createdEntity = $node->createNewNode($nodelabel, $properties, true); 
+        //var_dump($properties); 
         //returns NEO ID of created node. 
     }catch (\Throwable $th){
         //throw $th;

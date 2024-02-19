@@ -31,9 +31,9 @@ class CUDNode extends Node {
         }elseif($type === 'bool'){
             // IN php the string 'false' is not evaluated as false!!
             //use JSON!
-            $value = json_decode($inputvariable);
+            //$value = json_decode($inputvariable);
             //then cast to boolval!
-            return boolval($value); 
+            return boolval($inputvariable === 'on'); 
         }elseif($type === 'uri'){
             $inputvariable = trim($inputvariable); 
             $parsed = parse_url($inputvariable); //returns the components. Should include a host!!!
@@ -86,7 +86,43 @@ class CUDNode extends Node {
         CREATE (sourceNode)-[:$edgeName]->(targetNode)
     ";
     $this->tsx->run($query); 
-}
+  }
+
+  public function checkKeyUniqueness($label, $property, $value){
+    /**         //TEST Passed. 
+     * Checks if a given key is Unique for $label and $property combination. 
+     * Returns BOOL
+     */
+    $query = '
+      MATCH (p:'.$label.' {'.$property.': $checkValue})
+      RETURN p
+    ';
+    $data = array('checkValue' => $value);
+    $result = $this->tsx->run($query, $data); 
+    //var_dump($result); 
+    return count($result); 
+  }
+
+  public function generateUniqueKey($label, $property){
+    /*           //TEST Passed. 
+     * Generates a new Unique integer for the given $property of a $labelnode. 
+     * The value is returned to the calling instance and inserted there.
+     */
+    
+     $query = "
+      MATCH (n:".$label.")
+      RETURN n.".$property." as highest
+      ORDER BY n.".$property." DESC
+      LIMIT 1"; 
+    $result = $this->tsx->run($query); 
+    //var_dump($result); 
+    if(boolval(count($result))){
+      return $result[0]['highest']+1; 
+    }else{
+      return 1; 
+    }
+  }
+
 
   //Transactional model: OK
   public function createVariantRelation($label, $entitySource){

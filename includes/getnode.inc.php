@@ -525,8 +525,7 @@ class Node{
       $label = $result['labels'][0]; 
       if(!in_array($label, array_keys(NODEMODEL))){return array();}
       $model = NODEMODEL[$label];
-      //look for access to the primary key data. What key in the returned NODE type is the Primary Key.
-      //var_dump(array_column($model, 2));
+      //look for access to the primary key data. What key in the returned NODE type is the Primary Key. (unique field)
       $found_key = array_search(true, array_column($model, 2), true);
       //var_dump($found_key); // can be 0, but 0 does not equal false. Do a type sensitive comparison: 
       if ($found_key === false){
