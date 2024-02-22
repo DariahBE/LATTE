@@ -108,7 +108,6 @@
             $properties[$primaryKeyName] = $node->generateUniqueKey($nodelabel, $primaryKeyName); 
         }
     }
-    var_dump($properties); 
 
     try {
         $createdEntity = $node->createNewNode($nodelabel, $properties, true); 

@@ -86,9 +86,6 @@ function displayUpdatedText(type, start, stop, uuid){
   });
 }
 
-function checkPairValidity(value, type){
-
-}
 
 
 function saveNewDB() {
@@ -119,7 +116,7 @@ function saveNewDB() {
         for (p = 0; p < variantSpellings.length; p++) {
           foundVariants.push(variantSpellings[p].textContent);
         }
-        /////// PROPERTIES: 
+        /////// PROPERTIES of a given entity: 
         let properties = {};
         const etType = document.getElementById('entityTypeSelector').value;
         console.log('CHOSEN ET: ', etType); 
@@ -130,6 +127,7 @@ function saveNewDB() {
           let pairName = pair.name;
           let pairValue = pair.value;
           let pairType = pair.type; 
+          
           if(checkPairValidity(pairValue, pairType)){
             properties[pairName] = pairValue;
           } 
@@ -215,12 +213,15 @@ function toggleSlide(dir = 0) {
   }
 }
 
-function loadPropertiesOfSelectedType(selectedString) {
+//BUG: you're not actually using selectedString!
+function loadPropertiesOfSelectedType(selectedString, selected) {
   //reads from the DOM which entity is being created; 
   //does an AJAX call to fetch the structure of the entity and matches with config file
   //fields get generated and appended. If old fields exist, they are removed. 
   let selector = document.getElementById('entityTypeSelector');
-  let selected = selector.value; //dropdown value selected. 
+  if (!(selected)){
+    selected = selector.value; //dropdown value selected. 
+  }
   //if a user made a mistake: remove the old formcontent
   let deleteOldBox = document.getElementsByClassName('generatedFieldsForFormBox');
   while (deleteOldBox.length > 0) {
@@ -266,8 +267,10 @@ function loadPropertiesOfSelectedType(selectedString) {
             newFieldInput.disabled = true;
           }
           //let nameVar = key; 
+          
           newFieldLabel.setAttribute('for', key);
           newFieldInput.setAttribute('name', key);
+          newFieldInput.setAttribute('data-name', key);
           let htmlType = typeToHtml(datatype);
           if (htmlType !== false) {
             newFieldInput.setAttribute('type', htmlType);
@@ -660,6 +663,9 @@ function buildAnnotationCreationBox() {
   //console.warn('Related to BUG10: race condition.');
   entityTypePrompt.appendChild(document.createTextNode('1) Set entity type: '));
   entityTypeDiv.appendChild(entityTypePrompt);
+  //alert('YES');
+  var entityTypeSelectorDiv = document.createElement('div'); 
+  entityTypeSelectorDiv.setAttribute('id', 'nodeTypeSelection'); 
   var setEntityType = document.createElement('select');
   setEntityType.setAttribute('id', 'entityTypeSelector');
   var entityTypeOptionPrompt = document.createElement('option');
@@ -674,7 +680,8 @@ function buildAnnotationCreationBox() {
     setEntityType.appendChild(o);
   }
   embeddedCreateDiv.appendChild(entityTypeDiv);
-  embeddedCreateDiv.appendChild(setEntityType);
+  entityTypeSelectorDiv.appendChild(setEntityType); 
+  embeddedCreateDiv.appendChild(entityTypeSelectorDiv);
   createNodeDiv.appendChild(embeddedCreateDiv);
  // console.log('Bug when clicking recognized unlinked ets.', startPositionInText, globalSelectionStart); 
   var startPositionInText = globalSelectionStart;   //pull from global scope
@@ -687,9 +694,10 @@ function buildAnnotationCreationBox() {
   positionTitle.appendChild(document.createTextNode('Annotation information: '));
   setEntityType.addEventListener('change', function () {
     //clear out properties if they exist: 
+    let e = event.source || event.target; 
     let d = document.getElementById('propertyBox');
     if (d !== null) { d.remove(); }
-    loadPropertiesOfSelectedType(selectedString);
+    loadPropertiesOfSelectedType(selectedString, e.value);
     document.getElementById('annotationCreationDiv').classList.remove('hidden');
   })
 

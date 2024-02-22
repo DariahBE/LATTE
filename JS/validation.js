@@ -1,3 +1,10 @@
+
+function checkPairValidity(value, datatype){
+  //TODO: figure out a way of vallidating all datatypes
+  return true; 
+
+}
+
 class Validator{
 
   /*
@@ -84,6 +91,7 @@ class Validator{
         if(this.classList.contains('validateAs_unique')){
           var selectedNode = document.getElementById('nodeTypeSelection').firstChild.value;
           var property = this.getAttribute('data-name');
+          // BUG: uniqueness can only handle integers for now!!
           var unique = await fetch('/AJAX/uniqueness.php?nodetype='+selectedNode+'&property='+property+'&value='+this.value)
           .then((response) => response.json())
           .then((data) =>{

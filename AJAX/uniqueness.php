@@ -14,6 +14,7 @@ if(array_key_exists($nodeLabel, NODEMODEL) && array_key_exists($nodeProperty,NOD
 }
 //if it exists, fetch the type and pass it as an argument
 $graph = new Node($client);
+//var_dump($nodeLabel, $nodeProperty, $propertyValue, $expectedType);
 $data = $graph->checkUniqueness($nodeLabel, $nodeProperty, $propertyValue, $expectedType);
 //if it exists, one record gets returned.
 //cast to bool and invert. True means the value should be accepted!

@@ -380,7 +380,8 @@ let checkIfConnectionExists = async (qid) => {
           //OK
           let creationElement = document.getElementById('etcreate');
           creationElement.classList.add('getAttention');
-          loadPropertiesOfSelectedType();
+          // TODO test if adding globalselectiontext works!
+          loadPropertiesOfSelectedType(globalSelectionText, false);
           resolve(0);
         }
       })
