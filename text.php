@@ -189,10 +189,10 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
           </div>
           <select id='wdlookuplanguage'></select>
           <br>
-          <input name='returnConstraint' type='checkbox' id='returnSameAsLookup'></input>
+          <input name='returnConstraint' type='checkbox' id='returnSameAsLookup'>
           <label for='returnConstraint'>Prioritize results in lookuplanguage</label>
           <br>
-          <input name='lookupConstraint' type='checkbox' id='strictLookup'></input>
+          <input name='lookupConstraint' type='checkbox' id='strictLookup'>
           <label for='lookupConstraint'>Use language fallback</label>
         </div>
         <div class="language">

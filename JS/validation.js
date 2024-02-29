@@ -1,6 +1,8 @@
 
 function checkPairValidity(value, datatype){
   //TODO: figure out a way of vallidating all datatypes
+  // actually, this is already being done by the validator class. 
+  // is this then really needed? 22/2/24 bug!
   return true; 
 
 }

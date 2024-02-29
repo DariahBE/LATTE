@@ -3,6 +3,12 @@
         adds CREATE UPDATE AND DELETE functionality 
         to the nodes class. READ operations are in 
         a separate file (getnode.inc.php)
+
+        UNIQUENESS:: https://neo4j.com/docs/cypher-manual/current/constraints/examples/#constraints-create-a-node-uniqueness-constraint 
+        CAVEAT: NEO4J Community Edition has NO support for built in uniqueness constraints.
+        So you need to be carefull how to implement uniqueness checks. For integers you can
+        fall back on id() or calculate a field. For strings, you can check, but generate is
+        more difficult!
 */
 
 class CUDNode extends Node {
@@ -47,8 +53,12 @@ class CUDNode extends Node {
             }else{
                 throw new Exception('Invalid URI provided: entry was rejected.'); 
             };
+        }elseif($type === 'float'){
+          // different standards to write floats: 123,123.23 vs 123.123,23  ::: should catch both!
+          $inputvariable = str_replace(",",".",$inputvariable);
+          $inputvariable = preg_replace('/\.(?=.*\.)/', '', $inputvariable);
+          return floatval($inputvariable);
         }else{
-            //if no typecasting is defined, return whatever is given. 
             return $inputvariable; 
         }
     }
@@ -108,10 +118,10 @@ class CUDNode extends Node {
      * Generates a new Unique integer for the given $property of a $labelnode. 
      * The value is returned to the calling instance and inserted there.
      */
-    
+    //var_dump($label, $property); 
      $query = "
       MATCH (n:".$label.")
-      RETURN n.".$property." as highest
+      RETURN n.".$property." AS highest
       ORDER BY n.".$property." DESC
       LIMIT 1"; 
     $result = $this->tsx->run($query); 
@@ -315,10 +325,26 @@ class CUDNode extends Node {
                 $query = 'CREATE (n:'.$label.')'; 
                 //for a valid nodetype: check validity of the data-attributes!
                 //filter out the attributes: remove any attribute that is not written down in the NODEMODEL: 
+                // if an attribute has an integer type and is unique, ensure you generate it when missing!!! this is a primary key!
                 $placeholder=1; 
                 $placeholderValues = array();
+                //var_dump($data); 
                 foreach($data as $key => $value){
-                    //empty uri triggers fatal error: empty values should not be parsed as data!!
+                  //var_dump($key, NODEMODEL[$label][$key][2], $value);
+                    //empty uri triggers fatal error: empty values should not be parsed as data!! Unless it's for PK field: 
+                    //LOGIC: 
+                    //do not store empty values in the database! drop them from data: 
+                    //if the empty value is of type INT and a primary key, autogenerate it!
+                    //if it is empty and a primary key, but NO integer type, throw error: 
+                    if($value === '' && NODEMODEL[$label][$key][2]){
+                      if(NODEMODEL[$label][$key][1]== 'int'){
+                        $value = $this->generateUniqueKey($label, $key);
+                        $data[$key] = $value;
+                      }else{
+                        echo json_encode(array('ERR'=> 'Empty value given for non-unique attribute. Request rejected.'));
+                        throw new Exception("A unique non-int value was expected, but the database received an empty value. Request rejected.");
+                      }
+                    }
                     if($value !== ''){
                         if(array_key_exists($key, NODEMODEL[$label])){
                             $nodeAttributes[] = ' n.'.$key.' = $placeholder_'.$placeholder;

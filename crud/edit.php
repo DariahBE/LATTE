@@ -91,7 +91,7 @@ if($requestedNodeLabel === TEXNODE){
       }
 
       //add the hidden csrf token to the form
-      //echo "<input hidden readonly name='token' type='text' value='$token'></input>"; 
+      //echo "<input hidden readonly name='token' type='text' value='$token'>"; 
       $tokenManager->outputToken();
 
       ?>

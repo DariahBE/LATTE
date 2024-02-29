@@ -2,7 +2,7 @@
 /*
   how to process queryresults according to queryType.
 */
-
+// TODO code cleanup!
 /**
  *
  */
@@ -27,7 +27,7 @@ class Blockfactory {
       $rowData = $keyValuePairs[$i];
       $key = $rowData[0];
       $value = $rowData[1];
-      $table .= '<tr class="odd:bg-slate-200 even:bg-slate-100"><td class="font-bold">'.$key.'</td><td>'.$value.'</td></tr>';
+      $table .= '<tr class="odd:bg-slate-200 even:bg-slate-100"><td class="font-bold">'.htmlspecialchars($key, ENT_QUOTES, 'UTF-8').'</td><td>'.htmlspecialchars($value, ENT_QUOTES, 'UTF-8').'</td></tr>';
     }
     $table .= '</table>';
     return $table;
@@ -65,20 +65,13 @@ class Blockfactory {
     $clipBoardIcon = '<div><svg xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
       <path stroke-linecap="round" stroke-linejoin="round" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
       </svg></div>';
-    $stableLink = $_SERVER['SERVER_NAME'].'/URI/'.$this->viewtype.'/'.$egoID;
+    $stableLink = $_SERVER['SERVER_NAME'].'/URI/'.$this->viewtype.'/'.htmlspecialchars($egoID, ENT_QUOTES, 'UTF-8');
     $copy2clipboard = "<div onclick=\"clippy('headerURIContent', 'temp_copy_ok')\" class='flex flex-row'>{$clipBoardIcon}<p id='headerURIContent' class='text-sm'>{$stableLink}</p><p id='temp_copy_ok' class='hidden text-sm'></p></div>";
     $boxTwo = "<div class='break-inside-avoid-column rounded-md border-2 border-violet-800 border-solid sm:w-full w-4/5 justify-center justify-content'><div class='flex flex-row w-full justify-center'>{$fingerprintIcon}<h3 class='text-lg'>Stable link</h3></div><p class='text-xs'>This node has a stable identifier; you can use it to share it with your peers, as long as this node exists, anyone with this link will be able to identify public enitities by its UUID and see connected components.</p>{$copy2clipboard}</div>"; //stable ID box with sharing integrated.
     return "{$boxOne}{$boxTwo}";
     //return "<div class='w-7/8 m-4 mx-auto px-4 columns-2 gap-4'>{$boxOne}{$boxTwo}</div>";
   }
 
-  //TODO: remove this!
-  public function generateJSONOnly($withNeoID){
-    $this->relatedVariants($withNeoID);
-    $this->relatedDataSiloEntries($withNeoID);
-    //$this->relatedAnnotations($withNeoID);  // discuss: Is this even required?
-    $this->textsMentioningEntity($withNeoID);
-  }
 
 }
 

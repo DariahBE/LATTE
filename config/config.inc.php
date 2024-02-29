@@ -93,7 +93,7 @@ $nodesDatamodel = array(
     "validated" => ['Validated', 'bool', false, false, true], 
     "wikidata" => ['Wikdata ID', 'wikidata', true, false, true], 
     "name" => ['Name', 'string', true, false, true], 
-    "link" => ['Link', 'uri', true, false, true]
+    "link" => ['Link', 'uri', false, false, true]
   ] /*
   'Organization' => [
     "label" => ["Label", "string", false, false, true]

@@ -101,15 +101,20 @@
         if(array_key_exists($primaryKeyName, $properties)){
             //check for uniqueness:
             $value_to_check = $properties[$primaryKeyName]; 
-            $node->checkKeyUniqueness($nodelabel, $primaryKeyName, $value_to_check);
+            if ($value_to_check == ''){
+                $value_to_check = $node->generateUniqueKey($nodelabel, $primaryKeyName); 
+                $properties[$primaryKeyName] = $value_to_check; 
+            }else{
+                $node->checkKeyUniqueness($nodelabel, $primaryKeyName, $value_to_check);
+            }
         }else{
             // no unique key provided: let the program generate a new integer ID. 
             // then assign it into the properties dictionary!
             $properties[$primaryKeyName] = $node->generateUniqueKey($nodelabel, $primaryKeyName); 
         }
     }
-
     try {
+        //createNewNode needs to automatically generate a primary key for entities where the model uses an integer key as unique value. 
         $createdEntity = $node->createNewNode($nodelabel, $properties, true); 
         //var_dump($properties); 
         //returns NEO ID of created node. 
