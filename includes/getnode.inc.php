@@ -235,6 +235,22 @@ class Node{
     return $result->first()['n']['properties'];
   }
 
+  function fetchKnowledgebase($id){
+    /**
+     * expects the NEOID of a node, then fetches all nodes connected 1 hop away with the see_also edge in between.
+     * Returns all connected knowledgebases.
+     */
+    $data = array(); 
+    $query = 'MATCH (n)-[:see_also]-(k) WHERE id(n) = $givenId return k'; 
+    $result = $this->client->run($query, ['givenId'=>$id]);
+    //don't echo $result directly; it'll leak database details!
+    foreach($result as $kb){
+      $data[]=$kb; 
+    }
+    return $data; 
+    
+  }
+
   function buildSilos($id){
     $crossrefdata = $this->crossreferenceSilo($id);
     $siloData = array();

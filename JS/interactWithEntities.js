@@ -169,11 +169,19 @@ function writeField(key, data, protected, structure) {
 
 let auto_annotation_internal_id = NaN; 
 function showdata(data) {
+  /**       FUNCTION TRIGGERED BY INTERACTING WITH ENTITIES: 
+   *  - there is a marked annotation in the databse. 
+   *  - if it is connected to an entity; it is shown too. 
+   *  - entity has properties such as WIKIDATE, VARIANT, ETID (Kb relations. ) 
+   */
   //set the global datamode: 
   datamode = data['mode'];
   toggleSlide(1);
   //console.log('creating side skelleton'); 
-  createSideSkelleton();
+  createSideSkelleton(); 
+
+  let et = data.entity?.[0]?.neoID ?? false;
+  kb = new KnowledgeBase(et);
   var annotationTarget = document.getElementById('slideoverDynamicContent');
   //superimpose the slideover on top of the navbar: 
   annotationTarget.classList.add("z-50");
@@ -322,8 +330,9 @@ function showdata(data) {
   }
 }
 
-function handleError() {
+function handleError(e) {
   // TODO: is not actually being called at the moment!
+  console.log(e); 
   alert('handleError function needs to be rewritten for a more uniform layout. ');
   return;
   //frameWorkBase();
@@ -358,14 +367,14 @@ function loadAnnotationData(annotationID = false) {
   getInfoFromBackend("/AJAX/resolve_annotation.php?annotation=" + annotationID)
     .then((data) => {
       if (data['code']==-1){
-        handleError(); 
+        handleError(''); 
       }else{
         showdata(data);
         updateState('State: ', 'An annotated entity was selected, you can now see the data held in the database.'); 
 
       }
     })
-  .catch(err => handleError() );
+  .catch(err => handleError(err) );
 }
 
 function addInteractionToEntities() {

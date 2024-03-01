@@ -859,7 +859,19 @@ function createSideSkelleton() {
   variantsTarget.setAttribute('id', 'etVariantsTarget');
   variantsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0');
   //variantsTarget.innerHTML = '<p>HAS VARS??</p>';
+  //  2.2b:     URLS: creates a div where URL relations are held.
+  const relationsTarget = document.createElement('div'); 
+  const relationsTargetTitle = document.createElement('p'); 
+  relationsTargetTitle.appendChild(createDivider('Knowledgebases: '));
+  const relationsTargetSub = document.createElement('div'); 
+  relationsTargetSub.setAttribute('id', 'urlrelationscontainer'); 
+  relationsTargetSub.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex-wrap'); 
+  relationsTarget.appendChild(relationsTargetTitle); 
+  relationsTarget.appendChild(relationsTargetSub); 
+  relationsTarget.setAttribute('id', 'urlrelations'); 
+  relationsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0', 'border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
   middleblock.appendChild(variantsTarget);
+  middleblock.appendChild(relationsTarget);
   //    2.3:    stablebox: sets stable identifier and link to explorer. 
   //3   Wikidata section. ==> content gets fully built by wd code.
   console.warn('SECTION 3 of top header: WDResponseTarget is disabled!!!'); 
@@ -874,10 +886,21 @@ function createSideSkelleton() {
 }
 
 function triggerSidePanelAction(entityData) {
+  /*
+      Side panel triggered when creating an entity from a non-annotated piece of text!
+        ==> you don't have an entity yet!
+        ==> you don't have a knowledgebaseyet!
+        ==> you don't have a variant yet!
+    BUT
+        ==> You have the ability to call wikidata/ backend for matching options. 
+        :> these matching options may hold entities! 
+  */
   toggleSlide(1);
   //console.log(entityData);
   let = dataDictionary = {};
   createSideSkelleton();
+  //TODO pass an entity neo id to the knowledgebase constructor
+  kb = new 'border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'();
   //backend returned one or more nodes that have  spellingvariant/label matching the request: 
   // console.warn('BUG10: triggerSidePanelAction function');
   const topbox = document.getElementById('topblock');
