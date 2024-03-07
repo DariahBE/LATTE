@@ -1,24 +1,66 @@
 var kb = null; 
+let neoIdOfEt = null;
 class KnowledgeBase {
     constructor(et) {
+        this.addNewButton = document.getElementById('add_kb_relation'); 
         this.mainKBElement = document.getElementById('urlrelations');
         this.subKBElement = document.getElementById('urlrelationscontainer');
-        console.log(this.mainKBElement, this.subKBElement); 
+        console.log(this.mainKBElement, this.subKBElement, this.addNewButton); 
         if(!(et===false)){
             this.displayEntries(et); 
+            this.neoIdOfEt = et; 
+        }else{
+            document.getElementById('add_kb_relation').disabled = true; 
         }
+        this.addNewButton.addEventListener('click', () => {
+            this.buildCreationDisplay(); 
+        });
+
     }
   
+    assignToEt(etid){
+        //needed?
+        //once an entity has been created, call this method
+        // so that it enables the creation of new kb links!
+        this.neoIdOfEt = etid; 
+        document.getElementById('add_kb_relation').disabled = false; 
+    }
+
+
     purgecontainer(){
+        //needed?
         this.subKBElement.innerHTML = ''; 
     }
+
+    binkb(e){
+    /**
+     * Deletes a kb link from the backend 
+     * then deletes it from the global tracker too. 
+    */
+    //gets the attribute of e: sends XHR request to delete. 
+    //fetch a fresh CSRF token: 
+    const DOMElement = e.parentElement; 
+    let nodeInternalId = DOMElement.getElementsByClassName('displayPartnerName')[0].getAttribute('data-neo');
+    fetch('/AJAX/getdisposabletoken.php')
+        .then((response) => response.json())
+        .then((token) => {
+            fetch('/AJAX/fetch_kb.php?mode=delete&token='+token+'&kbid='+nodeInternalId+'&id='+this.neoIdOfEt)
+            .then(data => function(){});
+        const writtenValue = DOMElement.textContent; 
+        //then removes it from the DOM: 
+        e.parentElement.remove();
+        })
+    }
+
 
     displaySingleEntry(elem){
         //console.log('start processing'); 
         //console.log(elem);
+        const classScope = this; 
         const partnername = elem.k.properties.partner;
         const kbuuid = elem.k.properties.uid;
         const kblink = elem.k.properties.partner_uri;
+        const kbneoid = elem.k.id; 
         const kb_block = document.createElement('div'); 
         kb_block.classList.add('m-1', 'p-1', 'kbrelationbox', 'bg-green-100', 'flex'); 
         const p_one = document.createElement('p');
@@ -27,29 +69,22 @@ class KnowledgeBase {
         }); 
         const p_two = document.createElement('p');
         p_one.classList.add('displayPartnerName'); 
+        p_one.setAttribute('data-neo', kbneoid); 
         p_one.setAttribute('data-uuid', kbuuid); 
         p_one.setAttribute('data-link', kblink); 
         p_one.appendChild(document.createTextNode(partnername)); 
         p_two.classList.add('xsbinicon', 'bg-green-200', 'm-1', 'p-1', 'rounded-full'); 
+        p_two.addEventListener('click', function(){
+            classScope.binkb(this); 
+        })
         kb_block.appendChild(p_one);
         kb_block.appendChild(p_two);
         console.log(kb_block); 
         this.subKBElement.appendChild(kb_block); 
     }
-
-    addEntry(key, value) {
-      this.data[key] = value;
-    }
-  
-    getEntry(key) {
-      return this.data[key];
-    }
-  
-    removeEntry(key) {
-      delete this.data[key];
-    }
   
     getAllEntries(id) {
+        this.neoIdOfEt = id; 
         return fetch('/AJAX/fetch_kb.php?id=' + id)
             .then(response => {
                 if (!response.ok) {
@@ -78,17 +113,138 @@ class KnowledgeBase {
         }
     }
 
-  }
-  
-  // Example Usage:
-  //const kb = new KnowledgeBase();
-  /*
-  kb.addEntry('key1', 'value1');
-  kb.addEntry('key2', 'value2');
-  
-  console.log(kb.getEntry('key1')); // Output: value1
-  
-  kb.removeEntry('key1');
-  console.log(kb.getAllEntries()); // Output: { key2: 'value2' }
+    handleSubmit() {
+        // Handle form submission
+        // Add your logic here
+        //get Label:
+        const labelstring = document.getElementById('new_kb_name_field').value;
+        const url = document.getElementById('new_kb_url_field').value; 
+        const submitButton = document.getElementById('submitBtn_kb'); 
+        const submitdata = {
+            'label': labelstring, 
+            'url': url
+        }; 
+        //fetch a token
+        fetch('/AJAX/getdisposabletoken.php')
+        .then((response) => response.json())
+        .then((token) => {
+            // Define fetch options for POST request
+            const options = {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(submitdata)
+            };
+            
+            // Make POST request
+            //BUG: submitdata is not being received as POST!
+            fetch('/AJAX/fetch_kb.php?mode=create&token='+token+'&id='+this.neoIdOfEt, options)
+                .then(data => {
+                    // Handle response if needed
+            });
+        })
+        console.log(labelstring, url, submitButton); 
+    }
+    
+    handleClose() {
+        const modal = document.getElementById('modal');
+        const formContainer = document.getElementById('formContainer');
+        modal.remove();
+        formContainer.remove();
+    }
 
-*/
+    buildCreationDisplay(){
+        // TODO disable submitaction and creataction when entityID is missing!!! 
+        //
+        //builds a two-field form: partner name and the URI
+        // Create modal background
+        const self = this;
+        const modalBackground = document.createElement('div');
+        modalBackground.id = 'modal';
+        modalBackground.className = 'fixed inset-0 bg-black opacity-50 z-50';
+        document.body.appendChild(modalBackground);
+
+        // Create form container
+        const formContainer = document.createElement('div');
+        formContainer.id = 'formContainer';
+        formContainer.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-md z-50';
+        
+        // Create form
+        const form = document.createElement('form');
+        form.id = 'myForm';
+        form.className = 'space-y-4';
+
+        //create nameDiv = 
+        const nameDiv = document.createElement('div'); 
+        nameDiv.classList.add('w-full');
+        // Create name input field
+        const nameLabel = document.createElement('label');
+        nameLabel.htmlFor = 'name';
+        nameLabel.textContent = 'Name:';
+        //form.appendChild(nameLabel);
+        nameDiv.appendChild(nameLabel);
+
+        const nameInput = document.createElement('input');
+        nameInput.type = 'text';
+        nameInput.id = 'new_kb_name_field';
+        nameInput.name = 'name';
+        nameInput.className = 'border rounded-md px-2 py-1';
+        nameDiv.appendChild(nameInput);
+        form.appendChild(nameDiv)
+
+        //url Div: 
+        const urlDiv = document.createElement('div'); 
+        urlDiv.classList.add('w-full');
+        // Create URL input field
+        const urlLabel = document.createElement('label');
+        urlLabel.htmlFor = 'url';
+        urlLabel.textContent = 'URL:';
+        urlDiv.appendChild(urlLabel);
+
+        const urlInput = document.createElement('input');
+        urlInput.type = 'url';
+        urlInput.id = 'new_kb_url_field';
+        urlInput.name = 'url';
+        urlInput.className = 'border rounded-md px-2 py-1';
+        urlDiv.appendChild(urlInput);
+        form.appendChild(urlDiv); 
+
+        // Create submit and close buttons
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = 'flex justify-between';
+
+        const submitButton = document.createElement('button');
+        submitButton.type = 'button';
+        submitButton.id = 'submitBtn_kb';
+        submitButton.className = 'bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600';
+        submitButton.textContent = 'Submit';
+        buttonContainer.appendChild(submitButton);
+
+        const closeButton = document.createElement('button');
+        closeButton.type = 'button';
+        closeButton.id = 'closeBtn_kb';
+        closeButton.className = 'bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600';
+        closeButton.textContent = 'Close';
+        buttonContainer.appendChild(closeButton);
+
+        form.appendChild(buttonContainer);
+        formContainer.appendChild(form);
+
+        document.body.appendChild(formContainer);
+
+        // Add event listeners
+        submitButton.addEventListener('click', function(){
+            self.handleSubmit();
+        });
+        closeButton.addEventListener('click', function(){
+            self.handleClose();
+        });
+        document.addEventListener('keydown', function(event) {
+            if (event.key === 'Escape' || event.keyCode === 27) {
+                self.handleClose();
+            }
+        });
+    }
+
+}

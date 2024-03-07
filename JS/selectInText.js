@@ -863,10 +863,15 @@ function createSideSkelleton() {
   const relationsTarget = document.createElement('div'); 
   const relationsTargetTitle = document.createElement('p'); 
   relationsTargetTitle.appendChild(createDivider('Knowledgebases: '));
+  const triggerAddActionButton = document.createElement('button'); 
+  triggerAddActionButton.appendChild(document.createTextNode('Create new')); 
+  triggerAddActionButton.classList.add('button'); 
+  triggerAddActionButton.setAttribute('id', 'add_kb_relation'); 
   const relationsTargetSub = document.createElement('div'); 
   relationsTargetSub.setAttribute('id', 'urlrelationscontainer'); 
   relationsTargetSub.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex-wrap'); 
   relationsTarget.appendChild(relationsTargetTitle); 
+  relationsTarget.appendChild(triggerAddActionButton); 
   relationsTarget.appendChild(relationsTargetSub); 
   relationsTarget.setAttribute('id', 'urlrelations'); 
   relationsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0', 'border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
@@ -889,7 +894,7 @@ function triggerSidePanelAction(entityData) {
   /*
       Side panel triggered when creating an entity from a non-annotated piece of text!
         ==> you don't have an entity yet!
-        ==> you don't have a knowledgebaseyet!
+        ==> you don't have a knowledgebaseyet! => pass false
         ==> you don't have a variant yet!
     BUT
         ==> You have the ability to call wikidata/ backend for matching options. 
@@ -900,7 +905,7 @@ function triggerSidePanelAction(entityData) {
   let = dataDictionary = {};
   createSideSkelleton();
   //TODO pass an entity neo id to the knowledgebase constructor
-  kb = new 'border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'();
+  kb = new KnowledgeBase(false);
   //backend returned one or more nodes that have  spellingvariant/label matching the request: 
   // console.warn('BUG10: triggerSidePanelAction function');
   const topbox = document.getElementById('topblock');

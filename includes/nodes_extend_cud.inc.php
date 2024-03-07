@@ -235,11 +235,12 @@ class CUDNode extends Node {
     */
     //TODO: test implementation of transactions!
     public function delete($id, $dryRun=False){
+      //function WILL cast $id to int!
         if($dryRun){
             $query_EdgesToBeRemoved = 'MATCH (n)-[r]-() WHERE id(n) = $nodeid RETURN count(r) as count'; 
             $query_NodesToBecomeIsolated = 'MATCH (n)--(p) WHERE id(n) = $nodeid OPTIONAL MATCH (n)--(p)--(i) RETURN n,  p as directlyConnected, i as nullIfIsolated';        //if i == null, then p is only connected to the n-node which will be deleted!
-            $deletedEdges = $this->tsx->run($query_EdgesToBeRemoved, ['nodeid'=>$id]); 
-            $isolationDetection = $this->tsx->run($query_NodesToBecomeIsolated, ['nodeid'=>$id]);
+            $deletedEdges = $this->tsx->run($query_EdgesToBeRemoved, ['nodeid'=>(int)$id]); 
+            $isolationDetection = $this->tsx->run($query_NodesToBecomeIsolated, ['nodeid'=>(int)$id]);
             $returnData = array('impactedEdges'=> 0, 'disconnectedNodes' => 0);
 
             foreach($deletedEdges as $record){
@@ -254,8 +255,17 @@ class CUDNode extends Node {
         }else{
             //die('defer Transactional model!');
             $query = 'MATCH (n) WHERE id(n) = $nodeid DETACH DELETE (n)';
-            $this->tsx->run($query, ['nodeid'=>$id]); 
+            $this->tsx->run($query, ['nodeid'=>(int)$id]); 
         }
+    }
+
+    public function disconnect($leftNeoId, $rightNeoId, $edgelabel){
+      //function WILL cast $id to int!
+      //TODO return value has to be made more explicit in interface!
+      $query = 'MATCH (n)-[r:'.$edgelabel.']-(m) WHERE id(n) = $neoleft AND id(m) = $neoright DELETE r;'; 
+      $querydata = array('neoleft'=> (int)$leftNeoId, 'neoright'=> (int)$rightNeoId); 
+      $deletedEdges = $this->tsx->run($query, $querydata); 
+      return $deletedEdges; 
     }
 
     // //TO DO: update needs transactional model!
