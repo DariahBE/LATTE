@@ -35,13 +35,14 @@ private function getHash($l){
   $hashSymbols = 'abcdefghijklmnopqrstuvwxyz0123456789'; 
   $hash = '';
   for ($i = 0; $i < $l; $i++){
-    $hash .= $hashSymbols[random_int(0, strlen($hashSymbols) - 1)];
+    $randomIndex = random_int(0, strlen($hashSymbols) - 1);
+    $hash .= $hashSymbols[$randomIndex];
   }
   return $hash; 
 }
 
 public function checkForSession($redir="/user/mypage.php"){
-  if($this->myName){
+  if(boolval($this->myName)){
     //var_dump($redir); 
     header("Location: $redir");
     die(); 
@@ -155,6 +156,7 @@ public function checkForSession($redir="/user/mypage.php"){
       return 1;
     }
     else{
+      //allowed to read content, not create content!
       return 0;
     }
   }
@@ -234,8 +236,8 @@ public function checkForSession($redir="/user/mypage.php"){
   //Converted To SQLITE == FALSE
   public function checkUniqueness($mail){
     if($mail){
-      $query = "SELECT count() AS count FROM userdata WHERE userdata.mail = ? "; 
-      $data = array($mail); 
+      $checkQuery = "SELECT count() AS count FROM userdata WHERE userdata.mail = ? "; 
+      $checkData = array($mail); 
       $stmt = $this->sqlite->prepare($checkQuery);
       $stmt->execute($checkData);
       $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
