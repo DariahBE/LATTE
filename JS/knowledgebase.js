@@ -15,23 +15,14 @@ class KnowledgeBase {
         this.addNewButton.addEventListener('click', () => {
             this.buildCreationDisplay(); 
         });
-
     }
-  
-    assignToEt(etid){
-        //needed?
-        //once an entity has been created, call this method
-        // so that it enables the creation of new kb links!
-        this.neoIdOfEt = etid; 
-        document.getElementById('add_kb_relation').disabled = false; 
-    }
-
+/*
 
     purgecontainer(){
         //needed?
         this.subKBElement.innerHTML = ''; 
     }
-
+*/
     binkb(e){
     /**
      * Deletes a kb link from the backend 
@@ -113,38 +104,70 @@ class KnowledgeBase {
         }
     }
 
+    appendToDom(data){
+        // Create a div element for the relation box
+        const relationBox = document.createElement('div');
+        relationBox.className = 'm-1 p-1 kbrelationbox bg-green-100 flex';
+        // Create a kb box subelement for the display partner name
+        const displayPartnerName = document.createElement('p');
+        displayPartnerName.className = 'displayPartnerName';
+        displayPartnerName.setAttribute('data-neo', data.kb_neo_id);
+        displayPartnerName.setAttribute('data-uuid', data.kb_uuid);
+        displayPartnerName.setAttribute('data-link', data.kb_uri);
+        displayPartnerName.textContent = data.kb_label;
+        displayPartnerName.addEventListener('click', function(){
+            window.open(data.kb_uri, '_blank');
+        })
+        // Create a kb box subelement for the XS bin icon
+        const xsBinIcon = document.createElement('p');
+        xsBinIcon.className = 'xsbinicon bg-green-200 m-1 p-1 rounded-full';
+        xsBinIcon.addEventListener('click', () => {
+            this.binkb(xsBinIcon); 
+        });
+        // Append kb relation to the relation box
+        relationBox.appendChild(displayPartnerName);
+        relationBox.appendChild(xsBinIcon);
+        document.getElementById('urlrelationscontainer').appendChild(relationBox); 
+    }
+
     handleSubmit() {
         // Handle form submission
-        // Add your logic here
         //get Label:
         const labelstring = document.getElementById('new_kb_name_field').value;
+        // get url: 
         const url = document.getElementById('new_kb_url_field').value; 
         const submitButton = document.getElementById('submitBtn_kb'); 
-        const submitdata = {
-            'label': labelstring, 
-            'url': url
-        }; 
+        const self = this; 
         //fetch a token
         fetch('/AJAX/getdisposabletoken.php')
         .then((response) => response.json())
         .then((token) => {
+          
+            // Prepare data for POST request
+            const postData = {
+                token: token,
+                id: this.neoIdOfEt,
+                label: labelstring, 
+                uri: url
+            };
+            //console.log(postData); 
             // Define fetch options for POST request
             const options = {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify(submitdata)
+                body: JSON.stringify(postData)
             };
-            
-            // Make POST request
-            //BUG: submitdata is not being received as POST!
-            fetch('/AJAX/fetch_kb.php?mode=create&token='+token+'&id='+this.neoIdOfEt, options)
-                .then(data => {
-                    // Handle response if needed
-            });
+
+            $.post("/AJAX/fetch_kb.php?mode=create&token=" + token + "&id=" + this.neoIdOfEt, { data: postData })
+                .then(function( data ) {
+                    self.appendToDom(data); 
+                    //console.log(data); 
+            })
+
         })
-        console.log(labelstring, url, submitButton); 
+        this.handleClose();
     }
     
     handleClose() {

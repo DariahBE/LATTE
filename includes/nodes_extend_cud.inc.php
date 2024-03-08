@@ -212,6 +212,52 @@ class CUDNode extends Node {
   }
 
 
+  public function createNewKnowledgebase($name, $address, $etNeoId){
+    /**
+     * //OK tests passed: Node to new KB; Node to exising KB; existing relation! UID works!
+     * Connects a new kb to an exiting et, or connects two exisiting nodes (KB -- ET)
+     * Using the see_also edg 
+     * Edges and properties are hardcoded in this model!!
+     * DON'T rely on the uid attribute during merge: create it after the new node was made!!
+     */
+
+    //either the newly created edge, or the new node and edge should be 
+    //connected to $etNeoId; 
+    //verify the address: 
+      if (filter_var($address, FILTER_VALIDATE_URL)) {
+        //once verified create/connect what is necessary: 
+        $query = '
+          MATCH (n) WHERE id(n) = $nid
+          MERGE (s:See_Also {partner: $name, partner_uri: $partneruri})
+          ON CREATE SET s.uid = apoc.create.uuid()
+          MERGE (n)-[:see_also]->(s)
+          RETURN n, s
+        '; 
+        $querydata = array('nid'=> (int)$etNeoId, 'name' => $name, 'partneruri'=> $address); 
+        $create = $this->client->run($query, $querydata); 
+        $kbNode = $create[0]['s']; 
+        $kbneoid = $kbNode['id']; 
+        $kblabel = $kbNode['properties']['partner']; 
+        $kburi = $kbNode['properties']['partner_uri']; 
+        $kbuuid = $kbNode['properties']['uid']; 
+        $summary = $create->getSummary()->getCounters(); 
+
+        $result = array(
+          //'summary' => $summary, 
+          'new_kb_nodes' => $summary['nodesCreated'],
+          'new_edges' => $summary['relationshipsCreated'],
+          'kb_uuid' => $kbuuid, 
+          'kb_neo_id' => $kbneoid, 
+          'kb_label' => $kblabel, 
+          'kb_uri' => $kburi
+        );
+        return $result; 
+    } else {
+        return array('status' => 'rejected', 'reason' => 'Invalid URL');
+    }
+  }
+
+
   public function determineRightsSet($requestedLevel){
     //TODO: incomplete method
     include_once(ROOT_DIR.'\includes\user.inc.php');
