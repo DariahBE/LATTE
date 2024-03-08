@@ -16,6 +16,7 @@ if (isset($_POST['mail']) AND isset($_POST['password'])){
       case 1:
         // code...  ==> allow the session to be set.
         echo json_encode(array('msg'=>'Login succeeded.', 'status'=>1));
+        session_regenerate_id();  //prevent session fixation!
         break;
       case 3:
         // code... ==> too many attempts have been made: reset required.
