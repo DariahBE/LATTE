@@ -16,6 +16,7 @@ if(!isset($_GET['id'])){
     die(); 
 }
 
+
 if(!isset($_GET['token'])){
     die();
 }else{
@@ -29,9 +30,8 @@ if(!($validToken)){
 }
 
 
-
-$crudNode = new CUDNode($client); 
-
+$crudNode = new CUDNode($client);
+//Transactions = test passed. 
 /** determine rights first delete endpoint is only granted to limit set of users. 
  * This could depend on the node ID so do a read-check first!
  * DELETE rights are granted for: 
@@ -39,6 +39,7 @@ $crudNode = new CUDNode($client);
  *      ANY anotation node owned by the user!
  * 
 */
+$crudNode->startTransaction(); 
 $IsTheUserAllowedToDelete = $crudNode->determineRightsSet(3); 
 if(isset($_GET['checkrights'])){
     die(json_encode(array('actionAllowed'=>$IsTheUserAllowedToDelete)));//if the application only has to check for the delete rights
@@ -48,7 +49,14 @@ if(!($IsTheUserAllowedToDelete)){
 }else{
     //add a switch here for dryrun method. 
     $dryrun = isset($_GET['dryrun']); 
-    $data = $crudNode->delete((int)$_GET['id'], $dryrun);
+    try {
+        $data = $crudNode->delete((int)$_GET['id'], $dryrun);
+    } catch (\Throwable $th) {
+        //throw $th;
+        $crudNode->rollbackTransaction(); 
+        die('Error deleting data'); 
+    }
+    $crudNode->commitTransaction();
     echo json_encode($data);
 }
 

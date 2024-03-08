@@ -262,6 +262,7 @@ class CUDNode extends Node {
     //TODO: incomplete method
     include_once(ROOT_DIR.'\includes\user.inc.php');
     $user = new User($this->client); 
+    //var_dump($user->myRole); 
     $nodetype = '';         //TODO: determine the nodetype! Some nodes require lower level deletes than others. 
     $ownerShip = False;     //TODO: determine whether or not the user owns the node!!
     $whatRightSetApplies = $user->hasEditRights($user->myRole, $ownerShip); 
@@ -280,6 +281,9 @@ class CUDNode extends Node {
      * edges are to be deleted in addition to the node.
     */
     //TODO: test implementation of transactions!
+      //    1) AJAX/crud/delete.php ==> OK
+      //    2) AJAX/fetch_kb.php ==> OK
+      //    3) crud/delete.php ==> //TODO
     public function delete($id, $dryRun=False){
       //function WILL cast $id to int!
         if($dryRun){
