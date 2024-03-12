@@ -25,7 +25,8 @@ var dropToNormalize = [];
 var useNormalization = false;
 
 //function to hide / unhide entities identified by the NER-tool that are already linked in the graph database.
-//Event is attached to the hideUnhideEntities element in the DOM.
+//Event is attached to the hideUnhideEntities element in the DOM. Referencing is done by the onclick attribute
+//in the DOM!!
 function hideUnhideEntities(){
   var count = 0;
   var state = document.getElementById('hideUnhideEntities').checked;

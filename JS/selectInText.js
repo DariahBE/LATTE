@@ -12,6 +12,36 @@ function ignoreSuggestion() {
   toggleSlide(0);
 }
 
+
+function handleNoLogin(){
+  // RUN MOD ON: #embeddedET 
+  //call whenever nonlogin is detected from calls to get_structure.php
+
+  /*modifies the DOM to hide elements that require login
+  NOTE: this is not a security feature. Data that requires
+  sessions are protected serverside. This is clientside code
+  that simply prevents making DOM-elements to query/ put data
+  */
+
+  let target = document.getElementById('embeddedET'); 
+  target.innerHTML = ''; 
+  let warningDiv = document.createElement('div'); 
+  warningDiv.classList.add('notice', 'w-full'); 
+  let warningParagraph = document.creatElement(p)
+  let warningText = document.createTextNode('This feature is disabled for non-registered users. For the current account policy, refer to ');
+  let warningLinkText = document.createTextNode('this page');
+  let warningLink = document.creatElement('a'); 
+  warningLink.setAttribute('href', '/register.php'); 
+  warningLink.setAttribute('target', '_blank'); 
+  warningLink.appendChild(warningLinkText); 
+  warningParagraph.appendChild(warningText); 
+  warningParagraph.appendchild(warningLink); 
+  target.appendchild(warningParagraph); 
+
+
+
+}
+
 function extractAnnotationPropertiesFromDOM(domBlock) {
   let prop = {}
   // console.log('extracting DOM properties'); 
@@ -141,7 +171,10 @@ function saveNewDB() {
         let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
         //BUG 15/2/24
         //BUG when you connect an annotation to an existing ET, it fails to capture the properties of the anno; 
-        let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties)
+        let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
+        console.log('captured data', annotationCollectionBox); 
+        alert('datacapture!!'); //not triggered!! Why?
+        // 
         /*for(let i = 0; i < annotationProperties.length; i++){
           let box = annotationProperties[i].getElementsByClassName('inputelement')[0];
           //console.log(box);
@@ -177,6 +210,12 @@ function saveNewDB() {
             //    Needs access to start and stop property of node select
             //    Needs acces to set type....
             //    Best coarse of action is to extend put_annotation.php and make it return the data from there.
+          })
+          .catch(function(data){
+            console.log(data); 
+            let errorMessage = data['ERR']; 
+            console.log(errorMessage); 
+             
           })
           .always(function(){
             //console.log('DOING ALWAYS'); 
@@ -304,6 +343,10 @@ function loadPropertiesOfSelectedType(selectedString, selected) {
           saveNewDB();
         });
         formBox.appendChild(saveNewEntry);
+      }else if (data['msg'] == 'failed'){
+        if(data['datacode'] = 0 ){
+          handleNoLogin()
+        }
       }
     })
 }
@@ -381,6 +424,10 @@ function buildPropertyInputFieldsFor(label) {
             newFieldContainer.appendChild(newFieldInput);
             fieldContents.push(newFieldContainer);
           });
+        }else if (data['msg'] == 'failed'){
+          if(data['datacode'] = 0 ){
+            handleNoLogin()
+          }
         }
         resolve(fieldContents);
       })
@@ -601,6 +648,7 @@ function buildAnnotationCreationBox() {
   fetch('/AJAX/get_structure.php?type=createNewAnnotation')
     .then((response) => response.json())
     .then((data) => {
+      //BUG ==> does not catch rejected requests from the server. Look at other get_structure calls for the correct implementation. 
       //exclude: start, stop and selectedtext info!
       Object.entries(data['data']).forEach(entry => {
         const [key, value] = entry;

@@ -10,9 +10,12 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
 $wikidataID = $_GET['qid'];
 //validate qid= Q123
 if(preg_match("/^Q[0-9]*$/", $wikidataID)){
-  //only open for registered users
-  $user = new User($client);
-  $user->checkAccess(False);  //automatically go to session checking.
+  //only open for registered users (if text are hidden)
+  if (!(TEXTSAREPUBLIC)){
+    $user = new User($client);
+    $user->checkAccess(False);  //automatically go to session checking.
+
+  }
   
   $graph = new Node($client);
   $matchdata = $graph->fetchWikidataFromAnyPossibleEt($wikidataID); 

@@ -11,6 +11,19 @@ class nodeCreator{
 
   }
 
+  handleNoLogin(){
+    // RUN MOD ON: ?
+    //call whenever nonlogin is detected from calls to get_structure.php
+
+    /*modifies the DOM to hide elements that require login
+    NOTE: this is not a security feature. Data that requires
+    sessions are protected serverside. This is clientside code
+    that simply prevents making DOM-elements to query/ put data
+    */
+
+
+  }
+
   reset(){
     /**
      * Resets the node creation form. 

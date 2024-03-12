@@ -112,8 +112,7 @@
             // then assign it into the properties dictionary!
             $properties[$primaryKeyName] = $node->generateUniqueKey($nodelabel, $primaryKeyName); 
         }
-    }
-    try {
+    }try {
         //createNewNode needs to automatically generate a primary key for entities where the model uses an integer key as unique value. 
         $createdEntity = $node->createNewNode($nodelabel, $properties, true); 
         //var_dump($properties); 
@@ -121,7 +120,7 @@
     }catch (\Throwable $th){
         //throw $th;
         $node->rollbackTransaction();
-        die('rollback of changes: init error');
+        die($th);
     }
 
     //connect the user ID to $createdEnditity!

@@ -203,8 +203,8 @@ $nodes_translate = array(
 $ner_color = 'rgba(94,94,94,0.6)';       //RGBA value or False!
 
 ########### SET DATA VISIBILITY FOR THE PUBLIC: ###############################
-$textsPublic = False;            //  True/False; True = texts are publicly visible on the internet.
-$entityPublic = False;          //  True/False; True = stable pages are publicly visible. 
+$textsPublic = True;            //  True/False; True = texts are publicly visible on the internet.
+$entityPublic = True;          //  True/False; True = stable pages are publicly visible. 
 
 
 ########### WHICH ENGINE SHOULD BE USED TO DETECT THE LANGUAGE OF A GIVEN TEXT?

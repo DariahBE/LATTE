@@ -401,8 +401,8 @@ class CUDNode extends Node {
                         $value = $this->generateUniqueKey($label, $key);
                         $data[$key] = $value;
                       }else{
-                        echo json_encode(array('ERR'=> 'Empty value given for non-unique attribute. Request rejected.'));
-                        throw new Exception("A unique non-int value was expected, but the database received an empty value. Request rejected.");
+                        //return array('ERR'=> 'Empty value given for unique attribute ('.NODEMODEL[$label][$key][0].'). Request rejected.');
+                        throw new Exception('Empty value given for unique attribute ('.NODEMODEL[$label][$key][0].'). Request rejected.');
                       }
                     }
                     if($value !== ''){
