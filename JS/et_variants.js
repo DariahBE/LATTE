@@ -20,8 +20,24 @@ function binVariant(e){
         //tehn removes it from the DOM: 
         e.parentElement.remove();
         })
-
 }
+
+function checklogin() {
+    return new Promise((resolve, reject) => {
+        $.ajax({
+            url: "../user/AJAX/profilestate.php",
+            success: function(result) {
+                console.log(result['valid']);
+                resolve(result['valid']);
+            },
+            error: function(error) {
+                reject(error);
+            }
+        });
+    });
+}
+
+
 
 function purgeVariantBox() {
     /**
@@ -37,7 +53,7 @@ function purgeVariantBox() {
     }
 }
 
-function addVariantInBox(varname, uid, nid){
+function addVariantInBox(varname, uid, nid, user){
     /**
      * When a variant is given, it'll put the string in a DOMelement
      * and adds the UUID (uid) and internal NEO ID (nid) to it as attributes
@@ -56,11 +72,13 @@ function addVariantInBox(varname, uid, nid){
       variantDisplayTex.setAttribute('data-uuid', uid);
       variantDisplayTex.setAttribute('data-label', varname);
       variantDisplayTex.appendChild(document.createTextNode(varname));
-      var variantDisplayBin = document.createElement('p');
-      variantDisplayBin.classList.add('xsbinicon', 'bg-amber-200', 'm-1','p-1', 'rounded-full'); 
-      variantDisplayBin.addEventListener('click', function(){binVariant(this);});
       variantDisplayDiv.appendChild(variantDisplayTex);
-      variantDisplayDiv.appendChild(variantDisplayBin);
+      if(user){
+          var variantDisplayBin = document.createElement('p');
+          variantDisplayBin.classList.add('xsbinicon', 'bg-amber-200', 'm-1','p-1', 'rounded-full'); 
+          variantDisplayBin.addEventListener('click', function(){binVariant(this);});
+          variantDisplayDiv.appendChild(variantDisplayBin);
+        }
       storeIn.appendChild(variantDisplayDiv);
 }
 
@@ -92,6 +110,18 @@ function neoVarsToDom(variants, preprocess = 0){
      *  - preprocess_variants (for poorly structured data)
      *  - addVariantInBox( builds the DOM elements) 
      */
+    let userHasSession = checklogin()
+    .then(valid => {
+        let rst = valid;
+        return rst; 
+        console.log(rst); // Use rst here or pass it to another function
+    })
+    .catch(error => {
+        return false;
+        let rst = false; 
+        console.error("An error occurred: ", error);
+    });
+    console.log('first user sessioncheck=', userHasSession); 
     let internal_variants = variants; 
     if (preprocess == 1){
         internal_variants = preprocess_variants(variants); 
@@ -100,7 +130,7 @@ function neoVarsToDom(variants, preprocess = 0){
     //use neo4Jid and UID to identify variant labels. 
     if(internal_variants.length > 0 && 'labelVariants' in internal_variants[0]){
         internal_variants[0]['labelVariants'].forEach(element => {
-            addVariantInBox(element['value'], element['uid'], element['neoID']);
+            addVariantInBox(element['value'], element['uid'], element['neoID'], userHasSession);
         });
     }
 }
@@ -108,6 +138,7 @@ let variantNeoId = -1;
 function displayET_variant(data, relatedET){
     variantNeoId = relatedET; 
     //required is the extra nod ID (relatedET)
+    //TODO: determine if the user is logged in or not to hide creationbox and bin elements!
     // TODO: process data: ==> use neoVarsToDom!
     //where to put the box that interacts with variantdata: 
     //etVariantsTarget is the only ID you should use to display variant collection. 
@@ -135,6 +166,9 @@ function displayET_variant(data, relatedET){
             //      might be prone to race conditions (test this!)
             //send it to BE ==> return the NEOID and UID!
             //first get a token from the DB: 
+            let userHasSession = checklogin(); 
+            console.log('second user sessioncheck=', userHasSession); 
+        
             fetch("/AJAX/getdisposabletoken.php")
             .then(response => response.json())
             .then(data => {
@@ -149,7 +183,7 @@ function displayET_variant(data, relatedET){
                     let nid = data['data']['nid']; 
                     let uuid = data['data']['uuid'];
                     document.getElementById('variantInputBox').value = ''; 
-                    addVariantInBox(writtenValue, uuid, nid); //TODO: push to server, get UUID en NID in return
+                    addVariantInBox(writtenValue, uuid, nid, userHasSession); 
                 });
             });
         }

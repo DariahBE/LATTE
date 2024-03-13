@@ -116,8 +116,6 @@ function displayUpdatedText(type, start, stop, uuid){
   });
 }
 
-
-
 function saveNewDB() {
   /**
    * Function that saves a newly created entity in the Database.
@@ -952,8 +950,15 @@ function triggerSidePanelAction(entityData) {
   //console.log(entityData);
   let = dataDictionary = {};
   createSideSkelleton();
-  //TODO pass an entity neo id to the knowledgebase constructor
-  kb = new KnowledgeBase(false);
+  //TODO pass an entity neo id to the knowledgebase constructor 
+  checklogin()
+    .then(valid => {
+        console.log(valid); 
+        kb = new KnowledgeBase(false, valid);
+    })
+    .catch(error => {
+      kb = new KnowledgeBase(false, false);
+    })
   //backend returned one or more nodes that have  spellingvariant/label matching the request: 
   // console.warn('BUG10: triggerSidePanelAction function');
   const topbox = document.getElementById('topblock');

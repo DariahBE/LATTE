@@ -181,7 +181,18 @@ function showdata(data) {
   createSideSkelleton(); 
 
   let et = data.entity?.[0]?.neoID ?? false;
-  kb = new KnowledgeBase(et);
+  //let rst = undefined; 
+  checklogin()
+    .then(valid => {
+      console.log(valid); 
+      //rst = valid['valid'];
+      kb = new KnowledgeBase(et, valid);
+    })
+    .catch(error => {
+      kb = new KnowledgeBase(et, false);
+
+    })
+
   var annotationTarget = document.getElementById('slideoverDynamicContent');
   //superimpose the slideover on top of the navbar: 
   annotationTarget.classList.add("z-50");

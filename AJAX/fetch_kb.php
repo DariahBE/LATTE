@@ -18,10 +18,6 @@ include_once(ROOT_DIR.'\includes\nodes_extend_cud.inc.php');
 include_once(ROOT_DIR.'\includes\csrf.inc.php');
 
 $graph = new CUDNode($client);
-/*
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);*/
 
 function required_get($name){
     if (isset($_GET[$name])){

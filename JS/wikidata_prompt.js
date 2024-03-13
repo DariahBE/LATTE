@@ -194,6 +194,9 @@ function pickThisQID(qid) {
     .then(function () { wd.renderEntities(qid) });
   //if the user is unsure, allow them to go back to the selector layout: 
   //if the user is SURE ==> provide a save button which sends the request to the server! 
+  // if there's no logged in user: disable set of buttons!
+  //    check if the server holds a userid for the given session! ==> serverside check!
+  //    if yes, enable the buttons,
   let rejectButton = document.createElement('button');
   let acceptButton = document.createElement('button');
   rejectButton.classList.add('bg-red-500', 'hover:bg-red-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
@@ -212,7 +215,6 @@ function pickThisQID(qid) {
     document.getElementById('WDResponseTarget').remove();
   });
   acceptButton.addEventListener('click', function () {
-    //alert(qid); 
     acceptQID(qid);
   });
 
@@ -223,8 +225,24 @@ function pickThisQID(qid) {
   confirmationDiv.setAttribute('id', 'embeddedWDConfirmationGroup');
   confirmationDiv.appendChild(acceptButton);
   confirmationDiv.appendChild(rejectButton);
-  document.getElementById('slideoverDynamicContent').insertBefore(confirmationDiv, displayWDtarget);
+  // call to /user/AJAX/profilestate.php  ==> logincheck
+  $.ajax({url: "../user/AJAX/profilestate.php", success: function(result){
+    if (result['valid']){
+      //there's a logged in user: show buttons
+      document.getElementById('slideoverDynamicContent').insertBefore(confirmationDiv, displayWDtarget);
+    }else{
+      let loginwarningDiv = document.createElement('div');
+      let loginwarningTextNode = document.createElement('p');
+      loginwarningTextNode.classList.add('text-sm'); 
+      let loginwarningText = document.createTextNode('Further interactions with the database are limited for non-logged in users.'); 
+      loginwarningTextNode.appendChild(loginwarningText); 
+      loginwarningDiv.appendChild(loginwarningTextNode); 
+      document.getElementById('slideoverDynamicContent').insertBefore(loginwarningDiv, displayWDtarget); 
+    }//user is not logged in showing does not make sense
+  }
+});
 }
+
 
 function showHit(id) {
   /**

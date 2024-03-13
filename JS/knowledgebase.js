@@ -1,7 +1,11 @@
 var kb = null; 
 let neoIdOfEt = null;
+
+
 class KnowledgeBase {
-    constructor(et) {
+    constructor(et, state) {
+        this.userstate = state;
+        console.log("RECEIVED STATE IS", et, state); 
         this.addNewButton = document.getElementById('add_kb_relation'); 
         this.mainKBElement = document.getElementById('urlrelations');
         this.subKBElement = document.getElementById('urlrelationscontainer');
@@ -23,6 +27,7 @@ class KnowledgeBase {
         this.subKBElement.innerHTML = ''; 
     }
 */
+
     binkb(e){
     /**
      * Deletes a kb link from the backend 
@@ -45,9 +50,8 @@ class KnowledgeBase {
 
 
     displaySingleEntry(elem){
-        //console.log('start processing'); 
-        //console.log(elem);
         const classScope = this; 
+        console.log("thisloop userstate", this.userstate); 
         const partnername = elem.k.properties.partner;
         const kbuuid = elem.k.properties.uid;
         const kblink = elem.k.properties.partner_uri;
@@ -58,18 +62,23 @@ class KnowledgeBase {
         p_one.addEventListener('click', function(){
             window.open(kblink, '_blank');
         }); 
-        const p_two = document.createElement('p');
         p_one.classList.add('displayPartnerName'); 
         p_one.setAttribute('data-neo', kbneoid); 
         p_one.setAttribute('data-uuid', kbuuid); 
         p_one.setAttribute('data-link', kblink); 
+
         p_one.appendChild(document.createTextNode(partnername)); 
-        p_two.classList.add('xsbinicon', 'bg-green-200', 'm-1', 'p-1', 'rounded-full'); 
-        p_two.addEventListener('click', function(){
-            classScope.binkb(this); 
-        })
+
         kb_block.appendChild(p_one);
+        console.log('CLASSCOPE IN EVENTLOOP', classScope.userstate); 
+        if(classScope.userstate){
+            const p_two = document.createElement('p');
+            p_two.classList.add('xsbinicon', 'bg-green-200', 'm-1', 'p-1', 'rounded-full'); 
+            p_two.addEventListener('click', function(){
+                classScope.binkb(this); 
+            })
         kb_block.appendChild(p_two);
+        }
         console.log(kb_block); 
         this.subKBElement.appendChild(kb_block); 
     }
