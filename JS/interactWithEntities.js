@@ -274,17 +274,14 @@ function showdata(data) {
     gateWay.appendChild(createStableLinkingBlock(neoid, etStable));
     annotationTarget.appendChild(gateWay);
     //display the variant data: 
-    //let spellingVariantDOMReturn; 
     checklogin()
-    .then(valid => {
-      console.log(valid); 
-      //rst = valid['valid'];
-      spellingVariantDOMReturn = new SpellingVariant(data['variants'], neoid, valid);
-    })
-    .catch(error => {
-      spellingVariantDOMReturn = new SpellingVariant(data['variants'], neoid, false);
-    })
-    console.log('B', spellingVariantDOMReturn); 
+      .then(valid => {
+        //rst = valid['valid'];
+        spellingVariantDOMReturn = new SpellingVariant(data['variants'], neoid, valid);
+      })
+      .catch(error => {
+        spellingVariantDOMReturn = new SpellingVariant(data['variants'], neoid, false);
+      })
     //displayET_variant(data['variants'], neoid);
     //With the type known: look up if there's a wikidata attribute: 
     var qidArr = data['entity'][0]['properties'].filter(ar => ar[2] == 'wikidata');

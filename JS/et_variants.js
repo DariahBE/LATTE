@@ -204,7 +204,7 @@ displayET_variant(data, relatedET) {
 //const spellingVariantObject = new SpellingVariantTracker();
 
      get_HTML_content(){
-         //alert('CALLD'); 
+         console.log(this.htmlcontent); 
          return this.htmlcontent;
      }
 

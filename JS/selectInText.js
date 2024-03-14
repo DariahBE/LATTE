@@ -796,74 +796,76 @@ function buildAnnotationCreationBox() {
     document.getElementById('embeddedSpellingVariants').classList.add('hidden');
     console.log('A2', spellingVariantDOMReturn); 
 
-  });
-  console.log('A', spellingVariantDOMReturn); 
-  //let spellingVariantDOMReturn = displayET_variant(null, null);
-  //variantbox has to be invisible in this phase: entity still needs to be created!!
-  //TODO!!: alert('#embeddedSpellingVariants is hidden, make visible again when ET is created.'); 
-  //wikidataPrompt: 
-  var wikidataQLabel = document.createElement('div');
-  wikidataQLabel.setAttribute('readonly', true);
-  wikidataQLabel.setAttribute('id', 'chosenQID');
-  var wikidataPromptMainbox = document.createElement('div');
-  wikidataPromptMainbox.setAttribute('id', 'wdsearchpromptbox');
-  wikidataPromptMainbox.classList.add('my-2', 'py-2', 'border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
-  let wikidataPromptExplain = document.createElement('p');
-  wikidataPromptExplain.classList.add('text-sm', 'w-full', 'text-center');
-  wikidataPromptExplain.appendChild(document.createTextNode('Wikidata lookup using this keyword: '));
-  wikidataPromptMainbox.appendChild(wikidataPromptExplain);
-  let wikidataLogoBox = document.createElement('img');
-  wikidataLogoBox.setAttribute('src', '/images/wikidatawiki_small.png');
-  wikidataLogoBox.classList.add('h-auto', 'max-h-10', 'rounded-r-lg', 'p-1');
-  let wikidataRowBox = document.createElement('div');
-  wikidataRowBox.classList.add('flex');
-  wikidataRowBox.appendChild(wikidataLogoBox);
-  var wikidataInputBox = document.createElement('input');
-  wikidataInputBox.setAttribute('id', 'wikidataInputPrompter');
-  //console.log('creating wdibox.'); 
-  wikidataInputBox.classList.add('border', 'border-gray-300', 'rounded-md', 'shadow-sm', 'focus:outline-none', 'focus:border-indigo-500');
-  wikidataInputBox.value = selectedString;
-  wikidataRowBox.appendChild(wikidataInputBox);
-  //You need to make it possible for users to create an entity in the database that have no existing wikidata ID: 
-  var noWikidataId = document.createElement('button'); 
-  var noWikidataIdText = document.createTextNode('Don\'t link'); 
-  noWikidataId.appendChild(noWikidataIdText);
-  noWikidataId.classList.add('bg-orange-500', 'border-solid', 'hover:bg-orange-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
-  noWikidataId.addEventListener('click', function () {
-    //IF you pass -1 the application won't store the QID. Any newly created entity won't have a value set in the wikidata field. 
-    //TODO: 
-    //      You still need to reset the entity container:
-    //      build element with ID : embeddedET
-    //      trigger element with ID: etcreate
-    acceptQID(-1);
-  }); 
-  var searchButtonForWDPrompt = document.createElement('button');
-  var searchButtonForWDPromptText = document.createTextNode('Search');
-  searchButtonForWDPrompt.classList.add('bg-green-500', 'border-solid', 'hover:bg-green-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
-  searchButtonForWDPrompt.appendChild(searchButtonForWDPromptText);
-  searchButtonForWDPrompt.addEventListener('click', function () {
-    //console.log('make function call get the preferred lookup language!'); 
-    //console.log('lookup and display can be connected!'); 
-    wdprompt(wikidataInputBox.value, 0);
-  });
-  var wikidataResultsBox = document.createElement('div');
-  wikidataResultsBox.setAttribute('id', 'wdpromptBox');
-  wikidataPromptMainbox.appendChild(wikidataQLabel);
-  wikidataPromptMainbox.appendChild(wikidataRowBox);
-  wikidataPromptMainbox.appendChild(searchButtonForWDPrompt);
-  wikidataPromptMainbox.appendChild(noWikidataId);
-  wikidataPromptMainbox.appendChild(wikidataResultsBox);
 
-  //add all boxes to the DOM: 
-  createNodeDiv.appendChild(positionDiv);
-  //createNodeDiv.appendChild(spellingVariantMainBox);
-  //BUG: spellingVariantDOMReturn is out of scope!
-  createNodeDiv.appendChild(spellingVariantDOMReturn.get_HTML_content());
-  //add a WD Promptbox and trigger the function for wikidata_prompting from here:
-  createNodeDiv.appendChild(wikidataPromptMainbox);
-  searchButtonForWDPrompt.click();
-  //done with spelling variants: 
-  return createNodeDiv; 
+    //race condition
+    console.log('A', spellingVariantDOMReturn); 
+    //let spellingVariantDOMReturn = displayET_variant(null, null);
+    //variantbox has to be invisible in this phase: entity still needs to be created!!
+    //TODO!!: alert('#embeddedSpellingVariants is hidden, make visible again when ET is created.'); 
+    //wikidataPrompt: 
+    var wikidataQLabel = document.createElement('div');
+    wikidataQLabel.setAttribute('readonly', true);
+    wikidataQLabel.setAttribute('id', 'chosenQID');
+    var wikidataPromptMainbox = document.createElement('div');
+    wikidataPromptMainbox.setAttribute('id', 'wdsearchpromptbox');
+    wikidataPromptMainbox.classList.add('my-2', 'py-2', 'border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
+    let wikidataPromptExplain = document.createElement('p');
+    wikidataPromptExplain.classList.add('text-sm', 'w-full', 'text-center');
+    wikidataPromptExplain.appendChild(document.createTextNode('Wikidata lookup using this keyword: '));
+    wikidataPromptMainbox.appendChild(wikidataPromptExplain);
+    let wikidataLogoBox = document.createElement('img');
+    wikidataLogoBox.setAttribute('src', '/images/wikidatawiki_small.png');
+    wikidataLogoBox.classList.add('h-auto', 'max-h-10', 'rounded-r-lg', 'p-1');
+    let wikidataRowBox = document.createElement('div');
+    wikidataRowBox.classList.add('flex');
+    wikidataRowBox.appendChild(wikidataLogoBox);
+    var wikidataInputBox = document.createElement('input');
+    wikidataInputBox.setAttribute('id', 'wikidataInputPrompter');
+    //console.log('creating wdibox.'); 
+    wikidataInputBox.classList.add('border', 'border-gray-300', 'rounded-md', 'shadow-sm', 'focus:outline-none', 'focus:border-indigo-500');
+    wikidataInputBox.value = selectedString;
+    wikidataRowBox.appendChild(wikidataInputBox);
+    //You need to make it possible for users to create an entity in the database that have no existing wikidata ID: 
+    var noWikidataId = document.createElement('button'); 
+    var noWikidataIdText = document.createTextNode('Don\'t link'); 
+    noWikidataId.appendChild(noWikidataIdText);
+    noWikidataId.classList.add('bg-orange-500', 'border-solid', 'hover:bg-orange-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
+    noWikidataId.addEventListener('click', function () {
+      //IF you pass -1 the application won't store the QID. Any newly created entity won't have a value set in the wikidata field. 
+      //TODO: 
+      //      You still need to reset the entity container:
+      //      build element with ID : embeddedET
+      //      trigger element with ID: etcreate
+      acceptQID(-1);
+    }); 
+    var searchButtonForWDPrompt = document.createElement('button');
+    var searchButtonForWDPromptText = document.createTextNode('Search');
+    searchButtonForWDPrompt.classList.add('bg-green-500', 'border-solid', 'hover:bg-green-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
+    searchButtonForWDPrompt.appendChild(searchButtonForWDPromptText);
+    searchButtonForWDPrompt.addEventListener('click', function () {
+      //console.log('make function call get the preferred lookup language!'); 
+      //console.log('lookup and display can be connected!'); 
+      wdprompt(wikidataInputBox.value, 0);
+    });
+    var wikidataResultsBox = document.createElement('div');
+    wikidataResultsBox.setAttribute('id', 'wdpromptBox');
+    wikidataPromptMainbox.appendChild(wikidataQLabel);
+    wikidataPromptMainbox.appendChild(wikidataRowBox);
+    wikidataPromptMainbox.appendChild(searchButtonForWDPrompt);
+    wikidataPromptMainbox.appendChild(noWikidataId);
+    wikidataPromptMainbox.appendChild(wikidataResultsBox);
+
+    //add all boxes to the DOM: 
+    createNodeDiv.appendChild(positionDiv);
+    //createNodeDiv.appendChild(spellingVariantMainBox);
+    //BUG: spellingVariantDOMReturn is out of scope!
+    createNodeDiv.appendChild(spellingVariantDOMReturn.get_HTML_content());
+    //add a WD Promptbox and trigger the function for wikidata_prompting from here:
+    createNodeDiv.appendChild(wikidataPromptMainbox);
+    searchButtonForWDPrompt.click();
+    //done with spelling variants: 
+    return createNodeDiv; 
+  });
 }
 
 function createSideSkelleton() {
