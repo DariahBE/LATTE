@@ -783,7 +783,17 @@ function buildAnnotationCreationBox() {
   positionDiv.appendChild(selectedText);
   //positional info added: show spellingvariantbox: 
   //    allow the user to generate a list of spelling variants: 
-  let spellingVariantDOMReturn = displayET_variant(null, null);
+  checklogin()
+  .then(valid => {
+    console.log(valid); 
+    //rst = valid['valid'];
+    spellingVariantDOMReturn = new SpellingVariant(null, null, valid);
+  })
+  .catch(error => {
+    spellingVariantDOMReturn = new SpellingVariant(null, null, false);
+  })
+  console.log('A', spellingVariantDOMReturn); 
+  //let spellingVariantDOMReturn = displayET_variant(null, null);
   //variantbox has to be invisible in this phase: entity still needs to be created!!
   document.getElementById('embeddedSpellingVariants').classList.add('hidden');
   //TODO!!: alert('#embeddedSpellingVariants is hidden, make visible again when ET is created.'); 
@@ -843,7 +853,7 @@ function buildAnnotationCreationBox() {
   //add all boxes to the DOM: 
   createNodeDiv.appendChild(positionDiv);
   //createNodeDiv.appendChild(spellingVariantMainBox);
-  createNodeDiv.appendChild(spellingVariantDOMReturn);
+  createNodeDiv.appendChild(spellingVariantDOMReturn.get_HTML_content());
   //add a WD Promptbox and trigger the function for wikidata_prompting from here:
   createNodeDiv.appendChild(wikidataPromptMainbox);
   searchButtonForWDPrompt.click();

@@ -251,7 +251,7 @@ function showHit(id) {
    * user assigns the selected string to a given entity. 
    */
   //stop tracking variants of previous hit if you switch to a new iter
-  purgeVariantBox();
+  purgeVariantBox(); //variantbugpatch!
   //Used for disambiguation between one-to-many relations!
   let replaceContent = document.getElementById('displayHitEt');
   replaceContent.innerHTML = '';

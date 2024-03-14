@@ -9,12 +9,18 @@ class KnowledgeBase {
         this.addNewButton = document.getElementById('add_kb_relation'); 
         this.mainKBElement = document.getElementById('urlrelations');
         this.subKBElement = document.getElementById('urlrelationscontainer');
-        console.log(this.mainKBElement, this.subKBElement, this.addNewButton); 
+        this.addNewButton.style.display = 'none'; 
+        this.addNewButton.disabled = true; 
+
+        console.log(et,state); 
         if(!(et===false)){
             this.displayEntries(et); 
             this.neoIdOfEt = et; 
-        }else{
-            document.getElementById('add_kb_relation').disabled = true; 
+            if(this.userstate){
+                this.addNewButton.disabled = false; 
+                this.addNewButton.style.display = ''; 
+
+            }
         }
         this.addNewButton.addEventListener('click', () => {
             this.buildCreationDisplay(); 
@@ -187,6 +193,7 @@ class KnowledgeBase {
     }
 
     buildCreationDisplay(){
+        if(!(this.userstate)){return;}
         // TODO disable submitaction and creataction when entityID is missing!!! 
         //
         //builds a two-field form: partner name and the URI
