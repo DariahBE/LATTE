@@ -131,76 +131,82 @@ class SpellingVariant {
 variantNeoId = -1;
 
 displayET_variant(data, relatedET) {
-    this.variantNeoId = relatedET; 
-    let classScope = this; 
-    //required is the extra nod ID (relatedET)
-    //TODO: determine if the user is logged in or not to hide creationbox and bin elements!
-    //where to put the box that interacts with variantdata: 
-    //etVariantsTarget is the only ID you should use to display variant collection. 
-    const target = document.getElementById('etVariantsTarget'); 
-    this.spellingVariantTracker = [];
-    var spellingVariantMainBox = document.createElement('div');
-    spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
-    let spellingVariantTitle = createDivider('Naming variants: '); 
-    spellingVariantMainBox.appendChild(spellingVariantTitle);
-    spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow'); 
-    var spellingVariantCreation = document.createElement('input'); 
-    spellingVariantCreation.setAttribute('id', 'variantInputBox'); 
-    spellingVariantCreation.classList.add('border-solid', 'border-2')
-    var spellingVariantSubBox = document.createElement('div');
-    spellingVariantSubBox.setAttribute('id', 'variantStorageBox'); 
-    spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex-wrap');
-    var addToStorageBox = document.createElement('button'); 
-    addToStorageBox.appendChild(document.createTextNode('Add')); 
-    addToStorageBox.addEventListener('click', function(){
-      let writtenValue = document.getElementById('variantInputBox').value; 
-        if(classScope.spellingVariantTracker.includes(writtenValue)){
-            return;
-        }else{
-            //BUG: CAREFULL!!! if relatedET === FALSE you'll need to submit a new entity node first!!
-            //      might be prone to race conditions (test this!)
-            //send it to BE ==> return the NEOID and UID!
-            //first get a token from the DB: 
-            // let userHasSession = true;
-            // console.warn('hardcoded session'); 
-            // console.log('second user sessioncheck=', userHasSession); 
-            fetch("/AJAX/getdisposabletoken.php")
-            .then(response => response.json())
-            .then(data => {
-              const token = data;
-                //do a call to AJAX/variants/make.php
-                // pass two URL arguments: 
-                //     $_GET['varlabel'] ==> for the written variant label
-                //     (int)$_GET['entity'] ==> for the Neo ID of the enity
-                fetch("/AJAX/variants/make.php?varlabel="+writtenValue+"&entity="+relatedET+"&token="+token)
-                .then(response => response.json())
-                .then(data => {
-                    let nid = data['data']['nid']; 
-                    let uuid = data['data']['uuid'];
-                    document.getElementById('variantInputBox').value = ''; 
-                    classScope.addVariantInBox(writtenValue, uuid, nid, classScope.userstate); 
-                });
-            });
-        }
-    }); 
-    spellingVariantMainBox.appendChild(spellingVariantCreation);
-    spellingVariantMainBox.appendChild(addToStorageBox);
-    spellingVariantMainBox.appendChild(spellingVariantSubBox);
-    target.appendChild(spellingVariantMainBox); 
-    if (data !== null && relatedET !== null){
-        //if no data is passed; only generate an empty box with all functionality. 
-        this.neoVarsToDom(data);
-    }
+    //NEEDS A PROMISE
+    console.warn('YOU ARE HERE');
+    console.log(data, relatedET);
+    this.variantNeoId = relatedET;
+    return new Promise((resolve, reject) => {
+        let classScope = this;
+        const target = document.getElementById('etVariantsTarget');
+        this.spellingVariantTracker = [];
+        var spellingVariantMainBox = document.createElement('div');
+        spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
+        console.log(spellingVariantMainBox);
+        let spellingVariantTitle = createDivider('Naming variants: ');
+        spellingVariantMainBox.appendChild(spellingVariantTitle);
+        spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
 
-    this.htmlcontent =  spellingVariantMainBox;
+        if (classScope.userstate) {
+            var spellingVariantCreation = document.createElement('input');
+            spellingVariantCreation.setAttribute('id', 'variantInputBox');
+            spellingVariantCreation.classList.add('border-solid', 'border-2');
+            var addToStorageBox = document.createElement('button');
+            addToStorageBox.appendChild(document.createTextNode('Add'));
+            addToStorageBox.addEventListener('click', function () {
+                let writtenValue = document.getElementById('variantInputBox').value;
+                if (classScope.spellingVariantTracker.includes(writtenValue)) {
+                    return;
+                } else {
+                    fetch("/AJAX/getdisposabletoken.php")
+                        .then(response => response.json())
+                        .then(data => {
+                            const token = data;
+                            fetch("/AJAX/variants/make.php?varlabel=" + writtenValue + "&entity=" + relatedET + "&token=" + token)
+                                .then(response => response.json())
+                                .then(data => {
+                                    let nid = data['data']['nid'];
+                                    let uuid = data['data']['uuid'];
+                                    document.getElementById('variantInputBox').value = '';
+                                    classScope.addVariantInBox(writtenValue, uuid, nid, classScope.userstate);
+                                    resolve(spellingVariantMainBox); // Resolve promise when operation is complete
+                                })
+                                .catch(error => {
+                                    reject(error); // Reject promise if there is an error
+                                });
+                        })
+                        .catch(error => {
+                            reject(error); // Reject promise if there is an error
+                        });
+                }
+            });
+            spellingVariantMainBox.appendChild(spellingVariantCreation);
+            spellingVariantMainBox.appendChild(addToStorageBox);
+        }
+
+        var spellingVariantSubBox = document.createElement('div');
+        spellingVariantSubBox.setAttribute('id', 'variantStorageBox');
+        spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex-wrap');
+
+        spellingVariantMainBox.appendChild(spellingVariantSubBox);
+        target.appendChild(spellingVariantMainBox);
+        if (data !== null && relatedET !== null) {
+            this.neoVarsToDom(data);
+        }
+        console.warn('SETTING CONTENT');
+        this.htmlcontent = spellingVariantMainBox;
+    });
 }
+
+
+
+
 
 //const spellingVariantObject = new SpellingVariantTracker();
 
-    get_HTML_content(){
-        alert('CALLD'); 
-        return this.htmlcontent;
-    }
+     get_HTML_content(){
+         //alert('CALLD'); 
+         return this.htmlcontent;
+     }
 
 
 }
