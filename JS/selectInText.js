@@ -119,7 +119,11 @@ function displayUpdatedText(type, start, stop, uuid){
 function saveNewDB() {
   /**
    * Function that saves a newly created entity in the Database.
+   * Triggered when a text selection is not recognized as an existing ET, 
+   * will create a new ET, ANNO and variant node.
    */
+  //alert('capter snd'); 
+  console.log('Trigger into saveNewDB, creating new ET, Anno and VAR'); 
   let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
   //IS erverything valid 
   //validate in backend too!!
@@ -129,7 +133,7 @@ function saveNewDB() {
     fetch("/AJAX/getdisposabletoken.php")
       .then(response => response.json())
       .then(data => {
-        const token = data;
+        const token = data;     ///CSRF token
         //fetch all fields: 
         ///////ANNOTATION: 
         //get text that is selected
@@ -147,11 +151,9 @@ function saveNewDB() {
         /////// PROPERTIES of a given entity: 
         let properties = {};
         const etType = document.getElementById('entityTypeSelector').value;
-        console.log('CHOSEN ET: ', etType); 
         let propertyPairs = document.getElementById('propertyBox').getElementsByTagName('div');
-        console.log(propertyPairs);
-        for (p = 0; p < propertyPairs.length; p++) {
-          let pair = propertyPairs[p].getElementsByTagName('input')[0];
+        for (let pp = 0; pp < propertyPairs.length; pp++) {
+          let pair = propertyPairs[pp].getElementsByTagName('input')[0];
           let pairName = pair.name;
           let pairValue = pair.value;
           let pairType = pair.type; 
@@ -167,11 +169,7 @@ function saveNewDB() {
         dataObject['nodetype'] = etType;
         //let annotationCollectionBox = {};
         let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
-        //BUG 15/2/24
-        //BUG when you connect an annotation to an existing ET, it fails to capture the properties of the anno; 
         let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
-        console.log('captured data', annotationCollectionBox); 
-        alert('datacapture!!'); //not triggered!! Why?
         // 
         /*for(let i = 0; i < annotationProperties.length; i++){
           let box = annotationProperties[i].getElementsByClassName('inputelement')[0];
@@ -204,15 +202,12 @@ function saveNewDB() {
             let put_rs = data['data']; 
             loadAnnotationData(put_rs['uuid']);
             displayUpdatedText(put_rs['type'], put_rs['start'], put_rs['stop'], put_rs['uuid']); 
-            //TODO update in TEXTDOM that there's an annotation there:
-            //    Needs access to start and stop property of node select
-            //    Needs acces to set type....
-            //    Best coarse of action is to extend put_annotation.php and make it return the data from there.
           })
           .catch(function(data){
-            console.log(data); 
+            //console.log(data); 
             let errorMessage = data['ERR']; 
-            console.log(errorMessage); 
+            updateState('ERROR', errorMessage); 
+            //console.log(errorMessage); 
              
           })
           .always(function(){
@@ -222,18 +217,14 @@ function saveNewDB() {
       }); 
       document.getElementById('saveEtToDb').setAttribute('disabled', true); // Prevents dual submission!
   } else {
+    //OK
     //  ==> form data is not valid: types don't match config definitions.
     let shakeButton = document.getElementById('saveEtToDb');
     shakeButton.classList.add('animate-shake');
     shakeButton.addEventListener("animationend", function () {
       shakeButton.classList.remove('animate-shake');
     }, false);
-
   }
-
-
-
-
   //show request results.
 }
 
@@ -546,29 +537,31 @@ function showET(etdata) {
         rejectLink.appendChild(rejectText); 
         acceptLink.classList.add('bg-green-400');
         rejectLink.classList.add('bg-orange-400'); 
-        rejectLink.addEventListener('click', function (){
+        function disableInternalButtons(){
           acceptLink.disabled = true;
           rejectLink.disabled = true;
-          
+        }
+
+        rejectLink.addEventListener('click', function (){
+          console.log(1);
+          disableInternalButtons();
+          console.log(2);
           acceptQID(-1);
+          console.log(3);
           // at this stage: the user rejects the link to the provided entity and wants to manually create a new entity. 
           //TODO critical 
           alert('NEEDS TO BE IMPLEMENTED FURTHER'); 
         })
         acceptLink.addEventListener('click', async function () {
           //make buttons unresponsive: 
-          acceptLink.disabled = true;
-          rejectLink.disabled = true;
+          disableInternalButtons();
+
           //data to send to server
           //read the content of the div that holds annotation data when connecting nodes 
-          //BUG 15/2/24
-          //BUG when you connect an annotation to an existing ET, it fails to capture the properties of the anno; 
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
           let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
           console.log(annotationCollectionBox);  
-          //BUG & //TODO: 
-          console.warn('problem pending in selectInText.js > showET(); '); 
-          await connectAnnoToEntity(etdata[0], languageOptions['nodeid'], globalSelectionStart, globalSelectionEnd, globalSelectionText, csrf); 
+          await connectAnnoToEntity(etdata[0], languageOptions['nodeid'], globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox,  csrf); 
 
         });
         //calls a helper function that generates the input elements
@@ -626,15 +619,25 @@ function updateState(key, msg){
   document.getElementById('usernoticevalue').textContent = msg;
 }
 
+function createEmbbeddedETDiv(){
+  alert('called??'); 
+  var embeddedCreateDiv = document.createElement('div');
+  embeddedCreateDiv.setAttribute('id', 'embeddedET');
+  embeddedCreateDiv.classList.add('hidden');
+  return embeddedCreateDiv; 
+}
+
 function buildAnnotationCreationBox() {
   console.warn('call into buildAnnotationCreationBox'); 
   var createNodeDiv = document.createElement('div');
   createNodeDiv.classList.add('w-full');
   createNodeDiv.setAttribute('id', 'etcreate');
-
+  /*
   var embeddedCreateDiv = document.createElement('div');
   embeddedCreateDiv.setAttribute('id', 'embeddedET');
   embeddedCreateDiv.classList.add('hidden');
+  */
+  var embeddedCreateDiv = createEmbbeddedETDiv(); 
   var annotationDiv = document.createElement('div');
   annotationDiv.classList.add('hidden');
   annotationDiv.setAttribute('id', 'annotationCreationDiv');
@@ -794,14 +797,8 @@ function buildAnnotationCreationBox() {
   })
   .finally(()=>{
     document.getElementById('embeddedSpellingVariants').classList.add('hidden');
-    console.log('A2', spellingVariantDOMReturn); 
-
-
-    //race condition
-    console.log('A', spellingVariantDOMReturn); 
     //let spellingVariantDOMReturn = displayET_variant(null, null);
     //variantbox has to be invisible in this phase: entity still needs to be created!!
-    //TODO!!: alert('#embeddedSpellingVariants is hidden, make visible again when ET is created.'); 
     //wikidataPrompt: 
     var wikidataQLabel = document.createElement('div');
     wikidataQLabel.setAttribute('readonly', true);
@@ -970,7 +967,6 @@ function triggerSidePanelAction(entityData) {
   //TODO pass an entity neo id to the knowledgebase constructor 
   checklogin()
     .then(valid => {
-        console.log(valid); 
         kb = new KnowledgeBase(false, valid);
     })
     .catch(error => {

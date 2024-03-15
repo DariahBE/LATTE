@@ -6,7 +6,6 @@ function checklogin() {
         $.ajax({
             url: "../user/AJAX/profilestate.php",
             success: function(result) {
-                console.log("RESULT OF LOGIN CHECK!", result['valid']);
                 resolve(result['valid']);
             },
             error: function(error) {
@@ -21,7 +20,6 @@ class SpellingVariant {
     constructor(data,etid, state) {
         this.userstate = state;
         this.spellingVariantTracker = [];
-        console.log(data, etid); 
         this.displayET_variant(data, etid); 
     }
 
@@ -56,7 +54,6 @@ class SpellingVariant {
          */
         this.spellingVariantTracker = []; 
         let cleanupVarbox = document.getElementById('variantStorageBox'); 
-        console.log(cleanupVarbox); 
         if (cleanupVarbox !== null){
         cleanupVarbox.innerHTML = ''; 
         }
@@ -99,7 +96,6 @@ class SpellingVariant {
          */
         let repl = [] 
         data.forEach( variant => {
-            console.log(variant)
             let varuid = variant['primary'][1]; 
             let varstring = variant['label']; 
             let varneo = variant['neoid']; 
@@ -132,8 +128,6 @@ variantNeoId = -1;
 
 displayET_variant(data, relatedET) {
     //NEEDS A PROMISE
-    console.warn('YOU ARE HERE');
-    console.log(data, relatedET);
     this.variantNeoId = relatedET;
     return new Promise((resolve, reject) => {
         let classScope = this;
@@ -141,7 +135,6 @@ displayET_variant(data, relatedET) {
         this.spellingVariantTracker = [];
         var spellingVariantMainBox = document.createElement('div');
         spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
-        console.log(spellingVariantMainBox);
         let spellingVariantTitle = createDivider('Naming variants: ');
         spellingVariantMainBox.appendChild(spellingVariantTitle);
         spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
@@ -192,7 +185,6 @@ displayET_variant(data, relatedET) {
         if (data !== null && relatedET !== null) {
             this.neoVarsToDom(data);
         }
-        console.warn('SETTING CONTENT');
         this.htmlcontent = spellingVariantMainBox;
     });
 }
@@ -204,7 +196,6 @@ displayET_variant(data, relatedET) {
 //const spellingVariantObject = new SpellingVariantTracker();
 
      get_HTML_content(){
-         console.log(this.htmlcontent); 
          return this.htmlcontent;
      }
 

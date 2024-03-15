@@ -28,7 +28,7 @@ function buildCaroussel(){
             var next_arrow = document.createElement('i');
             prev_arrow.classList.add('gg-chevron-left', 'float-left');
             next_arrow.classList.add('gg-chevron-right', 'float-right'); 
-            if(i== 0){
+            if(i == 0){
                 prev_arrow.classList.add('invisible', 'hidden', 'disabled');
             }else{
                 prev_arrow.classList.remove('invisible', 'hidden', 'disabled');
@@ -45,6 +45,7 @@ function buildCaroussel(){
             copyRightDiv.innerHTML = goToWikidata; 
             var img = document.createElement('img'); 
             //BUG: when doing requests of an image: you get a cookie warning. 
+            //document.cookie = "NetworkProbeLimit=0; SameSite=None";
             // https://gerrit.wikimedia.org/r/c/operations/puppet/+/989457
             // Cookie “NetworkProbeLimit” does not have a proper “SameSite” attribute value 
             img.setAttribute('src', allImagesInList[i][0]);

@@ -147,6 +147,7 @@ function acceptQID(qid = -1) {
       .then((data) => {
         //console.log('dataresult', data); 
         if (data == 0) {
+          console.warn('YOU NEED TO UPDATE DOM FOR EMPTY RESULTSET RETURN!'); 
           console.log('ZEROReturn');
           //TODO required??
         } else {
@@ -177,12 +178,22 @@ function acceptQID(qid = -1) {
       })
   }
   //delete all elements that are related to WD, get started with creating the ET
-  let baseElem = document.getElementById('embeddedET');
+  let baseElem = document.getElementById('embeddedET')
+  if (baseElem === null){
+    // to be tested using text 10005
+    //BUG: high priority bug 15/3/24 
+    //TODO and //BUG: there's a metric fuckton of problems in this piece of logic
+    //buildAnnotationCreationBox()
+    /*baseElem = createEmbbeddedETDiv();
+    document.getElementById('').appendChild(baseElem)*/
+    //TODO: append to DOM with container elements.
+  }
+
   baseElem.classList.remove('hidden');
   let creationElement = document.getElementById('etcreate');
   creationElement.classList.add('getAttention');
 }
-
+console.warn("Urgent patch needed for bug: 15/3/24. (Use disambiguation process in text 10005)");
 function pickThisQID(qid) {
   chosenQID = qid;
   //console.log(qid); 
@@ -249,9 +260,16 @@ function showHit(id) {
    * When a wikidata ID is shared among multiple entities. This 
    * function will display each given entity in a DIV until the 
    * user assigns the selected string to a given entity. 
+   * 
    */
+  alert('showing hit', id); 
   //stop tracking variants of previous hit if you switch to a new iter
-  purgeVariantBox(); //variantbugpatch!
+  //BUG (Patchcode in place, requires test:): Not working, this function is now a method used by the SpellingVariant
+  // class!!! Needs acces to the global handle(spellingVariantDOMReturn)
+  //old code: 
+  //purgeVariantBox(); //variantbugpatch!
+  //TODO: patchcode (test pendin): 
+  spellingVariantDOMReturn.purgeVariantBox(); 
   //Used for disambiguation between one-to-many relations!
   let replaceContent = document.getElementById('displayHitEt');
   replaceContent.innerHTML = '';
@@ -380,6 +398,7 @@ let checkIfConnectionExists = async (qid) => {
                 .then((token) => {
                   if(token.valid){
                     //                  neoid of e, neoid of text, selectstart, selectistop, selectedtext, securitytoken
+                           //SIGNATURE:(neoid_et, text_neo_id          , selection_start     , selection_end      , selected_text     , extra_properties       , token)
                     connectAnnoToEntity(hits[j], languageOptions.nodeid, globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox, token.csrf);
                   }
                 })

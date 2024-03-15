@@ -5,14 +5,14 @@ let neoIdOfEt = null;
 class KnowledgeBase {
     constructor(et, state) {
         this.userstate = state;
-        console.log("RECEIVED STATE IS", et, state); 
+        //console.log("RECEIVED STATE IS", et, state); 
         this.addNewButton = document.getElementById('add_kb_relation'); 
         this.mainKBElement = document.getElementById('urlrelations');
         this.subKBElement = document.getElementById('urlrelationscontainer');
         this.addNewButton.style.display = 'none'; 
         this.addNewButton.disabled = true; 
 
-        console.log(et,state); 
+        // console.log(et,state); 
         if(!(et===false)){
             this.displayEntries(et); 
             this.neoIdOfEt = et; 
@@ -57,7 +57,7 @@ class KnowledgeBase {
 
     displaySingleEntry(elem){
         const classScope = this; 
-        console.log("thisloop userstate", this.userstate); 
+        // console.log("thisloop userstate", this.userstate); 
         const partnername = elem.k.properties.partner;
         const kbuuid = elem.k.properties.uid;
         const kblink = elem.k.properties.partner_uri;
@@ -76,7 +76,7 @@ class KnowledgeBase {
         p_one.appendChild(document.createTextNode(partnername)); 
 
         kb_block.appendChild(p_one);
-        console.log('CLASSCOPE IN EVENTLOOP', classScope.userstate); 
+        // console.log('CLASSCOPE IN EVENTLOOP', classScope.userstate); 
         if(classScope.userstate){
             const p_two = document.createElement('p');
             p_two.classList.add('xsbinicon', 'bg-green-200', 'm-1', 'p-1', 'rounded-full'); 
@@ -85,7 +85,7 @@ class KnowledgeBase {
             })
         kb_block.appendChild(p_two);
         }
-        console.log(kb_block); 
+        // console.log(kb_block); 
         this.subKBElement.appendChild(kb_block); 
     }
   
