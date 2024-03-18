@@ -466,14 +466,41 @@ async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selec
 
 }
 
+function deleteIfExistsById(id){
+  let elem = document.getElementById(id); 
+  if (elem !== null){
+    elem.remove(); 
+  }
+}
+
+console.warn('High priority bug in selectInText.js > showET(): note privacy settting not working.');
 function showET(etdata) {
+  /**
+   *      function will display WD, label and properties for any 
+   *  given entity that has en entry in the database. If a link
+   *  is accepted, the given neoid of the entity node will be 
+   *  used to generate a new annotation.
+   */
+  //read the properties from the entity passed as an argument
+  let etdataNeoId = etdata[0];
+  let etLabel = etdata[1]; 
+  let properties = etdata[2];
+  let wikidataID = etdata[3];
+  //Show the node label: 
+  let etLabelElem = document.createElement('h2'); 
+  etLabelElem.appendChild(document.createTextNode(etLabel)); 
+  etLabelElem.classList.add('text-lg', 'font-bold');      //TODO make this full width and centered. 
+  //console.log(etdata); 
+  //remove old elements by their ID.
+  //BUG 18/3/24: annotations that are created by linking them after using the nav elements are always private no matter how you set them up!
+  deleteIfExistsById('assignEtToSelectionParent');
+  deleteIfExistsById('annotationCreationDiv');
   let wd = null;
   let wdboxToDrop = document.getElementById('WDResponseTarget');
   if (wdboxToDrop) { wdboxToDrop.remove(); }
   const subtarget = document.getElementById('entitycontent');
   subtarget.innerHTML = '';
-  var label = etdata[1];
-  var properties = etdata[2];
+  subtarget.appendChild(etLabelElem); 
   var propdiv = document.createElement('div');
   for (let k in properties) {
     let show = null;
@@ -508,7 +535,6 @@ function showET(etdata) {
     propdiv.appendChild(show);
   }
   document.getElementById('entitycontent').appendChild(propdiv);
-  var wikidataID = etdata[3];
   if (wikidataID) {
     wd = new wikibaseEntry(wikidataID, wdProperties, 'slideover', 'qid');
     wd.getWikidata()
@@ -561,7 +587,7 @@ function showET(etdata) {
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
           let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
           console.log(annotationCollectionBox);  
-          await connectAnnoToEntity(etdata[0], languageOptions['nodeid'], globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox,  csrf); 
+          await connectAnnoToEntity(etdataNeoId, languageOptions['nodeid'], globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox,  csrf); 
 
         });
         //calls a helper function that generates the input elements
@@ -620,7 +646,7 @@ function updateState(key, msg){
 }
 
 function createEmbbeddedETDiv(){
-  alert('called??'); 
+  //alert('called??'); 
   var embeddedCreateDiv = document.createElement('div');
   embeddedCreateDiv.setAttribute('id', 'embeddedET');
   embeddedCreateDiv.classList.add('hidden');
@@ -818,6 +844,11 @@ function buildAnnotationCreationBox() {
     wikidataRowBox.appendChild(wikidataLogoBox);
     var wikidataInputBox = document.createElement('input');
     wikidataInputBox.setAttribute('id', 'wikidataInputPrompter');
+    wikidataInputBox.addEventListener('keydown', function(e){
+      if (e.key === 'Enter') {
+        wdprompt(wikidataInputBox.value, 0);
+    }
+    })
     //console.log('creating wdibox.'); 
     wikidataInputBox.classList.add('border', 'border-gray-300', 'rounded-md', 'shadow-sm', 'focus:outline-none', 'focus:border-indigo-500');
     wikidataInputBox.value = selectedString;
@@ -950,6 +981,7 @@ function createSideSkelleton() {
   //mainblock.appendChild(wdblock);
 }
 
+
 function triggerSidePanelAction(entityData) {
   /*
       Side panel triggered when creating an entity from a non-annotated piece of text!
@@ -1013,7 +1045,7 @@ function triggerSidePanelAction(entityData) {
     var pageLength = dataDictionary.length;
 
     function navET(dir) {
-      alert('moving ET');
+      console.warn('moving ET');
       //navigates through the dataDictionary and picks a page(entity). 
       //only used when 2 or more possible entities are part of the selection.
       //TODO: update of DOM isn't working!
@@ -1040,7 +1072,6 @@ function triggerSidePanelAction(entityData) {
       }
       document.getElementById('xofindicator').innerHTML = datadictpage + 1;
       showET(dataDictionary[datadictpage]);
-      //OK
     }
 
     if (Object.keys(dataDictionary).length > 1) {

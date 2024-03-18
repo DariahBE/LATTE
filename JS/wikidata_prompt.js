@@ -178,22 +178,20 @@ function acceptQID(qid = -1) {
       })
   }
   //delete all elements that are related to WD, get started with creating the ET
-  let baseElem = document.getElementById('embeddedET')
+  let baseElem = document.getElementById('embeddedET'); 
+  //If baseElem is not present in the DOM: make it and clear out pending links. 
+  //user wants to create a new link: clear etmain and build the box to create
+  // a new ET and annotation.
   if (baseElem === null){
-    // to be tested using text 10005
-    //BUG: high priority bug 15/3/24 
-    //TODO and //BUG: there's a metric fuckton of problems in this piece of logic
-    //buildAnnotationCreationBox()
-    /*baseElem = createEmbbeddedETDiv();
-    document.getElementById('').appendChild(baseElem)*/
-    //TODO: append to DOM with container elements.
+    buildAnnotationCreationBox();
+    //baseElem = createEmbbeddedETDiv();
+    document.getElementById('etmain').innerHTML = ''; 
   }
 
   baseElem.classList.remove('hidden');
   let creationElement = document.getElementById('etcreate');
   creationElement.classList.add('getAttention');
 }
-console.warn("Urgent patch needed for bug: 15/3/24. (Use disambiguation process in text 10005)");
 function pickThisQID(qid) {
   chosenQID = qid;
   //console.log(qid); 
@@ -255,13 +253,59 @@ function pickThisQID(qid) {
 }
 
 
+//GLOBALSCOPE!
+console.warn('High priority bug in wikidata_prompt.js > showHit() > needs to be rewritten to act as mediator to showET(); ')
 function showHit(id) {
   /**
    * When a wikidata ID is shared among multiple entities. This 
    * function will display each given entity in a DIV until the 
    * user assigns the selected string to a given entity. 
    * 
+  */
+  updateState('STATE: ', 'There is one or more entity in the database with the same wikidata Q-identifier. You can connect it to one of these, or create a new entity.'); 
+  //TODO requires debugging. BUG 18/3/24
+  /**
+   *    how to trigger error: 
+   * open text 10005,
+   * select a word, replace the wikidata string with 'Oppenheimer'
+   * Link it to the 2023 movie, now you have an error triggered when 
+   * browsing the related hits! 
+   * 
+   * Possible solution is to integrate this in showEt(), use showHit
+   * to fetch the entity data, then use showET to display the data!
    */
+  //TODO: mediator required here. 
+  //fetchEtInfo(id);
+  //ajax()
+  //fetch data: 
+  var xhr = new XMLHttpRequest();
+  xhr.open('GET', 'http://entitylinker.test/AJAX/getETById.php?id=' + id + '&extended=1', true);
+  // Set up a callback function, make it pass the responsedata to showET!
+  xhr.onload = function() {
+    if (xhr.status >= 200 && xhr.status < 300) {
+      // Request was successful
+      // TODO debug mediator!
+      var jsonResponse = JSON.parse(xhr.responseText);
+      console.log(jsonResponse);
+      const etid = id; 
+      const label = jsonResponse['label']; 
+      const properties = jsonResponse['properties']; 
+      const qid = '';
+      showET([etid, label, properties, qid]);
+      //console.log(response);
+    } else {
+      // Request failed
+      console.error('Request failed with status: ' + xhr.status);
+    }
+  };
+
+  // Send the request
+  xhr.send();
+
+
+  return; 
+  //untampered code below this comment (above are fixes for BUG 18/3/24)
+
   alert('showing hit', id); 
   //stop tracking variants of previous hit if you switch to a new iter
   //BUG (Patchcode in place, requires test:): Not working, this function is now a method used by the SpellingVariant
