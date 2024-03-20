@@ -288,9 +288,10 @@ function showHit(id) {
       var jsonResponse = JSON.parse(xhr.responseText);
       console.log(jsonResponse);
       const etid = id; 
-      const label = jsonResponse['label']; 
-      const properties = jsonResponse['properties']; 
-      const qid = '';
+      const label = jsonResponse['extra']['label']; 
+      const properties = jsonResponse['props']; 
+      const qid = chosenQID;
+      console.log('SENDING DATA TO showET method', etid, label, properties, qid); 
       showET([etid, label, properties, qid]);
       //console.log(response);
     } else {
@@ -302,7 +303,7 @@ function showHit(id) {
   // Send the request
   xhr.send();
 
-
+/*
   return; 
   //untampered code below this comment (above are fixes for BUG 18/3/24)
 
@@ -341,7 +342,7 @@ function showHit(id) {
     //get DB information about this et: 
     showDBInfoFor(id, true);
 
-  });
+  });*/
 }
 
 let checkIfConnectionExists = async (qid) => {

@@ -4,6 +4,22 @@ let globalSelectionEnd = null;
 let targetOfInfo = null; 
 const selectInTexDebug = false; 
 
+
+function insertAfter(referenceID, elementToAdd){
+  /**
+   *  counterpart to  native insertBefore()
+   *  takes two arguments: 
+   *    1) The ID of a reference element
+   *    2) The element to insert
+   *  if the reference element is NULL it will give a console warning!
+   */
+  const referenceNode = document.getElementById(referenceID);
+  if (referenceNode === null){
+    console.error('Element with ID '+referenceID+' was not found in the DOM' ); 
+    return; 
+  }
+  referenceNode.parentNode.insertBefore(elementToAdd, referenceNode.nextSibling);
+}
 function ignoreSuggestion() {
   var isOpen = document.getElementById("suggestionOnSelect");
   if (isOpen) {
@@ -473,6 +489,7 @@ function deleteIfExistsById(id){
   }
 }
 
+
 console.warn('High priority bug in selectInText.js > showET(): note privacy settting not working.');
 function showET(etdata) {
   /**
@@ -487,20 +504,26 @@ function showET(etdata) {
   let properties = etdata[2];
   let wikidataID = etdata[3];
   //Show the node label: 
-  let etLabelElem = document.createElement('h2'); 
-  etLabelElem.appendChild(document.createTextNode(etLabel)); 
-  etLabelElem.classList.add('text-lg', 'font-bold');      //TODO make this full width and centered. 
+  // let etLabelElem = document.createElement('h2'); 
+  // etLabelElem.appendChild(document.createTextNode(etLabel)); 
+  // etLabelElem.classList.add('text-lgss', 'font-bold'); 
   //console.log(etdata); 
   //remove old elements by their ID.
-  //BUG 18/3/24: annotations that are created by linking them after using the nav elements are always private no matter how you set them up!
+  //BUG CRITICAL 18/3/24: annotations that are created by linking them after using the nav elements are always private no matter how you set them up!
   deleteIfExistsById('assignEtToSelectionParent');
   deleteIfExistsById('annotationCreationDiv');
   let wd = null;
   let wdboxToDrop = document.getElementById('WDResponseTarget');
   if (wdboxToDrop) { wdboxToDrop.remove(); }
-  const subtarget = document.getElementById('entitycontent');
+  let subtarget = document.getElementById('entitycontent');
+  if (subtarget === null){
+    subtarget = createMainBox(); 
+    insertAfter('neobox', subtarget); 
+    //let referenceNode = document.getElementById('neobox'); 
+    //referenceNode.parentNode.insertBefore(subtarget, referenceNode.nextSibling);
+  }
   subtarget.innerHTML = '';
-  subtarget.appendChild(etLabelElem); 
+  // subtarget.appendChild(etLabelElem); 
   var propdiv = document.createElement('div');
   for (let k in properties) {
     let show = null;
@@ -534,11 +557,22 @@ function showET(etdata) {
     }
     propdiv.appendChild(show);
   }
-  document.getElementById('entitycontent').appendChild(propdiv);
+  let entityContentElement = document.getElementById('entitycontent'); 
+  if(entityContentElement === null){
+    created_etnav = document.createElement('div');
+    created_etnav.setAttribute('id', 'etnav'); 
+    entityContentElement = document.createElement('div'); 
+    entityContentElement.setAttribute('id', 'entitycontent'); 
+    document.getElementById('etmain').appendChild(created_etnav);
+    document.getElementById('etmain').appendChild(entityContentElement);
+    //alert('Created new element!'); 
+  }
+
+  entityContentElement.appendChild(propdiv);
   if (wikidataID) {
     wd = new wikibaseEntry(wikidataID, wdProperties, 'slideover', 'qid');
     wd.getWikidata()
-      .then(function () { wd.renderEntities(wikidataID) });
+      .then(function(){wd.renderEntities(wikidataID)});
   }
   //with the data displayed: allow the user to accept the suggestion => this creates a new annotation between
   //the text and existing ET. 
@@ -581,7 +615,6 @@ function showET(etdata) {
         acceptLink.addEventListener('click', async function () {
           //make buttons unresponsive: 
           disableInternalButtons();
-
           //data to send to server
           //read the content of the div that holds annotation data when connecting nodes 
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
@@ -592,31 +625,9 @@ function showET(etdata) {
         });
         //calls a helper function that generates the input elements
         //according to their type. All elements are then added to
-        //annotationProperties. 
-        annotationProperties = document.createElement('div');
-        annotationProperties.setAttribute('id', 'annotationCreationDiv');
-        annoPromptTitle = document.createElement('h3');
-        annoPromptTitle.appendChild(document.createTextNode('Annotation properties:'));
-        annotationProperties.appendChild(annoPromptTitle);
-        let annoSubContent = document.createElement('div');
-        buildPropertyInputFieldsFor('Annotation').then((content) => {
-          for (let i = 0; i < Object.keys(content).length; i++) {
-            //don't show: start, stop, selectedtext. 
-            let field = content[i];
-            let fieldAtr = field.getElementsByTagName('label')[0].getAttribute('for');
-            if (fieldAtr != startcode && fieldAtr != stopcode) {
-              //console.log(field); 
-              annoSubContent.appendChild(field);
-            }
-          }
-          annotationProperties.appendChild(annoSubContent);
-
-          document.getElementById('etmain').appendChild(annotationProperties);
-          //attach validator after content is in the DOM:  
-          let validator = new Validator;
-          validator.pickup();
-
-        });
+        //start with creating the annotation box: use a single function for this
+        //which is responsible for the annobox throughout the entire code!
+        buildAnnotationCreationBox(); 
         //make a save button to commit the data: 
         let saveNewEntry = document.createElement('button');
         saveNewEntry.setAttribute('id', 'saveEtToDb');
@@ -763,10 +774,11 @@ function buildAnnotationCreationBox() {
   var endPositionInText = globalSelectionEnd;       //pull from global scope
   var selectedString = globalSelectionText;         //pull from global scope
   var positionDiv = document.createElement('div');
-  positionDiv.setAttribute('id', 'embeddedAnnotation');
+  positionDiv.setAttribute('id', 'embeddedAnnotation');   // only exists here! Should be put right after annotationCreationDiv
+  //BUG 20/3/24 Duplicate code for creating annotationelements. (From Buildannotationcrationbox())
   var positionTitle = document.createElement('h3');
   //console.log('annoinformationHere');
-  positionTitle.appendChild(document.createTextNode('Annotation information: '));
+  positionTitle.appendChild(document.createTextNode('Annotation properties: '));
   setEntityType.addEventListener('change', function () {
     //clear out properties if they exist: 
     let e = event.source || event.target; 
@@ -871,8 +883,6 @@ function buildAnnotationCreationBox() {
     searchButtonForWDPrompt.classList.add('bg-green-500', 'border-solid', 'hover:bg-green-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
     searchButtonForWDPrompt.appendChild(searchButtonForWDPromptText);
     searchButtonForWDPrompt.addEventListener('click', function () {
-      //console.log('make function call get the preferred lookup language!'); 
-      //console.log('lookup and display can be connected!'); 
       wdprompt(wikidataInputBox.value, 0);
     });
     var wikidataResultsBox = document.createElement('div');
@@ -884,7 +894,14 @@ function buildAnnotationCreationBox() {
     wikidataPromptMainbox.appendChild(wikidataResultsBox);
 
     //add all boxes to the DOM: 
-    createNodeDiv.appendChild(positionDiv);
+    //      PositionDiv is special, put it after annotationCreationDiv if it exists
+    //      otherwise stick to default behaviour. 
+    let referenceElement = document.getElementById('annotationCreationDiv'); 
+    if(!(referenceElement !== null)) {
+      insertAfter('annotationCreationDiv', subtarget); 
+    } else {
+      createNodeDiv.appendChild(positionDiv);
+    }
     //createNodeDiv.appendChild(spellingVariantMainBox);
     //BUG: spellingVariantDOMReturn is out of scope!
     createNodeDiv.appendChild(spellingVariantDOMReturn.get_HTML_content());
@@ -982,6 +999,18 @@ function createSideSkelleton() {
 }
 
 
+function createMainBox(){
+  var etMainBox = document.createElement('div');
+  var etSubNavBox = document.createElement('div');
+  var etSubContentBox = document.createElement('div');
+  etMainBox.setAttribute('id', 'etmain');
+  etSubNavBox.setAttribute('id', 'etnav');
+  etSubContentBox.setAttribute('id', 'entitycontent');
+  etMainBox.appendChild(etSubNavBox);
+  etMainBox.appendChild(etSubContentBox);
+  return etMainBox
+}
+
 function triggerSidePanelAction(entityData) {
   /*
       Side panel triggered when creating an entity from a non-annotated piece of text!
@@ -1031,15 +1060,8 @@ function triggerSidePanelAction(entityData) {
     }
     //node with the heighest weight is presented first: >> load the first node: 
     var firstNode = dataDictionary[0];
-    var etMainBox = document.createElement('div');
-    var etSubNavBox = document.createElement('div');
-    var etSubContentBox = document.createElement('div');
-    etMainBox.setAttribute('id', 'etmain');
-    etSubNavBox.setAttribute('id', 'etnav');
-    etSubContentBox.setAttribute('id', 'entitycontent');
-    etMainBox.appendChild(etSubNavBox);
-    etMainBox.appendChild(etSubContentBox);
-    targetOfInfo.appendChild(etMainBox);
+    
+    targetOfInfo.appendChild(createMainBox());
     showET(firstNode);
     var datadictpage = 0;
     var pageLength = dataDictionary.length;

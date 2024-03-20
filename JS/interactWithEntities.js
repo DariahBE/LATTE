@@ -86,46 +86,6 @@ function createStableLinkingBlock(nodeid, stableURI) {
   return subdivGateway;
 }
 
-/*
-function fieldWriter(key, val, keyclasses = [], valclasses = []){
-  / *  *   
-  Used to be a problem, replaced by writeField function!
-  integration of fieldwriter is not working!
-   * returns a P element with two span elements embedded in.
-   * each of the spanelements receives either the keyclasses or valclasses if defined
-   * /
-  let p = document.createElement('p'); 
-  let keyspan = document.createElement('span');
-  keyspan.appendChild(document.createTextNode(key));
-  let valspan = document.createElement('span');
-  valspan.appendChild(document.createTextNode(val));
-  keyspan.classList.add(...keyclasses);
-  valspan.classList.add(...valclasses);
-  p.appendChild(keyspan); 
-  p.appendChild(valspan); 
-  return p; 
-}*/
-
-function showETProps(props, structure){
-  let div = document.createElement('div'); 
-  props.forEach(prop => {
-    let displayName = prop[0];
-    let displayValue = prop[1];
-    // TODO: var unused, needs to be set as data attribute!!
-    let displayType = prop[2];
-    let subelem = writeField(displayName, displayValue, true, structure);  //BUG: structure missing in call!!
-    //let subelem = fieldWriter(displayName, displayValue, ['labelKey', 'font-bold'], []); 
-    // let key = document.createElement('span');
-    // key.classList.add('font-weight-bold')
-    // let val = document.createElement('span');
-    // key.appendChild(document.createTextNode(displayName));
-    // val.appendChild(document.createTextNode(displayValue));
-    div.appendChild(subelem);
-  });
-  return div;  
-}
-
-
 function writeField(key, data, protected, structure) {
   //console.log('Method A', key, data, protected);
   //if(!(decideOnEdit(protected, rights))){
@@ -225,7 +185,8 @@ function showdata(data) {
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
 
   //work with the Annotations:
-  console.log(annotationData);
+  let annotationHeader = createDivider('Annotation: '); 
+  annotationTarget.appendChild(annotationHeader); 
   Object.keys(annotationData).forEach(key => {
     var row = annotationData[key];
     var rowkey = row[0];
@@ -237,6 +198,7 @@ function showdata(data) {
         annotationExtraFields.splice(idx, 1);
       }
     }
+    //puts the annotation metadata in the annotationtarget element.
     var fieldFormatted = writeField(rowkey, rowdata, protected, annotationStructure);
     annotationTarget.appendChild(fieldFormatted);
   });
@@ -262,11 +224,14 @@ function showdata(data) {
     //var etTypeText = document.createTextNode('Entity: ' + data['entity'][0]['type']);
     // TODO: LOW PRIORITY: styling. properties of entity needs to be shown here!! 
     let etpropdiv = document.createElement('div'); 
-    etpropdiv.classList.add('blabla'); 
-    //console.log(data['entity'][0]); 
-    etpropdiv.appendChild(showETProps(data['entity'][0].properties, annotationStructure));
-    //TODO ==> get rid of showETProps and put a call to call to writeField subfunction here
-
+    etpropdiv.classList.add('etPropContainer'); 
+    data['entity'][0].properties.forEach(prop => {
+      let displayName = prop[0];
+      let displayValue = prop[1];
+      let displayType = prop[2];
+      //let subelem = writeField(displayName, displayValue, true, structure);
+      etpropdiv.appendChild(writeField(displayName, displayValue, true, annotationStructure)); 
+    });
     //etType.appendChild(etTypeText);
     annotationTarget.appendChild(etType);
     annotationTarget.appendChild(etpropdiv); 
