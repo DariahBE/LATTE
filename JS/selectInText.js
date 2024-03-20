@@ -497,6 +497,10 @@ function showET(etdata) {
    *  given entity that has en entry in the database. If a link
    *  is accepted, the given neoid of the entity node will be 
    *  used to generate a new annotation.
+   *    - CALLED BY: 
+   *  1) (OK)When the database holds a single string that matches the selection (datadictionary contains 1 item) (call comes from triggerSidePanelAction() with the first loaded node)
+   *  2) (OK)When a string matches 2 or more existing annotations in the database (datadictionary contains more than 1 item)  (call comes from triggerSidePanelAction()>navET)
+   *  3) (BUGGED)
    */
   //read the properties from the entity passed as an argument
   let etdataNeoId = etdata[0];
@@ -525,6 +529,8 @@ function showET(etdata) {
   subtarget.innerHTML = '';
   // subtarget.appendChild(etLabelElem); 
   var propdiv = document.createElement('div');
+  console.warn('THESE ARE THE PROPERTIES: ')
+  console.log(properties);
   for (let k in properties) {
     let show = null;
     let key = k;
@@ -696,8 +702,6 @@ function buildAnnotationCreationBox() {
         if (data['exclude'] && data['exclude'].includes(key)) {
           //do not use the key:
         } else {
-          //console.warn('new key created for: ', key); 
-          //console.log(key, datatype);
           let newFieldContainer = document.createElement('div');
           newFieldContainer.classList.add('property');
           let newFieldLabel = document.createElement('label');
@@ -1060,7 +1064,6 @@ function triggerSidePanelAction(entityData) {
     }
     //node with the heighest weight is presented first: >> load the first node: 
     var firstNode = dataDictionary[0];
-    
     targetOfInfo.appendChild(createMainBox());
     showET(firstNode);
     var datadictpage = 0;

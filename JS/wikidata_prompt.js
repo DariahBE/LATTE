@@ -279,6 +279,7 @@ function showHit(id) {
   //ajax()
   //fetch data: 
   var xhr = new XMLHttpRequest();
+  //BUG 20/3/24 ==> Code calls the wrong API!!
   xhr.open('GET', 'http://entitylinker.test/AJAX/getETById.php?id=' + id + '&extended=1', true);
   // Set up a callback function, make it pass the responsedata to showET!
   xhr.onload = function() {
@@ -292,6 +293,8 @@ function showHit(id) {
       const properties = jsonResponse['props']; 
       const qid = chosenQID;
       console.log('SENDING DATA TO showET method', etid, label, properties, qid); 
+      alert('showET call;  CASE 3'); //TODO critical bug! most urgent
+      // BUG: properties should contain the full model!
       showET([etid, label, properties, qid]);
       //console.log(response);
     } else {

@@ -385,6 +385,7 @@ function createDivider(string){
 }
 
 function showDBInfoFor(id, extra = '') {
+  // TODO dormant code (cleanup allows for deletion!)
   /*
   * Uses the internal NEOID identifier to fetch all information of a given entity.
   * given info includes: variants, properties, stable id, label and the datamodel!
@@ -396,7 +397,7 @@ function showDBInfoFor(id, extra = '') {
     extended = '&extended=1'
   }
   // shows all data there's stored about it.
-  getInfoFromBackend('/AJAX/getETById.php?id=' + id + extended)
+  getInfoFromBackend('/AJAX/getETById.php?id=' + id + extended)   //irrelevant at this point!
     .then((data) => {
       //process entity information: 
       //  Use the order defined by the model to show properties: 

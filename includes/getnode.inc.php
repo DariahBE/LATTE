@@ -827,7 +827,8 @@ class Node{
         }
       }
     }
-    return $repl;
+    //var_dump($etprops); 
+    return array($repl, $etprops);
   }
 
   public function countConnectionsOver($id, $label){
