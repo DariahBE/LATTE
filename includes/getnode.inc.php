@@ -808,26 +808,53 @@ class Node{
   }
 
 
-  public function fetchEtById($id){
+  public function checkNodeVisibility($nodeObject, $owner, $userId){
+    //TODO: this has to be documented. 
+    //        DOCUMENT: the 'private' key is a reserved keyword by application logic
+    if (isset($nodeObject['properties']['private']) && $nodeObject['properties']->get('private') === true && $userId != $owner){
+      return True; 
+    }
+    return False; 
+  }
+
+  public function fetchEtById($id){ 
     //returns the properties of a node with the human readable labels provided!
     // BUG: potential security breach here: it will return private nodes too!
     $query = 'MATCH (n) WHERE id(n)= $neoid AND NOT n:priv_user RETURN n'; 
+    $query = 'MATCH (n) 
+    WHERE id(n) = $neoid
+    AND NOT n:priv_user
+    OPTIONAL MATCH (n)-[r:priv_created]-(p)
+    RETURN n, p.userid AS owner'; 
     $data = $this->client->run($query, array('neoid'=>$id)); 
+
+    //call userID here and pass as an argument, better than calling it x times
+    //for x records.
+    $userId = -1; 
+    if (isset($_SESSION['userid'])) {
+      $userId = $_SESSION['userid'];
+    }
+
+    
     $repl = array();
+    //If a node is marked as private and it does not belong to the user who created it:
+    // then do not process it further. 
     foreach($data as $row){
       $et = $row->get('n'); 
+      $owner = $row->get('owner'); 
+      //if(isset($et['properties']['private']) && $et['properties']->get('private') === true && $userId != $owner){
+      if($this->checkNodeVisibility($et, $owner, $userId)){
+        die('private node detected'); 
+      }
       $etlabel = $et['labels'][0]; 
       $etprops = $et['properties']; 
       $etModel = NODEMODEL[$etlabel];
-      /**
-       *    You'd want to return a nested dict like this: 
-      */
       foreach($etprops as $k => $v){
         if (array_key_exists($k, $etModel)){
           $humanReadableKey = $etModel[$k][0];      //human readable key
           $value = $etprops[$k];                    //value; 
-          $repl[$k]=array(
-            "value"=> $value,
+          $repl[$k] = array(
+            "value" => $value,
             "DOMString" => $humanReadableKey,
             "vartype" => $etModel[$k][1]
             //$humanReadableKey, $value

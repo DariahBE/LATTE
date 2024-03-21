@@ -17,15 +17,12 @@ if(in_array($findEntityByType, $approvedEntities)){
     returned data provides directives to connect the nodes to variants!.
   */
   foreach ($data['labelvariants'] as $key => $value) {
-    //var_dump($key);
     $variantNodeId = $value[0];
     foreach ($data['edges'] as $subkey => $subvalue) {
       if($subvalue['startNodeId']===$variantNodeId){
-        //$data['labelvariants'][$key]['variantOfEntity'][]=$subvalue['endNodeId'];
         if(!(array_key_exists('variantOfEntity',$data['labelvariants'][$key][2]))){
           $data['labelvariants'][$key][2]['variantOfEntity'] = array();
         }
-        //echo "pass";
         array_push($data['labelvariants'][$key][2]['variantOfEntity'],$subvalue['endNodeId']);
       }
     }
