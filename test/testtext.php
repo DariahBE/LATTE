@@ -13,15 +13,35 @@ include_once(ROOT_DIR."\includes\datasilo.inc.php");
 include_once(ROOT_DIR."\includes\\nodes_extend_cud.inc.php"); 
 
 $node = new CUDNode($client);
+echo 'CASE1: EXPECT NODE'; 
+$node->testNewQuery(789, 9999); 
+echo 'CASE2: EXPECT NODE'; 
+$node->testNewQuery(1387, 9999); 
+echo 'CASE3: EXPECT NODE'; 
+$node->testNewQuery(5912, 9999); 
+echo 'CASE4: #private floating node > EXPECT NULL'; 
+$node->testNewQuery(3081, 2); 
+echo 'CASE5: #private node, good user  > EXPECT NODE'; 
+$node->testNewQuery(5911, '4a10bcc4-4677-495b-9f20-6b79f259335f'); 
+echo 'CASE6 #private node, wrong user:  > EXPECT NULL'; 
+$node->testNewQuery(5911, 2); 
+
+
+
+
+
+
+
+
 $node->startTransaction();
 
 
-var_dump($node->generateUniqueKey('Text', 'texid'));
-var_dump($node->generateUniqueKey('Test', 'id'));
-var_dump($node->generateUniqueKey('Test', 'id'));
-var_dump($node->generateUniqueKey('Test', 'ids'));
-var_dump($node->generateUniqueKey('Testje', 'id'));
-var_dump($node->generateUniqueKey('Testje', 'ibm'));
+// var_dump($node->generateUniqueKey('Text', 'texid'));
+// var_dump($node->generateUniqueKey('Test', 'id'));
+// var_dump($node->generateUniqueKey('Test', 'id'));
+// var_dump($node->generateUniqueKey('Test', 'ids'));
+// var_dump($node->generateUniqueKey('Testje', 'id'));
+// var_dump($node->generateUniqueKey('Testje', 'ibm'));
 
 
 

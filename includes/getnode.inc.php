@@ -762,6 +762,35 @@ class Node{
     }
   }
 
+
+
+
+
+
+  public function testNewQuery($nodeId, $userid){
+    $query = 'MATCH (n1)
+    WHERE id(n1) = $neoid
+    OPTIONAL MATCH (n1)-[r:priv_created]-(p:priv_user)
+    RETURN
+    CASE 
+        WHEN n1.private = false THEN n1
+        WHEN n1.private is null THEN n1
+        WHEN n1.private = true and p.userid = $user THEN n1
+    END AS n; ';
+    $queryData = array(
+      'neoid' => (int)$nodeId, 
+      'user' => $userid
+    ); 
+    $data = $this->client->run($query, $queryData); 
+
+    foreach($data as $row){
+      $et = $row->get('n'); 
+      var_dump($et); 
+    }
+
+  }
+
+
   public function fetchRawEtById($id, $byUser=0){
     //returns the raw node data by neoid (neo4J property)
     //with node label.
@@ -770,6 +799,20 @@ class Node{
     $queryData = array(
       'neoid' => $id
     );
+    //BUG  21/3/24_A: privacy level here assumes the presence of priv_created
+    //    SHOULD BE based on connection to priv_user; 
+    // THIS QUERY IS A BETTER FIT BUT REQUIRES FURTHER TESTING: 
+    // 
+    //     MATCH (n1)
+    //     WHERE id(n1) = 3081
+    //     OPTIONAL MATCH (n1)-[r:priv_created]-(p:priv_user)
+    //     RETURN
+    //     CASE 
+    //         WHEN n1.private = false THEN n1
+    //         WHEN n1.private is null THEN n1
+    //         WHEN n1.private = true and p.userid = '4a10bcc4-4677-495b-9f20-6b79f259335f' THEN n1
+    //     END AS n; 
+    //  
     if($byUser === 0){
       $query = 'MATCH (n)
         WHERE id(n) = $neoid
@@ -819,7 +862,6 @@ class Node{
 
   public function fetchEtById($id){ 
     //returns the properties of a node with the human readable labels provided!
-    // BUG: potential security breach here: it will return private nodes too!
     $query = 'MATCH (n) WHERE id(n)= $neoid AND NOT n:priv_user RETURN n'; 
     $query = 'MATCH (n) 
     WHERE id(n) = $neoid
