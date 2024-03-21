@@ -15,17 +15,18 @@ $id = (int)$_GET['id'];
 //make a graph object ==> use appropriate method. 
 $graph = new Node($client);
 $embeddedPropsFull = $graph->fetchEtById($id);
-$embeddedProps = $embeddedPropsFull[0]; 
-$rawprops = $embeddedPropsFull[1]; 
+$extendedProps = $embeddedPropsFull[0]; 
+$embeddedProps = $embeddedPropsFull[1]; 
 
 $relatedVariants = $graph->fetchAltSpellingsById($id);
 
 $stableLink = $graph->generateURI($id); 
 
+
 $replData = array(
     //'props'=> $embeddedProps[0], 
     'preprocessed_props'=> $embeddedProps, 
-    'props'=> $rawprops,
+    'props'=> $extendedProps,
     'variantSpellings' => $relatedVariants, 
     'stable' => $stableLink
 );

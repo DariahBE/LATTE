@@ -819,11 +819,19 @@ class Node{
       $etlabel = $et['labels'][0]; 
       $etprops = $et['properties']; 
       $etModel = NODEMODEL[$etlabel];
+      /**
+       *    You'd want to return a nested dict like this: 
+      */
       foreach($etprops as $k => $v){
         if (array_key_exists($k, $etModel)){
           $humanReadableKey = $etModel[$k][0];      //human readable key
           $value = $etprops[$k];                    //value; 
-          $repl[]=array($humanReadableKey, $value); 
+          $repl[$k]=array(
+            "value"=> $value,
+            "DOMString" => $humanReadableKey,
+            "vartype" => $etModel[$k][1]
+            //$humanReadableKey, $value
+          ); 
         }
       }
     }

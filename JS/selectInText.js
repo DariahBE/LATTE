@@ -506,6 +506,7 @@ function showET(etdata) {
   let etdataNeoId = etdata[0];
   let etLabel = etdata[1]; 
   let properties = etdata[2];
+  console.log(properties); 
   let wikidataID = etdata[3];
   //Show the node label: 
   // let etLabelElem = document.createElement('h2'); 
@@ -529,8 +530,6 @@ function showET(etdata) {
   subtarget.innerHTML = '';
   // subtarget.appendChild(etLabelElem); 
   var propdiv = document.createElement('div');
-  console.warn('THESE ARE THE PROPERTIES: ')
-  console.log(properties);
   for (let k in properties) {
     let show = null;
     let key = k;

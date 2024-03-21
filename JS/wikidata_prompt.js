@@ -255,6 +255,7 @@ function pickThisQID(qid) {
 
 //GLOBALSCOPE!
 console.warn('High priority bug in wikidata_prompt.js > showHit() > needs to be rewritten to act as mediator to showET(); ')
+//    \\
 function showHit(id) {
   /**
    * When a wikidata ID is shared among multiple entities. This 
@@ -263,40 +264,19 @@ function showHit(id) {
    * 
   */
   updateState('STATE: ', 'There is one or more entity in the database with the same wikidata Q-identifier. You can connect it to one of these, or create a new entity.'); 
-  //TODO requires debugging. BUG 18/3/24
-  /**
-   *    how to trigger error: 
-   * open text 10005,
-   * select a word, replace the wikidata string with 'Oppenheimer'
-   * Link it to the 2023 movie, now you have an error triggered when 
-   * browsing the related hits! 
-   * 
-   * Possible solution is to integrate this in showEt(), use showHit
-   * to fetch the entity data, then use showET to display the data!
-   */
-  //TODO: mediator required here. 
-  //fetchEtInfo(id);
-  //ajax()
-  //fetch data: 
   var xhr = new XMLHttpRequest();
-  //BUG 20/3/24 ==> Code calls the wrong API!!
   xhr.open('GET', 'http://entitylinker.test/AJAX/getETById.php?id=' + id + '&extended=1', true);
   // Set up a callback function, make it pass the responsedata to showET!
   xhr.onload = function() {
     if (xhr.status >= 200 && xhr.status < 300) {
       // Request was successful
-      // TODO debug mediator!
       var jsonResponse = JSON.parse(xhr.responseText);
       console.log(jsonResponse);
       const etid = id; 
       const label = jsonResponse['extra']['label']; 
       const properties = jsonResponse['props']; 
       const qid = chosenQID;
-      console.log('SENDING DATA TO showET method', etid, label, properties, qid); 
-      alert('showET call;  CASE 3'); //TODO critical bug! most urgent
-      // BUG: properties should contain the full model!
       showET([etid, label, properties, qid]);
-      //console.log(response);
     } else {
       // Request failed
       console.error('Request failed with status: ' + xhr.status);
@@ -305,47 +285,6 @@ function showHit(id) {
 
   // Send the request
   xhr.send();
-
-/*
-  return; 
-  //untampered code below this comment (above are fixes for BUG 18/3/24)
-
-  alert('showing hit', id); 
-  //stop tracking variants of previous hit if you switch to a new iter
-  //BUG (Patchcode in place, requires test:): Not working, this function is now a method used by the SpellingVariant
-  // class!!! Needs acces to the global handle(spellingVariantDOMReturn)
-  //old code: 
-  //purgeVariantBox(); //variantbugpatch!
-  //TODO: patchcode (test pendin): 
-  spellingVariantDOMReturn.purgeVariantBox(); 
-  //Used for disambiguation between one-to-many relations!
-  let replaceContent = document.getElementById('displayHitEt');
-  replaceContent.innerHTML = '';
-  let etPropContainer = document.createElement('div');
-  etPropContainer.classList.add('w-full');
-  etPropContainer.setAttribute('id', 'connectSuggestion');
-  etPropContainer.setAttribute('data-neoid', id);
-  //get mentions of this et and connected texts: //OK
-  console.warn('NEO ID (showhit call); ', id);
-  replaceContent.appendChild(etPropContainer);
-  // if relatedTextStats is missing from the DOM: 
-  //race condition in etcreate! Elem does not exist when WD check hasn't been performed.
-  waitForElement('#WDResponseTarget').then((elm) => {
-    if (!(document.getElementById('relatedTextStats'))) {
-      var gateWay = document.createElement('div');
-      var statsTarget = document.createElement('div');
-      statsTarget.setAttribute('id', 'relatedTextStats');
-      statsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0');
-      gateWay.appendChild(statsTarget);
-      var referenceNode = document.getElementById('WDResponseTarget');//.nextElementSibling;
-      referenceNode.parentElement.insertBefore(gateWay, referenceNode);
-    }
-    //document.getElementById('WDResponseTarget').appendChild(gateWay);
-    findRelatedTexts(id);
-    //get DB information about this et: 
-    showDBInfoFor(id, true);
-
-  });*/
 }
 
 let checkIfConnectionExists = async (qid) => {
