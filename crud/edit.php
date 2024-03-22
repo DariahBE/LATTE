@@ -5,7 +5,7 @@ include_once(ROOT_DIR.'/includes/navbar.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/csrf.inc.php');
-
+//TODO pending integration
 //edits are allowed to use the NEO4J ID. As long as the node exists, the ID does not change. 
 //when committing changes check that the node still exists. Otherwise you're good. 
 

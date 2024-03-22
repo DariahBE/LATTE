@@ -792,6 +792,8 @@ class Node{
 
 
   public function fetchRawEtById($id, $byUser=0){
+    //TODO: obsolete call with $byUser parameter.
+    //    this method has acces to the session where the userid is stored
     //returns the raw node data by neoid (neo4J property)
     //with node label.
     //the byUser variable defaults to 0, which will only return the public nodes
@@ -799,7 +801,7 @@ class Node{
     $queryData = array(
       'neoid' => $id
     );
-    //BUG  21/3/24_A: privacy level here assumes the presence of priv_created
+    //PATCH  21/3/24_A: privacy level here assumes the presence of priv_created
     //    SHOULD BE based on connection to priv_user; 
     // THIS QUERY IS A BETTER FIT BUT REQUIRES FURTHER TESTING: 
     // 
@@ -813,6 +815,7 @@ class Node{
     //         WHEN n1.private = true and p.userid = '4a10bcc4-4677-495b-9f20-6b79f259335f' THEN n1
     //     END AS n; 
     //  
+    /*
     if($byUser === 0){
       $query = 'MATCH (n)
         WHERE id(n) = $neoid
@@ -827,7 +830,21 @@ class Node{
           AND ((NOT exists(n.private) OR n.private <> true)
               OR (n.priv_creator = $usr AND n.private = true)))
         RETURN n';
-    }
+    }*/
+
+    $query = 'MATCH (n1)
+    WHERE id(n1) = $neoid
+    OPTIONAL MATCH (n1)-[r:priv_created]-(p:priv_user)
+    RETURN
+    CASE 
+        WHEN n1.private = false THEN n1
+        WHEN n1.private is null THEN n1
+        WHEN n1.private = true and p.userid = $user THEN n1
+    END AS n;'; 
+    
+    $uid = isset($_SESSION['userid']) ? $_SESSION['userid'] : -1; 
+    $queryData = array('neoid' => (int)$id, 'user' => $uid); 
+
     $data = $this->client->run($query, $queryData); 
     $repl = array(
       'label' => null, 
@@ -835,6 +852,7 @@ class Node{
     );
     foreach($data as $row){
       $et = $row->get('n'); 
+      if($et === null){continue;}
       $etlabel = $et['labels'][0]; 
       $repl['label'] = $etlabel;
       $etprops = $et['properties']; 

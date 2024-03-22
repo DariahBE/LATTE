@@ -1,0 +1,10 @@
+RewriteEngine On
+RewriteBase /
+
+RewriteRule ^c_api/(.*)//\?data=(.*)$ custom_api/?name=$1&secret=&data=$2 [L,QSA]
+RewriteRule ^c_api/(.*)/(.*)/\?data=(.*)$ custom_api/?name=$1&secret=$2&data=$3 [L,QSA]
+##
+##
+## http://entitylinker.test/c_api/test1//?data=123      ==>         http://entitylinker.test/custom_api/?name=test1&secret=&data=123
+## http://entitylinker.test/c_api/test2/qdfqds/?data=123    =+>     http://entitylinker.test/custom_api/?name=test2&secret=qdfqds&data=123
+#RewriteRule ^(.+)$ /Departments/dynamicPage.php?DeptID=10&DeptName=$1 [L]
