@@ -27,10 +27,21 @@ $api_settings = array(
                 'returns' => array(
                     'properties' => array(
                         'Person' => array('label', 'qid'),
+                        /**
+                         *  ideetje: 
+                         * gebruik de combinatie van Person met elke iteratie van de bijbehorende array voor zoekparameters.
+                         * dus where n:Person {label=$getlabelvaluefromurl and qid =$getqidvaluefromurl}
+                         * 
+                         */
                         'Test' => array('highscore', 'minscore')
                     ),
                     'stableUri' => true,
                     'variants' => true
+                ), 
+                'search_parameters' =>array(
+                    //      GET    Label    property
+                    array('name', 'Person', 'label'), 
+                    array('gender', 'Person', 'sex')
                 )
             )
         )

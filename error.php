@@ -23,6 +23,9 @@ if (isset($_GET['type'])){
       $title = 'Invalid identifier.';
       $fullErrMsg = 'The provided ID does not seem to have a maching record. The node is probably deleted or never existed.';
       break;
+    case 'conn': 
+      $title = 'Database unreachable.'; 
+      $fullErrMsg = 'The desired database could not be reached. Either the configured details are wrong, or the database is down.'; 
     default:
       break;
   }
