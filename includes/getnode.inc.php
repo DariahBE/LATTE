@@ -106,6 +106,17 @@ class Node{
     $this->client = $client;
   }
 
+  
+function executePremadeParameterizedQuery($query, $parameters){
+  /*
+    takes a query and parameters argument. the query is a paramaterized cypher query
+    the parameters are made to fit the query. The query can then be run as part of 
+    the Node Object. 
+  */
+  $result = $this->client->run($query, $parameters); 
+  return $result; 
+}
+
   function countTextsConnectedToEntityWithID($value){
     //this function starts from the automatically generated NEO ID and counts all TEXT nodes that are related to it. 
     $connectedAnnotations = $this->client->run('MATCH (x)--(n:'.ANNONODE.') WHERE id(x) = $nodeval RETURN COUNT(n) AS result', ['nodeval'=>$value]);
@@ -530,6 +541,7 @@ class Node{
   }
 
   function generateURI($id){
+    // GENERATES THE STABLE URI
     //finds the node by it's NEO-id, returns a stable identifier;
     //The NEO-id is unstable and should not be used in the frontend to identify a node.
     $query = 'MATCH (n) WHERE id(n) = $providedID return n';

@@ -16,13 +16,44 @@ $profile_secret = $_GET['secret'];
 $request_type = $_GET['type']; 
 
 $api = new API($api_settings); 
+$node = new Node($client); 
 
 
-
+//var_dump($node); 
 //die(); 
 
 $api->checkrequestsecret($api_profile, $profile_secret); 
 $api->readrequests($request_type); 
+$api->restrictNodeByParameters(); 
 
 $api->makeCypherStatement(); 
-var_dump($api->search_parameters); 
+
+$data = $node->executePremadeParameterizedQuery(
+    $api->getQuery(),
+    $api->getParams()
+); 
+
+
+//echo json_encode($data); 
+
+
+$echodata = array(
+    'entities' => array(), 
+); 
+if($api->vars_required())
+
+// the extra behaviour: 
+//  1) is the stable URI required to be returned?
+foreach ($data as $key => $noderecord) {
+    $neoid = (int)$noderecord['n']['id']; 
+    if($api->uri_required()){
+        $node->generateURI($neoid); 
+    }
+}
+
+if($api->uri_required()){
+    //foreach neoid of a node generate a stable uri!
+
+};
+//  2) Are variant nodes required to be returned?
+

@@ -11,7 +11,7 @@ $api_settings = array(
         'secret' => 'mqkldjfaigmnqmkldf',
         'requests' => array(
             'place' => array(
-                'nodelabels' => array('Place'),
+                'nodelabel' => 'Place',
                 'search_vars' => true,
                 'returns' => array(
                     'properties' => array(
@@ -19,29 +19,24 @@ $api_settings = array(
                     ),
                     'stableURI' => true,
                     'variants' => true
+                ), 
+                'search_parameters' => array(
+                    array('varlabel', 'variant'), 
+                    array('uid', 'uid')
                 )
             ),
             'person' => array(
-                'nodelabels' => array('Person', 'Test'),
-                'search_vars' => true,
+                'nodelabel' => 'Person',
+                'search_vars' => false,
                 'returns' => array(
-                    'properties' => array(
-                        'Person' => array('label', 'qid'),
-                        /**
-                         *  ideetje: 
-                         * gebruik de combinatie van Person met elke iteratie van de bijbehorende array voor zoekparameters.
-                         * dus where n:Person {label=$getlabelvaluefromurl and qid =$getqidvaluefromurl}
-                         * 
-                         */
-                        'Test' => array('highscore', 'minscore')
-                    ),
+                    'properties' => array('label', 'qid'),
                     'stableUri' => true,
                     'variants' => true
                 ), 
-                'search_parameters' =>array(
-                    //      GET    Label    property
-                    array('name', 'Person', 'label'), 
-                    array('gender', 'Person', 'sex')
+                'search_parameters' => array(
+                    //      GET    property
+                    array('name', 'label'), 
+                    array('gender', 'sex')
                 )
             )
         )
