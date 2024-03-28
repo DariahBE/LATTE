@@ -14,13 +14,12 @@ $api_settings = array(
                 'nodelabel' => 'Place',
                 'search_vars' => true,
                 'returns' => array(
-                    'properties' => array(
-                        'Place' => array('tmid')
-                    ),
+                    'properties' => array('geoid', 'label'),
                     'stableURI' => true,
                     'variants' => true
                 ), 
                 'search_parameters' => array(
+                    //      GET            DB
                     array('varlabel', 'variant'), 
                     array('uid', 'uid')
                 )
@@ -30,11 +29,10 @@ $api_settings = array(
                 'search_vars' => false,
                 'returns' => array(
                     'properties' => array('label', 'qid'),
-                    'stableUri' => true,
+                    'stableURI' => true,
                     'variants' => true
                 ), 
                 'search_parameters' => array(
-                    //      GET    property
                     array('name', 'label'), 
                     array('gender', 'sex')
                 )

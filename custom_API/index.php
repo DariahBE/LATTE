@@ -34,26 +34,34 @@ $data = $node->executePremadeParameterizedQuery(
 ); 
 
 
-//echo json_encode($data); 
+// $echodata = array(
+//     'results' => array(), 
+// ); 
 
+// $do_vars = $api->vars_required(); 
+// $do_uri = $api->uri_required(); 
 
-$echodata = array(
-    'entities' => array(), 
-); 
-if($api->vars_required())
 
 // the extra behaviour: 
+echo json_encode($api->format_API_response($data, $node));
+
 //  1) is the stable URI required to be returned?
-foreach ($data as $key => $noderecord) {
-    $neoid = (int)$noderecord['n']['id']; 
-    if($api->uri_required()){
-        $node->generateURI($neoid); 
-    }
-}
+// $record = 0; 
+// foreach ($data as $key => $noderecord) {
+//     $rowResult = array(); 
+//     $neoid = (int)$noderecord['n']['id']; 
+//     if($do_uri){
+//         $rowResult['URI'] = $node->generateURI($neoid); 
+//         //var_dump(); 
+//     }
+//     if($do_vars){
+//         $rowResult['URI'][]=  $node->findVariants($neoid); 
 
-if($api->uri_required()){
-    //foreach neoid of a node generate a stable uri!
+//         // var_dump($node->findVariants($neoid)); 
+//         //($neoid); 
+//     }
+//     $echodata['echodata'][$record] = $rowResult; 
+//     $record = $record + 1; 
+// }
 
-};
-//  2) Are variant nodes required to be returned?
-
+// var_dump($echodata); 

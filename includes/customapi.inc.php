@@ -119,7 +119,7 @@ class API {
                     }
                     $this->parameters[] = '('.implode( ' OR ' , $orstatement ).')';    
                 }else{
-                    $this->parameters[] = $nodeLetter.'.'.$nodeLabel.' AND '.$nodeLetter.'.'.$nodeProp.' = '.$this->process_ph($value).''; 
+                    $this->parameters[] = $nodeLetter.'.'.$nodeProp.' = '.$this->process_ph($value).''; 
                 }
                 //var_dump($value); 
             }
@@ -175,6 +175,39 @@ class API {
             $this->deathByError('URI flag not defined in the requestprofile.'); 
         }
         return $x;
+    }
+
+
+    public function format_API_response($data, $node){
+        $do_vars = $this->vars_required(); 
+        $do_uri = $this->uri_required(); 
+        $requested_ouput = $this->profile['requests'][$this->requestType]['returns']['properties']; 
+        $record = 0; 
+        $echodata = array();
+        foreach ($data as $key => $noderecord) {
+            $rowResult = array(); 
+            $nodelabel = $noderecord['n']['labels'][0];
+            $neoid = (int)$noderecord['n']['id']; 
+            if($do_uri){
+                $rowResult['URI'] = $node->generateURI($neoid); 
+                //var_dump(); 
+            }
+            if($do_vars){
+                $rowResult['URI'][]=  $node->findVariants($neoid); 
+            }
+            $echodata[$record]['properties'] = []; 
+            foreach ($requested_ouput as $prop) {
+                $r = array();
+                //todo
+                $r['key'] = NODEMODEL[$nodelabel][$prop][0] ?? NULL;
+                $r['prop'] = $noderecord['n']["properties"][$prop] ?? NULL;
+                $echodata[$record]['properties'][] = $r;
+            }
+            // format the node properties from the database into node properties that can be read by users. 
+            //var_dump($noderecord) ;
+            $record = $record + 1; 
+        }
+        return $echodata;
     }
 
 }
