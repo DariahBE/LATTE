@@ -106,8 +106,6 @@ class API {
         foreach($parameters as $param){
             $as_get = $param[0]; 
             $nodeProp = $param[1]; 
-            //BUG: this is still problematic!
-            //      there's no way of correclty referencing if the node should apply the properties on n (entity) or v (variant)
             if(isset($_GET[$as_get])){
                 $value = $_GET[$as_get]; 
                 //You can have an array as part of the get-request or a string.

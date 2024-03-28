@@ -1,5 +1,7 @@
 <?php
 
+//DO NOT EDIT ABOVE THIS LINE
+
 $api_settings = array(
     'test1' => array(
         'secret' => false,
@@ -40,6 +42,7 @@ $api_settings = array(
         )
     )
 );
+
 /**             DOCS: 
  * $api_settings is a nested dict. The KEYS in this dict are:
  *      UNIQUE STRINGS
@@ -51,4 +54,5 @@ $api_settings = array(
  *  or can be set to a stringvalue; the stringvalue is the secret key used for a custom API
  * 
 */
-?>
+
+//DO NOT EDIT BELOW THIS LINE
