@@ -10,6 +10,7 @@ class API {
     private $profile; 
     private $parameters = array(); //query parameters
     private $ph = 1; //placeholder
+    private $search_parameters = array(); //instantiate variable. 
     function __construct($settings){
         $this->settings = $settings; 
     }
@@ -32,6 +33,9 @@ class API {
                     $this->profile = $this->settings[$apiName]; 
                     return true; 
                 }
+            }else{
+                $this->profile = $this->settings[$apiName]; 
+                return true; 
             }
         }
         //die by default
@@ -79,7 +83,7 @@ class API {
         if(array_key_exists($type, $this->settings[$this->apiName]['requests'])){
             $this->requestType = $type; 
         } else {
-            $this->deathByError('Invalid API profile given.');
+            $this->deathByError('Invalid API type-parameter given.');
         }
         $requested_labels = $this->profile['requests'][$type]['nodelabel'];
         //$this->restrictNodesByNodeLabel($requested_labels); 
@@ -139,7 +143,7 @@ class API {
         $this->parameters[] = ' (NOT EXISTS(n.private) OR n.private <> True) '; 
         $query = $this->matchStatement.
         ' WHERE '.implode(" AND ", $this->parameters).
-        ' return n; '; 
+        ' return distinct(n); '; 
         $this->query = $query; 
     }
 
@@ -177,8 +181,6 @@ class API {
 
 
     public function format_API_response($data, $node){
-        $do_vars = $this->vars_required(); 
-        $do_uri = $this->uri_required(); 
         $requested_ouput = $this->profile['requests'][$this->requestType]['returns']['properties']; 
         $record = 0; 
         $echodata = array();
@@ -186,20 +188,22 @@ class API {
             $rowResult = array(); 
             $nodelabel = $noderecord['n']['labels'][0];
             $neoid = (int)$noderecord['n']['id']; 
-            if($do_uri){
+            //$neoid = $neoid+1 ; 
+            if($this->uri_required()){
                 $rowResult['URI'] = $node->generateURI($neoid); 
                 //var_dump(); 
             }
-            if($do_vars){
-                $rowResult['URI'][]=  $node->findVariants($neoid); 
+            if($this->vars_required()){
+                $rowResult['Variants'][] =  $node->findVariants($neoid); 
             }
             $echodata[$record]['properties'] = []; 
             foreach ($requested_ouput as $prop) {
                 $r = array();
                 //todo
                 $r['key'] = NODEMODEL[$nodelabel][$prop][0] ?? NULL;
-                $r['prop'] = $noderecord['n']["properties"][$prop] ?? NULL;
+                $r['prop'] = $noderecord['n']['properties'][$prop] ?? NULL;
                 $echodata[$record]['properties'][] = $r;
+                $echodata[$record]['extra'] = $rowResult; 
             }
             // format the node properties from the database into node properties that can be read by users. 
             //var_dump($noderecord) ;

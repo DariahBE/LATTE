@@ -101,8 +101,9 @@ Let's go through this step by step and name all the individual keys present in a
 ```
 based on the given example scenario: 
 
-`nodelabel` = 'Person' or 'Place'
-`search_vars` = A choice you make; do you want to return nodes of the given `nodelabel` that match variants contraints, or that match node constraints. 
+`nodelabel` = e.g. 'Person' or 'Place'
+`search_vars` = A choice you make; do you want the API to search for entity nodes based on matching variant labels or not. If you set this to True, the variable `search_parameters` has to refer to node properties which are present in Variant nodes, not the Entity nodes.
+`nodelabel` = that match variants contraints, or that match node constraints. 
 `properties` = the array of properties you want to return. These properties must be defined in your model
 `stableURi` = A boolean you set, when set to true the API will return stable URI's for the nodes matching the request.
 `variants` = A boolean you set, when set to true the API willr return variants that are linked to the node matching the request. 
@@ -179,4 +180,25 @@ As can be seen, `search_parameters` is a nested 2D-array; every subarray is a si
             )
         )
     );
+```
+
+To create a new requestprofile, you can use the following template, replace all values between <> with the appropriate values for your use case. The provided template should be embedded inside the `$api_settings` variable. Remember that new profiles are separated by commas from previous profiles and should have unique names. 
+```
+'profilename' => array(
+    'secret' => <stringsecret>, 
+    'requests' =>array(
+        '<type>' => array(
+            'nodelabel' => <nodelabel>,
+            'search_vars' => <bool>,
+            'returns' => array(
+                'properties' => array(<a_node_property>, <a_node_property>),
+                'stableURI' => <bool>,
+                'variants' => <bool>
+            ), 
+            'search_parameters' => array(
+                array(<urlparameter>, <nodeproperty>), 
+            )
+        )
+    )
+)
 ```

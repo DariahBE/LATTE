@@ -12,7 +12,11 @@ include_once(ROOT_DIR.'\custom_api\config\config.php');
 //die('okido'); 
 
 $api_profile = $_GET['profile']; 
-$profile_secret = $_GET['secret']; 
+if(isset($_GET['secret'])){
+    $profile_secret = $_GET['secret']; 
+}else{
+    $profile_secret = false; 
+}
 $request_type = $_GET['type']; 
 
 $api = new API($api_settings); 
@@ -32,6 +36,8 @@ $data = $node->executePremadeParameterizedQuery(
     $api->getQuery(),
     $api->getParams()
 ); 
+
+//var_dump($api->getQuery()); 
 
 
 // $echodata = array(

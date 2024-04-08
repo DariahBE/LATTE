@@ -40,7 +40,25 @@ $api_settings = array(
                 )
             )
         )
+    ),
+    'test3' => array(
+        'secret' => False, 
+        'requests' => array(
+            'locations' => array(
+                'nodelabel' => 'Place',
+                'search_vars' => True,
+                'returns' => array(
+                    'properties' => array('wikidata'),
+                    'stableURI' => True,
+                    'variants' => True
+                ), 
+                'search_parameters' => array(
+                    array('name', 'variant'), 
+                )
+            )
+        )
     )
+
 );
 
 /**             DOCS: 

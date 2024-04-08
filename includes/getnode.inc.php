@@ -656,7 +656,8 @@ function executePremadeParameterizedQuery($query, $parameters){
       $variantRow = $labelvariant['v'];
       $neoID = (int)$labelvariant['neoid']; 
       $rowProperties = $variantRow['properties']; 
-      $result['labelVariants'][] = ['DOMstring'=>'Label', 'value'=>$rowProperties['variant'], 'uid'=>$rowProperties['uid'], 'neoID'=>$neoID]; 
+      //var_dump($rowProperties['variant'] ?? Null); 
+      $result['labelVariants'][] = ['DOMstring'=>'Label', 'value'=>$rowProperties['variant'] ?? Null, 'uid'=>$rowProperties['uid'] ?? Null, 'neoID'=>$neoID]; 
     }
     return $result;
   }

@@ -123,9 +123,15 @@ if(array_key_exists('coreID', $core)){
               echo "</ul>";
             echo "</div>";
           }
-          if(count($neighbours)){
-            echo "<div class='p-2 m-2'>";
-            echo "<h3 class='text-lg'>".(int)count($neighbours)." connection(s) </h3>";
+          $related_count = 0; 
+          foreach($neighbours as $row){
+            if($row['t'] !== Null){
+              $related_count++;
+            }
+          }
+          echo "<div class='p-2 m-2'>";
+          echo "<h3 class='text-lg'>".(int)$related_count." connection(s) </h3>";
+          if($related_count > 0){
             echo "<table>"; 
             echo "<thead class='font-bold bg-slate-300'><tr><td>relation</td><td>node</td><td>nodeproperties</td></tr></thead>"; 
             foreach($neighbours as $row){
@@ -153,8 +159,8 @@ if(array_key_exists('coreID', $core)){
               echo "</tr>"; 
             }
             echo "</table>"; 
-            echo "</div>";
           }
+          echo "</div>";
           if(count($textConnections['annotations'])){
             //count annotations: 
             $annos = $textConnections['annotations']; 
