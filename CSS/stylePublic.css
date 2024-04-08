@@ -2550,6 +2550,14 @@ hr.vertical{
   animation: shake 1s ease 0s 1;
 }
 
+.displayPartnerName{
+  cursor: pointer;
+}
+
+.writtenvariantvalue{
+  cursor: default; 
+}
+
 .odd\:bg-slate-200:nth-child(odd) {
   --tw-bg-opacity: 1;
   background-color: rgb(226 232 240 / var(--tw-bg-opacity));

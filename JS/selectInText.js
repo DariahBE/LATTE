@@ -593,9 +593,9 @@ function showET(etdata) {
         let rejectLink = document.createElement('button'); 
         acceptLink.setAttribute('id', 'assignEtToSelection'); 
         rejectLink.setAttribute('id', 'assignNewEtToSelection'); 
-        updateState('State: ', 'An entity with matching spelling was found. You can link this attestation to this entity or reject the link and create a new entity with the same spelling.'); 
         //show the user what is going on and explain why it is in this mode: 
-        
+        updateState('State: ', 'An entity with matching spelling was found. You can link this attestation to this entity or reject the link and create a new entity with the same spelling.'); 
+
         let rejectText = document.createTextNode('Reject link'); 
         let acceptText = document.createTextNode('Create annotation');
         acceptLink.appendChild(acceptText);
@@ -622,6 +622,7 @@ function showET(etdata) {
           disableInternalButtons();
           //data to send to server
           //read the content of the div that holds annotation data when connecting nodes 
+
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
           let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
           console.log(annotationCollectionBox);  
@@ -633,6 +634,11 @@ function showET(etdata) {
         //start with creating the annotation box: use a single function for this
         //which is responsible for the annobox throughout the entire code!
         buildAnnotationCreationBox(); 
+        document.getElementById('embeddedET').classList.remove('hidden'); 
+        document.getElementById('annotationCreationDiv').classList.remove('hidden'); 
+        document.getElementById('etselectdiv').classList.add('hidden'); 
+        document.getElementById('nodeTypeSelection').classList.add('hidden'); 
+        
         //make a save button to commit the data: 
         let saveNewEntry = document.createElement('button');
         saveNewEntry.setAttribute('id', 'saveEtToDb');
@@ -747,6 +753,7 @@ function buildAnnotationCreationBox() {
   targetOfInfo.appendChild(createNodeDiv);
   //dropdown: select the entity type ==> use the color dict available.
   var entityTypeDiv = document.createElement('div');
+  entityTypeDiv.setAttribute('id', 'etselectdiv');
   var entityTypePrompt = document.createElement('p');
   entityTypePrompt.classList.add('text-lg', 'p-2', 'm-2');
   //console.warn('Related to BUG10: race condition.');

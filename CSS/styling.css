@@ -86,3 +86,11 @@ hr.vertical{
 .animate-shake{
   animation: shake 1s ease 0s 1;
 }
+
+.displayPartnerName{
+  cursor: pointer;
+}
+
+.writtenvariantvalue{
+  cursor: default; 
+}

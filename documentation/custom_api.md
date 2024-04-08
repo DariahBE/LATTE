@@ -29,7 +29,7 @@ Making abstraction your API-request so far looks like this:
 <domain>/custom_api/?profile=<profilename>&secret=<optional_secret>
 ```
 
-You'd use secret profiles to share data with alligned projects and exchange metadata. 
+You'd use secret profiles to share data with alligned projects and exchange metadata. The `secret` parameter in the URL is optional for open API's
 
 ### Profile settings:
 The above configuration does not yet provide any instructions to the backend to generate an API response. To do this, you need to define `requests`. Each profile can have multiple requests; so you don't need to define multiple secrets to exchange data of multiple request types. Each request will return and search for data in a single node, the exception to this is API-requests that include searches in spelling variants. This searchtype will extend it's search variantnodes that are connected to the given core-node.
@@ -182,7 +182,7 @@ As can be seen, `search_parameters` is a nested 2D-array; every subarray is a si
     );
 ```
 
-To create a new requestprofile, you can use the following template, replace all values between <> with the appropriate values for your use case. The provided template should be embedded inside the `$api_settings` variable. Remember that new profiles are separated by commas from previous profiles and should have unique names. 
+To create a new requestprofile, you can use the following template, replace all values between `<>` with the appropriate values for your use case. The provided template should be embedded inside the `$api_settings` variable. Remember that new profiles are separated by commas from previous profiles and should have unique names. 
 ```
 'profilename' => array(
     'secret' => <stringsecret>, 

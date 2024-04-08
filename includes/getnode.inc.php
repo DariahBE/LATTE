@@ -106,7 +106,6 @@ class Node{
     $this->client = $client;
   }
 
-  
 function executePremadeParameterizedQuery($query, $parameters){
   /*
     takes a query and parameters argument. the query is a paramaterized cypher query
