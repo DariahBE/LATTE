@@ -253,9 +253,6 @@ function pickThisQID(qid) {
 }
 
 
-//GLOBALSCOPE!
-console.warn('High priority bug in wikidata_prompt.js > showHit() > needs to be rewritten to act as mediator to showET(); ')
-//    \\
 function showHit(id) {
   /**
    * When a wikidata ID is shared among multiple entities. This 
@@ -263,7 +260,7 @@ function showHit(id) {
    * user assigns the selected string to a given entity. 
    * 
   */
-  updateState('STATE: ', 'There is one or more entity in the database with the same wikidata Q-identifier. You can connect it to one of these, or create a new entity.'); 
+  updateState('State', 'There is one or more entity in the database with the same wikidata Q-identifier. You can connect it to one of these, or create a new entity.'); 
   var xhr = new XMLHttpRequest();
   xhr.open('GET', 'http://entitylinker.test/AJAX/getETById.php?id=' + id + '&extended=1', true);
   // Set up a callback function, make it pass the responsedata to showET!
@@ -282,7 +279,6 @@ function showHit(id) {
       console.error('Request failed with status: ' + xhr.status);
     }
   };
-
   // Send the request
   xhr.send();
 }

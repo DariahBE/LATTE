@@ -289,7 +289,6 @@ function loadPropertiesOfSelectedType(selectedString, selected) {
     .then((data) => {
       if (data['msg'] == 'success') {
         var nodedata = data['data'];
-        //console.log(nodedata); 
         Object.entries(nodedata).forEach(entry => {
           const [key, value] = entry;
           console.log(key, value);
@@ -310,8 +309,6 @@ function loadPropertiesOfSelectedType(selectedString, selected) {
             newFieldInput.value = chosenQID;
             newFieldInput.disabled = true;
           }
-          //let nameVar = key; 
-          
           newFieldLabel.setAttribute('for', key);
           newFieldInput.setAttribute('name', key);
           newFieldInput.setAttribute('data-name', key);
@@ -324,7 +321,7 @@ function loadPropertiesOfSelectedType(selectedString, selected) {
             newFieldInput.setAttribute('pattern', expectedPattern);
           }
           if(uniqueness){
-            //TODO: test if unique is present in DOM
+            //test passed: DOM contains class!
             newFieldInput.classList.add('validateAs_unique');
           }
           newFieldInput.classList.add('attachValidator');
@@ -419,8 +416,8 @@ function buildPropertyInputFieldsFor(label) {
               newFieldInput.setAttribute('pattern', expectedPattern);
             }
             if(uniqueness){
-              //TODO: test if unique is present in DOM
-              newFieldInput.classList.add('validateAs_unique');
+            //TODO: test if uniqueness class is part of the DOM: 
+            newFieldInput.classList.add('validateAs_unique');
             }
             newFieldInput.classList.add('attachValidator');
             newFieldInput.classList.add('validateAs_' + datatype);
@@ -483,23 +480,27 @@ async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selec
 }
 
 function startEntityCreationFromScratch(){
+  //TODO critical functionality still missing !
   //update state: make it clear that the user instantiated this: 
-  updateState('Notice:', 'A match was rejected, you can now create a new annotation and entity.'); 
+  updateState('State', 'A match was rejected, you can now create a new annotation and entity.'); 
   //console.log(2);
   acceptQID(-1);
   console.log('running reject code.');
   //clear the current entity: 
   document.getElementById('etmain').innerHTML = ''; 
   deleteIfExistsById('WDResponseTarget');
-  //remove current link to wikidata id: 
+  deleteIfExistsById('etcreate');
+  //remove current link to wikidata id and remove wd object from global scope!: 
   wikidataID = -1;
   wd = null; 
+  //instantiate the entity creation process!
+  //instantiateNewET();
+  buildAnnotationCreationBox();
+  //pass the required DOM elements to generate a new WD string based browser: 
+  //let nodediv = document.getElementById('etcreate'); 
+  //let positiondiv = false;
   //instantiate a new wd browser panel based on the string with -1 as current link!: 
-
-
-  // at this stage: the user rejects the link to the provided entity and wants to manually create a new entity. 
-  //TODO critical 
-  //alert('NEEDS TO BE IMPLEMENTED FURTHER'); 
+  //createWDPromptBox(nodediv, positiondiv); 
 }
 
 function deleteIfExistsById(id){
@@ -527,13 +528,11 @@ function showET(etdata) {
   let etdataNeoId = etdata[0];
   let etLabel = etdata[1]; 
   let properties = etdata[2];
-  console.log(properties); 
   wikidataID = etdata[3];
   //Show the node label: 
   // let etLabelElem = document.createElement('h2'); 
   // etLabelElem.appendChild(document.createTextNode(etLabel)); 
   // etLabelElem.classList.add('text-lgss', 'font-bold'); 
-  //console.log(etdata); 
   //remove old elements by their ID.
   //BUG CRITICAL 18/3/24: annotations that are created by linking them after using the nav elements are always private no matter how you set them up!
   deleteIfExistsById('assignEtToSelectionParent');
@@ -591,7 +590,6 @@ function showET(etdata) {
     entityContentElement.setAttribute('id', 'entitycontent'); 
     document.getElementById('etmain').appendChild(created_etnav);
     document.getElementById('etmain').appendChild(entityContentElement);
-    //alert('Created new element!'); 
   }
 
   entityContentElement.appendChild(propdiv);
@@ -607,7 +605,7 @@ function showET(etdata) {
   fetch('/user/AJAX/profilestate.php')
     .then((response) => response.json())
     .then((data) => {
-      console.log('profilestate', data);
+      //console.log('profilestate', data);
       if (data['valid']) {
         var csrf = data['csrf'];
         let acceptLink = document.createElement('button');
@@ -615,8 +613,8 @@ function showET(etdata) {
         acceptLink.setAttribute('id', 'assignEtToSelection'); 
         rejectLink.setAttribute('id', 'assignNewEtToSelection'); 
         //show the user what is going on and explain why it is in this mode: 
-        updateState('State: ', 'An entity with matching spelling was found. You can link this attestation to this entity or reject the link and create a new entity with the same spelling.'); 
-
+        updateState('State', 'An entity with matching spelling was found. You can link this attestation to this entity or reject the link and create a new entity with the same spelling.'); 
+        //BUG 10/4/24: wdsearchbox is showing; shouldn't be there!
         let rejectText = document.createTextNode('Reject link'); 
         let acceptText = document.createTextNode('Create annotation');
         acceptLink.appendChild(acceptText);
@@ -681,7 +679,7 @@ function updateState(key, msg){
   /**
    * To show the user why the program goes into a specific mode; explain what's going on!
    */
-  document.getElementById('usernoticekey').textContent = key;
+  document.getElementById('usernoticekey').textContent = key+': ';
   document.getElementById('usernoticevalue').textContent = msg;
 }
 
@@ -761,7 +759,9 @@ function createWDPromptBox(createNodeDiv, positionDiv){
   if(!(referenceElement !== null)) {
     insertAfter('annotationCreationDiv', subtarget); 
   } else {
-    createNodeDiv.appendChild(positionDiv);
+    if (positionDiv !== false){
+      createNodeDiv.appendChild(positionDiv);
+    }
   }
   //createNodeDiv.appendChild(spellingVariantMainBox);
   //BUG: spellingVariantDOMReturn is out of scope!
@@ -828,7 +828,7 @@ function buildAnnotationCreationBox() {
             newFieldInput.setAttribute('pattern', expectedPattern);
           }
           if(uniqueness){
-            //TODO: test if unique is present in DOM
+            //TODO: test if uniqueness class is part of the DOM: 
             newFieldInput.classList.add('validateAs_unique');
           }
           newFieldInput.classList.add('attachValidator');
@@ -1239,7 +1239,7 @@ function triggerSidePanelAction(entityData) {
     */
   } else {
     //nothing found in the backend: no matching variants or nodelabels: 
-    updateState('State: ', 'The current database holds no nodes with matching spelling. Wikidata provides the following entities that match your annotation.')
+    updateState('State', 'The current database holds no nodes with matching spelling. Wikidata provides the following entities that match your annotation.')
     buildAnnotationCreationBox(); 
   }
 }

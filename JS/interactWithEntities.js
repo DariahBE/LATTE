@@ -354,7 +354,7 @@ function loadAnnotationData(annotationID = false) {
         handleError(''); 
       }else{
         showdata(data);
-        updateState('State: ', 'An annotated entity was selected, you can now see the data held in the database.'); 
+        updateState('State', 'An annotated entity was selected, you can now see the data held in the database.'); 
 
       }
     })

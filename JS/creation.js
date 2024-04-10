@@ -131,6 +131,7 @@ class nodeCreator{
           inputField.classList.add('form-control');
           inputField.classList.add('attachValidator');
           if(uniqueness){
+            //TODO: test if uniqueness class is part of the DOM: 
             inputField.classList.add('validateAs_unique');
           }
           inputField.classList.add('validateAs_'+attributes[1].toLowerCase());
