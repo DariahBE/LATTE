@@ -27,7 +27,6 @@ if(isset($_GET['texid'])){
 $user = new User($client);
 $user->checkAccess(TEXTSAREPUBLIC);
 $annotation = new Annotation($client);
-//TODO (critical): test transaction behaviour of annotation. 
 $annotation->startTransaction(); 
 $wikidata = new Wikidata_user($client);
 
@@ -255,7 +254,6 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
   }
   ?>
   <script>
-
     helper_setWDLanguages(document.getElementById('wdlookuplanguage')); 
   </script>
 </div>

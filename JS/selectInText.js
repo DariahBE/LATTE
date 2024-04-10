@@ -138,8 +138,6 @@ function saveNewDB() {
    * Triggered when a text selection is not recognized as an existing ET, 
    * will create a new ET, ANNO and variant node.
    */
-  //alert('capter snd'); 
-  console.log('Trigger into saveNewDB, creating new ET, Anno and VAR'); 
   let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
   //IS erverything valid 
   //validate in backend too!!
@@ -207,7 +205,6 @@ function saveNewDB() {
         dataObject['annotationmode'] = datamode;
         //if the datamode indicates it's an automated node: you need to pass the node UID so it can be updated. 
         //Annotation_auto nodes always have a UID, so that's a feasable solution.
-        //TODO set internal_ID!
         dataObject['neo_id_internal'] = auto_annotation_internal_id; 
         console.log("savenewdb", dataObject);
         //send dataobject to backend: 
@@ -220,14 +217,11 @@ function saveNewDB() {
             displayUpdatedText(put_rs['type'], put_rs['start'], put_rs['stop'], put_rs['uuid']); 
           })
           .catch(function(data){
-            //console.log(data); 
             let errorMessage = data['ERR']; 
             updateState('ERROR', errorMessage); 
-            //console.log(errorMessage); 
              
           })
           .always(function(){
-            //console.log('DOING ALWAYS'); 
             auto_annotation_internal_id= NaN; 
           })
       }); 
@@ -248,6 +242,7 @@ function toggleSlide(dir = 0) {
   chosenQID = null;
   // 0 closes the sidepanel; 1 opens it. Better than the original .toggle() functions
   if (dir === 0) {
+    unmark(); //when closing the side panel, always remove the markup!
     document.getElementById('slideover-container').classList.add('invisible');
     document.getElementById('slideover').classList.add('translate-x-full');
 
@@ -480,7 +475,7 @@ async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selec
 }
 
 function startEntityCreationFromScratch(){
-  //TODO critical functionality still missing !
+  //TODO critical functionality still missing ! (should be okay for now. - problem solved. )
   //update state: make it clear that the user instantiated this: 
   updateState('State', 'A match was rejected, you can now create a new annotation and entity.'); 
   //console.log(2);
@@ -522,7 +517,7 @@ function showET(etdata) {
    *    - CALLED BY: 
    *  1) (OK)When the database holds a single string that matches the selection (datadictionary contains 1 item) (call comes from triggerSidePanelAction() with the first loaded node)
    *  2) (OK)When a string matches 2 or more existing annotations in the database (datadictionary contains more than 1 item)  (call comes from triggerSidePanelAction()>navET)
-   *  3) (BUGGED)
+   *  3) (BUGGED) showHit ==> BUG!!
    */
   //read the properties from the entity passed as an argument
   let etdataNeoId = etdata[0];
@@ -641,7 +636,7 @@ function showET(etdata) {
 
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
           let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
-          console.log(annotationCollectionBox);  
+          console.log(annotationCollectionBox);
           await connectAnnoToEntity(etdataNeoId, languageOptions['nodeid'], globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox,  csrf); 
 
         });
@@ -1098,14 +1093,9 @@ function createSideSkelleton() {
   //    2.3:    stablebox: sets stable identifier and link to explorer. 
   //3   Wikidata section. ==> content gets fully built by wd code.
   console.warn('SECTION 3 of top header: WDResponseTarget is disabled!!!'); 
-  /*const wdblock = document.createElement('div');
-  wdblock.innerHTML = '<p>HAS WD??</p>';
-  wdblock.setAttribute('id', 'WDResponseTarget');
-  wdblock.classList.add('border-t-2', 'mt-1', 'pt-1');*/
   mainblock.appendChild(userblock); 
   mainblock.appendChild(textblock);
   mainblock.appendChild(middleblock);
-  //mainblock.appendChild(wdblock);
 }
 
 
@@ -1371,6 +1361,7 @@ function getTextSelection() {
 }
 
 function triggerSelection() {
+  unmark()
   var selectedTextProperties = getTextSelection();
   var selectedText = selectedTextProperties[0];
   if(selectInTexDebug){

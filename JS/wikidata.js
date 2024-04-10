@@ -267,7 +267,6 @@ class wikibaseEntry {
         this.classifier[highestScore].push(element); 
       }
     });
-    //console.log(this.classifier);
   }*/
   renderEntities(qid){
     //with all the entities categorized by the classify() call:
@@ -580,8 +579,6 @@ class wikibaseEntry {
     }else{
       console.warn('Unsupported datatype: ', propertyDataType); 
     }
-    //console.log(newElements.length); 
-    //into.push(...newElements);
   }
 
   async displayURI (parent, identifierOfEntity, q, p){

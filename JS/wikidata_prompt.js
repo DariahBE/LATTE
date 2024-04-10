@@ -147,11 +147,8 @@ function acceptQID(qid = -1) {
       .then((data) => {
         //console.log('dataresult', data); 
         if (data == 0) {
-          console.warn('YOU NEED TO UPDATE DOM FOR EMPTY RESULTSET RETURN!'); 
-          console.log('ZEROReturn');
-          //TODO required??
+          updateState('State', 'There\'s currently no matching Q-id in the database.'); 
         } else {
-          console.log('DATARETURN');
           //add the annotationfields to the DOM as properties. EXCLUDE start, stop and selectedtext fields. 
           let annotationProperties = document.createElement('div');
           let annoSubContent = document.createElement('div');
@@ -219,9 +216,14 @@ function pickThisQID(qid) {
   }
   rejectButton.addEventListener('click', function () {
     wd = null; //destroy wikidataObject
-    wdprompt(document.getElementById('wikidataInputPrompter').value, 0);
-    document.getElementById('embeddedWDConfirmationGroup').remove();
-    document.getElementById('WDResponseTarget').remove();
+    let inputPrompt = document.getElementById('wikidataInputPrompter'); 
+    if(inputPrompt!== null){
+      wdprompt(inputPrompt.value, 0);
+    }
+    deleteIfExistsById('embeddedWDConfirmationGroup'); 
+    deleteIfExistsById('WDResponseTarget')
+    //document.getElementById('embeddedWDConfirmationGroup').remove();
+    //document.getElementById('WDResponseTarget').remove();
   });
   acceptButton.addEventListener('click', function () {
     acceptQID(qid);
@@ -260,7 +262,8 @@ function showHit(id) {
    * user assigns the selected string to a given entity. 
    * 
   */
-  updateState('State', 'There is one or more entity in the database with the same wikidata Q-identifier. You can connect it to one of these, or create a new entity.'); 
+  //delete the call tot updateState: it get overridden in showET anyway!
+  //updateState('State', 'There is one or more entity in the database with the same wikidata Q-identifier. You can connect it to one of these, or create a new entity.'); 
   var xhr = new XMLHttpRequest();
   xhr.open('GET', 'http://entitylinker.test/AJAX/getETById.php?id=' + id + '&extended=1', true);
   // Set up a callback function, make it pass the responsedata to showET!
@@ -273,6 +276,7 @@ function showHit(id) {
       const label = jsonResponse['extra']['label']; 
       const properties = jsonResponse['props']; 
       const qid = chosenQID;
+
       showET([etid, label, properties, qid]);
     } else {
       // Request failed
@@ -282,6 +286,24 @@ function showHit(id) {
   // Send the request
   xhr.send();
 }
+
+/******************************************************************************************
+ *   critical //BUG 10/4/24
+ * To Trigger: 
+ *  1) go to text 10004
+ *  2) Select Rome
+ *  3) in the wdsearchbox; replace Rome by Brussels
+ *  4) Press search 
+ *  5) connect it to Brussels and navigate the three hits!
+ * 
+ * Problem: 
+ *  When using showhit code, part of the DOM gets duplicated when browsing entities.
+ *  The WD search interface gets shown on top of the WD data interface. 
+ * 
+ * Cause: 
+ *  calling showHit(integer_id) triggers the root problem ==> problem is further carried down
+ *  by the subcall to showET which is also a mainloop function, careful when modifying that!
+ ********************************************************************************************/
 
 let checkIfConnectionExists = async (qid) => {
   /**
@@ -299,8 +321,8 @@ let checkIfConnectionExists = async (qid) => {
     fetch("/AJAX/checkWDExists.php?qid=" + qid)
       .then((response) => response.json())
       .then((data) => {
-        console.log(data);
         let hits = data['data'];
+        //TODO: there's still testcode in here to trigger multihit responses!!
         console.warn('testdata still present in code!!');
         hits.push(148);
         hits.push(146);
@@ -370,18 +392,16 @@ let checkIfConnectionExists = async (qid) => {
             console.log(hits[j])
             console.log(globalSelectionStart, globalSelectionEnd, globalSelectionText); 
             connectButton.addEventListener('click', function(){
+              alert('extratest! 10/4/24'); 
               //TODO: extra properties need to be tested (OKAY IF implementationtest passes. ). 
               let annotationProperties = document.getElementById('embeddedAnnotation').getElementsByClassName('property');
               let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
               console.log(annotationCollectionBox);      
-
               //fetch a fresh CSRF token: 
               fetch('/user/AJAX/profilestate.php')
                 .then((response) => response.json())
                 .then((token) => {
                   if(token.valid){
-                    //                  neoid of e, neoid of text, selectstart, selectistop, selectedtext, securitytoken
-                           //SIGNATURE:(neoid_et, text_neo_id          , selection_start     , selection_end      , selected_text     , extra_properties       , token)
                     connectAnnoToEntity(hits[j], languageOptions.nodeid, globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox, token.csrf);
                   }
                 })
@@ -400,7 +420,6 @@ let checkIfConnectionExists = async (qid) => {
           //OK
           let creationElement = document.getElementById('etcreate');
           creationElement.classList.add('getAttention');
-          // TODO test if adding globalselectiontext works!
           loadPropertiesOfSelectedType(globalSelectionText, false);
           resolve(0);
         }
