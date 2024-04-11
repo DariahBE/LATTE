@@ -412,6 +412,7 @@ function buildPropertyInputFieldsFor(label) {
             }
             if(uniqueness){
             //TODO: test if uniqueness class is part of the DOM: 
+            alert("Pending testcase to check: selectInText.js > buildPropertyInputFieldsFor > TODO (uniqueness"); 
             newFieldInput.classList.add('validateAs_unique');
             }
             newFieldInput.classList.add('attachValidator');
@@ -456,11 +457,8 @@ async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selec
         let annotationEnd = repldata['stop'];
         let annotationUID = repldata['annotation'];
         let annotationForType = repldata['type'];
-        //BUG: ACCES TO etmain missing. 
-        console.warn('connect.php result; still needs to go in DOM: UNUSED variables of CRUD/Connect call!!: ', annotationStart, annotationEnd, annotationUID, annotationForType);
         loadAnnotationData(annotationUID);
         displayUpdatedText(annotationForType, annotationStart, annotationEnd, annotationUID); 
-      
         resolve(); //Resolve the Promise when the fetch operation completes
       }
     }).always(
@@ -478,9 +476,7 @@ function startEntityCreationFromScratch(){
   //TODO critical functionality still missing ! (should be okay for now. - problem solved. )
   //update state: make it clear that the user instantiated this: 
   updateState('State', 'A match was rejected, you can now create a new annotation and entity.'); 
-  //console.log(2);
   acceptQID(-1);
-  console.log('running reject code.');
   //clear the current entity: 
   document.getElementById('etmain').innerHTML = ''; 
   deleteIfExistsById('WDResponseTarget');
@@ -488,14 +484,7 @@ function startEntityCreationFromScratch(){
   //remove current link to wikidata id and remove wd object from global scope!: 
   wikidataID = -1;
   wd = null; 
-  //instantiate the entity creation process!
-  //instantiateNewET();
   buildAnnotationCreationBox();
-  //pass the required DOM elements to generate a new WD string based browser: 
-  //let nodediv = document.getElementById('etcreate'); 
-  //let positiondiv = false;
-  //instantiate a new wd browser panel based on the string with -1 as current link!: 
-  //createWDPromptBox(nodediv, positiondiv); 
 }
 
 function deleteIfExistsById(id){
@@ -517,7 +506,7 @@ function showET(etdata) {
    *    - CALLED BY: 
    *  1) (OK)When the database holds a single string that matches the selection (datadictionary contains 1 item) (call comes from triggerSidePanelAction() with the first loaded node)
    *  2) (OK)When a string matches 2 or more existing annotations in the database (datadictionary contains more than 1 item)  (call comes from triggerSidePanelAction()>navET)
-   *  3) (BUGGED) showHit ==> BUG!!
+   *  3) (BUGGED) showHit ==> BUG!! 10/4/24
    */
   //read the properties from the entity passed as an argument
   let etdataNeoId = etdata[0];
@@ -609,7 +598,6 @@ function showET(etdata) {
         rejectLink.setAttribute('id', 'assignNewEtToSelection'); 
         //show the user what is going on and explain why it is in this mode: 
         updateState('State', 'An entity with matching spelling was found. You can link this attestation to this entity or reject the link and create a new entity with the same spelling.'); 
-        //BUG 10/4/24: wdsearchbox is showing; shouldn't be there!
         let rejectText = document.createTextNode('Reject link'); 
         let acceptText = document.createTextNode('Create annotation');
         acceptLink.appendChild(acceptText);
@@ -645,11 +633,23 @@ function showET(etdata) {
         //start with creating the annotation box: use a single function for this
         //which is responsible for the annobox throughout the entire code!
         buildAnnotationCreationBox(); 
-        document.getElementById('embeddedET').classList.remove('hidden'); 
-        document.getElementById('annotationCreationDiv').classList.remove('hidden'); 
-        document.getElementById('etselectdiv').classList.add('hidden'); 
-        document.getElementById('nodeTypeSelection').classList.add('hidden'); 
-        
+        //swap DOM layout
+        var embeddedETRef = document.getElementById('embeddedET');
+        if (embeddedETRef) {
+          embeddedETRef.classList.remove('hidden');
+        }
+        var annotationCreationDivRef = document.getElementById('annotationCreationDiv');
+        if (annotationCreationDivRef) {
+          annotationCreationDivRef.classList.remove('hidden');
+        }
+        var etselectdivRef = document.getElementById('etselectdiv');
+        var nodeTypeSelectionRef = document.getElementById('nodeTypeSelection');
+        if (etselectdivRef) {
+          etselectdivRef.classList.add('hidden');
+        }
+        if (nodeTypeSelectionRef) {
+          nodeTypeSelectionRef.classList.add('hidden');
+        }        
         //make a save button to commit the data: 
         let saveNewEntry = document.createElement('button');
         saveNewEntry.setAttribute('id', 'saveEtToDb');
@@ -770,6 +770,15 @@ function createWDPromptBox(createNodeDiv, positionDiv){
 
 function buildAnnotationCreationBox() {
   console.warn('call into buildAnnotationCreationBox'); 
+  //BUG => this is thepatch for bug of 10/4/24
+  //TESTs passed so far: 
+  // connecting still works, even with the return statement in here!!!
+  if (document.getElementById('etcreate') !== null){
+    //TODO; remove alert code!
+    alert('bugfix triggered!!'); 
+    return; 
+  }
+  //end of patch. 10/4/24
   var createNodeDiv = document.createElement('div');
   createNodeDiv.classList.add('w-full');
   createNodeDiv.setAttribute('id', 'etcreate');
@@ -1025,7 +1034,6 @@ function createSideSkelleton() {
   /**
    * New userblock where the program informs the user of what's been found
    * in the backend/wikidata and how to proceed. 
-   * //TODO: User can also override certain decisions
    */
   const userblock = document.createElement('div');
   userblock.setAttribute('id', 'usermetablock'); 
@@ -1040,10 +1048,6 @@ function createSideSkelleton() {
   const overrideblock = document.createElement('div'); 
   overrideblock.setAttribute('id', 'overrideblock'); 
   //style the userblock distinctly from the rest: 
-  //userblock.classlist.add('bg-gray-300', 'border-solid', 'border-2'); 
-
-  //TEMPORARY: delete
-  notificationvalue.appendChild(document.createTextNode('delete me')); 
 
   //put it all together. 
   notificationpelement.appendChild(notificationkey);
@@ -1166,6 +1170,7 @@ function triggerSidePanelAction(entityData) {
     var pageLength = dataDictionary.length;
 
     function navET(dir) {
+      alert("navET code being used");
       console.warn('moving ET');
       //navigates through the dataDictionary and picks a page(entity). 
       //only used when 2 or more possible entities are part of the selection.

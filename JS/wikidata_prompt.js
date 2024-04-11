@@ -392,7 +392,7 @@ let checkIfConnectionExists = async (qid) => {
             console.log(hits[j])
             console.log(globalSelectionStart, globalSelectionEnd, globalSelectionText); 
             connectButton.addEventListener('click', function(){
-              alert('extratest! 10/4/24'); 
+              alert('extratest! 10/4/24: Remove pending TODO if test passes!'); 
               //TODO: extra properties need to be tested (OKAY IF implementationtest passes. ). 
               let annotationProperties = document.getElementById('embeddedAnnotation').getElementsByClassName('property');
               let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
