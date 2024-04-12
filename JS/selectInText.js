@@ -498,6 +498,8 @@ let wikidataID;
 
 console.warn('High priority bug in selectInText.js > showET(): note privacy settting not working.');
 function showET(etdata) {
+  //TODO test if label is pressent by all callers!
+  alert('labeltest required from all callers!')
   /**
    *      function will display WD, label and properties for any 
    *  given entity that has en entry in the database. If a link
@@ -506,7 +508,7 @@ function showET(etdata) {
    *    - CALLED BY: 
    *  1) (OK)When the database holds a single string that matches the selection (datadictionary contains 1 item) (call comes from triggerSidePanelAction() with the first loaded node)
    *  2) (OK)When a string matches 2 or more existing annotations in the database (datadictionary contains more than 1 item)  (call comes from triggerSidePanelAction()>navET)
-   *  3) (BUGGED) showHit ==> BUG!! 10/4/24
+   *  3) (BUGGED) showHit ==> BUG!! 10/4/24 (labels are okay!)
    */
   //read the properties from the entity passed as an argument
   let etdataNeoId = etdata[0];
@@ -532,6 +534,10 @@ function showET(etdata) {
     //referenceNode.parentNode.insertBefore(subtarget, referenceNode.nextSibling);
   }
   subtarget.innerHTML = '';
+  //TODO: test that you don't create multiple labels!
+  let labelElement = document.createElement('h3'); 
+  labelElement.appendChild(document.createTextNode('Entity: '+ etLabel)); 
+  labelElement.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex', 'justify-center'); 
   // subtarget.appendChild(etLabelElem); 
   var propdiv = document.createElement('div');
   for (let k in properties) {
@@ -576,6 +582,7 @@ function showET(etdata) {
     document.getElementById('etmain').appendChild(entityContentElement);
   }
 
+  entityContentElement.appendChild(labelElement);
   entityContentElement.appendChild(propdiv);
   if (wikidataID) {
     wd = new wikibaseEntry(wikidataID, wdProperties, 'slideover', 'qid');
@@ -774,8 +781,6 @@ function buildAnnotationCreationBox() {
   //TESTs passed so far: 
   // connecting still works, even with the return statement in here!!!
   if (document.getElementById('etcreate') !== null){
-    //TODO; remove alert code!
-    alert('bugfix triggered!!'); 
     return; 
   }
   //end of patch. 10/4/24

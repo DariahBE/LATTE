@@ -287,24 +287,6 @@ function showHit(id) {
   xhr.send();
 }
 
-/******************************************************************************************
- *   critical //BUG 10/4/24
- * To Trigger: 
- *  1) go to text 10004
- *  2) Select Rome
- *  3) in the wdsearchbox; replace Rome by Brussels
- *  4) Press search 
- *  5) connect it to Brussels and navigate the three hits!
- * 
- * Problem: 
- *  When using showhit code, part of the DOM gets duplicated when browsing entities.
- *  The WD search interface gets shown on top of the WD data interface. 
- * 
- * Cause: 
- *  calling showHit(integer_id) triggers the root problem ==> problem is further carried down
- *  by the subcall to showET which is also a mainloop function, careful when modifying that!
- ********************************************************************************************/
-
 let checkIfConnectionExists = async (qid) => {
   /**
    *  checks if the request QID (wikidata identifier) is already used by any
