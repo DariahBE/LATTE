@@ -202,3 +202,8 @@ To create a new requestprofile, you can use the following template, replace all 
     )
 )
 ```
+
+## Pagination
+The end user of the API should be aware that the API uses pagination if they want to ingest all the data that matches the query, they need to navigatet these pages. Each response is limited to a maximum of 50 nodes, this variable is defined in `/includes/customapi.inc.php` under the `$pageResults` property. You can change this number but be aware that increasing this number will increase the response time of the API and the load on the database.
+
+To access the next page endusers extend their URL based request with a `page` parameter. For example, if the user wants to access the next page of the results they would add `&page=1` to the request. Counting pagest starts from 0; to view the first page users can use `&page=0` or they can simply ommit the `page` parameter from the URI!

@@ -7,7 +7,7 @@ include_once(ROOT_DIR.'\includes\user.inc.php');
 include_once(ROOT_DIR.'\includes\csrf.inc.php');
 include_once(ROOT_DIR.'\includes\nodes_extend_cud.inc.php');
 include_once(ROOT_DIR.'\includes\customapi.inc.php');
-include_once(ROOT_DIR.'\custom_api\config\config.php');
+include_once(ROOT_DIR.'\config\CAPI_config.php');
 
 //die('okido'); 
 

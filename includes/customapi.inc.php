@@ -7,6 +7,7 @@
 
 class API {
     private $settings; 
+    private $pageResults = 50; 
     private $profile; 
     private $parameters = array(); //query parameters
     private $ph = 1; //placeholder
@@ -15,6 +16,14 @@ class API {
         $this->settings = $settings; 
     }
 
+    private function page_skipper(){
+        if (isset($_GET['page'])){
+            $page = (int)$_GET['page']; 
+        }else{
+            $page = 0; 
+        }
+        return $page * $this->pageResults; 
+    }
 
     public function checkrequestsecret($apiName, $secret){
         /**
@@ -143,7 +152,9 @@ class API {
         $this->parameters[] = ' (NOT EXISTS(n.private) OR n.private <> True) '; 
         $query = $this->matchStatement.
         ' WHERE '.implode(" AND ", $this->parameters).
-        ' return distinct(n); '; 
+        ' RETURN distinct(n) '.
+        ' SKIP '. $this->page_skipper().
+        ' LIMIT '. $this->pageResults . ';'; 
         $this->query = $query; 
     }
 

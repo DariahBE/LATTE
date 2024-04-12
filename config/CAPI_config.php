@@ -61,16 +61,4 @@ $api_settings = array(
 
 );
 
-/**             DOCS: 
- * $api_settings is a nested dict. The KEYS in this dict are:
- *      UNIQUE STRINGS
- *      Should be passed to the API-endpoint as part of the GET request
- *      These keys are to be interpreted as an API-profile
- * 
- * API-profiles:
- *  Each API profile has a key 'secret', this can be False, for API's that are completely open
- *  or can be set to a stringvalue; the stringvalue is the secret key used for a custom API
- * 
-*/
-
 //DO NOT EDIT BELOW THIS LINE
