@@ -1,0 +1,24 @@
+{
+    "texts": [
+      {
+        "texid": 1, 
+        "text": "lorem ipsum dolor amet",
+        "properties": {
+          "chosenid" : "4458",
+          "language" : "English",
+          "publication" : "G.Pap4"
+        }
+      }, 
+      {
+        "texid": 2, 
+        "text": "the quick brown fox jumps over the lazy dog",
+        "properties": {
+          "chosenid" : "85478",
+          "language" : "English",
+          "publication" : "G.Pap7", 
+          "extra" : "test", 
+          "uuid" : "969169e0-fdca-4440-9db1-3a13d04920ab"
+        }
+      }
+    ]
+  }

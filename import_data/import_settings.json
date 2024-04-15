@@ -1,0 +1,18 @@
+{
+    "file_settings" : {
+        "texts_file" : "texts.json",
+        "entities" : "entities.json",
+        "annotations" : "annotations.json"
+    },
+
+    "texts_config" : {
+        "primary_key" : "texid", 
+        "label": "Atext",
+        "property_translations": {
+            "chosenid" : "library_id", 
+            "publication" : "papyrus"
+        },
+        "uuid_property" : "uuid"
+    }
+
+}
