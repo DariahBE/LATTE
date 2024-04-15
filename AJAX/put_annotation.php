@@ -73,7 +73,6 @@
     $endProperty = ANNOSTOP; 
 
     //make database commits a transaction!
-    //TODO (critical): Test transaction implementation. 
     //$annotation->startTransaction(); 
     //entire chain is conditional and should only be committed if all queries succeed!!
     ///////////////////////////////////
@@ -137,11 +136,7 @@
     //Connect the variants: 
     foreach($variants as $variant){
         try{
-            //DEBUG: OK var_dump($createdEntity); 
-            //DEBUG: OK var_dump($variant); 
             $r = $node->createVariantRelation($variant, $createdEntity); 
-            //TODO; test variants!!
-            //var_dump($r);       //triggers invalid entity node!
         }catch(\Throwable $th){
             $node->rollbackTransaction();
             die('Rejected variant node. '); 

@@ -38,7 +38,7 @@ function decideOnEdit(protected, level){
   }else{
     return false;
   }
-}*/
+}
 
 function waitForElement(selector) {
   return new Promise(resolve => {
@@ -59,7 +59,7 @@ function waitForElement(selector) {
     });
   });
 }
-
+*/
 
 function createStableLinkingBlock(nodeid, stableURI) {
   //generates a link to the graph explorer page
@@ -83,6 +83,47 @@ function createStableLinkingBlock(nodeid, stableURI) {
   subdivGateway.setAttribute('id', 'stableBox');
   subdivGateway.appendChild(linkElement);
   subdivGateway.appendChild(linkToStablePage);
+  return subdivGateway;
+}
+
+
+function createEditRemoveBox(etnodeid, annonodeid){
+  //TODO integrate this after createStableLinkingBlock
+  //TODO determine if there's a logged in user. Maybe use a global?
+  let annotationPart = document.createElement('div'); 
+  let annotationSectionHeader = document.createElement('H4'); 
+  annotationSectionHeader.appendChild(document.createTextNode('Annotation: '));
+  annotationPart.appendChild(annotationSectionHeader); 
+  let annotationDelete = document.createElement('button'); 
+  annotationDelete.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-red-500', 'hover:bg-red-700');
+  annotationDelete.appendChild(document.createTextNode('Delete'));
+  let annotationEdit = document.createElement('button'); 
+  annotationEdit.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-blue-500', 'hover:bg-blue-700');
+  annotationEdit.appendChild(document.createTextNode('Edit'));
+  annotationPart.appendChild(annotationDelete); 
+  annotationPart.appendChild(annotationEdit);
+  //TODO implement function calls for update and delete!
+  
+  let entityPart = document.createElement('div'); 
+  let entitySectionHeader = document.createElement('H4'); 
+  entitySectionHeader.appendChild(document.createTextNode('Entity: '));
+  entityPart.appendChild(entitySectionHeader);
+  let entityDelete = document.createElement('button');
+  entityDelete.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-red-500', 'hover:bg-red-700');
+  entityDelete.appendChild(document.createTextNode('Delete'));
+  let entityEdit = document.createElement('button'); 
+  entityEdit.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-blue-500', 'hover:bg-blue-700');
+  entityEdit.appendChild(document.createTextNode('Edit'));
+  entityPart.appendChild(entityDelete);
+  entityPart.appendChild(entityEdit);
+  //TODO implement function calls for update and delete!
+  
+
+  let subdivGateway = document.createElement('div');
+  subdivGateway.classList.add('flex', 'flex-row');
+  subdivGateway.setAttribute('id', 'editBox');
+  subdivGateway.appendChild(annotationPart);
+  subdivGateway.appendChild(entityPart);
   return subdivGateway;
 }
 
@@ -237,6 +278,7 @@ function showdata(data) {
     annotationTarget.appendChild(etpropdiv); 
     let neoid = data['entity'][0]['neoID'];
     gateWay.appendChild(createStableLinkingBlock(neoid, etStable));
+    gateWay.appendChild(createEditRemoveBox(neoid, -99));
     annotationTarget.appendChild(gateWay);
     //display the variant data: 
     checklogin()
@@ -454,7 +496,7 @@ function showDBInfoFor(id, extra = '') {
       let stableBox = document.getElementById('stableBox');
       if (stableBox) { stableBox.remove(); }
       referenceNode.appendChild(createStableLinkingBlock(id, uri));
-
+      referenceNode.appendChild(createEditRemoveBox(id, -99));
     });
 
 }

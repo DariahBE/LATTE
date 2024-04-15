@@ -499,7 +499,7 @@ let wikidataID;
 console.warn('High priority bug in selectInText.js > showET(): note privacy settting not working.');
 function showET(etdata) {
   //TODO test if label is pressent by all callers!
-  alert('labeltest required from all callers!')
+  //alert('labeltest required from all callers!')
   /**
    *      function will display WD, label and properties for any 
    *  given entity that has en entry in the database. If a link
