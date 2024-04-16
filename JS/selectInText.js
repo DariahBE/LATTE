@@ -941,6 +941,9 @@ function buildAnnotationCreationBox() {
   positionDiv.appendChild(selectedText);
   //positional info added: show spellingvariantbox: 
   //    allow the user to generate a list of spelling variants: 
+ 
+  //spellingVariantDOMReturn = new SpellingVariant(null, null, globalLoginAvailable);
+
   checklogin()
   .then(valid => {
     console.log(valid); 

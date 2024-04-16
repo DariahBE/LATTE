@@ -1,4 +1,29 @@
 let datamode = null;
+let globalLoginAvailable = false; 
+let globalAnnoInteractId = false;
+
+function checklogin() {
+  return new Promise((resolve, reject) => {
+      $.ajax({
+          url: "../user/AJAX/profilestate.php",
+          success: function(result) {
+              resolve(result['valid']);
+          },
+          error: function(error) {
+              reject(error);
+          }
+      });
+  });
+}
+checklogin()
+  .then(valid => {
+    console.log(valid); 
+    globalLoginAvailable = valid;
+  })
+  .catch(error => {
+    globalLoginAvailable = false; 
+  })
+
 
 function getInfoFromBackend(url) {
   var myPromise = new Promise((resolve, reject) => {
@@ -88,25 +113,45 @@ function createStableLinkingBlock(nodeid, stableURI) {
 
 
 function createEditRemoveBox(etnodeid, annonodeid){
-  //TODO integrate this after createStableLinkingBlock
-  //TODO determine if there's a logged in user. Maybe use a global?
+  let subdivGateway = document.createElement('div');
+
+  if(!(globalLoginAvailable)){return subdivGateway;}
   let annotationPart = document.createElement('div'); 
-  let annotationSectionHeader = document.createElement('H4'); 
-  annotationSectionHeader.appendChild(document.createTextNode('Annotation: '));
-  annotationPart.appendChild(annotationSectionHeader); 
-  let annotationDelete = document.createElement('button'); 
-  annotationDelete.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-red-500', 'hover:bg-red-700');
-  annotationDelete.appendChild(document.createTextNode('Delete'));
-  let annotationEdit = document.createElement('button'); 
-  annotationEdit.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-blue-500', 'hover:bg-blue-700');
-  annotationEdit.appendChild(document.createTextNode('Edit'));
-  annotationPart.appendChild(annotationDelete); 
-  annotationPart.appendChild(annotationEdit);
-  //TODO implement function calls for update and delete!
-  
+  if(annonodeid !== false){
+      
+    let annoEditLink = '/crud/edit.php?id='+annonodeid;
+    let annoDeleteLink = 'crud/delete.php?id='+annonodeid;
+    let annoeditElement = document.createElement('a'); 
+    annoeditElement.setAttribute('href', annoEditLink); 
+    let annodeleteElement = document.createElement('a'); 
+    annodeleteElement.setAttribute('href', annoDeleteLink);
+    annotationPart.classList.add('w-full');
+    let annotationSectionHeader = document.createElement('H4'); 
+    annotationSectionHeader.appendChild(document.createTextNode('Edit annotation: '));
+    annotationPart.appendChild(annotationSectionHeader); 
+    annotationSectionHeader.classList.add('font-bold', 'text-lg', 'w-full');
+    let annotationDelete = document.createElement('button'); 
+    annotationDelete.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-red-500', 'hover:bg-red-700');
+    annotationDelete.appendChild(document.createTextNode('Delete'));
+    let annotationEdit = document.createElement('button'); 
+    annotationEdit.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-blue-500', 'hover:bg-blue-700');
+    annotationEdit.appendChild(document.createTextNode('Edit'));
+    annotationPart.appendChild(annotationDelete); 
+    annotationPart.appendChild(annotationEdit);
+    //TODO implement function calls for update and delete!
+
+  }
+  let entityEditLink = '/crud/edit.php?id='+etnodeid;
+  let entityDeleteLink = 'crud/delete.php?id='+etnodeid;
+  let etEditElement = document.createElement('a'); 
+  etEditElement.setAttribute('href', entityEditLink); 
+  let etDeleteElement = document.createElement('a'); 
+  etDeleteElement.setAttribute('href', entityDeleteLink); 
   let entityPart = document.createElement('div'); 
+  entityPart.classList.add('w-full');
   let entitySectionHeader = document.createElement('H4'); 
-  entitySectionHeader.appendChild(document.createTextNode('Entity: '));
+  entitySectionHeader.appendChild(document.createTextNode('Edit entity: '));
+  entitySectionHeader.classList.add('font-bold', 'text-lg', 'w-full');
   entityPart.appendChild(entitySectionHeader);
   let entityDelete = document.createElement('button');
   entityDelete.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-red-500', 'hover:bg-red-700');
@@ -117,13 +162,12 @@ function createEditRemoveBox(etnodeid, annonodeid){
   entityPart.appendChild(entityDelete);
   entityPart.appendChild(entityEdit);
   //TODO implement function calls for update and delete!
-  
 
-  let subdivGateway = document.createElement('div');
-  subdivGateway.classList.add('flex', 'flex-row');
+  // subdivGateway.classList.add('flex', 'flex-row');
   subdivGateway.setAttribute('id', 'editBox');
   subdivGateway.appendChild(annotationPart);
   subdivGateway.appendChild(entityPart);
+  globalAnnoInteractId = false; 
   return subdivGateway;
 }
 
@@ -183,16 +227,7 @@ function showdata(data) {
 
   let et = data.entity?.[0]?.neoID ?? false;
   //let rst = undefined; 
-  checklogin()
-    .then(valid => {
-      console.log(valid); 
-      //rst = valid['valid'];
-      kb = new KnowledgeBase(et, valid);
-    })
-    .catch(error => {
-      kb = new KnowledgeBase(et, false);
 
-    })
 
   var annotationTarget = document.getElementById('slideoverDynamicContent');
   //superimpose the slideover on top of the navbar: 
@@ -278,9 +313,12 @@ function showdata(data) {
     annotationTarget.appendChild(etpropdiv); 
     let neoid = data['entity'][0]['neoID'];
     gateWay.appendChild(createStableLinkingBlock(neoid, etStable));
-    gateWay.appendChild(createEditRemoveBox(neoid, -99));
+    //TODO pass id.
+    gateWay.appendChild(createEditRemoveBox(neoid, globalAnnoInteractId));
     annotationTarget.appendChild(gateWay);
     //display the variant data: 
+    spellingVariantDOMReturn = new SpellingVariant(data['variants'], neoid, globalLoginAvailable);
+    /*
     checklogin()
       .then(valid => {
         //rst = valid['valid'];
@@ -288,7 +326,7 @@ function showdata(data) {
       })
       .catch(error => {
         spellingVariantDOMReturn = new SpellingVariant(data['variants'], neoid, false);
-      })
+      })*/
     //displayET_variant(data['variants'], neoid);
     //With the type known: look up if there's a wikidata attribute: 
     var qidArr = data['entity'][0]['properties'].filter(ar => ar[2] == 'wikidata');
@@ -380,6 +418,8 @@ function handleError(e) {
 }
 
 function loadAnnotationData(annotationID = false) {
+
+  console.log(globalLoginAvailable); 
   //BUG: existing Annotation_auto ID gets retained and added after confirming a recognized ET
   if (!(annotationID)){
     //get annotationID in case of clickevent trigger: find the source of the event. 
@@ -395,6 +435,7 @@ function loadAnnotationData(annotationID = false) {
       if (data['code']==-1){
         handleError(''); 
       }else{
+        globalAnnoInteractId = data['annotation']['neoid']; 
         showdata(data);
         updateState('State', 'An annotated entity was selected, you can now see the data held in the database.'); 
 
@@ -496,7 +537,7 @@ function showDBInfoFor(id, extra = '') {
       let stableBox = document.getElementById('stableBox');
       if (stableBox) { stableBox.remove(); }
       referenceNode.appendChild(createStableLinkingBlock(id, uri));
-      referenceNode.appendChild(createEditRemoveBox(id, -99));
+      referenceNode.appendChild(createEditRemoveBox(id, globalAnnoInteractId));
     });
 
 }

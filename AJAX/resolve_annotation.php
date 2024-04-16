@@ -99,6 +99,7 @@ if ($annotation_type === ANNONODE){
 }else{
   die(); 
 }
+$formattedResponse['annotation']['neoid'] = $egoId;
 
 $formattedResponse['mode'] = $mode; 
 $formattedResponse['code'] = 1;

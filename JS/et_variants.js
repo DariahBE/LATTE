@@ -1,19 +1,7 @@
 var spellingVariantDOMReturn = null; 
 
 
-function checklogin() {
-    return new Promise((resolve, reject) => {
-        $.ajax({
-            url: "../user/AJAX/profilestate.php",
-            success: function(result) {
-                resolve(result['valid']);
-            },
-            error: function(error) {
-                reject(error);
-            }
-        });
-    });
-}
+
 
 
 class SpellingVariant {
