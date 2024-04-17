@@ -135,7 +135,8 @@ public function checkForSession($redir="/user/mypage.php"){
       3 = Create, update and delete
       4 = SuperUser: allow all.
     */
-
+    //TODO ownership check!!!!
+    $role = strtolower($role); 
     if($role === 'admin'){
       //if you're admin, you can edit it.
       return 4;

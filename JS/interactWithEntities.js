@@ -114,13 +114,11 @@ function createStableLinkingBlock(nodeid, stableURI) {
 
 function createEditRemoveBox(etnodeid, annonodeid){
   let subdivGateway = document.createElement('div');
-
   if(!(globalLoginAvailable)){return subdivGateway;}
   let annotationPart = document.createElement('div'); 
   if(annonodeid !== false){
-      
     let annoEditLink = '/crud/edit.php?id='+annonodeid;
-    let annoDeleteLink = 'crud/delete.php?id='+annonodeid;
+    let annoDeleteLink = '/crud/delete.php?id='+annonodeid;
     let annoeditElement = document.createElement('a'); 
     annoeditElement.setAttribute('href', annoEditLink); 
     let annodeleteElement = document.createElement('a'); 
@@ -136,13 +134,13 @@ function createEditRemoveBox(etnodeid, annonodeid){
     let annotationEdit = document.createElement('button'); 
     annotationEdit.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-blue-500', 'hover:bg-blue-700');
     annotationEdit.appendChild(document.createTextNode('Edit'));
-    annotationPart.appendChild(annotationDelete); 
-    annotationPart.appendChild(annotationEdit);
-    //TODO implement function calls for update and delete!
-
+    annoeditElement.appendChild(annotationEdit); 
+    annodeleteElement.appendChild(annotationDelete); 
+    annotationPart.appendChild(annodeleteElement); 
+    annotationPart.appendChild(annoeditElement);
   }
   let entityEditLink = '/crud/edit.php?id='+etnodeid;
-  let entityDeleteLink = 'crud/delete.php?id='+etnodeid;
+  let entityDeleteLink = '/crud/delete.php?id='+etnodeid;
   let etEditElement = document.createElement('a'); 
   etEditElement.setAttribute('href', entityEditLink); 
   let etDeleteElement = document.createElement('a'); 
@@ -159,11 +157,11 @@ function createEditRemoveBox(etnodeid, annonodeid){
   let entityEdit = document.createElement('button'); 
   entityEdit.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-blue-500', 'hover:bg-blue-700');
   entityEdit.appendChild(document.createTextNode('Edit'));
-  entityPart.appendChild(entityDelete);
-  entityPart.appendChild(entityEdit);
-  //TODO implement function calls for update and delete!
+  etDeleteElement.appendChild(entityDelete);
+  etEditElement.appendChild(entityEdit);
+  entityPart.appendChild(etDeleteElement);
+  entityPart.appendChild(etEditElement);
 
-  // subdivGateway.classList.add('flex', 'flex-row');
   subdivGateway.setAttribute('id', 'editBox');
   subdivGateway.appendChild(annotationPart);
   subdivGateway.appendChild(entityPart);

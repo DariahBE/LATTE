@@ -439,6 +439,42 @@ class CUDNode extends Node {
     }
 
 
+    /*        DELETE OPERATIONS!!!! */
+
+    public function deleteEntities($id_array){
+      /**
+       * Takes a list of NEO ids of entities to be deleted from the database. 
+       */
+    }
+
+    public function deleteAnnotation($id_array){
+      /**
+       * Takes a list of NEO id's of annotations to be deleted from the database. 
+       */
+    }
+
+    public function deleteText($id){
+      /*takes the NEO ID of a text and deletes it from the DB
+      * returns the IDS' of annotation nodes that should be deleted too
+      * returns the IDS' of entities that should be deleted too. 
+      */
+      $repl = []; 
+      $relatedAnnoIds = []; 
+      $allowedToDelete = $this->determineRightsSet(3); 
+      $repl['permission'] = $allowedToDelete; 
+      if($allowedToDelete){
+        $annosToKillQuery = 'MATCH (n)-[r:contains]-(a) WHERE id(n) = $neoid RETURN id(a) AS killthis;'; 
+        $annosToKill = $this->client->run($annosToKillQuery, array('neoid'=>$id));
+        $annosToKill = $annosToKill->getResults();
+        foreach($annosToKill as $anno){
+          $relatedAnnoIds[] = $anno->get('killthis'); 
+        }
+      }
+      //var_dump($relatedAnnoIds);
+      $repl['affectedAnnotations'] = $relatedAnnoIds; 
+      return $repl; 
+    }
+
 
 }
 ?>

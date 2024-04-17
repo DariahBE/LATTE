@@ -929,13 +929,39 @@ function executePremadeParameterizedQuery($query, $parameters){
             "value" => $value,
             "DOMString" => $humanReadableKey,
             "vartype" => $etModel[$k][1]
-            //$humanReadableKey, $value
           ); 
         }
       }
     }
-    //var_dump($etprops); 
     return array($repl, $etprops);
+  }
+
+  public function distinctSilosForText($id){
+    /**Takes the NEO ID of a text and returns a list of NEO IDS of all
+     * nodes that are connected using the see_also relation. 
+     */
+    $query = 'MATCH(n)-[r:see_also]-(a) WHERE id(n) = $neoid RETURN id(a) '; 
+    $data = $this->client->run($query, array('neoid'=>(int)$id));
+    return $data;
+  }
+
+  public function distinctEntitiesInText($id){
+    /**Takes the NEO ID of a text and returns a list of NEO ID of all unique
+     * entities that are connected to the text. 
+    */
+    $query = 'match(n)-[r:contains]-()-[t:references]-(p) where id(n) = $neoid return id(p)'; 
+    $data = $this->client->run($query, array('neoid'=>(int)$id));
+    return $data; 
+  }
+
+  public function distinctAnnotationsInText($id){
+    /** Takes the NEO ID of a text and returns a list of NEO IDs of all related 
+     * annotations in the text. 
+     */
+    $query = 'match(n)-[r:contains]-(p) where id(n) = $neoid return id(p)'; 
+    $data = $this->client->run($query, array('neoid'=>(int)$id));
+    return $data; 
+
   }
 
   public function countConnectionsOver($id, $label){

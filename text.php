@@ -89,7 +89,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
     echo $navbar->getNav();
   ?>
 
-    <div class=" 2xl:w-1/2 xl:w-2/3 items-center m-auto"> 
+    <div class="2xl:w-1/2 xl:w-2/3 items-center m-auto"> 
     <!-- content-->
 
 <div class="top ">
