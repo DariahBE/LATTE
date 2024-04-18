@@ -60,7 +60,7 @@ if($requestedNodeLabel === TEXNODE){
     <title><?php echo PROJECTNAME;?></title>
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <script src="/JS/jquery-3.6.0.min.js"></script>
-    <script src="/JS/validator.js"></script>
+    <script src="/JS/validation.js"></script>
   </head>
   <body class="">
     <div>

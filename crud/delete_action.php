@@ -65,7 +65,7 @@ if($egoLabel == TEXNODE ){
     $delete['annotations'] = $crudNode->annotationsWithThisEntity($id); 
     //corenodes includes text and annonodes, but these cases are captured already
     $delete['entities'] = array($id); 
-    $delete['et_floaters'] = $crudNode->find_floating_entity_connections($array($id));; //todo
+    $delete['et_floaters'] = $crudNode->find_floating_entity_connections(array($id)); //todo
 
 
 }else{
