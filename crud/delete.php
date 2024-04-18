@@ -25,6 +25,10 @@ if($user_uuid === false){
 $graph = new CUDNode($client); 
 $graph->deleteText($id); 
 
+$tokenManager = new CsrfTokenManager();
+$token = $tokenManager->generateToken(); 
+
+
 /*
 $tokenManager = new CsrfTokenManager(); 
 $validToken = $tokenManager->checkToken($token); 
@@ -187,7 +191,11 @@ function generateThirdBox(){
 
         </div>
         <div class="2xl:w-1/2 xl:w-2/3 items-center m-auto">
-
+        <form action="delete_action.php" method="post">
+            <input type="hidden" name="csrf" value=<?php {$token;} ?>>
+            <input type="hidden" name="ID" value=<?php {$id;} ?>>
+            <button type="submit" name="deleteButton">Delete</button>
+        </form>
 
         </div>
     </body>

@@ -475,6 +475,87 @@ class CUDNode extends Node {
       return $repl; 
     }
 
+    public function find_floating_entity_connections($id_array){
+    /**Takes a list of NEO4J Ids of entity nodes and returns a list of all ids() of nodes connected
+     *  over the see_also and same_as edge relation that have no connections to entities with id's
+     * which are not in id_array() 
+     * (i.e. returns a list of ids of nodes that would end up floating if you remove all nodes 
+     * with an id in $id_array). 
+     */
+      $entities_to_delete = array(); 
+      $query = 'MATCH (e)-[:same_as|see_also]-(f)
+        WHERE id(e) IN $entity_ids
+        WITH collect(DISTINCT id(f)) AS connected_floatees
+        MATCH (a2)-[:same_as|see_also]-(f)
+        WHERE id(f) IN connected_floatees
+        RETURN id(f) as float_id, collect(id(a2)) as connected_entities'; 
+
+      $result = $this->client->run($query, array('entity_ids'=> $id_array)); 
+      foreach ($result as $row) {
+        $floater = $row['float_id'];
+        $float_connections = $row['connected_entities']; 
+        //var_dump($entity);
+        //var_dump($annosOfEntity->toArray());
+        //https://www.php.net/manual/en/function.array-diff.php 
+        // array_diff returns everything that is in the first array but not in the second!!
+        // you can use it to figure out if an entity is connected to annotations which are not flagged for deletion!
+        $diff = array_diff($float_connections->toArray(), $id_array); 
+        if(!(boolval($diff))){
+          $entities_to_delete[] = $floater;
+        }
+        //echo "NEW ROW: \n"; 
+    }
+
+      return array_unique($entities_to_delete);
+    }
+
+    public function bulk_delete_by_ids($id_array){
+      if (count($id_array) > 0){
+
+        $query = 'WITH $deleteThese AS ids
+        MATCH (n) WHERE id(n) IN ids
+        DETACH DELETE n';
+        $result = $this->client->run($query, array('deleteThese'=> $id_array)); 
+      }
+    }
+
+    public function find_isolated_entities($annotation_array){
+      /**Takes a list of annotation ids and checks if the connected
+       * entity has at least one other annotation which is not present 
+       * in the annotation_array. If so, it is not deleted. 
+       * If not, it is added to an array of entities to be deleted. 
+       */
+          // Initialize an array to store entities to be deleted
+        $entities_to_delete = array();
+        
+        // Construct and execute the Cypher query
+        $query = 'MATCH (a)-[:references]->(e)
+        WHERE id(a) IN $annotation_ids
+        WITH collect(DISTINCT id(e)) AS connected_entities
+        MATCH (a2)-[:references]-(e)
+        WHERE id(e) IN connected_entities
+        RETURN id(e) as entity_id, collect(id(a2)) as related_annotations';
+        
+        $result = $this->client->run($query, ['annotation_ids' => $annotation_array]);
+        //var_dump($result);
+        // Process the query result and add entities to the delete array
+        foreach ($result as $row) {
+            $entity = $row['entity_id'];
+            $annosOfEntity = $row['related_annotations']; 
+            //var_dump($entity);
+            //var_dump($annosOfEntity->toArray());
+            //https://www.php.net/manual/en/function.array-diff.php 
+            // array_diff returns everything that is in the first array but not in the second!!
+            // you can use it to figure out if an entity is connected to annotations which are not flagged for deletion!
+            $diff = array_diff($annosOfEntity->toArray(), $annotation_array); 
+            if(!(boolval($diff))){
+              $entities_to_delete[] = $entity;
+            }
+            //echo "NEW ROW: \n"; 
+        }
+        return array_unique($entities_to_delete);
+    }
+
 
 }
 ?>

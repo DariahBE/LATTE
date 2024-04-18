@@ -956,12 +956,15 @@ function executePremadeParameterizedQuery($query, $parameters){
 
   public function distinctAnnotationsInText($id){
     /** Takes the NEO ID of a text and returns a list of NEO IDs of all related 
-     * annotations in the text. 
+     * annotations in the text. RETURNS A PHP ARRAY OF ANNOTATION IDS
      */
     $query = 'match(n)-[r:contains]-(p) where id(n) = $neoid return id(p)'; 
-    $data = $this->client->run($query, array('neoid'=>(int)$id));
-    return $data; 
-
+    $data = $this->client->run($query, array('neoid'=>(int)$id))->getResults();
+    $repl = array(); 
+    foreach($data as $row){
+      $repl[] = $row['id(p)']; 
+    }
+    return array_unique($repl); 
   }
 
   public function countConnectionsOver($id, $label){
@@ -1018,6 +1021,22 @@ function executePremadeParameterizedQuery($query, $parameters){
      */
     $data = $this->client->run($query, $parameters); 
     return $data;
+  }
+
+  public function annotationsWithThisEntity($etid){
+    /**
+     * Takes a single entity ID and returns a list of internal NEO4J IDS of annotations 
+     * where the given entity is linked to. 
+     */
+    $relatedAnnoIds = array(); 
+    $query = 'MATCH (n)-[r:references]-(p) WHERE id(n) = $etid
+    WITH collect(DISTINCT id(p)) AS connected_annotations
+    return connected_annotations; '; 
+    $result = $this->client->run($query, array('etid'=>$etid))->getResults(); 
+    foreach($result as $anno){
+      $relatedAnnoIds = $relatedAnnoIds + $anno->get('connected_annotations')->toArray(); 
+    }
+    return array_unique($relatedAnnoIds); 
   }
 
 
