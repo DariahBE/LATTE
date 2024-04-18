@@ -112,7 +112,7 @@ function createStableLinkingBlock(nodeid, stableURI) {
 }
 
 
-function createEditRemoveBox(etnodeid, annonodeid){
+function createEditRemoveBox(etnodeid, annonodeid){ 
   let subdivGateway = document.createElement('div');
   if(!(globalLoginAvailable)){return subdivGateway;}
   let annotationPart = document.createElement('div'); 

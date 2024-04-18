@@ -198,11 +198,11 @@ if(array_key_exists('coreID', $core)){
           </div>
           <select id='wdlookuplanguage'></select>
           <br>
-          <input name='returnConstraint' type='checkbox' id='returnSameAsLookup'>
+          <input name='returnSameAsLookup' type='checkbox' id='returnSameAsLookup'>
           <label for='returnConstraint'>Prioritize results in lookuplanguage</label>
           <br>
           <input name='lookupConstraint' type='checkbox' id='strictLookup'>
-          <label for='lookupConstraint'>Use language fallback</label>
+          <label for='strictLookup'>Use language fallback</label>
         </div>
       </div>
 

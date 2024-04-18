@@ -441,18 +441,6 @@ class CUDNode extends Node {
 
     /*        DELETE OPERATIONS!!!! */
 
-    public function deleteEntities($id_array){
-      /**
-       * Takes a list of NEO ids of entities to be deleted from the database. 
-       */
-    }
-
-    public function deleteAnnotation($id_array){
-      /**
-       * Takes a list of NEO id's of annotations to be deleted from the database. 
-       */
-    }
-
     public function deleteText($id){
       /*takes the NEO ID of a text and deletes it from the DB
       * returns the IDS' of annotation nodes that should be deleted too

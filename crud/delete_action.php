@@ -73,7 +73,8 @@ if($egoLabel == TEXNODE ){
     die();
 }
 
-
+//TODO actually deleting the elements still needs to be tested!!!!
+die(); 
 //do delete action here: 
 $deleteOrder = array('text', 'see_alsos', 'annotations', 'entities'); 
 $crudNode->bulk_delete_by_ids($delete['text']);

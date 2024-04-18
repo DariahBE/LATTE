@@ -101,11 +101,11 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
         <label for="normalization_On_Off" class="relative flex justify-between items-center p-2">
           Enable Normalization:
         </label>
-          <input type="checkbox" name="normalization_On_Off" class="p-2 border-2 border-black border-solid rounded-md" />
+          <input id="normalization_On_Off" type="checkbox" name="normalization_On_Off" class="p-2 border-2 border-black border-solid rounded-md" />
       </div>
       <div>
         <p>Provide a comma (,) separated list of symbols to be normalized: </p>
-        <label for="normalization_list">Normalize these symbols: </label>
+        <label for="normalizationList">Normalize these symbols: </label>
         <input type="text" id="normalizationList" name="normalization_list" class="p-2 border-2 border-black border-solid rounded-md">
       </div>
     </div>
@@ -117,7 +117,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
     <h3 class="text-xl">Node Exploration: </h3>
     <!-- automatic exploration of the retrieved entities-->
     <label for="autoexplore">Fetch recognized entities: </label>
-    <input type="checkbox" name="autoexplore" value="">
+    <input id="autoexplore" type="checkbox" name="autoexplore" value="">
   </div>
 </div>
 
@@ -190,10 +190,10 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
           <select id='wdlookuplanguage'></select>
           <br>
           <input name='returnConstraint' type='checkbox' id='returnSameAsLookup'>
-          <label for='returnConstraint'>Prioritize results in lookuplanguage</label>
+          <label for='returnSameAsLookup'>Prioritize results in lookuplanguage</label>
           <br>
           <input name='lookupConstraint' type='checkbox' id='strictLookup'>
-          <label for='lookupConstraint'>Use language fallback</label>
+          <label for='strictLookup'>Use language fallback</label>
         </div>
         <div class="language">
           <p><span class='font-bold key'>Language ISO: </span><span class='value italic' id='detectedLanguageCode'></span></p>
@@ -203,7 +203,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
         <div class="options" id="entityMatchOptions">
           <div class="hideMatches">
             <input onclick="hideUnhideEntities()" id='hideUnhideEntities' type="checkbox" name="hideMatchingEntities" value=true>
-            <label for="hideMatchingEntities">Hide <span id='overlapcount'></span>annotated entities(s)</label>
+            <label for="hideUnhideEntities">Hide <span id='overlapcount'></span>annotated entities(s)</label>
           </div>
         </div>
         <div class="entities">
