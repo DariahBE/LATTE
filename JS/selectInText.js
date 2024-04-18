@@ -731,14 +731,16 @@ function createWDPromptBox(createNodeDiv, positionDiv){
   var noWikidataIdText = document.createTextNode('Don\'t link'); 
   noWikidataId.appendChild(noWikidataIdText);
   noWikidataId.classList.add('bg-orange-500', 'border-solid', 'hover:bg-orange-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
-  noWikidataId.addEventListener('click', function () {
-    //IF you pass -1 the application won't store the QID. Any newly created entity won't have a value set in the wikidata field. 
-    //TODO: 
-    //      You still need to reset the entity container:
-    //      build element with ID : embeddedET
-    //      trigger element with ID: etcreate
-    acceptQID(-1);
-  }); 
+  if(globalLoginAvailable){
+    noWikidataId.addEventListener('click', function () {
+      //IF you pass -1 the application won't store the QID. Any newly created entity won't have a value set in the wikidata field. 
+      //TODO: 
+      //      You still need to reset the entity container:
+      //      build element with ID : embeddedET
+      //      trigger element with ID: etcreate
+      acceptQID(-1);
+    }); 
+  }
   var searchButtonForWDPrompt = document.createElement('button');
   var searchButtonForWDPromptText = document.createTextNode('Search');
   searchButtonForWDPrompt.classList.add('bg-green-500', 'border-solid', 'hover:bg-green-600', 'p-2', 'm-2', 'rounded-lg', 'text-white', 'font-bold');
@@ -751,7 +753,9 @@ function createWDPromptBox(createNodeDiv, positionDiv){
   wikidataPromptMainbox.appendChild(wikidataQLabel);
   wikidataPromptMainbox.appendChild(wikidataRowBox);
   wikidataPromptMainbox.appendChild(searchButtonForWDPrompt);
-  wikidataPromptMainbox.appendChild(noWikidataId);
+  if(globalLoginAvailable){
+    wikidataPromptMainbox.appendChild(noWikidataId);
+  }
   wikidataPromptMainbox.appendChild(wikidataResultsBox);
 
   //add all boxes to the DOM: 
