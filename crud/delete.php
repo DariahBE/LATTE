@@ -29,30 +29,15 @@ $tokenManager = new CsrfTokenManager();
 $token = $tokenManager->generateToken(); 
 
 
-/*
-$tokenManager = new CsrfTokenManager(); 
-$validToken = $tokenManager->checkToken($token); 
-
-*/
-/*
-$crudNode = new CUDNode($client); 
-
-
-$crudNode->startTransaction();
-try{
-    $data = $crudNode->delete((int)$_GET['id'], true);
-} catch(\Throwable $th) {
-    $crudNode->rollbackTransaction();
-    echo json_encode(array('msg'=>'Node could not be deleted'));   
-    die(); 
-}
-$crudNode->commitTransaction();
-echo json_encode($data);
-*/
 
 //get all data of the node: 
-//  EGO info: 
+//  EGO info:   
 $egoLabel = $graph->fetchLabelById($id); 
+if($egoLabel === NULL){
+    //if there's no EGO => redir to error and stop execution
+    header('Location: /error.php');
+    die();
+}
 //  data: 
 $egoData = $graph->fetchEtById($id);
 //  model: 
@@ -102,13 +87,22 @@ function generateFirstBox(){
         $repl .= "<p>This text holds {$annos} annotation". ($annos != 1 ? "s" : "")." and {$ets} distinct ". ($ets != 1 ? "entities" : "entity")."</p>";
         $repl .= "<p>Deleting this text will delete: </p>" ;
         $repl .= "<ul><li>All connected annotations</li><li>All related <b>links to entities</b></li><li>All <b>uniquely connected entities</b> to this text </li><li>All <b>Knowledgebase and Variant connections</b> to those connected entities.</li></ul>"; 
-    
-
     }elseif($ntype == 'anno'){
-
+        $repl .= '<h4 class="w-full text-lg font-bold text-center m-1 p-1 mt-2 pt-2">Entities.</h4>'; 
+        $connectedEntities = $graph->find_isolated_entities(array($id)); 
+        $ets = count($connectedEntities); //should always be 1
+        $repl .= "<p>This annotation is linked to  {$ets} distinct ". ($ets != 1 ? "entities" : "entity")."</p>";
+        $repl .= "<p>Deleting this annotation will delete: </p>" ;
+        $repl .= "<ul><li>This unique annotation</li><li>The <b>uniquely connected entity</b> to this annotation </li><li>All <b>Knowledgebase and Variant connections</b> to the connected entity.</li></ul>"; 
     }elseif($ntype == 'entity'){
-
-    }
+        $repl .= '<h4 class="w-full text-lg font-bold text-center m-1 p-1 mt-2 pt-2">Texts.</h4>'; 
+        $entityConnections = $graph->findConnectedTexts($id); 
+        $connectedTexts = $entityConnections[0]; 
+        $connectedAnnotations = $entityConnections[1]; 
+        $texts = count($connectedTexts); 
+        $annos = count($connectedAnnotations); 
+        $repl .= "<p>This entity is connected to {$texts} text". ($texts != 1 ? "s" : "").". All {$annos} annotation". ($annos != 1 ? "s" : "")." related to this entity will be deleted.</p>"; 
+    }   
     return $repl; 
 }
 
@@ -133,18 +127,18 @@ function generateSecondBox(){
     return $repl; 
 }
 
-function generateThirdBox(){
-    global $ntype;
-    $repl = ''; 
-    if($ntype == 'text'){
+// function generateThirdBox(){
+//     global $ntype;
+//     $repl = ''; 
+//     if($ntype == 'text'){
 
-    }elseif($ntype == 'anno'){
+//     }elseif($ntype == 'anno'){
 
-    }elseif($ntype == 'entity'){
+//     }elseif($ntype == 'entity'){
 
-    }
-    return $repl; 
-}
+//     }
+//     return $repl; 
+// }
 
 
 ?>
@@ -162,41 +156,49 @@ function generateThirdBox(){
             $navbar = new Navbar(); 
             echo $navbar->getNav();
         ?>
-        <div >
-            <div class="top">
-                <h2 class="text-xl">Delete node</h2>
-                <p>You're about to delete <?php echo $nodetype_string;  ?> from your knowledgebase. This action cannot be undone; review the implications below and press confirm to continue deleting the node.</p>
+        <div class="w-full centerCustom md:w-4/5 ">
+            <div >
+                <div class="top">
+                    <h2 class="text-xl">Delete node</h2>
+                    <p>You're about to delete <?php echo $nodetype_string;  ?> from your knowledgebase. This action cannot be undone; review the implications below and press confirm to continue deleting the node.</p>
+                </div>
+                <hr>
+                <div class='flex flex-row m-1 p-1'>
+                    <div class="md:w-1/2">
+                        <?php
+                        echo generateFirstBox(); 
+                        ?>
+
+                    </div>
+                    <div class="md:w-1/2 m-1 p-1">
+                        <?php
+                        echo generateSecondBox(); 
+                        ?>
+                    </div>
+                    <!-- <div class="md:w-1/3 m-1 p-1">
+                        <?php
+                        //    echo generateThirdBox(); 
+                        ?>
+                    </div> -->
+
+                        
+                </div>
+
             </div>
-            <hr>
-            <div class='flex flex-row m-1 p-1'>
-                <div class="md:w-1/3">
-                    <?php
-                       echo generateFirstBox(); 
-                    ?>
-
+            
+            <div class="2xl:w-1/2 xl:w-2/3 items-center m-auto">
+            <form action="delete_action.php" method="post">
+                <div>
+                    <input type="hidden" name="token" value=<?php {echo $token;} ?> >
+                    <input type="hidden" name="ID" value=<?php {echo $id;} ?> >
+                    <label for='confirmbox'>Confirm</label>
+                    <input type="checkbox" required id='confirmbox' name ='confirmbox' value='userconfirmation'>
                 </div>
-                <div class="md:w-1/3 m-1 p-1">
-                    <?php
-                       echo generateSecondBox(); 
-                    ?>
+                <div>
+                    <button class='btn bg-red-500 rounded m-2 p-2' type="submit" name="deleteButton">Delete</button>
                 </div>
-                <div class="md:w-1/3 m-1 p-1">
-                    <?php
-                       echo generateThirdBox(); 
-                    ?>
-                </div>
-
-                    
+            </form>
             </div>
-
-        </div>
-        <div class="2xl:w-1/2 xl:w-2/3 items-center m-auto">
-        <form action="delete_action.php" method="post">
-            <input type="hidden" name="csrf" value=<?php {$token;} ?>>
-            <input type="hidden" name="ID" value=<?php {$id;} ?>>
-            <button type="submit" name="deleteButton">Delete</button>
-        </form>
-
         </div>
     </body>
 </html>

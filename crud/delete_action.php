@@ -6,23 +6,45 @@ include_once(ROOT_DIR.'\includes\csrf.inc.php');
 include_once(ROOT_DIR.'\includes\getnode.inc.php');
 include_once(ROOT_DIR.'\includes\nodes_extend_cud.inc.php');
 
-
-if(!isset($_GET['id'])){
+//gets the ID of the node to be deleted. 
+if(!isset($_POST['ID'])){
     die(); 
+}else{
+    $id = (int)$_POST['ID'];
 }
 
-
-if(!isset($_GET['token'])){
+//gets the single use token that should be set.
+if(!isset($_POST['token'])){
     die();
 }else{
-    $token = $_GET['token']; 
+    $token = $_POST['token']; 
 }
+
+if(!isset($_POST['confirmbox'])){
+    die(); 
+}else{
+    $confirmed = $_POST['confirmbox']; 
+    if ($confirmed !== 'userconfirmation'){
+        die();
+    }
+} 
+
+
 $tokenManager = new CsrfTokenManager(); 
 $validToken = $tokenManager->checkToken($token); 
 if(!($validToken)){
     echo json_encode(array('msg' => 'Invalid session token')); 
     die();
 }
+
+//Check if deleterights are granted: 
+// assume no ownership 
+$ownership = False; 
+$user = new User($client); 
+$user->checkSession();
+//implement: // TODO   !!!!! 
+$allowedDelete = $user->hasEditRights($user->myRole, $ownership);
+
 
 $crudNode = new CUDNode($client);
 //get all data of the node: 
@@ -74,17 +96,20 @@ if($egoLabel == TEXNODE ){
 }
 
 //TODO actually deleting the elements still needs to be tested!!!!
+var_dump($crudNode->bulk_delete_by_ids(array(7877, 7881))); 
 die(); 
 //do delete action here: 
-$deleteOrder = array('text', 'see_alsos', 'annotations', 'entities'); 
-$crudNode->bulk_delete_by_ids($delete['text']);
+$deleteOrder = array('text', 'see_alsos', 'annotations', 'entities', 'et_floaters'); 
+foreach($deleteOrder as $deletePart){
+    $crudNode->bulk_delete_by_ids($delete[$deletePart]);
+}
+/*
 $crudNode->bulk_delete_by_ids($delete['see_alsos']);
 $crudNode->bulk_delete_by_ids($delete['annotations']); 
 $crudNode->bulk_delete_by_ids($delete['entities']); 
 $crudNode->bulk_delete_by_ids($delete['entities_neighbhours']); 
+*/
 
-
-var_dump($delete); 
 
 
 

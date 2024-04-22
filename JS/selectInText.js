@@ -1093,9 +1093,10 @@ function createSideSkelleton() {
   const relationsTargetTitle = document.createElement('p'); 
   relationsTargetTitle.appendChild(createDivider('Knowledgebases: '));
   const triggerAddActionButton = document.createElement('button'); 
-  triggerAddActionButton.appendChild(document.createTextNode('Create new')); 
+  triggerAddActionButton.appendChild(document.createTextNode('+ Add')); 
   triggerAddActionButton.classList.add('button'); 
   triggerAddActionButton.setAttribute('id', 'add_kb_relation'); 
+  triggerAddActionButton.classList.add('btn', 'bg-green-100', 'hover:bg-green-300', 'font-bold', 'py-2', 'px-4', 'rounded-full');
   const relationsTargetSub = document.createElement('div'); 
   relationsTargetSub.setAttribute('id', 'urlrelationscontainer'); 
   relationsTargetSub.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex-wrap'); 

@@ -310,6 +310,14 @@ function showdata(data) {
     annotationTarget.appendChild(etType);
     annotationTarget.appendChild(etpropdiv); 
     let neoid = data['entity'][0]['neoID'];
+
+    checklogin()
+    .then(valid => {
+        kb = new KnowledgeBase(neoid, valid);
+    })
+    .catch(error => {
+      kb = new KnowledgeBase(false, false);
+    })
     gateWay.appendChild(createStableLinkingBlock(neoid, etStable));
     //TODO pass id.
     gateWay.appendChild(createEditRemoveBox(neoid, globalAnnoInteractId));

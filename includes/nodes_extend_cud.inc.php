@@ -310,7 +310,9 @@ class CUDNode extends Node {
     }
 
     public function disconnect($leftNeoId, $rightNeoId, $edgelabel){
-      //function WILL cast $id to int!
+      //function WILL cast $id to int! Method only used by KnowledgeBase code 
+      //but the code is portable to be used with other tripples:
+      // (n:leftNeoId)-[r:edgelabel]-(m:rightNeoId)
       //TODO return value has to be made more explicit in interface!
       $query = 'MATCH (n)-[r:'.$edgelabel.']-(m) WHERE id(n) = $neoleft AND id(m) = $neoright DELETE r;'; 
       $querydata = array('neoleft'=> (int)$leftNeoId, 'neoright'=> (int)$rightNeoId); 
@@ -499,11 +501,13 @@ class CUDNode extends Node {
 
     public function bulk_delete_by_ids($id_array){
       if (count($id_array) > 0){
-
         $query = 'WITH $deleteThese AS ids
         MATCH (n) WHERE id(n) IN ids
         DETACH DELETE n';
         $result = $this->client->run($query, array('deleteThese'=> $id_array)); 
+        return $result->getSummary(); 
+      }else{
+        return null; 
       }
     }
 
@@ -525,24 +529,43 @@ class CUDNode extends Node {
         RETURN id(e) as entity_id, collect(id(a2)) as related_annotations';
         
         $result = $this->client->run($query, ['annotation_ids' => $annotation_array]);
-        //var_dump($result);
         // Process the query result and add entities to the delete array
         foreach ($result as $row) {
-            $entity = $row['entity_id'];
-            $annosOfEntity = $row['related_annotations']; 
-            //var_dump($entity);
-            //var_dump($annosOfEntity->toArray());
-            //https://www.php.net/manual/en/function.array-diff.php 
-            // array_diff returns everything that is in the first array but not in the second!!
-            // you can use it to figure out if an entity is connected to annotations which are not flagged for deletion!
-            $diff = array_diff($annosOfEntity->toArray(), $annotation_array); 
-            if(!(boolval($diff))){
-              $entities_to_delete[] = $entity;
-            }
-            //echo "NEW ROW: \n"; 
+          $entity = $row['entity_id'];
+          $annosOfEntity = $row['related_annotations']; 
+          //var_dump($entity);
+          //var_dump($annosOfEntity->toArray());
+          //https://www.php.net/manual/en/function.array-diff.php 
+          // array_diff returns everything that is in the first array but not in the second!!
+          // you can use it to figure out if an entity is connected to annotations which are not flagged for deletion!
+          $diff = array_diff($annosOfEntity->toArray(), $annotation_array); 
+          if(!(boolval($diff))){
+            $entities_to_delete[] = $entity;
+          }
         }
         return array_unique($entities_to_delete);
     }
+
+    public function findConnectedTexts($entity_id){
+      /**
+       * Takes the neo id of an entity and returns an array of all 
+       * neo IDS of texts where this entity is linked to and the 
+       * neo IDS of all annotations making the link. You always have
+       * a maximum of one row in $result! 
+       */
+      $texids = array(); 
+      $annoids = array(); 
+      $query = 'MATCH (n)-[r:references]-(a)-[q:contains]-(m:'.TEXNODE.')
+      WHERE id(n) = $etid RETURN collect(DISTINCT id(m)) AS texts, collect(DISTINCT id(q)) AS annotations
+      ';
+      $result = $this->client->run($query, array('etid'=> (int)$entity_id));
+      foreach($result as $row){
+        $texids = $row['texts']->toArray();
+        $annoids = $row['annotations']->toArray();
+      }
+      return array($texids, $annoids);
+    }
+
 
 
 }
