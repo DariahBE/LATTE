@@ -122,23 +122,10 @@ function generateSecondBox(){
     }elseif($ntype == 'anno'){
 
     }elseif($ntype == 'entity'){
-
+        //TODO
     }
     return $repl; 
 }
-
-// function generateThirdBox(){
-//     global $ntype;
-//     $repl = ''; 
-//     if($ntype == 'text'){
-
-//     }elseif($ntype == 'anno'){
-
-//     }elseif($ntype == 'entity'){
-
-//     }
-//     return $repl; 
-// }
 
 
 ?>
@@ -160,7 +147,7 @@ function generateSecondBox(){
             <div >
                 <div class="top">
                     <h2 class="text-xl">Delete node</h2>
-                    <p>You're about to delete <?php echo $nodetype_string;  ?> from your knowledgebase. This action cannot be undone; review the implications below and press confirm to continue deleting the node.</p>
+                    <p>You're about to delete <?php echo $nodetype_string;  ?> from this knowledgebase. This action cannot be undone; review the implications below and press confirm to continue deleting the node.</p>
                 </div>
                 <hr>
                 <div class='flex flex-row m-1 p-1'>
@@ -175,12 +162,6 @@ function generateSecondBox(){
                         echo generateSecondBox(); 
                         ?>
                     </div>
-                    <!-- <div class="md:w-1/3 m-1 p-1">
-                        <?php
-                        //    echo generateThirdBox(); 
-                        ?>
-                    </div> -->
-
                         
                 </div>
 

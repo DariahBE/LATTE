@@ -47,6 +47,7 @@ $allowedDelete = $user->hasEditRights($user->myRole, $ownership);
 
 
 $crudNode = new CUDNode($client);
+$crudNode->startTransaction(); 
 //get all data of the node: 
 //  EGO info: 
 $egoLabel = $crudNode->fetchLabelById($id); 
@@ -95,14 +96,15 @@ if($egoLabel == TEXNODE ){
     die();
 }
 
-//TODO actually deleting the elements still needs to be tested!!!!
-var_dump($crudNode->bulk_delete_by_ids(array(7877, 7881))); 
-die(); 
+// var_dump($crudNode->bulk_delete_by_ids(array(7877, 7881))); 
+// die(); 
 //do delete action here: 
 $deleteOrder = array('text', 'see_alsos', 'annotations', 'entities', 'et_floaters'); 
 foreach($deleteOrder as $deletePart){
     $crudNode->bulk_delete_by_ids($delete[$deletePart]);
 }
+
+$crudNode->commitTransaction();
 /*
 $crudNode->bulk_delete_by_ids($delete['see_alsos']);
 $crudNode->bulk_delete_by_ids($delete['annotations']); 
