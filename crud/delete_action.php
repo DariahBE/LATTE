@@ -96,15 +96,28 @@ if($egoLabel == TEXNODE ){
     die();
 }
 
-// var_dump($crudNode->bulk_delete_by_ids(array(7877, 7881))); 
-// die(); 
-//do delete action here: 
-$deleteOrder = array('text', 'see_alsos', 'annotations', 'entities', 'et_floaters'); 
-foreach($deleteOrder as $deletePart){
-    $crudNode->bulk_delete_by_ids($delete[$deletePart]);
+
+try{
+    //do delete action here: 
+    $deleteOrder = array('text', 'see_alsos', 'annotations', 'entities', 'et_floaters'); 
+    foreach($deleteOrder as $deletePart){
+        $crudNode->bulk_delete_by_ids($delete[$deletePart]);
+    }
+}catch(\Throwable $th){
+    //throw $th;
+    $crudNode->rollbackTransaction();
+    die('Error, delete could not be committed');
 }
 
+
 $crudNode->commitTransaction();
+//make the user return to the page where they come from 
+if(isset($_COOKIE['referrer']) &&  parse_url($_COOKIE['referrer'], PHP_URL_HOST) === parse_url(WEBURL, PHP_URL_HOST) ){
+    header("Location: ".$_COOKIE['referrer']);
+}else{
+    header("Location: ".WEBURL);
+}
+die();
 /*
 $crudNode->bulk_delete_by_ids($delete['see_alsos']);
 $crudNode->bulk_delete_by_ids($delete['annotations']); 
