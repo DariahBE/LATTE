@@ -9,10 +9,12 @@ include_once(ROOT_DIR.'\includes\nodes_extend_cud.inc.php');
 include_once(ROOT_DIR.'/includes/navbar.inc.php');
 
 //make the users return to the page they were on when clicking delete. 
-$origin = $_SERVER['HTTP_REFERER']; 
-if (filter_var($origin, FILTER_VALIDATE_URL)) {
-    $expires = time() + 86400;
-    setcookie("referrer", $origin, $expires);
+if(isset($_SERVER['HTTP_REFERER'])){
+    $origin = $_SERVER['HTTP_REFERER']; 
+    if (filter_var($origin, FILTER_VALIDATE_URL)) {
+        $expires = time() + 86400;
+        setcookie("referrer", $origin, $expires);
+    }
 }
 
 if(!isset($_GET['id'])){

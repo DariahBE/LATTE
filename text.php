@@ -54,7 +54,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
     <meta charset="utf-8">
     <title><?php echo PROJECTNAME ?></title>
     <script src="/JS/jquery-3.6.0.min.js"></script>
-    <script src="/JS/initiate.js"></script>
+    <!-- <script src="/JS/initiate.js"></script>  autoload of language and extractor, don't do this -->
     <script src="/JS/getLang.js"></script>
     <script src="/JS/getEntities.js"></script>
     <!-- <script src="/JS/setPositions.js"></script> -->
@@ -195,21 +195,35 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
           <input name='lookupConstraint' type='checkbox' id='strictLookup'>
           <label for='strictLookup'>Use language fallback</label>
         </div>
-        <div class="language">
-          <p><span class='font-bold key'>Language ISO: </span><span class='value italic' id='detectedLanguageCode'></span></p>
-          <p><span class='font-bold key'>Language: </span><span class='value italic' id='detectedLanguage'></span></p>
-          <p><span class='font-bold key'>Certainty: </span><span class='value italic' id='detectedLanguageCertainty'></span></p>
-        </div>
-        <div class="options" id="entityMatchOptions">
-          <div class="hideMatches">
-            <input onclick="hideUnhideEntities()" id='hideUnhideEntities' type="checkbox" name="hideMatchingEntities" value=true>
-            <label for="hideUnhideEntities">Hide <span id='overlapcount'></span>annotated entities(s)</label>
+        <br>
+        <?php
+          if(LATTECONNECTOR){
+            ?>
+            <div>
+            <h4 class="font-bold text-lg">LATTE Connector</h4>
+            <div class="language">
+              <p><span class='font-bold key'>Language ISO: </span><span class='value italic' id='detectedLanguageCode'></span></p>
+              <p><span class='font-bold key'>Language: </span><span class='value italic' id='detectedLanguage'></span></p>
+              <p><span class='font-bold key'>Certainty: </span><span class='value italic' id='detectedLanguageCertainty'></span></p>
+            </div>
+            <div class="options" id="entityMatchOptions">
+              <div class="hideMatches">
+                <input onclick="hideUnhideEntities()" id='hideUnhideEntities' type="checkbox" name="hideMatchingEntities" value=true>
+                <label for="hideUnhideEntities">Hide <span id='overlapcount'></span>annotated entities(s)</label>
+              </div>
+            </div>
+            <div class="entities">
+              <p><span class='font-bold key'>Nr. of entities: </span><span class='value italic' id='amountOfEntities'></span></p>
+              <p><span class='font-bold key'>Used model: </span><span class='value italic' id='usedEntityModel'></span></p>
+            </div>
+            <button id="extractorTrigger" onclick="entity_extraction_launcher()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded">Extract!</button>
+            <div id="extractorProgress" class="hidden"></div>
           </div>
-        </div>
-        <div class="entities">
-          <p><span class='font-bold key'>Nr. of entities: </span><span class='value italic' id='amountOfEntities'></span></p>
-          <p><span class='font-bold key'>Used model: </span><span class='value italic' id='usedEntityModel'></span></p>
-        </div>
+        <?php
+          }
+        
+        ?>
+
       </div>
       <div class="entities">
         <div class="report" id="entitycontainer">

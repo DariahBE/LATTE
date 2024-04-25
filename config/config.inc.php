@@ -207,15 +207,12 @@ $textsPublic = True;            //  True/False; True = texts are publicly visibl
 $entityPublic = True;          //  True/False; True = stable pages are publicly visible. 
 
 
-########### WHICH ENGINE SHOULD BE USED TO DETECT THE LANGUAGE OF A GIVEN TEXT?
-#                             spacy
-#                             langid
-$languageDetectionEngine =    'langid';
-define("LANGEXTRACTOR", $languageDetectionEngine);
 ######################
 
 //provide the base URL of the website. This should match the pattern: http://example.com
 $baseURI = 'http://entitylinker.test';
+
+
 
 /*Make constants*/
 //// IDEA:
@@ -259,12 +256,27 @@ $extractor = 'local';                         //local or Base URL
 define("ENTITYEXTRACTOR", $extractor);
 define("NERCOLOR", $ner_color); 
 
-/*PYTHON ENVIRONMENT:*/
-$pyenv = "C:/Workdir/MyApps/Python/Python311/python.exe";
-$scripts = "C:/Users/u0118112/OneDrive - KU Leuven/DARIAH/2021 - 2025/webDevelopment/V1/host_scripts/";
 
+
+
+########### LATTE CONNECTOR INTEGRATION: ###########
+# Use Latte Connector (accepted values are: True or False)
+$use_connector = True;
+/*SECTION: LATTE WEB APP: PYTHON ENVIRONMENT:*/
+//  Your virtual environment used for the LATTE_connector
+$pyenv = "C:/Workdir/MyApps/Python_VENV/LATTE_connector/Scripts/python.exe";
+//  The folder where the scripts are located in LATTE_connector
+$scripts = "C:/Workdir/MyApps/Python_VENV/LATTE_connector/hostfiles/";
+#which language detection model to use; currenly only langid supported. 
+$languageDetectionEngine =    'langid';
+define("LATTECONNECTOR", $use_connector); 
+define("LANGEXTRACTOR", $languageDetectionEngine);
 define("PYTHON", $pyenv);
 define("SCRIPTROOT", $scripts);
+######################################################
+
+
+
 
 /*system environment: where's the default folder.*/
 define( 'ROOT_DIR', $_SERVER["DOCUMENT_ROOT"] );

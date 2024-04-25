@@ -9,7 +9,7 @@ include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/csrf.inc.php');
 
-//checks for user: 
+//checks for user: Only a logged in user can DELETE
 $user = new User($client);
 $user->checkAccess(TEXTSAREPUBLIC);
 $user_uuid = $user->checkSession();
@@ -20,8 +20,6 @@ if(!(boolval($user_uuid))){
 $graph = new CUDNode($client);
 $graph->startTransaction(); 
 //var_dump($graph); 
-
-//BUG critical: ain't working!
 
 //gets the neoID for both connected nodes.  //cast to integers!!
 $etNeoID = (int)$_GET['entityid'];
@@ -38,20 +36,18 @@ if(!($validToken)){
 
 
 try {
-//preparation: 
-//1. count connections from variant to any other node over the 'same_as' relation.
-$res = $graph->countConnectionsOver($varuid, 'same_as'); 
-$countVar = $res->first()->get('count');
-//2. count connections between the two given ids over the same_as relation
-$res = $graph->countConnectionsBetweenAndOver($varuid, $etNeoID, 'same_as'); 
-$countConnect = $res->first()->get('count');
+  //preparation: 
+  //1. count connections from variant to any other node over the 'same_as' relation.
+  $res = $graph->countConnectionsOver($varuid, 'same_as'); 
+  $countVar = $res->first()->get('count');
+  //2. count connections between the two given ids over the same_as relation
+  $res = $graph->countConnectionsBetweenAndOver($varuid, $etNeoID, 'same_as'); 
+  $countConnect = $res->first()->get('count');
 
-//decisionMaking:
-$output = $graph->dropVariant($varuid, $etNeoID, $countVar == $countConnect);
-//var_dump($output); 
+  //decisionMaking:
+  $output = $graph->dropVariant($varuid, $etNeoID, $countVar == $countConnect);
 
 } catch (\Throwable $th) {
-  //throw $th;
   $graph->rollbackTransaction();
   die('Could not remove variant. '); 
 }

@@ -1,7 +1,21 @@
 var foundEntities = false;
-// TODO: file is obsolete. ?? 
+function entity_extraction_launcher(){
+  //triggered by DOM element in text.php!!!!
+  //remove the trigger button
+  deleteIfExistsById('extractorTrigger'); 
+  //determine the language of the text: 
+  detectLanguage(languageOptions).then(function(result){
+    displayLanguage(result);
+    if(result){
+      // do not try to detect entities if there's no language detected by the initial function.
+      getEntities(languageOptions);
+    }
+    //displayEntities(foundEntities);
+  });  
+   document.getElementById('extractorProgress').classList.remove('hidden'); 
+  //use the determined language to extract entities using the correct model. 
+}
 function getEntities(options){
-  //TODO: code is opbsolete. 
   var language = options['ISO_code'];
   var nodeid = options['nodeid'];
   const param = {
@@ -16,6 +30,7 @@ function getEntities(options){
     success: function(result){
       foundEntities = result;
       displayEntities(foundEntities);
+      deleteIfExistsById('extractorProgress'); 
     }
   });
 }
@@ -101,6 +116,12 @@ function normalize_all(){
 }
 
 function displayEntities(entities){
+  /**
+   *  generates the sidebar in the DOM with the individual entity 
+   * 
+   *  Generates the highlight in the text as an automated annotation with all 
+   *  required interactivity!
+   */
   $counterTarget = $('#amountOfEntities');
   $modelTarget = $('#usedEntityModel');
   $entitiesTarget = $('#entitycontainer');
@@ -111,13 +132,19 @@ function displayEntities(entities){
   $($entitiesDisplay).attr('id', 'showEntitiesHere');
 
   for (var i = 0; i < $foundEntities.length; i++) {
+    //universal variables required in both cases;
+    let et_start = $foundEntities[i]['startPos']; 
+    let et_stop = $foundEntities[i]['endPos']; 
+    let et_type = $foundEntities[i]['labelTex']; 
+
+    //adding entity element to the side: 
     $singleEntity = document.createElement('p');
     $primaryTextSpan = document.createElement('span');
     $secondaryTextSpan = document.createElement('span');
     $singleEntityText = document.createTextNode($foundEntities[i]['text']);
-    $($singleEntity).attr('data-start', $foundEntities[i]['startPos']);
-    $($singleEntity).attr('data-end', $foundEntities[i]['endPos']);
-    $($singleEntity).attr('data-type', $foundEntities[i]['labelTex']);
+    $($singleEntity).attr('data-start', et_start);
+    $($singleEntity).attr('data-end', et_stop);
+    $($singleEntity).attr('data-type', et_type);
     $($singleEntity).attr('data-stringExact', $foundEntities[i]['text']);
     //$($singleEntity).attr('data-stringNormalized');
     $primaryTextSpan.appendChild($singleEntityText);
@@ -127,7 +154,7 @@ function displayEntities(entities){
     $($primaryTextSpan).addClass('firstSpanElementOfEntity');
     $($primaryTextSpan).addClass('ignoreElementDepth');
     $($secondaryTextSpan).addClass('secondSpanElementOfEntity');
-    $($singleEntity).addClass($foundEntities[i]['labelTex']);
+    $($singleEntity).addClass(et_type);
     $($singleEntity).addClass('anEntity');
      'anEntity'
     var clickForInfo = function(e){
@@ -135,6 +162,35 @@ function displayEntities(entities){
     }
     $($singleEntity).click(clickForInfo);
     $entitiesDisplay.appendChild($singleEntity);
+
+    //adding entity element to text as annotation_auto
+    const ltrElements = document.querySelectorAll('.ltr');
+
+  // Loop through each element
+  ltrElements.forEach((element) => {
+    const itercounter = parseInt(element.getAttribute('data-itercounter'), 10);
+
+    // Check if itercounter is between 45 and 50
+    if (itercounter >= et_start && itercounter <= et_stop) {
+      // Add the 'highlighted' class
+      element.classList.add('app_automatic', 'automatic_unstored');
+      $(element).attr('data-entitytype', et_type);
+
+      // Add a click event listener
+      element.addEventListener('click', () => {
+        // Custom function to handle the click event
+        console.log(`Clicked on element with itercounter ${itercounter}`);
+        //prompt to save entity :> onsave  =  generate UUID and return 
+        //then triggerlookup!!!
+        let xcoord = 1;
+        let ycoord = 2;
+
+        // You can replace the console.log with your desired action
+      });
+    }
+  });
+
+
   }
 
 

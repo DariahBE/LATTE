@@ -1,4 +1,6 @@
-$( document ).ready(function() {
+// DO NOT AUTOLOAD!!!!
+
+/*$( document ).ready(function() {
   detectLanguage(languageOptions).then(function(result){
     displayLanguage(result);
     if(result){
@@ -9,3 +11,4 @@ $( document ).ready(function() {
   });          //extracts the language code.
 //with the languagecode; extract entities:
 })
+*/

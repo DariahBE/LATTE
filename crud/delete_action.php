@@ -35,15 +35,20 @@ $validToken = $tokenManager->checkToken($token);
 if(!($validToken)){
     echo json_encode(array('msg' => 'Invalid session token')); 
     die();
+}else{
+    $tokenManager->revokeToken();
 }
 
 //Check if deleterights are granted: 
-// assume no ownership 
+// assume no ownership; does not impact the delete rights. 
 $ownership = False; 
 $user = new User($client); 
 $user->checkSession();
 //implement: // TODO   !!!!! 
 $allowedDelete = $user->hasEditRights($user->myRole, $ownership);
+if($allowedDelete < 3){
+    die(); 
+}
 
 
 $crudNode = new CUDNode($client);
