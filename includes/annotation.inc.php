@@ -47,8 +47,8 @@ class Annotation{
     //describe the model used for Automatic_annotation nodes. This should match the structure as per NODESMODEL constant. 
     public $auto_model = [
       'Automatic_annotation' => [
-        "starts" => ["AnnotionStart", "int", false, false, false],
-        "stops" => ["AnnotationEnd", "int", false, false, false],
+        "starts" => ["Annotation Start", "int", false, false, false],
+        "stops" => ["Annotation End", "int", false, false, false],
       ]
     ]; 
 
@@ -288,24 +288,39 @@ class Annotation{
       for lower overhead you should allow to process multiple annotations at once. 
       
       TODO: this has to be documented!!! 
-      TODO: Pending implementation. Still waiting on final code!
       Beware: Annotation_auto is a hardcoded labelname with hardcoded properties (starts, stops and uid.)
-     */
-     foreach($connections as $connection){
+      */
+      $uuid_list = array(); 
+      foreach($connections as $connection){
         $start = $connection[0];
         $stop = $connection[1]; 
-        $cypher = '
-        MATCH (n) WHERE id(n) = $texid
-        OPTIONAL MATCH (a:Annotation_auto) WHERE (n)--(a) AND a.starts = $start AND a.stops = $stop
+        //contains a bug. patch below prevents the creation of doubles!
+        /*$query = ' 
+        MATCH (n:'.TEXNODE.') WHERE id(n) = $texid
+        OPTIONAL MATCH (a:Annotation_auto) WHERE (n:'.TEXNODE.')-[:contains]-(a) AND a.starts = $start AND a.stops = $stop
         MERGE (n)-[:contains]->(newA:Annotation_auto {starts: $start, stops: $stop, uid: apoc.create.uuid()})
-        ';
-       
-        $this->tsx->run($cypher, [
+        RETURN newA.uid AS uuid
+        ';*/
+        //Bugpatch: 
+        $query = 'MATCH (n:'.TEXNODE.') 
+        WHERE id(n) = $texid
+        OPTIONAL MATCH (n)-[:contains]-(a:Annotation_auto) 
+        WHERE a.starts = $start AND a.stops = $stop
+        WITH n, COUNT(a) AS annotationCount
+        WHERE annotationCount = 0
+        MERGE (n)-[:contains]->(newA:Annotation_auto {starts: $start, stops: $stop, uid: apoc.create.uuid()})
+        RETURN newA.uid AS uuid'; 
+        $rowResult = $this->tsx->run($query, [
           'start' => $start,
           'stop' => $stop,
           'texid' => $texid
         ]);
+        foreach ($rowResult as $record) {
+            $uuid_list[] = $record->get('uuid');
+        }
+
       }
+      return $uuid_list; 
   }
 
 

@@ -780,6 +780,7 @@ function executePremadeParameterizedQuery($query, $parameters){
 
 
   public function testNewQuery($nodeId, $userid){
+    //TODO: is this used? 
     $query = 'MATCH (n1)
     WHERE id(n1) = $neoid
     OPTIONAL MATCH (n1)-[r:priv_created]-(p:priv_user)

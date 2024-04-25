@@ -138,7 +138,7 @@ displayET_variant(data, relatedET) {
                 if (classScope.spellingVariantTracker.includes(writtenValue)) {
                     return;
                 } else {
-                    fetch("/AJAX/getdisposabletoken.php")
+                    fetch("/AJAX/getdisposabletoken.php?task=1")
                         .then(response => response.json())
                         .then(data => {
                             const token = data;

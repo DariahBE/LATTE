@@ -67,8 +67,8 @@ $nodesDatamodel = array(
     "partner_uri" => ["Link", "uri", false, false, true]
   ],
   'Annotation' => [
-    "starts" => ["AnnotionStart", "int", false, false, false],
-    "stops" => ["AnnotationEnd", "int", false, false, false],
+    "starts" => ["Annotation Start", "int", false, false, false],
+    "stops" => ["Annotation End", "int", false, false, false],
     "private" => ["Private Annotation", "bool", false, false, false],
     "note" => ["Note", "longtext", false, false, true],
     "extra" => ["Extra", "string", false, false, true], 

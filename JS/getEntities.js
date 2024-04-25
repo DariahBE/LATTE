@@ -1,3 +1,8 @@
+/*
+  js file used to interact with the LATTE connector. 
+  There are are functions of other files referenced in here. 
+*/
+
 var foundEntities = false;
 function entity_extraction_launcher(){
   //triggered by DOM element in text.php!!!!
@@ -115,6 +120,135 @@ function normalize_all(){
   }
 }
 
+
+
+function findItercounterRange(segmentId) {
+  /**
+   * Function that looks for the start and stop boundary of a node by their
+   * given segment_id. Segment_ids are only used when visualizing LATTE 
+   * connector entities. As an extra check, BLOCK all cases where there is no
+   * element available in spans. 
+   */
+  // Find all span elements within the temporary div
+  let spans = document.querySelectorAll('span[data-segment_id="' + segmentId + '"]');
+  if(spans.length < 1){
+    //early kill
+    return {
+      lowest: -1,
+      highest: -1
+  }; 
+  }
+  let lowestValue = Number.MAX_SAFE_INTEGER;
+  let highestValue = Number.MIN_SAFE_INTEGER;
+  
+  spans.forEach(element => {
+      const iterCounter = parseInt(element.getAttribute('data-itercounter'));
+      if (iterCounter < lowestValue) {
+          lowestValue = iterCounter;
+      }
+      if (iterCounter > highestValue) {
+          highestValue = iterCounter;
+      }
+  });
+
+  return {
+      lowest: lowestValue,
+      highest: highestValue
+  };
+}
+
+function updateSegmentedAnnotation(segment, uuid){
+  /**
+   * GETS an annotation with a specific segment id and: 
+   * - replaces the segment ID it with a UUIDV4
+   * - Removes the unstored class from the annotation
+   * - Triggers the click event for further disambiguation. (by calling the function!)
+   */
+  let spans = document.querySelectorAll('span[data-segment_id="' + segment + '"]');
+  //BUG //TODO //FIXME //URGENT: ltr click event cannot be triggered like this!
+  spans.forEach(ltr => {
+    //console.log(ltr); 
+    ltr.classList.remove('automatic_unstored');   //remove class that indicates it is an unstored node
+    ltr.classList.add('linked', 'underline');     //add classes to bring the layout and functionlity in line with persistent app_automatic nodes. 
+    ltr.setAttribute('data-annotation', uuid);    //add the UUID attribute to the node. 
+  });
+  //show
+  ltr.click();    //click the last letter to trigger the event. 
+
+}
+
+function persistSuggestionOfLatteConnector(segment){
+  /**
+   * When the user clicks the Store button from the suggestion box, this function 
+   * is triggered. 
+   * IF the user is logged in             AND
+   * IF the user passes permissionscheck
+   * THEN
+   * the node that triggered the event gets stored as a persistent node in the 
+   * database and receives a unique UUIDV4 identifier. An automatic trigger
+   * then takes the user to the disambiguation stage
+   */
+  //check! ==>  global login is available
+  if(globalLoginAvailable){
+    //global login !== sufficient rights set: check that here: 
+    //if the user's rights are lacking, the token manager dies  and refuses to assign
+    //a csrf token ==> no token = no storage!
+    //use segment to find the lowest and highest data-itercounter; these are the 
+    //start and stop of the annotation
+    let bounds = findItercounterRange(segment); 
+    let start = bounds['lowest'];
+    let stop = bounds['highest'];
+    if (start > -1 && stop >= start){
+      //check login and permissions.
+      fetch("/AJAX/getdisposabletoken.php?task=1")    
+      .then(response => response.json())
+      .then(data => {
+        const token = data;
+        fetch("/AJAX/persist_auto_annotation.php?texid="+languageOptions.nodeid+"&starts="+start+"&stops="+stop+"&token="+data)
+          .then(response => response.json())
+          .then(data => {
+            //the storage method for automatic annotations does allow for arrays, however, in this 
+            //function it will only be called with instructions for a single annotation node. So we
+            //can ask the UUIDV4 back after creation and use it to trigger a click event.
+            let uuid = data[0];
+            updateSegmentedAnnotation(segment, uuid); 
+            //simulate an event trigger by using the uuid variable and pass it
+            //to the function that is normally triggered by the click event!
+          })
+          /*
+          fetch("/AJAX/variants/make.php?varlabel=" + writtenValue + "&entity=" + relatedET + "&token=" + token)
+              .then(response => response.json())
+              .then(data => {
+                  let nid = data['data']['nid'];
+                  let uuid = data['data']['uuid'];
+                  document.getElementById('variantInputBox').value = '';
+                  classScope.addVariantInBox(writtenValue, uuid, nid, classScope.userstate);
+                  resolve(spellingVariantMainBox); // Resolve promise when operation is complete
+              })
+              .catch(error => {
+                  reject(error); // Reject promise if there is an error
+              });*/
+      })
+      .catch(error => {
+          reject(error); // Reject promise if there is an error
+      });
+    }
+
+  }
+
+}
+
+
+function generateRandomIdAttribute(l = 12){
+  //returns a random l-character long random hexadecimal string 
+  //is used as identifier for LATTE connector highlights: 
+  const chars = '0123456789ABCDEF';
+  let id = '';
+  for (let i = 0; i < l; ++i) {
+      id += chars.charAt(Math.floor(Math.random() * chars.length));
+  }
+  return id;
+}
 function displayEntities(entities){
   /**
    *  generates the sidebar in the DOM with the individual entity 
@@ -167,25 +301,17 @@ function displayEntities(entities){
     const ltrElements = document.querySelectorAll('.ltr');
 
   // Loop through each element
+  let segment_id = generateRandomIdAttribute()
   ltrElements.forEach((element) => {
     const itercounter = parseInt(element.getAttribute('data-itercounter'), 10);
-
-    // Check if itercounter is between 45 and 50
     if (itercounter >= et_start && itercounter <= et_stop) {
       // Add the 'highlighted' class
       element.classList.add('app_automatic', 'automatic_unstored');
       $(element).attr('data-entitytype', et_type);
-
+      $(element).attr('data-segment_id', segment_id); 
       // Add a click event listener
       element.addEventListener('click', () => {
-        // Custom function to handle the click event
-        console.log(`Clicked on element with itercounter ${itercounter}`);
-        //prompt to save entity :> onsave  =  generate UUID and return 
-        //then triggerlookup!!!
-        let xcoord = 1;
-        let ycoord = 2;
-
-        // You can replace the console.log with your desired action
+        makeSuggestionBox();
       });
     }
   });

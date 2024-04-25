@@ -144,7 +144,7 @@ function saveNewDB() {
   let dataObject = {};
   if (mistakes.length == 0) {
     //get a CSRF tokenà
-    fetch("/AJAX/getdisposabletoken.php")
+    fetch("/AJAX/getdisposabletoken.php?task=1")
       .then(response => response.json())
       .then(data => {
         const token = data;     ///CSRF token
@@ -1255,24 +1255,44 @@ function triggerSidePanelAction(entityData) {
 
 
 function makeSuggestionBox() {
+  //special color scheme is used for unstored annotations that are 
+  //found by the LATTE connector. Interface checks for the presence of the
+  //automatic_unstored class in the classlist to determine how the layout
+  // of the suggestionbox should be. 
+  let targetElement = event.src || event.target; 
+  let mode = 'stored';
+  if(targetElement.classList.contains('automatic_unstored')){
+    var boxHeader = 'Unstored Annotation';
+    var headerColor = 'bg-blue-300'; 
+    mode = 'unstored';
+  }else{
+    var boxHeader = 'Entitites';
+    var headerColor = 'bg-teal-300';
+  }
   ignoreSuggestion();
+  //external rangy library required!! 
+  //https://github.com/timdown/rangy
   var topDst = rangy.getSelection().anchorNode.parentElement.offsetTop;
   var height = rangy.getSelection().anchorNode.parentElement.offsetHeight;
   var leftDst = rangy.getSelection().anchorNode.parentElement.offsetLeft - 125;
   if (leftDst < 10) {
     leftDst = 10;
   }
-  //create spinner;
-  var spinner = document.createElement('div');
-  spinner.innerHTML = '<div id="suggestionboxspinner" class="text-center"> <svg role="status" class="inline w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">         <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895  90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>  <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>  </svg> </div>';
-  //create div at fixed position:
+  //create div at fixed position: THIS IS ALWAYS REQUIRED
   var div = document.createElement('div');
-  var tex = document.createTextNode('Entities: ');
+  var tex = document.createTextNode(boxHeader);
   var texheader = document.createElement('H3');
   texheader.appendChild(tex);
-  texheader.classList.add('bg-teal-300', 'flex', 'justify-content');
+  texheader.classList.add(headerColor, 'text-center', 'font-bold');
   div.appendChild(texheader);
-  div.appendChild(spinner);
+  //Spinner is only needed when working with stored annotations. 
+  if (mode === 'stored'){
+    //create spinner;
+    var spinner = document.createElement('div');
+    spinner.innerHTML = '<div id="suggestionboxspinner" class="text-center m-1 p-1"> <svg role="status" class="inline w-8 h-8 mr-2 text-gray-200 animate-spin dark:text-gray-600 fill-blue-600" viewBox="0 0 100 101" fill="none" xmlns="http://www.w3.org/2000/svg">         <path d="M100 50.5908C100 78.2051 77.6142 100.591 50 100.591C22.3858 100.591 0 78.2051 0 50.5908C0 22.9766 22.3858 0.59082 50 0.59082C77.6142 0.59082 100 22.9766 100 50.5908ZM9.08144 50.5908C9.08144 73.1895 27.4013 91.5094 50 91.5094C72.5987 91.5094 90.9186 73.1895  90.9186 50.5908C90.9186 27.9921 72.5987 9.67226 50 9.67226C27.4013 9.67226 9.08144 27.9921 9.08144 50.5908Z" fill="currentColor"/>  <path d="M93.9676 39.0409C96.393 38.4038 97.8624 35.9116 97.0079 33.5539C95.2932 28.8227 92.871 24.3692 89.8167 20.348C85.8452 15.1192 80.8826 10.7238 75.2124 7.41289C69.5422 4.10194 63.2754 1.94025 56.7698 1.05124C51.7666 0.367541 46.6976 0.446843 41.7345 1.27873C39.2613 1.69328 37.813 4.19778 38.4501 6.62326C39.0873 9.04874 41.5694 10.4717 44.0505 10.1071C47.8511 9.54855 51.7191 9.52689 55.5402 10.0491C60.8642 10.7766 65.9928 12.5457 70.6331 15.2552C75.2735 17.9648 79.3347 21.5619 82.5849 25.841C84.9175 28.9121 86.7997 32.2913 88.1811 35.8758C89.083 38.2158 91.5421 39.6781 93.9676 39.0409Z" fill="currentFill"/>  </svg> </div>';
+    div.appendChild(spinner);
+  }
+
   div.classList.add('suggestionBox', 'bg-white');
   div.style.position = 'absolute';
   div.style.top = topDst + height + 'px';
@@ -1284,24 +1304,30 @@ function makeSuggestionBox() {
   div.setAttribute('id', 'suggestionOnSelect');
   //save/dismiss button:
   var buttonsBottom = document.createElement('div');
-  /*var save = document.createElement('button');
-  save.addEventListener('click', function(){saveSuggestion();});
-  var savetext = document.createTextNode('Save');*/
   var dismiss = document.createElement('button');
   dismiss.addEventListener('click', function () {
     ignoreSuggestion();
   });
   var dismisstext = document.createTextNode('Dismiss');
   buttonsBottom.classList.add('w-full', 'mt-auto', 'p-2');
-  //save.disabled = true;
-  //save.classList.add('bg-green-400', 'w-1/2', 'disabled:opacity-25', 'disabled:cursor-not-allowed');
-  //save.setAttribute('id', 'suggestionbox_saveButton');
-  dismiss.classList.add('bg-red-400', 'w-1/2');
-  //save.appendChild(savetext);
+  dismiss.classList.add('bg-red-400', 'w-1/2', 'p-1', 'rounded-sm');
   dismiss.appendChild(dismisstext);
   dismiss.setAttribute('id', 'suggestionbox_dismissButton');
-  //buttonsBottom.appendChild(save);
   buttonsBottom.appendChild(dismiss);
+  //when working with unstored annotations, add a button that stores the annotation
+  //as an annotation_auto node in the database and assigns a UUIDV4 to it!
+  if (mode === 'unstored' && globalLoginAvailable){
+    var save = document.createElement('button');
+    console.log("element with id", targetElement);
+    save.addEventListener('click', function(){
+      persistSuggestionOfLatteConnector(targetElement.dataset.segment_id);
+    });
+    var savetext = document.createTextNode('Store');
+    save.classList.add('bg-green-400', 'w-1/2', 'p-1', 'rounded-sm');
+    save.setAttribute('id', 'suggestionbox_saveButton');
+    save.appendChild(savetext);
+    buttonsBottom.appendChild(save);
+  } 
   div.appendChild(buttonsBottom);
   document.body.appendChild(div);
 }

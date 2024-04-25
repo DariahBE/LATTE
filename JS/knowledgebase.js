@@ -154,7 +154,7 @@ class KnowledgeBase {
         const submitButton = document.getElementById('submitBtn_kb'); 
         const self = this; 
         //fetch a token
-        fetch('/AJAX/getdisposabletoken.php')
+        fetch('/AJAX/getdisposabletoken.php?task=1')
         .then((response) => response.json())
         .then((token) => {
           

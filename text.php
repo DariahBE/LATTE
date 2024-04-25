@@ -75,7 +75,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
     <script src="/JS/makeMap.js"></script>
     <script src="/JS/leaflet/leaflet.js"></script>
     <script src="/JS/wikidata_prompt.js"></script>
-    <!-- datatype vallidators.  -->
+    <!-- datatype validators.  -->
     <script src="/JS/validation.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">

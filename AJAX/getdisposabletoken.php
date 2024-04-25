@@ -12,6 +12,26 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
 $user = new User($client);
 $user_uuid = $user->checkSession();
 
+//if there is a task set as get parameter you need to check if the 
+//user asking to perform the task has sufficient rights. If not the 
+//token does not get assigned. Assigning a toke automatically means
+//the user has sufficient rights!!
+//You can't use this method everywhere, sometimes you need extra
+//info about the node ownership, here' we assume NO ownership! This 
+//could lead to false negatives for lowlevel users wanting to update
+//owned nodes
+if(isset($_GET['task'])){
+    //ADDING  == Level 1
+    //UPDATING == Level 2
+    //DELETING == Level 3
+    $taskLevel = (int)$_GET['task']; 
+    $userLevel = $user->hasEditRights($user->myRole, False); 
+    if ($taskLevel > $userLevel){
+        die(); 
+    }
+}
+
+
 if(boolval($user_uuid)){
     $tokenManager = new CsrfTokenManager; 
     $tokenManager->revokeToken();
