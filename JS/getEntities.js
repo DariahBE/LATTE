@@ -165,15 +165,16 @@ function updateSegmentedAnnotation(segment, uuid){
    * - Triggers the click event for further disambiguation. (by calling the function!)
    */
   let spans = document.querySelectorAll('span[data-segment_id="' + segment + '"]');
-  //BUG //TODO //FIXME //URGENT: ltr click event cannot be triggered like this!
+  var liftLtrUp = null;    //make a variable that's in the function scope
   spans.forEach(ltr => {
     //console.log(ltr); 
     ltr.classList.remove('automatic_unstored');   //remove class that indicates it is an unstored node
-    ltr.classList.add('linked', 'underline');     //add classes to bring the layout and functionlity in line with persistent app_automatic nodes. 
+    ltr.classList.add('linked', 'underline');     //add classes to bring the layout and functionality in line with persistent app_automatic nodes. 
     ltr.setAttribute('data-annotation', uuid);    //add the UUID attribute to the node. 
+    liftLtrUp = ltr;   //set the last ltr to the liftLtrUp variable. 
   });
-  //show
-  ltr.click();    //click the last letter to trigger the event. 
+  //now you can click the liftLtrUp variable which will trigger the click event on the last ltr parsed!
+  liftLtrUp.click();    //click the last letter to trigger the event. 
 
 }
 
