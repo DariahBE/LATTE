@@ -351,7 +351,6 @@ function showdata(data) {
     //find the selected text: 
     let highlighted = document.getElementsByClassName("markedAnnotation");
     let highlightedText = '';
-    console.log(highlighted.innerHTML);
     for (const element of highlighted) {
       highlightedText += element.textContent;
     }
@@ -364,7 +363,7 @@ function showdata(data) {
       'casesensitive': false
     };
     $sendTo = $baseURL + jQuery.param($parameters);
-    makeSuggestionBox();
+    makeSuggestionBox();      // BUG! when resolving automatic annotations!
     getInfoFromBackend($sendTo)
       .then((data) => {
         loadIntoSuggestionBox(data, globalSelectionStart, globalSelectionEnd);
@@ -435,7 +434,6 @@ function loadAnnotationData(annotationID = false) {
   }
   //otherwise the annotationID is given as of the function call parameter(in case of
   //  programatically triggering the event). 
-    
   getInfoFromBackend("/AJAX/resolve_annotation.php?annotation=" + annotationID)
     .then((data) => {
       if (data['code']==-1){

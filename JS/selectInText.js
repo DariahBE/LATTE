@@ -1253,12 +1253,18 @@ function triggerSidePanelAction(entityData) {
 }
 
 
-
+//BUG when called from interactWithEntities
 function makeSuggestionBox() {
+  /**
+   * creates a box based on the current cursor position and shows
+   * basic data/interaction about the element that triggered the 
+   * annotation lookup. 
+   */
   //special color scheme is used for unstored annotations that are 
   //found by the LATTE connector. Interface checks for the presence of the
   //automatic_unstored class in the classlist to determine how the layout
   // of the suggestionbox should be. 
+  if (event === undefined){return;}
   let targetElement = event.src || event.target; 
   let mode = 'stored';
   if(targetElement.classList.contains('automatic_unstored')){
@@ -1278,6 +1284,7 @@ function makeSuggestionBox() {
   if (leftDst < 10) {
     leftDst = 10;
   }
+
   //create div at fixed position: THIS IS ALWAYS REQUIRED
   var div = document.createElement('div');
   var tex = document.createTextNode(boxHeader);

@@ -162,20 +162,15 @@ function updateSegmentedAnnotation(segment, uuid){
    * GETS an annotation with a specific segment id and: 
    * - replaces the segment ID it with a UUIDV4
    * - Removes the unstored class from the annotation
-   * - Triggers the click event for further disambiguation. (by calling the function!)
+   * - simulates the click event for further disambiguation. (by calling the function!)
    */
   let spans = document.querySelectorAll('span[data-segment_id="' + segment + '"]');
-  var liftLtrUp = null;    //make a variable that's in the function scope
   spans.forEach(ltr => {
-    //console.log(ltr); 
     ltr.classList.remove('automatic_unstored');   //remove class that indicates it is an unstored node
     ltr.classList.add('linked', 'underline');     //add classes to bring the layout and functionality in line with persistent app_automatic nodes. 
     ltr.setAttribute('data-annotation', uuid);    //add the UUID attribute to the node. 
-    liftLtrUp = ltr;   //set the last ltr to the liftLtrUp variable. 
   });
-  //now you can click the liftLtrUp variable which will trigger the click event on the last ltr parsed!
-  liftLtrUp.click();    //click the last letter to trigger the event. 
-
+  loadAnnotationData(uuid); //call the function that's normally triggered by an onclick event. 
 }
 
 function persistSuggestionOfLatteConnector(segment){
