@@ -167,7 +167,7 @@ function updateSegmentedAnnotation(segment, uuid){
   let spans = document.querySelectorAll('span[data-segment_id="' + segment + '"]');
   spans.forEach(ltr => {
     ltr.classList.remove('automatic_unstored');   //remove class that indicates it is an unstored node
-    ltr.classList.add('linked', 'underline');     //add classes to bring the layout and functionality in line with persistent app_automatic nodes. 
+    ltr.classList.add('linked', 'underline', 'markedAnnotation');     //add classes to bring the layout and functionality in line with persistent app_automatic nodes. 
     ltr.setAttribute('data-annotation', uuid);    //add the UUID attribute to the node. 
   });
   loadAnnotationData(uuid); //call the function that's normally triggered by an onclick event. 
@@ -251,7 +251,16 @@ function displayEntities(entities){
    * 
    *  Generates the highlight in the text as an automated annotation with all 
    *  required interactivity!
+   * 
+   * WILL NOT UPDATE THE DOM WITH PICKED UP ENTITIES THAT HAVE MATCHING BORDERS
+   * ALREADY IN THE TEXT!
    */
+  // Function to check if any element has start and stop
+  function checkRange(obj, start, stop) {
+    return Object.keys(obj).some(key => obj[key].start === start && obj[key].stop === stop);
+  }
+  
+
   $counterTarget = $('#amountOfEntities');
   $modelTarget = $('#usedEntityModel');
   $entitiesTarget = $('#entitycontainer');
@@ -266,6 +275,9 @@ function displayEntities(entities){
     let et_start = $foundEntities[i]['startPos']; 
     let et_stop = $foundEntities[i]['endPos']; 
     let et_type = $foundEntities[i]['labelTex']; 
+    if (checkRange(storedAnnotations.relations, et_start, et_stop)){
+      continue; 
+    }
 
     //adding entity element to the side: 
     $singleEntity = document.createElement('p');

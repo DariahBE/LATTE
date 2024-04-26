@@ -124,6 +124,7 @@ function displayUpdatedText(type, start, stop, uuid){
     if (iterCounter >= start && iterCounter <= stop) {
       //newly created ANNOs have to be clickable, marked and receive their UUID!
       e.classList.add(type, 'linked', 'underline');
+      e.classList.remove('app_automatic');
       e.dataset.annotation = uuid;
       e.addEventListener('click', function(){
         loadAnnotationData(); 

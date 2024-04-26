@@ -26,6 +26,12 @@
         die(); 
     }
 
+    ////Implement rights-check here: 
+
+
+
+    ///end of rights-check. 
+
     //interpretation of the post request!
     $data = $_POST['data']; 
     //parse parts of the data: 
@@ -60,7 +66,7 @@
         echo json_encode(array('msg' => 'Invalid session token')); 
         die();
     }
-
+    
     $node = new CUDNode($client);
     $node->startTransaction();
 
@@ -146,6 +152,8 @@
     //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
     if ($annomode === 'automated'){
         try {
+            $startAutomated = $annotationNode[ANNOSTART];
+            $stopAutomated = $annotationNode[ANNOSTOP];
             unset($annotationNode[ANNOSTART]);
             unset($annotationNode[ANNOSTOP]);
             $annotation_neo_id = $data['neo_id_internal']; 
@@ -164,6 +172,10 @@
             die('rollback of changes: annocreation error');
         }
     }
+
+
+
+
 
     //TODO (Low): needs to be done more efficiently, get the UUID directly when creating annotationnode!
     $createdAnnotationUUID = $annotation->fetchAnnotationUUID($createAnnotation); 
@@ -197,10 +209,12 @@
         'intid' => $createAnnotation,
         'uuid' => $createdAnnotationUUID, 
         'type' => $nodelabel, 
-        'start' => $annotationNode[ANNOSTART], 
-        'stop' => $annotationNode[ANNOSTOP],
+        'start' => $annotationNode[ANNOSTART]?? $startAutomated, 
+        'stop' => $annotationNode[ANNOSTOP] ?? $stopAutomated,
     );
-    $node_reply['tsx'] = $node;
+    //PATCH TSX is not used, so we do not pass it to the client. 
+    //$node_reply['tsx'] = $node;
+
 
     // if database commit was successfull: revoke the token. 
     $tokenManager->revokeToken(); 
