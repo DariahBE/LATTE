@@ -31,7 +31,6 @@ if(isset($_GET['starts']) && isset($_GET['stops']) && isset($_GET['texid']) && i
     die(); 
 }
 
-/*  //TODO reenable token.
 //check the token: 
 $tokenManager = new CsrfTokenManager();
 $validToken = $tokenManager->checkToken($token); 
@@ -40,7 +39,7 @@ if(!($validToken)){
     die();
 }
 $tokenManager->revokeToken();   //kill the token. 
-*/
+
 //USERSTUFF
 //do a new permissioncheck!!
 //(the token could be stored from elsewhere and be used here to bypass the check in the tokenmanager)

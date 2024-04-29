@@ -1,5 +1,4 @@
 
-//TODO: dormant code; not being used by DOM. 
 function clippy(idOfElement,idOfOkay){
   var source = document.getElementById(idOfElement);
   let target = document.createElement('textarea');

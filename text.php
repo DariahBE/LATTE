@@ -93,7 +93,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
     <!-- content-->
 
 <div class="top ">
-  <div id='normalizationDialogue' class="w-full">
+  <!-- <div id='normalizationDialogue' class="w-full">
     <h3 class='text-xl'>Normalization Options: </h3>
     <p>Normalization improves the pickup of entities. When enabled the Named entity returned by the NER-tool is modified by removing a list of specific characters.</p>
     <div id='normalizationOptions'>
@@ -111,14 +111,14 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
     </div>
     <br>
 
-  </div>
+  </div> -->
+  <!-- 
   <div id="explorationDialogue" class="w-full py-4 my-4">
-    <!-- // TODO feature is pending: if there is no integration with a NER-tool, then this has to go! -->
     <h3 class="text-xl">Node Exploration: </h3>
-    <!-- automatic exploration of the retrieved entities-->
+    <! -- automatic exploration of the retrieved entities -- >
     <label for="autoexplore">Fetch recognized entities: </label>
     <input id="autoexplore" type="checkbox" name="autoexplore" value="">
-  </div>
+  </div>-->
 </div>
 
 <div class="main flex flex-row py-4 my-4">
@@ -201,20 +201,22 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
             ?>
             <div>
             <h4 class="font-bold text-lg">LATTE Connector</h4>
-            <div class="language">
-              <p><span class='font-bold key'>Language ISO: </span><span class='value italic' id='detectedLanguageCode'></span></p>
-              <p><span class='font-bold key'>Language: </span><span class='value italic' id='detectedLanguage'></span></p>
-              <p><span class='font-bold key'>Certainty: </span><span class='value italic' id='detectedLanguageCertainty'></span></p>
-            </div>
-            <div class="options" id="entityMatchOptions">
-              <div class="hideMatches">
-                <input onclick="hideUnhideEntities()" id='hideUnhideEntities' type="checkbox" name="hideMatchingEntities" value=true>
-                <label for="hideUnhideEntities">Hide <span id='overlapcount'></span>annotated entities(s)</label>
+            <div class="hidden" id="connectorExpand">
+              <div class="language">
+                <p><span class='font-bold key'>Language ISO: </span><span class='value italic' id='detectedLanguageCode'></span></p>
+                <p><span class='font-bold key'>Language: </span><span class='value italic' id='detectedLanguage'></span></p>
+                <p><span class='font-bold key'>Certainty: </span><span class='value italic' id='detectedLanguageCertainty'></span></p>
               </div>
-            </div>
-            <div class="entities">
-              <p><span class='font-bold key'>Nr. of entities: </span><span class='value italic' id='amountOfEntities'></span></p>
-              <p><span class='font-bold key'>Used model: </span><span class='value italic' id='usedEntityModel'></span></p>
+              <!-- <div class="options" id="entityMatchOptions">
+                <div class="hideMatches">
+                  <input onclick="hideUnhideEntities()" id='hideUnhideEntities' type="checkbox" name="hideMatchingEntities" value=true>
+                  <label for="hideUnhideEntities">Hide <span id='overlapcount'></span>annotated entities(s)</label>
+                </div>
+              </div> -->
+              <div class="entities">
+                <p><span class='font-bold key'>Nr. of entities: </span><span class='value italic' id='amountOfEntities'></span></p>
+                <p><span class='font-bold key'>Used model: </span><span class='value italic' id='usedEntityModel'></span></p>
+              </div>
             </div>
             <button id="extractorTrigger" onclick="entity_extraction_launcher()" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 border border-blue-700 rounded">Extract!</button>
             <div id="extractorProgress" class="hidden"></div>
@@ -229,9 +231,9 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
         <div class="report" id="entitycontainer">
 
         </div>
-        <div class="analyse" id="specificEntityDetails">
+        <!-- <div class="analyse" id="specificEntityDetails">
 
-        </div>
+        </div> -->
       </div>
   </div>
   <!--<div class="extended" id="rightExtensionPanel">

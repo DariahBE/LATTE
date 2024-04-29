@@ -33,11 +33,11 @@ function showInfoFromBackend(info, elem){
 function getInfoByClick(e){
   //depends on use of normalization.
   var nodetype = e.target.getAttribute('data-type');
+  var strValue = e.target.getAttribute('data-stringExact');
+  /*
   if(useNormalization){
-    var strValue = e.target.getAttribute('data-stringNormalized');
-  }else{
-    var strValue = e.target.getAttribute('data-stringExact');
-  }
+    strValue = e.target.getAttribute('data-stringNormalized');
+  }*/
   $baseURL = '/AJAX/getEntitySuggestion.php?';
   $parameters = {
     'type':nodetype,

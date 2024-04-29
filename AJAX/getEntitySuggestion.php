@@ -9,9 +9,14 @@ $approvedEntities = array_keys(CORENODES);
 $approvedEntities[] = '';     // words of unknown type should be looked for too!
 $caseSensitive = isset($_GET['casesensitive']) ? $_GET['casesensitive'] : false;
 $caseSensitive = (strtolower($caseSensitive)=='true')? true : false;
-$findEntityByType = $_GET['type'];
+$findEntityByType = False; 
+if(isset($_GET['type'])){
+  $findEntityByType = $_GET['type'];
+}
+
 $findEntityByValue = $_GET['value'];
 if(in_array($findEntityByType, $approvedEntities)){
+  //type is falseable
   $data = $graph->getEntities($findEntityByType,$findEntityByValue,$caseSensitive);
   /*
     returned data provides directives to connect the nodes to variants!.

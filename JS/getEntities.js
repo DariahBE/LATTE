@@ -7,6 +7,7 @@ var foundEntities = false;
 function entity_extraction_launcher(){
   //triggered by DOM element in text.php!!!!
   //remove the trigger button
+  document.getElementById('connectorExpand').classList.remove('hidden'); 
   deleteIfExistsById('extractorTrigger'); 
   //determine the language of the text: 
   detectLanguage(languageOptions).then(function(result){
@@ -40,13 +41,13 @@ function getEntities(options){
   });
 }
 
-//make this a global variable.
-var dropToNormalize = [];
-var useNormalization = false;
+
 
 //function to hide / unhide entities identified by the NER-tool that are already linked in the graph database.
 //Event is attached to the hideUnhideEntities element in the DOM. Referencing is done by the onclick attribute
 //in the DOM!!
+/*
+## Feature dropped: no auto-explore of hide/unhide action
 function hideUnhideEntities(){
   var count = 0;
   var state = document.getElementById('hideUnhideEntities').checked;
@@ -74,8 +75,13 @@ function hideUnhideEntities(){
       ets[et].classList.remove('hidden');
     }
   }
-}
+}*/
 
+/*
+  ##Feature dropped: no normalization ##
+//make this a global variable.
+var dropToNormalize = [];
+var useNormalization = false;
 //update the global dropToNormalize variable.
 //function should return a list of every character(sequence) to be ignored in a sanitized string.
 function update_NormalizationList(){
@@ -119,7 +125,7 @@ function normalize_all(){
     }
   }
 }
-
+*/
 
 
 function findItercounterRange(segmentId) {
@@ -173,6 +179,12 @@ function updateSegmentedAnnotation(segment, uuid){
   loadAnnotationData(uuid); //call the function that's normally triggered by an onclick event. 
 }
 
+function disableButtonByElemId(elemid){
+  let button = document.getElementById(elemid);
+  button.disabled = true;
+  button.classList.add('disabled'); //disable the button
+}
+
 function persistSuggestionOfLatteConnector(segment){
   /**
    * When the user clicks the Store button from the suggestion box, this function 
@@ -194,6 +206,8 @@ function persistSuggestionOfLatteConnector(segment){
     let bounds = findItercounterRange(segment); 
     let start = bounds['lowest'];
     let stop = bounds['highest'];
+    disableButtonByElemId('suggestionbox_saveButton'); 
+    disableButtonByElemId('suggestionbox_dropButton');     
     if (start > -1 && stop >= start){
       //check login and permissions.
       fetch("/AJAX/getdisposabletoken.php?task=1")    
@@ -269,13 +283,14 @@ function displayEntities(entities){
   $foundEntities = entities['data'];
   $entitiesDisplay = document.createElement('div');
   $($entitiesDisplay).attr('id', 'showEntitiesHere');
+  let allAnnotations = {...automatic_annotations, ...storedAnnotations.relations};
 
   for (var i = 0; i < $foundEntities.length; i++) {
     //universal variables required in both cases;
     let et_start = $foundEntities[i]['startPos']; 
     let et_stop = $foundEntities[i]['endPos']; 
     let et_type = $foundEntities[i]['labelTex']; 
-    if (checkRange(storedAnnotations.relations, et_start, et_stop)){
+    if (checkRange(allAnnotations, et_start, et_stop)){
       continue; 
     }
 
@@ -286,7 +301,10 @@ function displayEntities(entities){
     $singleEntityText = document.createTextNode($foundEntities[i]['text']);
     $($singleEntity).attr('data-start', et_start);
     $($singleEntity).attr('data-end', et_stop);
-    $($singleEntity).attr('data-type', et_type);
+    if (et_type !== '#$#undefined#$#'){
+      //et_type = 'person';
+      $($singleEntity).attr('data-type', et_type);
+    }
     $($singleEntity).attr('data-stringExact', $foundEntities[i]['text']);
     //$($singleEntity).attr('data-stringNormalized');
     $primaryTextSpan.appendChild($singleEntityText);
@@ -298,7 +316,6 @@ function displayEntities(entities){
     $($secondaryTextSpan).addClass('secondSpanElementOfEntity');
     $($singleEntity).addClass(et_type);
     $($singleEntity).addClass('anEntity');
-     'anEntity'
     var clickForInfo = function(e){
       getInfoByClick(e);
     }
@@ -318,15 +335,19 @@ function displayEntities(entities){
       $(element).attr('data-entitytype', et_type);
       $(element).attr('data-segment_id', segment_id); 
       // Add a click event listener
-      element.addEventListener('click', () => {
-        makeSuggestionBox();
-      });
+      // element.addEventListener('click', () => {
+      //   makeSuggestionBox();
+      // });
+      element.addEventListener('click', clickHandler);
     }
   });
-
-
   }
 
 
   $entitiesTarget.append($entitiesDisplay);
 }
+// Add the event listener
+const clickHandler = () => {
+  makeSuggestionBox();
+};
+

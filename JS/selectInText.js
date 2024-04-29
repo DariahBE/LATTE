@@ -771,7 +771,6 @@ function createWDPromptBox(createNodeDiv, positionDiv){
     }
   }
   //createNodeDiv.appendChild(spellingVariantMainBox);
-  //BUG: spellingVariantDOMReturn is out of scope!
   createNodeDiv.appendChild(spellingVariantDOMReturn.get_HTML_content());
   //add a WD Promptbox and trigger the function for wikidata_prompting from here:
   createNodeDiv.appendChild(wikidataPromptMainbox);
@@ -782,13 +781,9 @@ function createWDPromptBox(createNodeDiv, positionDiv){
 
 function buildAnnotationCreationBox() {
   console.warn('call into buildAnnotationCreationBox'); 
-  //BUG => this is thepatch for bug of 10/4/24
-  //TESTs passed so far: 
-  // connecting still works, even with the return statement in here!!!
   if (document.getElementById('etcreate') !== null){
     return; 
   }
-  //end of patch. 10/4/24
   var createNodeDiv = document.createElement('div');
   createNodeDiv.classList.add('w-full');
   createNodeDiv.setAttribute('id', 'etcreate');
@@ -1030,7 +1025,6 @@ function buildAnnotationCreationBox() {
     //   createNodeDiv.appendChild(positionDiv);
     // }
     // //createNodeDiv.appendChild(spellingVariantMainBox);
-    // //BU G: spellingVariantDOMReturn is out of scope!
     // createNodeDiv.appendChild(spellingVariantDOMReturn.get_HTML_content());
     // //add a WD Promptbox and trigger the function for wikidata_prompting from here:
     // createNodeDiv.appendChild(wikidataPromptMainbox);
@@ -1254,7 +1248,19 @@ function triggerSidePanelAction(entityData) {
 }
 
 
-//BUG when called from interactWithEntities
+function dropLatteSuggestion(segment){
+  let spans = document.querySelectorAll('span[data-segment_id="' + segment + '"]');
+  spans.forEach(ltr => {
+    ltr.classList.remove('app_automatic', 'automatic_unstored');   //remove class that indicates it is an unstored node
+    ltr.removeAttribute('data-segment_id');
+    ltr.removeAttribute('data-entitytype');
+    ltr.removeEventListener('click', clickHandler);
+  });
+  //remove the suggestion box
+  ignoreSuggestion(); 
+}
+
+
 function makeSuggestionBox() {
   /**
    * creates a box based on the current cursor position and shows
@@ -1317,21 +1323,31 @@ function makeSuggestionBox() {
     ignoreSuggestion();
   });
   var dismisstext = document.createTextNode('Dismiss');
-  buttonsBottom.classList.add('w-full', 'mt-auto', 'p-2');
-  dismiss.classList.add('bg-red-400', 'w-1/2', 'p-1', 'rounded-sm');
+  buttonsBottom.classList.add('w-full', 'mt-auto', 'p-2', 'flex', 'justify-between');
+  dismiss.classList.add('bg-red-400', 'p-1', 'rounded-sm', 'flex-grow');
   dismiss.appendChild(dismisstext);
   dismiss.setAttribute('id', 'suggestionbox_dismissButton');
   buttonsBottom.appendChild(dismiss);
   //when working with unstored annotations, add a button that stores the annotation
   //as an annotation_auto node in the database and assigns a UUIDV4 to it!
+  if (mode === 'unstored' && targetElement.classList.contains('automatic_unstored')){
+    var drop = document.createElement('button'); 
+    drop.setAttribute('id', 'suggestionbox_dropButton'); 
+    drop.addEventListener('click', function(){
+      dropLatteSuggestion(targetElement.dataset.segment_id);
+    })
+    var droptext = document.createTextNode('reannotate'); 
+    drop.appendChild(droptext); 
+    drop.classList.add('bg-blue-400', 'p-1', 'rounded-sm', 'flex-grow', 'disabled:bg-blue-100', 'disabled:cursor-not-allowed'); 
+    buttonsBottom.appendChild(drop); 
+  }
   if (mode === 'unstored' && globalLoginAvailable){
     var save = document.createElement('button');
-    console.log("element with id", targetElement);
     save.addEventListener('click', function(){
       persistSuggestionOfLatteConnector(targetElement.dataset.segment_id);
     });
     var savetext = document.createTextNode('Store');
-    save.classList.add('bg-green-400', 'w-1/2', 'p-1', 'rounded-sm');
+    save.classList.add('bg-green-400', 'p-1', 'rounded-sm','flex-grow', 'disabled:bg-green-100', 'disabled:cursor-not-allowed');
     save.setAttribute('id', 'suggestionbox_saveButton');
     save.appendChild(savetext);
     buttonsBottom.appendChild(save);
@@ -1341,6 +1357,9 @@ function makeSuggestionBox() {
 }
 
 function loadIntoSuggestionBox(data, from, to) {
+  // console.log('data', data);
+  // console.log('from', from);
+  // console.log('to', to);
   var datadiv = document.createElement('div');
   var metadataOnSearch = document.createElement('div');
   metadataOnSearch.classList.add('suggestionMetadata');
@@ -1379,8 +1398,10 @@ function loadIntoSuggestionBox(data, from, to) {
   //insert the search results here:
   triggerSidePanelAction(data);
   datadiv.appendChild(dataOnSearch);
-  document.getElementById("suggestionboxspinner").parentNode.insertBefore(datadiv, document.getElementById('suggestionboxspinner'));
-  document.getElementById('suggestionboxspinner').remove();
+  if(datamode === 'stored'){
+    document.getElementById("suggestionboxspinner").parentNode.insertBefore(datadiv, document.getElementById('suggestionboxspinner'));
+    document.getElementById('suggestionboxspinner').remove();
+  }
 }
 
 function getTextSelection() {

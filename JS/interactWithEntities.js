@@ -363,9 +363,9 @@ function showdata(data) {
       'casesensitive': false
     };
     $sendTo = $baseURL + jQuery.param($parameters);
-    makeSuggestionBox();      // BUG! when resolving automatic annotations!
+    makeSuggestionBox();
     getInfoFromBackend($sendTo)
-      .then((data) => {
+    .then((data) => {
         loadIntoSuggestionBox(data, globalSelectionStart, globalSelectionEnd);
       })
     // TODO: CRITICAL
@@ -373,7 +373,7 @@ function showdata(data) {
      *        1) code needs to perform a lookup in the DOM and see what the annotated text is.                                        OK
      *        2) This annotated text should be treated as if you select a part of the DOM text and look it up in the DB.              OK
      *        3) UPON approval= 
-     *            - update annotation Label from annoation_auto to annoation
+     *            - update annotation Label from annotation_auto to annotation
      *            - add other fields in DOM to approve edit and let the user annotate properly. 
      */
 
