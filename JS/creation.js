@@ -10,8 +10,7 @@ class nodeCreator{
     this.reset = this.reset.bind(this);
 
   }
-
-  handleNoLogin(){
+  nonloginDetected(){
     // RUN MOD ON: ?
     //call whenever nonlogin is detected from calls to get_structure.php
 
@@ -19,9 +18,7 @@ class nodeCreator{
     NOTE: this is not a security feature. Data that requires
     sessions are protected serverside. This is clientside code
     that simply prevents making DOM-elements to query/ put data
-    */
-
-
+    * /
   }
 
   reset(){
@@ -79,7 +76,7 @@ class nodeCreator{
             this.reset();
             let result = document.createElement('p'); 
             if(e.hasOwnProperty('stable') && Array.isArray(e['stable']) && e['stable'].length > 0){
-              let resultText = document.createTextNode('A new entry was succesfully added to the database. You can access this new node here: '); 
+              let resultText = document.createTextNode('A new entry was successfully added to the database. You can access this new node here: '); 
               let resultSubLink= document.createElement('a');
               let resultSubLinkText = document.createTextNode(e['stable'][0]);
               resultSubLink.setAttribute('href', e['stable'][0]);
@@ -99,7 +96,16 @@ class nodeCreator{
       });
   }
 
+
+
+  
+
   createFormForType(eventhandle){
+    /**
+     * Creates the form to create a new node. When a text node is created it'll change the layout of the form
+     * so that the field which contains the text property is a textarea instead of a text input. 
+     * 
+     */
     var formTarget = document.getElementById('propertySection');
     formTarget.innerHTML = ''; 
     formTarget.classList.remove('hidden'); 
@@ -109,13 +115,25 @@ class nodeCreator{
     var formGrid = document.createElement('div'); 
     formGrid.classList.add('grid','gap-6', 'mb-6', 'md:grid-cols-2'); 
     form.classList.add('inputFormForData'); 
-    if(type == 'false'){return;}
+    var textproperty = false;
+    if(type == 'false'){
+      return;
+    }else if (type === texnode){
+      textproperty = texnodetext; 
+      var ikey = null; 
+    }
+
     fetch('/AJAX/get_structure.php?type='+type)
       .then((response) => response.json())
       .then((data) =>{
         var keys = Object.keys(data['data']); 
         data = data['data'];
         for(var i=0; i<keys.length; i++){
+          if(textproperty && keys[i]==textproperty){
+            //don't add the TEXNODETEXT content in between the bulk of the properties. 
+            ikey = i; 
+            continue;
+          }
           //var fieldName = 'field_name_'+toString(i); 
           var attributes = data[keys[i]];
           var oneRowToDOM = document.createElement('div');
@@ -140,11 +158,39 @@ class nodeCreator{
           oneRowToDOM.appendChild(inputField);
           formGrid.appendChild(oneRowToDOM);
         }
+        form.appendChild(formGrid); 
+        if(textproperty){
+          //instead put it in a separate row and make it full width!
+          //Also increase the height of it then!
+          var attributes = data[keys[ikey]];
+          var oneRowToDOM = document.createElement('div');
+          oneRowToDOM.classList.add('w-full', 'form-group', 'col-span-12');
+          var labelForOneRow = document.createElement('label');
+          var labelText = document.createTextNode(attributes[0]);
+          var uniqueness = attributes[2]; 
+          //label associated with the input field:
+          labelForOneRow.appendChild(labelText);
+          //textarea field: where user is allowed to enter data.
+          var inputField = document.createElement('textarea'); 
+          inputField.setAttribute('rows', 10);
+          inputField.classList.add('w-full');
+          inputField.classList.add('form-control');
+          inputField.classList.add('attachValidator');
+          if(uniqueness){
+            //test if uniqueness class is part of the DOM: Test Passed
+            inputField.classList.add('validateAs_unique');
+          }
+          inputField.classList.add('validateAs_'+attributes[1].toLowerCase());
+          inputField.dataset.name=keys[ikey];
+          oneRowToDOM.appendChild(labelForOneRow);
+          oneRowToDOM.appendChild(inputField);
+          form.appendChild(oneRowToDOM);
+        }
         var submit = document.createElement('input');
         submit.setAttribute('type', 'submit');
         submit.addEventListener('click', event => this.preSubmitCheck(event)); 
-        formGrid.appendChild(submit);
-        form.appendChild(formGrid); 
+        submit.classList.add('btn','bg-blue-400', 'm-2', 'p-2', 'rounded-sm'); 
+        form.appendChild(submit);
         formTarget.appendChild(form);
         const validation = new Validator;
         validation.pickup();

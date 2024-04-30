@@ -83,7 +83,7 @@ $nodesDatamodel = array(
     "breed" => ["Breed", "string", false, false, true],
     "age" => ["Age", "int", false, false, false],
     "label" => ["Name", "string", false, true, true],
-    "Wikidata" => ["Wikidata Label", 'wikidata', false, false, false],
+    "wikidata" => ["Wikidata Label", 'wikidata', false, false, false],
     "smart" => ["Did tricks", 'bool', false, false, false],
   ], 
   'Test' =>[      //testing all datatypes:

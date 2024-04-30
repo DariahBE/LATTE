@@ -70,9 +70,9 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
     </div>
 
     <script>
-    var creator = new nodeCreator(core); 
-
-
+      const texnode = '<?php echo TEXNODE ?>'; 
+      const texnodetext = '<?php echo TEXNODETEXT ?>' ;
+      const creator = new nodeCreator(core); 
   </script>
   </body>
 </html>

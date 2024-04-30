@@ -501,6 +501,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .z-10 {
   z-index: 10;
 }
+.col-span-12 {
+  grid-column: span 12 / span 12;
+}
 .float-right {
   float: right;
 }
