@@ -56,7 +56,7 @@
         echo json_encode(array('msg' => 'Invalid session token')); 
         die();
     }
-    if(!($texid) || !($nodelabel)){
+    if(($texid === null) || !($nodelabel)){
         echo json_encode(array('msg' => 'Invalid node content'));
         die();
     }

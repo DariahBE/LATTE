@@ -36,6 +36,27 @@
     echo $navbar->getNav();
     include_once('admin_tasks.php');
   ?>
+    <div class='container'>
+      <h3 class='font-bold text-lg'>User alignment</h3> 
+      <?php
+        $user = new User($client);
+        $userAlignment = $user->checkAlignment(); 
+        if (boolval(count($userAlignment))){
+          $classes = 'bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative';
+          $boxText = 'Check Failed!';
+          $alignmentText = "One or more users did not pass the required alignment check. To fix this issue, please <a class='btn bg-red-200 rounded m-1 p-1' href='/admin/usermanagement/user_align.php'>align your users.</a>";
+        }else{
+          $classes = 'bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded relative mb-4';
+          $boxText = 'Passed!';
+          $alignmentText = 'All users passed the alignment check, no further action required. ';
+        }
+      ?>
+        <div class="lm-2 lp-2 <?php echo $classes; ?>" role="alert">
+          <strong class="font-bold"><?php echo $boxText; ?></strong>
+          <span class="block sm:inline"><?php echo $alignmentText; ?></span>
+        </div>
+
+    </div>
 
 
   </body>

@@ -164,6 +164,13 @@ public function checkForSession($redir="/user/mypage.php"){
 
   //Converted To SQLITE == TRUE
   // tested = OK
+
+  public function createUserInNeo($uuid, $name, $sql_id){
+    $query = 'CREATE (n:priv_user {userid: $uuid, name: $username, sqlite_id: $sqlite_id})';
+    $this->client->run($query, ['uuid'=>$uuid, 'username'=>$name, 'sqlite_id'=>$sql_id]);
+    return 1; 
+  }
+
   public function createUser($mail, $name, $role){
     //check if user with mail already exists:
     //$checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email RETURN count(n) as count';
@@ -189,8 +196,9 @@ public function checkForSession($redir="/user/mypage.php"){
         //var_dump($result); 
         $sql_id = (int)$this->sqlite->lastInsertId(); 
         //duplicate node into NEO4J-database. Only store the essential data in there!!
-        $query = 'CREATE (n:priv_user {userid: $uuid, name: $username, sqlite_id: $sqlite_id})';
-        $this->client->run($query, ['uuid'=>$uuid, 'username'=>$name, 'sqlite_id'=>$sql_id]);
+        $this->createUserInNeo($uuid, $name ,$sql_id); 
+        //$query = 'CREATE (n:priv_user {userid: $uuid, name: $username, sqlite_id: $sqlite_id})';
+        //$this->client->run($query, ['uuid'=>$uuid, 'username'=>$name, 'sqlite_id'=>$sql_id]);
         return array('ok', 'user created');
       } catch (\Throwable $th) {
         return (array('error', 'User could not be added.')); 
@@ -242,7 +250,7 @@ public function checkForSession($redir="/user/mypage.php"){
       $stmt = $this->sqlite->prepare($checkQuery);
       $stmt->execute($checkData);
       $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-      var_dump($result); 
+      //var_dump($result); 
       //$result = $this->client->run('MATCH (n:priv_user) WHERE n.mail= $mail RETURN n',['mail'=>$mail]);
     }
     if(boolval(count($result))){
@@ -278,6 +286,55 @@ public function checkForSession($redir="/user/mypage.php"){
     }  
     return $highestExistingId +=1; 
   }
+
+  public function checkAlignment(){
+    /*  Checks if the SQLITE database required for the user management is in sync
+    * with the nodes present in NEO4J. If there are users in the SQLITE system
+    * which are missing in the NEO4J database, the method will flag it as a 
+    * misaligned user (error). 
+    */
+
+        // Query SQL database to select all users
+        $sqlQuery = "SELECT * FROM userdata";
+        $stmt = $this->sqlite->prepare($sqlQuery);
+        $stmt->execute();
+        $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    
+        // Initialize array to store users with matching 'priv_user' in Neo4j
+        $usersWithoutNeo4j = [];
+    
+        // Iterate through each user
+        foreach ($users as $user) {
+            $userId = (int)$user['id'];
+    
+            // Check if there is a 'priv_user' node with the same 'user_id' in Neo4j
+            $neo4jQuery = "MATCH (n:priv_user {sqlite_id: $userId}) RETURN n";
+            $neo4jResult = $this->client->run($neo4jQuery, ['userId' => $userId]);
+    
+            // If there is a matching node, add the user to the result array
+            if (!($neo4jResult->count())) {
+                $usersWithoutNeo4j[] = $user;
+            }
+        }
+        return $usersWithoutNeo4j;
+  }
+
+  public function fixAlignment(){
+    /**
+     * When called will create user nodes in the NEO4J database to match the SQLITE database.
+     * This is an extra feature in case the standard creating procedure throws an error and the user
+     * is not created automatically.  
+     */
+    $problemUsers = $this->checkAlignment(); 
+    foreach($problemUsers as $problem){
+      $uuid = $problem['uuid']; 
+      $name = $problem['username']; 
+      $sql_id = (int)$problem['id']; 
+      $this->createUserInNeo($uuid, $name, $sql_id);
+
+    }
+  }
+
 
 }
 

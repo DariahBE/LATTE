@@ -124,12 +124,12 @@ $propertyContainingText = 'text';   //Which property holds the text to show on t
  * edge is directed (node1)->(node2) and goes from your first argument to your second argument
  * If False, the edge is not-directed and goes back and forth. (node1)--(node2)
  */
-$edgesDatamodel = array(
-  'contains' => [array('Text'), array('Annotation'), True],
-  'references' => [array('Annotation'), array('Person', 'Dog', 'Place'), True],
-  'same_as' => [array('Variant'), array('Person', 'Dog', 'Place'), True], 
-  'see_also' => [array('Person', 'Dog', 'Place'), array('See_Also'), True]
-);
+// $edgesDatamodel = array(
+//   'contains' => [array('Text'), array('Annotation'), True],
+//   'references' => [array('Annotation'), array('Person', 'Dog', 'Place'), True],
+//   'same_as' => [array('Variant'), array('Person', 'Dog', 'Place'), True], 
+//   'see_also' => [array('Person', 'Dog', 'Place'), array('See_Also'), True]
+// );
 
 
 
@@ -230,7 +230,7 @@ define("URI", $URI);
 define("WEBURL", $baseURI);
 define("PRIMARIES", $primaryKeys);
 define("PRIVATEPROPERTIES", $privateProperties);
-define("EDGEMODEL", $edgesDatamodel);
+// define("EDGEMODEL", $edgesDatamodel);
 define("ANNOSTART", $annotationStart);
 define("ANNOSTOP", $annotationEnd);
 define("TEXNODE", $nodeAsText);

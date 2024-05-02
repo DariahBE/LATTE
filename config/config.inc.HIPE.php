@@ -1,15 +1,15 @@
 <?php
 /*GIVE THE PROJECT A NAME: */
-$projectName = 'MOVIE data';
+$projectName = 'HIPE data';
 
 /*Connect to the NEO4Jdatabase:*/
 //$defaultdriver = 'neo4j';   //neo4j or bolt  // disabled!
 $hostname = 'localhost';    //where's the DB hosted
-$hostport = 7688;           //Port used by the DB
+$hostport = 7687;           //Port used by the DB
 $userName = 'neo4j';
 $userPaswrd = 'password';
-$databaseName = 'dataset2.db'; //database hosted on the graph DB instance.
-$URI = 'neo4j://localhost:768';
+$databaseName = 'hipe.db'; //database hosted on the graph DB instance.
+$URI = 'neo4j://localhost:7687';
 
 /**
  *     CONFIGURATION OF THE EMAIL CONNECTION
@@ -40,16 +40,23 @@ $selfSignedCertificates = true;           //set to true for servers where a self
 */
 
 $nodesDatamodel = array(
-  'Actor' => [
-    "name" => ["Name", "string", false, true, true],
-    "gender" =>["Gender", "string", false, false, true], 
-    "wiki_id" => ["Wikidata Label", 'wikidata', false, false, false],
-    "nationality" => ["Nationality", 'nationality', false, false, true],
+  'Person' => [
+    "label" => ["Name", "string", false, true, true],
+    "sex" =>["Gender", "string", false, false, true], 
+    "wikidata" => ["Wikidata Label", 'wikidata', false, false, false]
   ],
-  'Movie' => [
-    "imdb_id" => ["IMDB ID", "int", true, true, true],
-    "language" => ["Language", "string", false, false, true],
-    "director" => ["Director", "string", false, false, true]
+  'Text' => [
+    "texid" => ["Text ID", "int", true, true, true],
+    "text" => ["Text", "string", false, false, true],
+    "language" => ["Document language", "string", false, false, true],
+    "publication" => ["Publisher", "string", false, false, true],
+    "place" => ["Publishing Place", "string", false, false, true]
+  ],
+  'Place' => [
+    "geoid" => ["Trismegistos Place ID", "int", false, false, true],
+    "label" => ["Label", "string", false, true, true],
+    "region" => ["Regionname", "string", false, false, true], 
+    "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
   ],
   'Variant' => [                                                //'Variant' label is a required nodelabel in the current model! IS not allowed to change. 
     "variant" => ["Label", "string", false, true, true],        //'variant' proprety is a required property in the current model! IS not allowed to change.
@@ -59,40 +66,54 @@ $nodesDatamodel = array(
     "partner" => ["Projectname", "string", false, false, true],
     "partner_uri" => ["Link", "uri", false, false, true]
   ],
-  'Reference' => [
-    "selstart" => ["Annotation Start", "int", false, false, false],
-    "selstop" => ["Annotation End", "int", false, false, false],
+  'Annotation' => [
+    "starts" => ["Annotation Start", "int", false, false, false],
+    "stops" => ["Annotation End", "int", false, false, false],
     "private" => ["Private Annotation", "bool", false, false, false],
     "note" => ["Note", "longtext", false, false, true],
     "extra" => ["Extra", "string", false, false, true], 
     "url" => ["Link", 'uri', false, false, false]
   ],
-  'Full' =>[      //testing all datatypes:
-    "nr" => ['ID', 'int', true, false, true], 
-    "minrating" => ['Lowest score', 'float', false, false, true], 
-    "maxrating" => ['Highest score', 'float', false, false, true], 
+  'Organization' =>[
+    "label" => ["Label", "string", false, true, true],
+    "uid" => ["Label", "string", false, false, true],
+    "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
+  ],
+  'Dog' => [
+    "breed" => ["Breed", "string", false, false, true],
+    "age" => ["Age", "int", false, false, false],
+    "label" => ["Name", "string", false, true, true],
+    "wikidata" => ["Wikidata Label", 'wikidata', false, false, false],
+    "smart" => ["Did tricks", 'bool', false, false, false],
+  ], 
+  'Test' =>[      //testing all datatypes:
+    "id" => ['ID', 'int', true, false, true], 
+    "minscore" => ['Lowest score', 'float', false, false, true], 
+    "highscore" => ['Highest score', 'float', false, false, true], 
     "validated" => ['Validated', 'bool', false, false, true], 
-    "wiki_id" => ['Wikdata ID', 'wikidata', true, false, true], 
+    "wikidata" => ['Wikdata ID', 'wikidata', true, false, true], 
     "name" => ['Name', 'string', true, false, true], 
     "link" => ['Link', 'uri', false, false, true]
+  ] /*
+  'Organization' => [
+    "label" => ["Label", "string", false, false, true]
   ], 
-  'Article' => [
-    "article_id" => ['ID', 'int', true, true, true], 
-    "title" => ['Title', 'string', true, false, false], 
-    "article" => ['Article', 'longtext', false, false, false], 
-    "source" => ['Source', 'string', false, false, false]
-  ] 
+  'Disease' => [
+    "name" => ["Name", 'string', true, false, true], 
+    "erradicated" => ["Erradicated", 'bool', false, false, true], 
+    "wikidata" => ["Wikidata ID", 'wikidata', false, false, false]
+  ]*/
 );
 
 //what is the node used for Annotations: Should match a key used in your Nodesmodel:
-$nodeAsAnnotation = 'Reference'; 
+$nodeAsAnnotation = 'Annotation'; 
 //what is the property that indicates the startposition of an Annotation:
-$annotationStart = 'selstart';
+$annotationStart = 'starts';
 //what is the property that indicates the endposition of an Annotation:
-$annotationEnd = 'selstop';
+$annotationEnd = 'stops';
 //What is the node label used for Text objects. Should match a Key used in your Nodesmodel.
-$nodeAsText = 'Article';
-$propertyContainingText = 'article';   //Which property holds the text to show on the screen and to annotate into?
+$nodeAsText = 'Text';
+$propertyContainingText = 'text';   //Which property holds the text to show on the screen and to annotate into?
 
 
 
@@ -123,11 +144,14 @@ $privateProperties = array('uid');
 // config object above; Asign the color value to them you want to use in the DOM. The keys used in this 
 //dictionary should match the names of entitytypes which are part of the researchproject!
 $matchOnNodes = array(
-  'Actor' => 'rgba(39, 123, 245, 0.6)',
-  'Movie' => 'rgba(245, 178, 39, 0.6)',
-  'Article' => 'rgba(28, 200, 28, 0.6)',
+  'Person' => 'rgba(39, 123, 245, 0.6)',
+  'Place' => 'rgba(245, 178, 39, 0.6)',
+  //'Event' => 'rgba(39, 245, 123, 0.6)',
+  'Text' => 'rgba(28, 200, 28, 0.6)',
   'Annotation' => 'rgba(200, 28, 28, 0.6)', 
-  'Full' => 'rgba(200,200,20,0.6)'
+  'Organization' => 'rgba(145,100,52,0.6)', 
+  'Dog' => 'rgba(200,20,200,0.6)',
+  'Test' => 'rgba(200,200,20,0.6)'
 );
 
 //automatically fill out below config based on nodesDatamodel:
@@ -165,13 +189,14 @@ $edges_translate = array(
   'see_also' => 'Knowledgebase relations',
 );
 $nodes_translate = array(
-  'Actor' => 'Actor',
+  'Person' => 'People',
   'See_Also' => 'External Links',
   'Variant' => 'Spelling variants',
-  'Movie' => 'Movie',
-  'Article' => 'Articles',
-  'Reference' => 'Annotations',
-  // 'priv_user' => 'Users'
+  'Place' => 'Places',
+  'Text' => 'Texts',
+  'Annotation' => 'Annotations',
+  'Dog' => 'Dogs',
+  'priv_user' => 'Users'
 );
 
 ########## HOW TO DISPLAY PICKUP BY NER-TOOL: ############
@@ -209,7 +234,7 @@ define("URI", $URI);
 define("WEBURL", $baseURI);
 define("PRIMARIES", $primaryKeys);
 define("PRIVATEPROPERTIES", $privateProperties);
-//define("EDGEMODEL", $edgesDatamodel);
+// define("EDGEMODEL", $edgesDatamodel);
 define("ANNOSTART", $annotationStart);
 define("ANNOSTOP", $annotationEnd);
 define("TEXNODE", $nodeAsText);
