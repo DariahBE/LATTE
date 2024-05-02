@@ -9,7 +9,7 @@ $hostport = 7688;           //Port used by the DB
 $userName = 'neo4j';
 $userPaswrd = 'password';
 $databaseName = 'dataset2.db'; //database hosted on the graph DB instance.
-$URI = 'neo4j://localhost:768';
+$URI = 'neo4j://localhost:'.$hostport;
 
 /**
  *     CONFIGURATION OF THE EMAIL CONNECTION
@@ -81,7 +81,11 @@ $nodesDatamodel = array(
     "title" => ['Title', 'string', true, false, false], 
     "article" => ['Article', 'longtext', false, false, false], 
     "source" => ['Source', 'string', false, false, false]
-  ] 
+  ], 
+  'Character' => [
+    "name" => ['Full Name', 'string', true, true, true], 
+    "dies" => ['Dies', 'bool', false, false, true]
+  ]
 );
 
 //what is the node used for Annotations: Should match a key used in your Nodesmodel:
@@ -126,8 +130,9 @@ $matchOnNodes = array(
   'Actor' => 'rgba(39, 123, 245, 0.6)',
   'Movie' => 'rgba(245, 178, 39, 0.6)',
   'Article' => 'rgba(28, 200, 28, 0.6)',
-  'Annotation' => 'rgba(200, 28, 28, 0.6)', 
-  'Full' => 'rgba(200,200,20,0.6)'
+  'Reference' => 'rgba(200, 28, 28, 0.6)', 
+  'Full' => 'rgba(200,200,20,0.6)', 
+  'Character' => 'rgba(250, 0, 250, 0.6)'
 );
 
 //automatically fill out below config based on nodesDatamodel:

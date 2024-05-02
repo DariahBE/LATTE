@@ -31,8 +31,18 @@ if($user_uuid === false){
 
 
 
+//BUG //TODO: why is this delete statement here?
 $graph = new CUDNode($client); 
-$graph->deleteText($id); 
+$graph->startTransaction(); 
+try {
+    $graph->deleteText($id); 
+    //echo json_encode($data); 
+} catch(\Throwable $th) {
+    $graph->rollbackTransaction(); 
+    die(); 
+}
+$graph->commitTransaction(); 
+
 
 $tokenManager = new CsrfTokenManager();
 $token = $tokenManager->generateToken(); 

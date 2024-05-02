@@ -788,7 +788,7 @@ function executePremadeParameterizedQuery($query, $parameters){
     CASE 
         WHEN n1.private = false THEN n1
         WHEN n1.private is null THEN n1
-        WHEN n1.private = true and p.userid = $user THEN n1
+        WHEN n1.private = true and p.user_sqlid = $user THEN n1
     END AS n; ';
     $queryData = array(
       'neoid' => (int)$nodeId, 
@@ -852,7 +852,7 @@ function executePremadeParameterizedQuery($query, $parameters){
     CASE 
         WHEN n1.private = false THEN n1
         WHEN n1.private is null THEN n1
-        WHEN n1.private = true and p.userid = $user THEN n1
+        WHEN n1.private = true and p.user_sqlid = $user THEN n1
     END AS n;'; 
     
     $uid = isset($_SESSION['userid']) ? $_SESSION['userid'] : -1; 
@@ -898,7 +898,7 @@ function executePremadeParameterizedQuery($query, $parameters){
     WHERE id(n) = $neoid
     AND NOT n:priv_user
     OPTIONAL MATCH (n)-[r:priv_created]-(p)
-    RETURN n, p.userid AS owner'; 
+    RETURN n, p.user_sqlid AS owner'; 
     $data = $this->client->run($query, array('neoid'=>$id)); 
 
     //call userID here and pass as an argument, better than calling it x times

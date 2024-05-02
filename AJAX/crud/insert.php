@@ -7,6 +7,14 @@ include_once(ROOT_DIR.'\includes\nodes_extend_cud.inc.php');
 include_once(ROOT_DIR.'\includes\user.inc.php');
 include_once(ROOT_DIR.'\includes\csrf.inc.php');
 
+if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
+    //creating new data is only allowed if a user is logged in: 
+    //die($user_uuid);
+    $redir = '?redir=/create.php';
+    header('Location: /user/login.php'.$redir);
+    die();
+}
+
 $submitdata = $_POST; 
 $token = $submitdata['token']; 
 $form = $submitdata['formdata']; 
@@ -39,6 +47,10 @@ foreach ($submitdata['formdata'] as $key => $value) {
 //foreach loop has passed ==> new to be created node is definitely valid: SO create it. 
 $node->startTransaction();
 $graphResult = $node->createNewNode($entity_type, $submitdata['formdata'], true);       //returns ID() of created node
+//connect the user who created the node to $graphResult: 
+//var_dump($_SESSION['neoid'], $graphResult); 
+$connection = $node->connectCreatorToNode($_SESSION['neoid'], $graphResult); 
+var_dump($connection); 
 $node->commitTransaction(); 
 
 if (boolval($graphResult)){

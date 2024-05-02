@@ -234,7 +234,7 @@ class CUDNode extends Node {
           RETURN n, s
         '; 
         $querydata = array('nid'=> (int)$etNeoId, 'name' => $name, 'partneruri'=> $address); 
-        $create = $this->client->run($query, $querydata); 
+        $create = $this->tsx->run($query, $querydata); 
         $kbNode = $create[0]['s']; 
         $kbneoid = $kbNode['id']; 
         $kblabel = $kbNode['properties']['partner']; 
@@ -441,6 +441,22 @@ class CUDNode extends Node {
     }
 
 
+
+    public function connectCreatorToNode($userid, $neoidOfCreatedNode){
+      /**
+       * Takes the internal NEO ID of a user who created a node. And connects it to a created node referenced
+       * by it's internal NEO ID. The edge between the two nodes is a directed edge 'priv_created'
+      */
+      $query = 'MATCH (u:priv_user), (n)
+      WHERE id(u) = $userid AND id(n) = $nodeid
+      CREATE (u)-[:priv_created]->(n)
+      RETURN n, u'; 
+      $result = $this->tsx->run($query, array('userid'=>(int)$userid, 'nodeid' => (int)$neoidOfCreatedNode));
+      return $result; 
+    }
+
+
+
     /*        DELETE OPERATIONS!!!! */
 
     public function deleteText($id){
@@ -454,7 +470,7 @@ class CUDNode extends Node {
       $repl['permission'] = $allowedToDelete; 
       if($allowedToDelete){
         $annosToKillQuery = 'MATCH (n)-[r:contains]-(a) WHERE id(n) = $neoid RETURN id(a) AS killthis;'; 
-        $annosToKill = $this->client->run($annosToKillQuery, array('neoid'=>$id));
+        $annosToKill = $this->tsx->run($annosToKillQuery, array('neoid'=>$id));
         $annosToKill = $annosToKill->getResults();
         foreach($annosToKill as $anno){
           $relatedAnnoIds[] = $anno->get('killthis'); 
@@ -480,7 +496,7 @@ class CUDNode extends Node {
         WHERE id(f) IN connected_floatees
         RETURN id(f) as float_id, collect(id(a2)) as connected_entities'; 
 
-      $result = $this->client->run($query, array('entity_ids'=> $id_array)); 
+      $result = $this->tsx->run($query, array('entity_ids'=> $id_array)); 
       foreach ($result as $row) {
         $floater = $row['float_id'];
         $float_connections = $row['connected_entities']; 
@@ -504,7 +520,7 @@ class CUDNode extends Node {
         $query = 'WITH $deleteThese AS ids
         MATCH (n) WHERE id(n) IN ids
         DETACH DELETE n';
-        $result = $this->client->run($query, array('deleteThese'=> $id_array)); 
+        $result = $this->tsx->run($query, array('deleteThese'=> $id_array)); 
         return $result->getSummary(); 
       }else{
         return null; 
@@ -528,7 +544,7 @@ class CUDNode extends Node {
         WHERE id(e) IN connected_entities
         RETURN id(e) as entity_id, collect(id(a2)) as related_annotations';
         
-        $result = $this->client->run($query, ['annotation_ids' => $annotation_array]);
+        $result = $this->tsx->run($query, ['annotation_ids' => $annotation_array]);
         // Process the query result and add entities to the delete array
         foreach ($result as $row) {
           $entity = $row['entity_id'];
@@ -558,7 +574,7 @@ class CUDNode extends Node {
       $query = 'MATCH (n)-[r:references]-(a)-[q:contains]-(m:'.TEXNODE.')
       WHERE id(n) = $etid RETURN collect(DISTINCT id(m)) AS texts, collect(DISTINCT id(q)) AS annotations
       ';
-      $result = $this->client->run($query, array('etid'=> (int)$entity_id));
+      $result = $this->tsx->run($query, array('etid'=> (int)$entity_id));
       foreach($result as $row){
         $texids = $row['texts']->toArray();
         $annoids = $row['annotations']->toArray();

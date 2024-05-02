@@ -44,11 +44,11 @@ class Annotation{
       $this->tsx->commit();
     }
 
-    //describe the model used for Automatic_annotation nodes. This should match the structure as per NODESMODEL constant. 
+    //describe the model used for Automatic_annotation nodes. This is a hard
     public $auto_model = [
       'Automatic_annotation' => [
-        "starts" => ["Annotation Start", "int", false, false, false],
-        "stops" => ["Annotation End", "int", false, false, false],
+        ANNOSTART => ["Annotation Start", "int", false, false, false],
+        ANNOSTOP => ["Annotation End", "int", false, false, false],
       ]
     ]; 
 
@@ -63,7 +63,7 @@ class Annotation{
 
   public function convertAutomaticAnnotationToConfirmedAnnotation($neoId, $data){
     /**
-     * CONVERTS THE AUTOMATICALLY GENERATED ANNOTATION FROM Annotation_auto to Annotation. 
+     * CONVERTS THE AUTOMATICALLY GENERATED ANNOTATION FROM Annotation_auto to ANNONODE. 
      * The OLD UID stays!! This is best to accomodate references/URI's that were generated
      * in old XML/JSON/API exports/links.
      * The label changes from Annotation_auto to Annotation
@@ -71,7 +71,17 @@ class Annotation{
      *    - new fields become available
      * The connection to a new/existing entity gets made
      */
-     $subset = array(); 
+
+     //TODO BUG: if annotation_auto uses different properties to indicate the start and end of 
+     // an annotations, this property has to be rewritten!
+    /* $convertStartStop = ''; 
+    if (ANNOSTART !== 'starts'){
+      $convertStartStop .= ' n.'.ANNOSTART.' = n.starts ' ; //TODO
+    }
+    if (ANNOSTOP !== 'stops'){
+      $convertStartStop .= ' n.'.ANNOSTOP.' = n.stops ' ; //TODO
+    }*/
+    $subset = array(); 
     $data_iter = array('neo'=>(int)$neoId); 
     $iter = 0; 
     foreach ($data as $key => $value) {
@@ -86,7 +96,7 @@ class Annotation{
     }
     $query = 'MATCH (n:Annotation_auto) WHERE id(n) = $neo
     REMOVE n:Annotation_auto
-    SET n:Annotation'.$annotation_properties.';';  
+    SET n:'.ANNONODE.''.$annotation_properties.';';  
     $result = $this->tsx->run($query, $data_iter); 
     return $neoId;
   }
@@ -106,8 +116,8 @@ class Annotation{
   }
 
   public function countPersonalAnnotations($userid){
-    $query = ('MATCH (a:'.ANNONODE.')<-[r:priv_created]-(u:priv_user) WHERE u.userid = $userid RETURN COUNT(a) as annotationcount');
-    $queryPrivate = ('MATCH (a:'.ANNONODE.')<-[r:priv_created]-(u:priv_user) WHERE u.userid = $userid AND a.private=True RETURN COUNT(a) as annotationcount');
+    $query = ('MATCH (a:'.ANNONODE.')<-[r:priv_created]-(u:priv_user) WHERE u.user_sqlid = $userid RETURN COUNT(a) as annotationcount');
+    $queryPrivate = ('MATCH (a:'.ANNONODE.')<-[r:priv_created]-(u:priv_user) WHERE u.user_sqlid = $userid AND a.private=True RETURN COUNT(a) as annotationcount');
     $data = ['userid'=>$userid]; 
     $result = $this->tsx->run($query, $data);
     $resultPrivate = $this->tsx->run($queryPrivate, $data); 
@@ -287,8 +297,6 @@ class Annotation{
       marks a part of the text as an annotation, without linking it to an entity. 
       for lower overhead you should allow to process multiple annotations at once. 
       
-      TODO: this has to be documented!!! 
-      Beware: Annotation_auto is a hardcoded labelname with hardcoded properties (starts, stops and uid.)
       */
       $uuid_list = array(); 
       foreach($connections as $connection){
@@ -305,10 +313,10 @@ class Annotation{
         $query = 'MATCH (n:'.TEXNODE.') 
         WHERE id(n) = $texid
         OPTIONAL MATCH (n)-[:contains]-(a:Annotation_auto) 
-        WHERE a.starts = $start AND a.stops = $stop
+        WHERE a.'.ANNOSTART.' = $start AND a.'.ANNOSTOP.' = $stop
         WITH n, COUNT(a) AS annotationCount
         WHERE annotationCount = 0
-        MERGE (n)-[:contains]->(newA:Annotation_auto {starts: $start, stops: $stop, uid: apoc.create.uuid()})
+        MERGE (n)-[:contains]->(newA:Annotation_auto {'.ANNOSTART.': $start, '.ANNOSTOP.': $stop, uid: apoc.create.uuid()})
         RETURN newA.uid AS uuid'; 
         $rowResult = $this->tsx->run($query, [
           'start' => $start,
@@ -335,8 +343,8 @@ class Annotation{
       $node = $value["a"]; 
       $annotation = array();
       $annotation['annotation'] = $node->getProperty('uid'); 
-      $annotation['start'] = $node->getProperty('starts');
-      $annotation['stop'] = $node->getProperty('stops');
+      $annotation['start'] = $node->getProperty(ANNOSTART);
+      $annotation['stop'] = $node->getProperty(ANNOSTOP);
       $data[]=$annotation; 
     }
     return $data;

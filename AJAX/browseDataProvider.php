@@ -46,7 +46,7 @@
         $valueForLabel = 'Unlinked Entity'; 
         $props = $nodeCypherMap['properties'];
         //var_dump($props); 
-        $propSettings = array('uid'=>['uid'], 'stops'=>['stops'], 'starts'=>['starts']); 
+        $propSettings = array('uid'=>['uid'], ANNOSTOP=>['stops'], ANNOSTART=>['starts']); 
       }else{
         $found_key = array_search(true, array_column(NODEMODEL[$labels], 3), true);
         //array_search can return 0, but that's the index; don't use falsy statements!!

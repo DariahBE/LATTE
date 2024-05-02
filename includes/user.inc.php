@@ -2,7 +2,16 @@
 //everywhere the user class is needed; will require sessionscope: so load it from here. 
 session_start();
 /**
- *
+ *  USER DATA IS SPLIT INTO TWO DATABASES:
+ *    sensitive information is kept in the sqlite database and should never be distributed
+ *    Non-sensitive information is kept in the NEO4J database. No passwords/mails are stored here. 
+ * 
+ * The SQLITE database is the canonical database and contains:
+ *           descr      type      column sql        property neo4J
+ *    - a Primary Key   integer   (SQL: id      =   NEO4J: user_sqlid )
+ *    - a UUID          STR       (SQL: uuid    =   NEO4J: user_uuid )
+ *    - username        STR       (SQL: username=   NEO4J: username)
+ * 
  */
 class User{
   protected $sqlite; 
@@ -85,10 +94,10 @@ public function checkForSession($redir="/user/mypage.php"){
       // if 0 records returned = NO user with this email:
         return array(0, false);
     }else{
-      $user_nodeId = $result[0]['id'];
+      $user_nodeId = $result[0]['id'];              //PK used in SQLITE
       $hash = $result[0]['password'];
       $attempts = $result[0]['logon_attempts'];
-      $userid = $result[0]['uuid'];
+      $user_uuid = $result[0]['uuid'];                 //UUIDV4 generated for SQLITE
       $name = $result[0]['username'];
       $role = $result[0]['role'];
       //if 1 record returned: User exists;
@@ -98,7 +107,14 @@ public function checkForSession($redir="/user/mypage.php"){
         $match = password_verify($password, $hash);
         if($match){
           //matching hash == reset max login to 0 & set session
-          $result_from_neo = $this->client->run('MATCH (u:priv_user) WHERE u.userid = $userid return id(u) as user_neo_id; ', ['userid'=> $user_nodeId]);
+          $result_from_neo = $this->client->run('MATCH (u:priv_user) WHERE u.user_sqlid = $sqlreference return id(u) as user_neo_id; ', ['sqlreference'=> $user_nodeId]);
+          if($result_from_neo->count() === 0){
+            //user exists in SQLITE, not in NEO4J!
+            //SO align the user to the NEO4J database if needed: 
+            $this->fixAlignment($result);
+            //requery only if you did an update using fixAlignment to get the updated result: 
+            $result_from_neo = $this->client->run('MATCH (u:priv_user) WHERE u.user_sqlid = $sqlreference return id(u) as user_neo_id; ', ['sqlreference'=> $user_nodeId]);
+          }
           $user_neo_id = $result_from_neo[0]['user_neo_id']; 
           $update_query = "UPDATE userdata SET logon_attempts = 0 WHERE id = ? ";
           $update_data = array($user_nodeId); 
@@ -108,9 +124,9 @@ public function checkForSession($redir="/user/mypage.php"){
           $this->myRole = $role;
           $_SESSION['username'] = $name;
           $_SESSION['userrole'] = $role;
-          $_SESSION['userid'] = $user_nodeId;
-          $_SESSION['user_uuid'] = $userid;
-          $_SESSION['neoid'] = $user_neo_id;
+          $_SESSION['userid'] = $user_nodeId;   //priv_user. ==> SQL ID
+          $_SESSION['user_uuid'] = $user_uuid;  //V4 uuuid
+          $_SESSION['neoid'] = $user_neo_id;    //NEO ID of the user node!
           return array(1, $user_nodeId);
         }else{
           //NO matching hash: increment max_login
@@ -166,7 +182,12 @@ public function checkForSession($redir="/user/mypage.php"){
   // tested = OK
 
   public function createUserInNeo($uuid, $name, $sql_id){
-    $query = 'CREATE (n:priv_user {userid: $uuid, name: $username, sqlite_id: $sqlite_id})';
+    /*
+    *    -  (SQL: id      =   NEO4J: user_sqlid )
+    *    -  (SQL: uuid    =   NEO4J: user_uuid )
+   */
+
+    $query = 'CREATE (n:priv_user {user_uuid: $uuid, name: $username, user_sqlid: $sqlite_id})';
     $this->client->run($query, ['uuid'=>$uuid, 'username'=>$name, 'sqlite_id'=>$sql_id]);
     return 1; 
   }
@@ -263,29 +284,29 @@ public function checkForSession($redir="/user/mypage.php"){
   }
 
 
-  //Converted To SQLITE == FALSE
-  public function autoIncrementControllableUserId(){
-    // not required for SQLITE (PK == AI anyway!)
-    /**                     OK
-     *  looks for all priv_user nodes that already have an exisint
-     *  userid property, it finds the highest and returns that +1
-     *  if no users in the database exist: the query return NULL.
-     *  In this case the method will return 1 as next to be used 
-     *  userid
-     */
-    $query = "MATCH (n:priv_user)
-          WHERE exists(n.userid) 
-          WITH n ORDER BY n.userid DESC LIMIT 1
-          RETURN n.userid AS userid";
-    $result = $this->client->run($query);
+  // //Converted To SQLITE == FALSE
+  // public function autoIncrementControllableUserId(){
+  //   // not required for SQLITE (PK == AI anyway!)
+  //   /**                     OK
+  //    *  looks for all priv_user nodes that already have an exisint
+  //    *  userid property, it finds the highest and returns that +1
+  //    *  if no users in the database exist: the query return NULL.
+  //    *  In this case the method will return 1 as next to be used 
+  //    *  userid
+  //    */
+  //   $query = "MATCH (n:priv_user)
+  //         WHERE exists(n.sqlid) 
+  //         WITH n ORDER BY n.sqlid DESC LIMIT 1
+  //         RETURN n.sqlid AS user_sqlid";
+  //   $result = $this->client->run($query);
 
-    if (boolval(count($result))){
-      $highestExistingId = $result[0]['userid']; 
-    }else{
-      $highestExistingId = 0; 
-    }  
-    return $highestExistingId +=1; 
-  }
+  //   if (boolval(count($result))){
+  //     $highestExistingId = $result[0]['user_sqlid']; 
+  //   }else{
+  //     $highestExistingId = 0; 
+  //   }  
+  //   return $highestExistingId +=1; 
+  // }
 
   public function checkAlignment(){
     /*  Checks if the SQLITE database required for the user management is in sync
@@ -308,7 +329,7 @@ public function checkForSession($redir="/user/mypage.php"){
             $userId = (int)$user['id'];
     
             // Check if there is a 'priv_user' node with the same 'user_id' in Neo4j
-            $neo4jQuery = "MATCH (n:priv_user {sqlite_id: $userId}) RETURN n";
+            $neo4jQuery = "MATCH (n:priv_user {user_sqlid: $userId}) RETURN n";
             $neo4jResult = $this->client->run($neo4jQuery, ['userId' => $userId]);
     
             // If there is a matching node, add the user to the result array
@@ -319,21 +340,27 @@ public function checkForSession($redir="/user/mypage.php"){
         return $usersWithoutNeo4j;
   }
 
-  public function fixAlignment(){
+  public function fixAlignment($problemUsers = False){
     /**
      * When called will create user nodes in the NEO4J database to match the SQLITE database.
      * This is an extra feature in case the standard creating procedure throws an error and the user
      * is not created automatically.  
+     * 
+     * $problemUsers can be passed down as an argument coming from the checklogin() method
+     * for users that passed the login stage in the SQLITE database but do not exist yet in the
+     * NEO4J database. (backup in case the admin does not align users when prompted to do so!)
      */
-    $problemUsers = $this->checkAlignment(); 
-    foreach($problemUsers as $problem){
-      $uuid = $problem['uuid']; 
-      $name = $problem['username']; 
-      $sql_id = (int)$problem['id']; 
-      $this->createUserInNeo($uuid, $name, $sql_id);
-
+    if(!($problemUsers)){
+      $problemUsers = $this->checkAlignment(); 
     }
-  }
+      foreach($problemUsers as $problem){
+        $uuid = $problem['uuid']; 
+        $name = $problem['username']; 
+        $sql_id = (int)$problem['id']; 
+        $this->createUserInNeo($uuid, $name, $sql_id);
+        
+      }
+    }
 
 
 }
