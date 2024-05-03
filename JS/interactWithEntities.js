@@ -250,9 +250,9 @@ function showdata(data) {
     findRelatedTexts(data['entity'][0]['neoID']);
   } else if (datamode === 'automated'){
     console.warn('extract start and stop from automated ets. '); 
-    console.log(data.annotation.properties.starts[1])
-    globalSelectionEnd = data.annotation.properties.stops[1];
-    globalSelectionStart = data.annotation.properties.starts[1];
+    console.log(data.annotation.properties[startcode][1])
+    globalSelectionEnd = data.annotation.properties[stopcode][1];
+    globalSelectionStart = data.annotation.properties[startcode][1];
     auto_annotation_internal_id = data['neo_id_of_auto_anno']; 
   }
   var annotationStructure = data['annotationFields'];

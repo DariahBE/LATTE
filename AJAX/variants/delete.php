@@ -24,11 +24,14 @@ $graph->startTransaction();
 //gets the neoID for both connected nodes.  //cast to integers!!
 $etNeoID = (int)$_GET['entityid'];
 $varuid = (int)$_GET['variantid'];
-$securityToken = $_GET['token']; 
+$token = ''; 
+if(isset($_GET['token'])){
+  $token = $_GET['token']; 
+}
 
 
 $tokenManager = new CsrfTokenManager(); 
-$validToken = $tokenManager->checkToken($securityToken); 
+$validToken = $tokenManager->checkToken($token); 
 if(!($validToken)){
     echo json_encode(array('msg' => 'Invalid session token')); 
     die();

@@ -76,6 +76,30 @@ if($requestedNodeLabel === TEXNODE){
       if ($model === false){
         echo "No editable node matches your request.";
       }else{
+      ?>
+      <div class='2xl:w-1/2 xl:w-2/3 items-center m-auto'>
+        <div class='main flex flex-row py-4 my-4'>
+          <form>
+            <!--
+              in here you need a form with pre-filled content,
+              DO NOT show the start-stop content
+              DO attach the validator again. 
+              Attach a token to the form
+              Send token with data to edit_action.php
+              reshow the result. 
+
+            -->
+
+          </form>
+        </div>
+
+      </div>
+
+
+
+
+
+      <?php
       echo "<h2>Update node properties</h2>";
         //var_dump($requestedNode);
         foreach($requestedNode as $key=>$value){

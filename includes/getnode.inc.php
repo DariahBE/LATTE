@@ -3,7 +3,7 @@
 include_once(ROOT_DIR."/includes/client.inc.php");
 /*
   this is a program wide default; if there's no key defined to be the primary key of a node;
-  the app is going to fall back to the uid-property present in all nodes. That key is autoamtically
+  the app is going to fall back to the uid-property present in all nodes. That key is automatically
   generated and of the UUIDV4-type.
 */
 
