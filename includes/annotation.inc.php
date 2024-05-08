@@ -192,9 +192,6 @@ class Annotation{
         # code...
         return [boolval($value), true];
         break;
-      case 'longtext': 
-        return [strval($value), boolval($value)];
-        break;
       case 'uri': 
         //TODO (regex test)
         return [strval($value), boolval($value)];

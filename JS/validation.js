@@ -72,9 +72,10 @@ class Validator{
         if(this.classList.contains('validateAs_string')){
           var correct = [true]; //not really required; strings are allowed to be empty anyway!
         }
+        /*    //longtext is dropped as a type!
         if(this.classList.contains('validateAs_longtext')){
           var correct = [true]; //not really required; strings are allowed to be empty anyway!
-        }
+        }*/
         if(this.classList.contains('validateAs_wikidata')){
           var correct = mainclass.regexValidator(this.value);
         }

@@ -31,7 +31,7 @@ $selfSignedCertificates = true;           //set to true for servers where a self
   Nodes are capitalized, properties aren't!
   Every label is followed by an array of properties: 
     - Human readable string: this string is used in the frontend.
-    - Type of variable: string, longtext, int, bool OR wikidata.
+    - Type of variable: string, float, int, bool, uri OR wikidata.
         - the wikidata datatype expects a Q-identifier and returns live data from an API call. 
     - Boolean: Unique Key: is the value unique for this type of nodes? 
     - Boolean: Visual Distinguishing: Is the value used in the dom to label the nodes. If the node does not have a visually distinguishable component, the nodelabel is used.
@@ -70,7 +70,7 @@ $nodesDatamodel = array(
     "starts" => ["Annotation Start", "int", false, false, false],
     "stops" => ["Annotation End", "int", false, false, false],
     "private" => ["Private Annotation", "bool", false, false, false],
-    "note" => ["Note", "longtext", false, false, true],
+    "note" => ["Note", "string", false, false, true],
     "extra" => ["Extra", "string", false, false, true], 
     "url" => ["Link", 'uri', false, false, false]
   ],

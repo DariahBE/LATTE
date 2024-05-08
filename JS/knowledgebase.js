@@ -4,6 +4,8 @@ let neoIdOfEt = null;
 
 class KnowledgeBase {
     constructor(et, state) {
+        //et = NEO4J int id of the entity a Knowledgebase node is connected to
+        //state = user id (integer) of the user who is created the new KB record. 
         this.userstate = state;
         //console.log("RECEIVED STATE IS", et, state); 
         this.addNewButton = document.getElementById('add_kb_relation'); 

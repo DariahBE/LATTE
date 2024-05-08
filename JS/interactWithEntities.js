@@ -363,7 +363,9 @@ function showdata(data) {
       'casesensitive': false
     };
     $sendTo = $baseURL + jQuery.param($parameters);
-    makeSuggestionBox();
+    //BUG critical todo on 13/5/24 : when making the suggestionBox from a recognized (LATTE entity, the code triggers a fatal error).
+    //there's no real need to keep the call to the suggestionbox here though!
+    //makeSuggestionBox();
     getInfoFromBackend($sendTo)
     .then((data) => {
         loadIntoSuggestionBox(data, globalSelectionStart, globalSelectionEnd);
@@ -400,31 +402,68 @@ function showdata(data) {
 }
 
 function handleError(e) {
-  // TODO: is not actually being called at the moment!
-  console.log(e); 
-  alert('handleError function needs to be rewritten for a more uniform layout. ');
-  return;
-  //frameWorkBase();
-  var target = document.getElementById('annotationContainerAjax');
-  target.classList.add('bg-red-100', 'rounded-lg', 'py-5', 'px-6', 'mb-3', 'text-base', 'text-red-700', 'inline-flex', 'items-center');
-  var errtitle = document.createElement('h4');
-  var errdiv = document.createElement('div');
-  errdiv.classList.add('flex', 'items-center', 'justify-center');
-  var errsvg = '<svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"> <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" /> </svg>';
-  errdiv.innerHTML = errsvg;
-  errtitle.classList.add('warning');
-  var errmessage = document.createElement('p');
-  errmessage.classList.add('warning');
-  var errmessagetext = document.createTextNode('An unspecified error occurred. The ID may not be valid or has been deleted from the database.');
-  errmessage.appendChild(errmessagetext);
-  target.appendChild(errtitle);
-  target.appendChild(errdiv);
-  target.appendChild(errmessage);
+  /**
+   * Creates a notification modal for the end user when something goes wrong, 
+   * the error itself gets logged in the console as an error. 
+   */
+  console.error('An unexpected error occurred.');
+  console.error(e);
+
+  // Create the modal element
+  const modal = document.createElement('div');
+  modal.classList.add('fixed', 'z-50', 'inset-0', 'overflow-y-auto', 'px-4', 'py-6', 'sm:px-0');
+
+  // Create the modal overlay element
+  const overlay = document.createElement('div');
+  overlay.classList.add('fixed', 'inset-0', 'bg-gray-500', 'opacity-75');
+
+  // Create the modal content element
+  const content = document.createElement('div');
+  content.classList.add('mx-auto', 'my-auto', 'relative', 'bg-white', 'rounded-lg', 'px-4', 'pt-5', 'pb-4', 'overflow-hidden', 'shadow-xl', 'transform', 'sm:my-8', 'sm:align-middle', 'sm:max-w-lg', 'sm:w-full');
+
+  // Create the modal header element
+  const header = document.createElement('div');
+  header.classList.add('mb-4');
+  const headerText = document.createElement('h3');
+  headerText.classList.add('text-lg', 'leading-6', 'font-medium', 'text-gray-900');
+  headerText.textContent = 'An error occurred';
+  header.appendChild(headerText);
+
+  // Create the modal body element
+  const body = document.createElement('div');
+  const bodyText = document.createElement('p');
+  bodyText.classList.add('text-sm', 'text-gray-500');
+  bodyText.textContent = 'An unspecified error occurred. The data was missing or could not be displayed.';
+  body.appendChild(bodyText);
+
+  // Create the modal footer element
+  const footer = document.createElement('div');
+  footer.classList.add('mt-5', 'sm:mt-6', 'sm:grid', 'sm:grid-cols-2', 'sm:gap-3', 'sm:grid-flow-col', 'sm:justify-between');
+
+  // Create the close button element
+  const closeButton = document.createElement('button');
+  closeButton.classList.add('inline-flex', 'justify-center', 'rounded-md', 'border', 'border-transparent', 'bg-red-600', 'px-4', 'py-2', 'text-base', 'font-medium', 'text-white', 'hover:bg-red-700', 'focus:outline-none', 'focus:ring-2', 'focus:ring-red-500', 'focus:ring-offset-2', 'focus:ring-offset-gray-50');
+  closeButton.textContent = 'Close';
+  closeButton.addEventListener('click', () => {
+    modal.remove();
+  });
+
+  // Append the elements to the modal
+  content.appendChild(header);
+  content.appendChild(body);
+  footer.appendChild(closeButton);
+  content.appendChild(footer);
+  modal.appendChild(overlay);
+  modal.appendChild(content);
+
+  // Append the modal to the body
+  document.body.appendChild(modal);
 }
 
 function loadAnnotationData(annotationID = false) {
 
   console.log(globalLoginAvailable); 
+  //related to the problem marked with 13/5/24. This can be tested when that problem is sorted out!
   //BUG: existing Annotation_auto ID gets retained and added after confirming a recognized ET
   if (!(annotationID)){
     //get annotationID in case of clickevent trigger: find the source of the event. 
@@ -440,6 +479,7 @@ function loadAnnotationData(annotationID = false) {
         handleError(''); 
       }else{
         globalAnnoInteractId = data['annotation']['neoid']; 
+        //console.log(data); 
         showdata(data);
         updateState('State', 'An annotated entity was selected, you can now see the data held in the database.'); 
 
@@ -471,80 +511,80 @@ function createDivider(string){
   return divider;
 }
 
-function showDBInfoFor(id, extra = '') {
-  // TODO dormant code (cleanup allows for deletion!)
-  /*
-  * Uses the internal NEOID identifier to fetch all information of a given entity.
-  * given info includes: variants, properties, stable id, label and the datamodel!
-  * THIS is a function specific to the disambiguation process coming from showhit()-calls. 
-  * Needs to be extende so that it shows the actual data in the DOM. 
-  */
-  let extended = '';
-  if (extra) {
-    extended = '&extended=1'
-  }
-  // shows all data there's stored about it.
-  getInfoFromBackend('/AJAX/getETById.php?id=' + id + extended)   //irrelevant at this point!
-    .then((data) => {
-      //process entity information: 
-      //  Use the order defined by the model to show properties: 
-      const model = data['extra']['model']; 
-      const info = data['props'];
-      // Iterate over properties
-      //let reduced = info.map(sublist => sublist[0]);    //OK: 
-      /*for (let mod of Object.values(model)){ 
-        let modName = mod[0]; 
-        if(reduced.indexOf(modName)>-1){
-          //let domElement = document.createElement('span');
-          console.log('PROP FOUND: ', modName, info[reduced.indexOf(modName)]);
-        }
-      }*/
+// function showDBInfoFor(id, extra = '') {
+//   // TO DO dormant code (cleanup allows for deletion!) (ok)
+//   /*
+//   * Uses the internal NEOID identifier to fetch all information of a given entity.
+//   * given info includes: variants, properties, stable id, label and the datamodel!
+//   * THIS is a function specific to the disambiguation process coming from showhit()-calls. 
+//   * Needs to be extende so that it shows the actual data in the DOM. 
+//   */
+//   let extended = '';
+//   if (extra) {
+//     extended = '&extended=1'
+//   }
+//   // shows all data there's stored about it.
+//   getInfoFromBackend('/AJAX/getETById.php?id=' + id + extended)   //irrelevant at this point!
+//     .then((data) => {
+//       //process entity information: 
+//       //  Use the order defined by the model to show properties: 
+//       const model = data['extra']['model']; 
+//       const info = data['props'];
+//       // Iterate over properties
+//       //let reduced = info.map(sublist => sublist[0]);    //OK: 
+//       /*for (let mod of Object.values(model)){ 
+//         let modName = mod[0]; 
+//         if(reduced.indexOf(modName)>-1){
+//           //let domElement = document.createElement('span');
+//           console.log('PROP FOUND: ', modName, info[reduced.indexOf(modName)]);
+//         }
+//       }*/
 
-      // for (let i = 0; i < model.length; i++) {
-      //   let modelBlock = model[i]; 
-      //   let domName = modelBlock[0]; 
-      //   let domType = modelBlock[1]; 
-      // }
-      // for (let i = 0; i < info.length; i++) {
-      //   let infoBlock = info[i];
-      //   let blockName = infoBlock[0];
-      //   let blockData = infoBlock[1];
-      //   console.log(infoBlock);
-      // }
-      //process: variants
-      const variants = data['variantSpellings'];
-      const uri = data['stable'];
-      neoVarsToDom(variants, 1); 
-      //make varbox visible!
-      document.getElementById('embeddedSpellingVariants').classList.remove('hidden'); 
-      //showing entity in the DOM: 
-      //1:  Make empty
-      let proptarget = document.getElementById('displayHitEt'); 
-      proptarget.innerHTML = ''; 
-      //show the type of entity that has a potential match!
-      let typeOfEt = data.extra.label;
-      proptarget.appendChild(createDivider('Entity: '+typeOfEt)); 
-      //2:  use writeField function!
-      Object.values(data['props']).forEach((prop) => {
-        console.log('property: ', prop); 
-        let propKey = prop[0];
-        let propVal = prop[1];
-        console.log(propKey, propVal); 
-        let subelem = writeField(propKey, propVal, true, data.extra.model);
-        console.log(subelem); 
-        proptarget.appendChild(subelem); 
-      });
-      //TODO: option to connect ET to current selection is still missing!!
+//       // for (let i = 0; i < model.length; i++) {
+//       //   let modelBlock = model[i]; 
+//       //   let domName = modelBlock[0]; 
+//       //   let domType = modelBlock[1]; 
+//       // }
+//       // for (let i = 0; i < info.length; i++) {
+//       //   let infoBlock = info[i];
+//       //   let blockName = infoBlock[0];
+//       //   let blockData = infoBlock[1];
+//       //   console.log(infoBlock);
+//       // }
+//       //process: variants
+//       const variants = data['variantSpellings'];
+//       const uri = data['stable'];
+//       neoVarsToDom(variants, 1); 
+//       //make varbox visible!
+//       document.getElementById('embeddedSpellingVariants').classList.remove('hidden'); 
+//       //showing entity in the DOM: 
+//       //1:  Make empty
+//       let proptarget = document.getElementById('displayHitEt'); 
+//       proptarget.innerHTML = ''; 
+//       //show the type of entity that has a potential match!
+//       let typeOfEt = data.extra.label;
+//       proptarget.appendChild(createDivider('Entity: '+typeOfEt)); 
+//       //2:  use writeField function!
+//       Object.values(data['props']).forEach((prop) => {
+//         console.log('property: ', prop); 
+//         let propKey = prop[0];
+//         let propVal = prop[1];
+//         console.log(propKey, propVal); 
+//         let subelem = writeField(propKey, propVal, true, data.extra.model);
+//         console.log(subelem); 
+//         proptarget.appendChild(subelem); 
+//       });
+//       //TO DO: option to connect ET to current selection is still missing!! // not required, dormant code!
 
-      let referenceNode = document.getElementById('relatedTextStats').parentElement;
-      //remove the stable block if it exists: 
-      let stableBox = document.getElementById('stableBox');
-      if (stableBox) { stableBox.remove(); }
-      referenceNode.appendChild(createStableLinkingBlock(id, uri));
-      referenceNode.appendChild(createEditRemoveBox(id, globalAnnoInteractId));
-    });
+//       let referenceNode = document.getElementById('relatedTextStats').parentElement;
+//       //remove the stable block if it exists: 
+//       let stableBox = document.getElementById('stableBox');
+//       if (stableBox) { stableBox.remove(); }
+//       referenceNode.appendChild(createStableLinkingBlock(id, uri));
+//       referenceNode.appendChild(createEditRemoveBox(id, globalAnnoInteractId));
+//     });
 
-}
+// }
 
 $(document).ready(function () {
   addInteractionToEntities();

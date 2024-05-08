@@ -1,7 +1,7 @@
 # Overview of Node components.
 
 ## Texts:
-A textnode is an **immutable node**. It cannot be modified once inserted into the database. These nodes are at the core of the entitylinking system.
+A textnode is an **immutable node**. It cannot be modified once inserted into the database. These nodes are at the core of the entitylinking system. Every text node should have one defined property that holds the text. The name of this property needs to be made explicit in the config.inc.php file and should be of the 'string' type.
 
 Texts can be made **public** or **private**. A public text can be edited by anyone with an account; a private text can only be annotated by the researcher who is considered the text-owner. A text can only be owned by one person at the same time.
 

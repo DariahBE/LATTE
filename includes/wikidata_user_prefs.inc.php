@@ -139,6 +139,7 @@
       }
       //cookies are parse and checked: look for user preferences if any of the optional items are still false AND a session is set!
       if(!($this->customPreferences['shownProperties'] && $this->customPreferences['preferredLanguage'] && $this->customPreferences['showWikipediaLinksTo'] && $this->customPreferences['stringmatchWikipediaTitles'])){
+        //uses the user sql id integer field!
         if(isset($_SESSION['userid'])){
           $query = "SELECT 
             userdata.wd_property_preferences as wd_properties,
@@ -150,6 +151,7 @@
             userdata.id = ? LIMIT 1;
             ";
           $stmt = $this->sqlite->prepare($query);
+          //uses the user sql ID (integer)
           $stmt->execute(array($_SESSION['userid']));
           $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
           foreach($result as $row){
@@ -244,9 +246,9 @@
         }
         $query .= ' AS data FROM userdata WHERE userdata.id = ? LIMIT 1 '; 
         $stmt = $this->sqlite->prepare($query);
+        //uses the user sql ID (integer)
         $stmt->execute(array($_SESSION['userid']));
         $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        //$data = $this->client->run($query, array($_SESSION['userid'])); 
         return explode(',', $data[0]['data']);
       }
 
@@ -305,6 +307,7 @@
     //if one or more valid keys are detected: 
     if(count($validatedKeys)>0){
       //update the settings: 
+      //uses the user sql ID (integer)
       $userid = $_SESSION['userid'];
       $validData = implode(',',$validatedKeys); 
       $updateWDsettingsQuery = 'UPDATE userdata SET '.$validForms[$formname][1].' = ?  WHERE id = ? ';

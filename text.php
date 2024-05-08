@@ -136,12 +136,6 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
       <div id="textcontent">
       <?php
         $textString = $text['data'][0]->first()['node']['properties'][TEXNODETEXT];
-        /**
-         * //TODO: 
-         * bad design: what happens when language is not a property anymore?? Either set it to be a hardcoded property. 
-         * OR get rid of this dependency!!
-         */
-        $textLanguage = isset($text['data'][0]->first()['node']['properties']['language']) ? $text['data'][0]->first()['node']['properties']['language']: False;
         $i = 0;
         foreach(new MbStrIterator($textString) as $c) {
           echo "<span class='ltr' data-itercounter=$i>".nl2br($c)."</span>";
@@ -162,7 +156,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
       var coreNodes = <?php echo json_encode($coreNodeFiltered); ?>;
       var languageOptions = {
         'text': <?php echo json_encode($textString)?>,
-        'ISO_code': <?php echo json_encode($textLanguage)?>,
+        'ISO_code': <?php echo json_encode(false)?>,
         'textid': <?php echo json_encode((int)$propId)?>,
         'nodeid': <?php echo json_encode((int)$neoId)?>
       };

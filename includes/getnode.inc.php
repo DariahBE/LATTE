@@ -854,7 +854,7 @@ function executePremadeParameterizedQuery($query, $parameters){
         WHEN n1.private is null THEN n1
         WHEN n1.private = true and p.user_sqlid = $user THEN n1
     END AS n;'; 
-    
+    //user sqlid!!
     $uid = isset($_SESSION['userid']) ? $_SESSION['userid'] : -1; 
     $queryData = array('neoid' => (int)$id, 'user' => $uid); 
 
@@ -873,8 +873,9 @@ function executePremadeParameterizedQuery($query, $parameters){
       foreach($etprops as $k => $v){
         if (array_key_exists($k, $etModel)){
           $humanReadableKey = $etModel[$k][0];      //human readable key
-          $value = $etprops[$k];                    //value; 
-          $repl[]=array($humanReadableKey, $value, $k); 
+          $value = $etprops[$k];    
+          //minor update $k is the NEO4J propertye name                //value; 
+          $repl['properties'][$k]=array($humanReadableKey, $value, $k); 
         }
       }
     }
@@ -904,6 +905,7 @@ function executePremadeParameterizedQuery($query, $parameters){
     //call userID here and pass as an argument, better than calling it x times
     //for x records.
     $userId = -1; 
+    //user sqlid
     if (isset($_SESSION['userid'])) {
       $userId = $_SESSION['userid'];
     }

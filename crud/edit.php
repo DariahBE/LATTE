@@ -20,7 +20,7 @@ if($user_uuid === false){
 }
 
 $tokenManager = new CsrfTokenManager(); 
-$tokenManager->generateToken();
+$token = $tokenManager->generateToken();
 
 
 //get the node ID: 
@@ -37,6 +37,7 @@ $requestedNodeLabel = $requestedNode['label'];
 //with label and properties known for the node, get the model as defined in config file. 
 //restrict edit to entitytypes in CORENODES constant
 //and do not allow users to edit the text property of text nodes!!
+var_dump($requestedNode);
 $model = false; 
 if(array_key_exists($requestedNodeLabel, CORENODES)){
   $model = NODEMODEL[$requestedNodeLabel]; 
@@ -85,22 +86,35 @@ if($requestedNodeLabel === ANNONODE){
       }else{
       ?>
       <div class='2xl:w-1/2 xl:w-2/3 items-center m-auto'>
-        <div class='main flex flex-row py-4 my-4'>
-          <h2>Update node properties</h2>
-          <h3>Type: <?php echo $requestedNodeLabel;  ?></h3>
-          <form>
-            <?php
-            var_dump($requestedNode);
+        <div class='main py-4 my-4'>
+          <h2 class='w-full'>Update node properties</h2>
+          <h3 class='w-full'>Type: <?php echo $requestedNodeLabel;  ?></h3>
+        </div>
+          <?php
+            $form = new FormGenerator('update_action.php');
+              //var_dump($requestedNode);
             foreach($model as $key => $value){
               //key = name used in NEO4J
               //value = properties of the KEY: 
               //stuck on problem: the KEY matches the last item in the properties value array of $requestedNode!!
               //method isn't used anywhere else, maybe chage the method? .
               //TODO pass the written value from the DB
-              new FormInputGenerator($key, $value, $requestedNode['properties'][$key]); 
+              //var_dump($value); 
+              //echo '<br>';
+              // 3rd argument:                          $requestedNode['properties'][$key]
+              if(array_key_exists($key, $requestedNode['properties'])){
+                //if the node has the key property: extract the value from it
+                $dbvalue = $requestedNode['properties'][$key][1]; 
+              }else{
+                //if the node doesn't have the key property; set the value to null. 
+                $dbvalue = null; 
+              }
+              $form->add_element($key, $value, $dbvalue); 
             }
-
-            ?>
+            $form->generateHiddenToken('token', $token);
+            $form->addSubmitButton(); 
+            echo $form->renderForm();
+          ?>
             <!--
               in here you need a form with pre-filled content,
               DO NOT show the start-stop content if the node is an ANNOTATION NODE    (OK)
@@ -108,11 +122,10 @@ if($requestedNodeLabel === ANNONODE){
               Attach a token to the form
               Send token with data to edit_action.php
               reshow the result. 
-
             -->
 
-          </form>
-        </div>
+
+        
 
       </div>
 
@@ -121,7 +134,7 @@ if($requestedNodeLabel === ANNONODE){
 
 
       <?php
-        var_dump($model);
+        //var_dump($model);
         /*foreach($requestedNode as $key=>$value){
           var_dump($value);
           echo'<br>';

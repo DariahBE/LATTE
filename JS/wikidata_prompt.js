@@ -190,6 +190,13 @@ function acceptQID(qid = -1) {
   creationElement.classList.add('getAttention');
 }
 function pickThisQID(qid) {
+  /*
+    Will load the WIKIDATA properties of a given QID when a user clicks
+    the green tick mark in the table of the WDpromptbox.
+
+    Data is only stored persistent after accepting!! There is a chance that
+    the user does not want to commit this QID. 
+  */
   chosenQID = qid;
   //console.log(qid); 
   //clear the promptbox:
@@ -226,6 +233,8 @@ function pickThisQID(qid) {
     //document.getElementById('WDResponseTarget').remove();
   });
   acceptButton.addEventListener('click', function () {
+    //when normally annotating an entity then selecting and accepting a Q-id. 
+    alert('acceptqid trigger'); 
     acceptQID(qid);
   });
 

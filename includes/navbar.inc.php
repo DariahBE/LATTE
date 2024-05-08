@@ -59,8 +59,6 @@
   }
 
 
-  //TODO: replace ALL calls to -->nav by call to method getNav(); 
-  #POC implemented on index page of etly. 
   public function getNav(){
     return $this->nav; 
   }

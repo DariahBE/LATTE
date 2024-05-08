@@ -23,6 +23,7 @@ function entity_extraction_launcher(){
 }
 function getEntities(options){
   var language = options['ISO_code'];
+  alert(language); 
   var nodeid = options['nodeid'];
   const param = {
     node: nodeid,

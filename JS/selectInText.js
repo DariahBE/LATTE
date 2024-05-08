@@ -496,7 +496,7 @@ function deleteIfExistsById(id){
 }
 
 let wikidataID; 
-
+//TODO: below
 console.warn('High priority bug in selectInText.js > showET(): note privacy settting not working.');
 function showET(etdata) {
   //TODO test if label is pressent by all callers!
@@ -1137,7 +1137,9 @@ function triggerSidePanelAction(entityData) {
   //console.log(entityData);
   let = dataDictionary = {};
   createSideSkelleton();
-  //TODO pass an entity neo id to the knowledgebase constructor 
+  //You should not pass an entity ID to the KnowledgeBase constructor because this
+  //code block is only triggered by unlinked annotations/new selections. So the first
+  //argument is always false!
   checklogin()
     .then(valid => {
         kb = new KnowledgeBase(false, valid);
@@ -1178,11 +1180,9 @@ function triggerSidePanelAction(entityData) {
     var pageLength = dataDictionary.length;
 
     function navET(dir) {
-      alert("navET code being used");
       console.warn('moving ET');
       //navigates through the dataDictionary and picks a page(entity). 
       //only used when 2 or more possible entities are part of the selection.
-      //TODO: update of DOM isn't working!
       if (dir === '-') {
         //go back
         datadictpage--;
@@ -1266,15 +1266,17 @@ function makeSuggestionBox() {
    * creates a box based on the current cursor position and shows
    * basic data/interaction about the element that triggered the 
    * annotation lookup. 
+   * 
+   * CONSIDER DROPPING THIS FUNCTIONALITY!
    */
   //special color scheme is used for unstored annotations that are 
   //found by the LATTE connector. Interface checks for the presence of the
   //automatic_unstored class in the classlist to determine how the layout
   // of the suggestionbox should be. 
   if (event === undefined){return;}
-  let targetElement = event.src || event.target; 
+  let targetElement = event.src || event.target;  
   let mode = 'stored';
-  if(targetElement.classList.contains('automatic_unstored')){
+  if(targetElement && targetElement.classList.contains('automatic_unstored')){
     var boxHeader = 'Unstored Annotation';
     var headerColor = 'bg-blue-300'; 
     mode = 'unstored';
