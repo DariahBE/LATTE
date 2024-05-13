@@ -44,7 +44,9 @@ class Annotation{
       $this->tsx->commit();
     }
 
-    //describe the model used for Automatic_annotation nodes. This is a hard
+    //describe the model used for Automatic_annotation nodes.
+    // the properties used by the automatic model are the same
+    // as the properties used by the controlled model!
     public $auto_model = [
       'Automatic_annotation' => [
         ANNOSTART => ["Annotation Start", "int", false, false, false],
@@ -66,29 +68,38 @@ class Annotation{
      * CONVERTS THE AUTOMATICALLY GENERATED ANNOTATION FROM Annotation_auto to ANNONODE. 
      * The OLD UID stays!! This is best to accomodate references/URI's that were generated
      * in old XML/JSON/API exports/links.
-     * The label changes from Annotation_auto to Annotation
+     * The label changes from Annotation_auto to the chosen label for ANNONODEs
      * The properties of the label change according to the defined model
      *    - new fields become available
      * The connection to a new/existing entity gets made
      */
 
-     //TODO BUG: if annotation_auto uses different properties to indicate the start and end of 
+     //PATCH OK: if annotation_auto uses different properties to indicate the start and end of 
      // an annotations, this property has to be rewritten!
-    /* $convertStartStop = ''; 
+     /*
+     conversion code no longer needed; selectionstart and selectionend properties are
+     the same for automatic and manual annotations!!
+    $convertStartStop = ''; 
     if (ANNOSTART !== 'starts'){
-      $convertStartStop .= ' n.'.ANNOSTART.' = n.starts ' ; //TODO
+      $convertStartStop .= ' n.'.ANNOSTART.' = n.starts ' ;
     }
     if (ANNOSTOP !== 'stops'){
-      $convertStartStop .= ' n.'.ANNOSTOP.' = n.stops ' ; //TODO
+      $convertStartStop .= ' n.'.ANNOSTOP.' = n.stops ' ;
     }*/
+    
     $subset = array(); 
     $data_iter = array('neo'=>(int)$neoId); 
     $iter = 0; 
     foreach ($data as $key => $value) {
-      $iter+=1; 
-      $ph_name = "var_ref_".strval($iter);
-      $subset[] = "n.$key=$$ph_name"; 
-      $data_iter[$ph_name] = $value; 
+      //requires the use of setToTypeByModel() for data values!
+      $cast_data = $this->setToTypeByModel(ANNONODE, $key, $value); 
+      if($cast_data[1]){
+
+        $iter+=1; 
+        $ph_name = "var_ref_".strval($iter);
+        $subset[] = "n.$key=$$ph_name";       //double $ for query syntax
+        $data_iter[$ph_name] = $cast_data[0]; 
+      }
     }
     $annotation_properties = implode(', ',$subset); 
     if (count($subset)>0){
@@ -102,7 +113,6 @@ class Annotation{
   }
 
   public function fetchAnnotationUUID($neoId){
-    //BUG: When running this function directly, it has no acces to transactional content!
     //var_dump($neoId); 
     $query = 'MATCH (a) where id(a) = $neo RETURN a.uid as uid;'; 
     $result = $this->tsx->run($query, array('neo'=>(int)$neoId)); 
@@ -163,8 +173,13 @@ class Annotation{
   }
 
   private function setToTypeByModel($entity, $property, $value){
-    //helper function which converts the $value to the expected type
-    //by looking up which type is declared in the NODEMODEL. 
+    /* helper function which converts the $value to the expected type
+      by looking up which type is declared in the NODEMODEL. 
+      function returns a list of two elements. The first element is the value
+      cast to the correct type; the second value is the boolval result of the $value
+      or overridden to true where it makes sense. If this second values returns False
+      the value will be rejected an NOT stored in the database.
+    */
     //BUG: it's impossible to tell at the moment if an empty string should be used or not!
     $expectedType = NODEMODEL[$entity][$property][1]; 
     switch ($expectedType) {
@@ -178,9 +193,8 @@ class Annotation{
         return [floatval($value), true]; 
         break; 
       case 'wikidata': 
-        //TODO (regex test)
-        return [strval($value), true];
-        # code...
+        $validity_of_datapoint =  preg_match('/^Q\d+$/', $value) === 1;
+        return [strval($value), $validity_of_datapoint];
         break;
       case 'int': 
         if ($value === ''){
@@ -189,13 +203,11 @@ class Annotation{
         return [(int)$value, true]; 
         break;
       case 'bool': 
-        # code...
         return [boolval($value), true];
         break;
       case 'uri': 
-        //TODO (regex test)
-        return [strval($value), boolval($value)];
-        # code...
+        $valid = filter_var($value, FILTER_VALIDATE_URL); 
+        return [strval($value), boolval($valid)];
         break;
       default:
         return $value; 

@@ -53,9 +53,6 @@ function handleNoLogin(){
   warningParagraph.appendChild(warningText); 
   warningParagraph.appendchild(warningLink); 
   target.appendchild(warningParagraph); 
-
-
-
 }
 
 function extractAnnotationPropertiesFromDOM(domBlock) {
@@ -76,7 +73,7 @@ function extractAnnotationPropertiesFromDOM(domBlock) {
 function typeToHtml(type, defaultValue = 'text') {
   //converts configured type to valid html types:
   const conversionList = {
-    'longtext': false,
+    //'longtext': false,
     'wikidata': 'text',
     'string': 'text',
     'int': 'number',
@@ -294,11 +291,13 @@ function loadPropertiesOfSelectedType(selectedString, selected) {
           let newFieldContainer = document.createElement('div');
           let newFieldLabel = document.createElement('label');
           let newFieldInput;
-          if (datatype === 'longtext') {
-            newFieldInput = document.createElement('textarea');
-          } else {
-            newFieldInput = document.createElement('input');
-          }
+          // if (datatype === 'longtext') {
+          //   //longtext not used any longer. 
+          //   newFieldInput = document.createElement('textarea');
+          // } else {
+          //   newFieldInput = document.createElement('input');
+          // }
+          newFieldInput = document.createElement('input');
           newFieldInput.classList.add('inputelement');
           newFieldLabel.appendChild(document.createTextNode(humanLabel + ': '));
           if (datatype === 'wikidata' && chosenQID !== null) {
@@ -389,11 +388,14 @@ function buildPropertyInputFieldsFor(label) {
             newFieldContainer.classList.add('property'); 
             let newFieldLabel = document.createElement('label');
             let newFieldInput;
-            if (datatype === 'longtext') {
-              newFieldInput = document.createElement('textarea');
-            } else {
-              newFieldInput = document.createElement('input');
-            }
+            // if (datatype === 'longtext') {
+            //   //longtext not used any longer. 
+            //   newFieldInput = document.createElement('textarea');
+            // } else {
+            //   newFieldInput = document.createElement('input');
+            // }
+            newFieldInput = document.createElement('input');
+
             newFieldInput.classList.add('inputelement');
             newFieldLabel.appendChild(document.createTextNode(humanLabel + ': '));
             if (datatype === 'wikidata' && chosenQID !== null) {
@@ -817,14 +819,17 @@ function buildAnnotationCreationBox() {
           let newFieldContainer = document.createElement('div');
           newFieldContainer.classList.add('property');
           let newFieldLabel = document.createElement('label');
-          newFieldLabel.appendChild(document.createTextNode(humanLabel));
           let newFieldInput;
-          if (datatype === 'longtext') {
-            newFieldInput = document.createElement('textarea');
-          } else {
-            newFieldInput = document.createElement('input');
-          }
+          // if (datatype === 'longtext') {  
+          //   //longtext not used any longer. 
+          //   newFieldInput = document.createElement('textarea');
+          // } else {
+          //   newFieldInput = document.createElement('input');
+          // }
+          newFieldInput = document.createElement('input');
+
           newFieldInput.classList.add('inputelement');
+          newFieldLabel.appendChild(document.createTextNode(humanLabel + ': '));
           newFieldLabel.setAttribute('for', key);
           newFieldInput.setAttribute('name', key);
           let htmlType = typeToHtml(datatype);

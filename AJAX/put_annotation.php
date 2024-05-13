@@ -176,8 +176,7 @@
 
 
 
-
-    //TODO (Low): needs to be done more efficiently, get the UUID directly when creating annotationnode!
+    //$annotations shares the transaction with $node!
     $createdAnnotationUUID = $annotation->fetchAnnotationUUID($createAnnotation); 
     //connect the user to the created annotation: 
     $node->connectNodes($userNeoId, $createAnnotation, 'priv_created'); 
@@ -209,7 +208,7 @@
         'intid' => $createAnnotation,
         'uuid' => $createdAnnotationUUID, 
         'type' => $nodelabel, 
-        'start' => $annotationNode[ANNOSTART]?? $startAutomated, 
+        'start' => $annotationNode[ANNOSTART] ?? $startAutomated, 
         'stop' => $annotationNode[ANNOSTOP] ?? $stopAutomated,
     );
     //PATCH TSX is not used, so we do not pass it to the client. 

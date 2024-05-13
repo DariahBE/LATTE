@@ -230,7 +230,7 @@ function extendGraphOneHop(){
     }
   } 
   //once all nodes are in the graph: redraw.
-  //BUG: network is being updated before all nodes are in there. Enforce it to wait for all pending AJAX-requests.
+  //BUG (low): network is being updated before all nodes are in there. Enforce it to wait for all pending AJAX-requests.
   network.setOptions( { physics: true } );
 }
 

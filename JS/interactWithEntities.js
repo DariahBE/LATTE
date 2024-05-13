@@ -178,18 +178,30 @@ function writeField(key, data, protected, structure) {
   var fieldType = structure[key] !== undefined ? structure[key][1] : 'string';
   var keytex = structure[key] !== undefined ? structure[key][0] : key;
   var fieldkeyString = document.createTextNode(keytex + ': ');
-  if (data !== false && data !== '') {
+  //data can be false for boolean fields. In this case, always add the
+  //fieldkeystring and fieldkey, but do that in the bool-code section. 
+  if (data !== false && data !== '' && fieldType !== 'bool') {
     fieldkey.appendChild(fieldkeyString);
     field.appendChild(fieldkey);
   }
   if (fieldType === 'bool') {
-    //TODO make boolfield dropdown. 
-    console.log('setting behaviour for bool field'); 
-    var fieldvalue = document.createElement('span');
-    var fieldvalueString = document.createTextNode(data);
-    fieldvalue.appendChild(fieldvalueString);
+    //adding fieldkey for boolean code
+    fieldkey.appendChild(fieldkeyString);
+    field.appendChild(fieldkey);
+    var fieldvalue = document.createElement('select');
+    //writefield is used for display, not update
+    fieldvalue.setAttribute('disabled', true);
+    var optionTrue = document.createElement('option');
+    optionTrue.value = 'true';
+    optionTrue.textContent = 'True';
+    var optionFalse = document.createElement('option');
+    optionFalse.value = 'false';
+    optionFalse.textContent = 'False';
+    fieldvalue.appendChild(optionTrue);
+    fieldvalue.appendChild(optionFalse);
+    fieldvalue.value = data ? 'true' : 'false'; // set the selected option based on the data
     field.appendChild(fieldvalue);
-    fieldvalue.setAttribute('type', 'boolean');
+
   } else if (fieldType === 'uri') {
     var fieldvalue = document.createElement('a');
     fieldvalue.setAttribute('href', data);
@@ -215,7 +227,7 @@ function showdata(data) {
   /**       FUNCTION TRIGGERED BY INTERACTING WITH ENTITIES: 
    *  - there is a marked annotation in the databse. 
    *  - if it is connected to an entity; it is shown too. 
-   *  - entity has properties such as WIKIDATE, VARIANT, ETID (Kb relations. ) 
+   *  - entity has properties such as WIKIDATA, VARIANT, ETID (Kb relations. ) 
    */
   //set the global datamode: 
   datamode = data['mode'];
@@ -230,20 +242,19 @@ function showdata(data) {
   var annotationTarget = document.getElementById('slideoverDynamicContent');
   //superimpose the slideover on top of the navbar: 
   annotationTarget.classList.add("z-50");
-  var gateWay = document.createElement('div');
-  //TODO: neobox ID is already used elsewhere, are you sure it's not conflicting?!
-  gateWay.setAttribute('id', 'neobox');
+  //bugpatch
+  let exists = true;
+  var gateWay = document.getElementById('neobox') || (function() {
+    var newGateWay = document.createElement('div');
+    newGateWay.setAttribute('id', 'neobox');
+    exists = false
+    return newGateWay;
+  })();
   var statsTarget = document.createElement('div');
   statsTarget.setAttribute('id', 'relatedTextStats');
   statsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0');
-  //annotationTarget.innerHTML = ''; (TODO: delete test is this okay? so far so good)
   gateWay.appendChild(statsTarget);
-  //TODO: test if this was a good idea to delete, so far it all looks okay. goal is to deduplicate code!!
-  /*var variantsTarget = document.createElement('div');
-  variantsTarget.setAttribute('id', 'etVariantsTarget');
-  variantsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0');
-  gateWay.appendChild(variantsTarget);*/
-  var authorData = data['author'];
+  //var authorData = data['author']; //not required. 
   var annotationData = data['annotation']['properties'];
   //sends the node neoID (unstable, do not use for identifying purposes on exposed API's):
   if (datamode === 'controll') {
@@ -280,15 +291,6 @@ function showdata(data) {
   for (var i = 0; i < annotationExtraFields.length; i++) {
     annotationTarget.appendChild(writeField(annotationExtraFields[i], '', false, annotationStructure));
   }
-  /*
-  // TODO determine if this codeblock has to go back into production. 
-  //work with the Author of the annotation:
-  Object.keys(authorData).forEach(key =>{
-    var row = authorData[key];
-    var rowkey = row[0];
-    var rowdata = row[1];
-    var protected = row[2];
-  });*/
   //show the type of the annotation as a header entry: 
   if (datamode === 'controll') {
     let etType = createDivider('Entity: ' + data['entity'][0]['type']); 
@@ -321,7 +323,10 @@ function showdata(data) {
     gateWay.appendChild(createStableLinkingBlock(neoid, etStable));
     //TODO pass id.
     gateWay.appendChild(createEditRemoveBox(neoid, globalAnnoInteractId));
-    annotationTarget.appendChild(gateWay);
+    if(exists){
+      //patch
+      annotationTarget.appendChild(gateWay);
+    }
     //display the variant data: 
     spellingVariantDOMReturn = new SpellingVariant(data['variants'], neoid, globalLoginAvailable);
     /*
@@ -363,8 +368,7 @@ function showdata(data) {
       'casesensitive': false
     };
     $sendTo = $baseURL + jQuery.param($parameters);
-    //BUG critical todo on 13/5/24 : when making the suggestionBox from a recognized (LATTE entity, the code triggers a fatal error).
-    //there's no real need to keep the call to the suggestionbox here though!
+    //there's no need to keep the call to the suggestionbox during the conversion process!
     //makeSuggestionBox();
     getInfoFromBackend($sendTo)
     .then((data) => {
@@ -463,8 +467,6 @@ function handleError(e) {
 function loadAnnotationData(annotationID = false) {
 
   console.log(globalLoginAvailable); 
-  //related to the problem marked with 13/5/24. This can be tested when that problem is sorted out!
-  //BUG: existing Annotation_auto ID gets retained and added after confirming a recognized ET
   if (!(annotationID)){
     //get annotationID in case of clickevent trigger: find the source of the event. 
     var eventsource = event.source || event.target;

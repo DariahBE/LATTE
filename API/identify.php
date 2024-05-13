@@ -98,10 +98,6 @@ if (array_key_exists('coreID', $core)){
     }
   }
 
-  //sending it to the views-class:
-  //TODO: this still needs an update!!!
-  //$view = new View($type, array('egoNode' => $core, 'neighbours' => $neighbours, 'relatedTexts' => $textSharingEt));
-  //$view->generateJSONOnly(false);
 }else{
   echo json_encode(array('error' => 'The provided ID does not have matching record. The related node may be deleted, or it never existed.'));
   die();

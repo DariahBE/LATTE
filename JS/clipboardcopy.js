@@ -8,7 +8,7 @@ function clippy(idOfElement,idOfOkay){
   target.value = source.innerText;
   let selector = document.querySelector('#temp_copy_elem');
   selector.select();
-  //BUG very low priority! execCommand is deprecated, but there's no alternative yet.
+  //BUG (low)! execCommand is deprecated, but there's no alternative yet.
   // You can consider the clipboard API, but this requires https!!! which when deployed
   // locally will complicate setup for endusers. 
   document.execCommand('copy');
