@@ -58,7 +58,6 @@ class Validator{
       return [false, 'Enter a valid Q-identifier: (e.g.: Q1234).'];
     }
   }
-
   pickup(){
     var elements = document.getElementsByClassName('attachValidator'); 
     console.log(elements); 

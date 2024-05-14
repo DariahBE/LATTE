@@ -94,7 +94,6 @@ class Annotation{
       //requires the use of setToTypeByModel() for data values!
       $cast_data = $this->setToTypeByModel(ANNONODE, $key, $value); 
       if($cast_data[1]){
-
         $iter+=1; 
         $ph_name = "var_ref_".strval($iter);
         $subset[] = "n.$key=$$ph_name";       //double $ for query syntax
@@ -113,7 +112,6 @@ class Annotation{
   }
 
   public function fetchAnnotationUUID($neoId){
-    //var_dump($neoId); 
     $query = 'MATCH (a) where id(a) = $neo RETURN a.uid as uid;'; 
     $result = $this->tsx->run($query, array('neo'=>(int)$neoId)); 
     return $result[0]['uid']; 
@@ -131,7 +129,6 @@ class Annotation{
     $data = ['userid'=>$userid]; 
     $result = $this->tsx->run($query, $data);
     $resultPrivate = $this->tsx->run($queryPrivate, $data); 
-    //var_dump($resultPrivate);
     return(array('public' => $result[0]['annotationcount'], 'private' => $resultPrivate[0]['annotationcount']));
   }
 
@@ -203,6 +200,8 @@ class Annotation{
         return [(int)$value, true]; 
         break;
       case 'bool': 
+        //bugpatch!
+        $value = strtolower($value) === 'true' ? true : false;
         return [boolval($value), true];
         break;
       case 'uri': 
@@ -238,7 +237,6 @@ class Annotation{
       }
     }
 
-    // var_dump($extra);
     $phval = 0;
     $querydata = [
       'texid' => $neoIDText,
@@ -258,9 +256,6 @@ class Annotation{
         # code...
       }
     }
-    // var_dump($querydata); 
-    // var_dump($queryparameters); 
-    // die('early exit'); 
     if($constraintOne && $constraintTwo){
       //both constraints are met; connect;
       #Write a cypher query that creates a new Node with label 'Annotation'.
@@ -272,8 +267,6 @@ class Annotation{
         (a)<-[r1:contains]-(t),
         (a)-[r2:references]->(e)
       RETURN a,t,e,r1,r2,id(a)';
-      // var_dump($query); 
-      // var_dump($querydata); 
       $annotdata = $this->tsx->run($query, $querydata); 
 
       //connect (a) to $user

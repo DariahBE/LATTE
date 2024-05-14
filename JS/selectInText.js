@@ -498,8 +498,6 @@ function deleteIfExistsById(id){
 }
 
 let wikidataID; 
-//TODO: below
-console.warn('High priority bug in selectInText.js > showET(): note privacy settting not working.');
 function showET(etdata) {
   //TODO test if label is pressent by all callers!
   //alert('labeltest required from all callers!')
@@ -523,7 +521,6 @@ function showET(etdata) {
   // etLabelElem.appendChild(document.createTextNode(etLabel)); 
   // etLabelElem.classList.add('text-lgss', 'font-bold'); 
   //remove old elements by their ID.
-  //BUG CRITICAL 18/3/24: annotations that are created by linking them after using the nav elements are always private no matter how you set them up!
   deleteIfExistsById('assignEtToSelectionParent');
   deleteIfExistsById('annotationCreationDiv');
   let wd = null;

@@ -60,7 +60,7 @@
     public function generateUriInput($name, $settings, $value = null) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
-        $dataunique = $dataunique = ($settings[2] === true) ? 'validate_as_unique' : '';
+        $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
         $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique' type='url' name='$name' value = '$value'></textarea>"; 
     }
@@ -68,7 +68,7 @@
     public function generateIntegerInput($name, $settings, $value = null) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
-        $dataunique = $dataunique = ($settings[2] === true) ? 'validate_as_unique' : '';
+        $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
         $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique' type='number' step=1 name='$name' value='$value'> </textarea>";
     }
@@ -76,7 +76,7 @@
     public function generateBooleanInput($name, $settings, $checked = false) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
-        $dataunique = $dataunique = ($settings[2] === true) ? 'validate_as_unique' : '';
+        $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
         $checkedAttr = $checked ? "checked" : "";
         $this->formElement[] = "<label for='$id'>$labelname</label> <input id='$id' class='w-full form-control attachValidator $dataunique' type='checkbox' name='$name' $checkedAttr>";
@@ -85,7 +85,7 @@
     public function generateTextInput($name, $settings, $value = null) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
-        $dataunique = $dataunique = ($settings[2] === true) ? 'validate_as_unique' : '';
+        $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
         $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique' type='text' name='$name' value='$value'> </textarea>";
     }
@@ -93,7 +93,7 @@
     public function generateWikidataIdInput($name, $settings, $value = null) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
-        $dataunique = $dataunique = ($settings[2] === true) ? 'validate_as_unique' : '';
+        $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
         $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique' type='text' name='$name' pattern='^Q[0-9]+$' value='$value' title='Please enter a Wikidata ID (e.g., Q123)'> </textarea>";
     }

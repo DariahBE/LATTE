@@ -120,7 +120,6 @@
     }try {
         //createNewNode needs to automatically generate a primary key for entities where the model uses an integer key as unique value. 
         $createdEntity = $node->createNewNode($nodelabel, $properties, true); 
-        //var_dump($properties); 
         //returns NEO ID of created node. 
     }catch (\Throwable $th){
         //throw $th;
@@ -157,6 +156,7 @@
             unset($annotationNode[ANNOSTART]);
             unset($annotationNode[ANNOSTOP]);
             $annotation_neo_id = $data['neo_id_internal']; 
+            //bugpatch applied.
             $createAnnotation = $annotation->convertAutomaticAnnotationToConfirmedAnnotation($annotation_neo_id, $annotationNode); 
         }catch(\Throwable $th){
             $node->rollbackTransaction();
@@ -201,8 +201,11 @@
         }
     }
 
-
-    $node->commitTransaction();
+    //patchcode (delete later!)
+    $node->rollbackTransaction();
+    
+    //original code: 
+    // $node->commitTransaction();
     $node_reply = array();
     $node_reply['data'] = array(
         'intid' => $createAnnotation,
