@@ -167,11 +167,9 @@ function saveNewDB() {
           let pair = propertyPairs[pp].getElementsByTagName('input')[0];
           let pairName = pair.name;
           let pairValue = pair.value;
-          let pairType = pair.type; 
-          
-          if(checkPairValidity(pairValue, pairType)){
-            properties[pairName] = pairValue;
-          } 
+          //let pairType = pair.type; 
+          properties[pairName] = pairValue;
+
         }
 
         //appending to dataObject
@@ -242,7 +240,6 @@ function toggleSlide(dir = 0) {
     unmark(); //when closing the side panel, always remove the markup!
     document.getElementById('slideover-container').classList.add('invisible');
     document.getElementById('slideover').classList.add('translate-x-full');
-
   } else {
     document.getElementById('slideover-container').classList.remove('invisible');
     document.getElementById('slideover').classList.remove('translate-x-full');
@@ -886,7 +883,6 @@ function buildAnnotationCreationBox() {
   entityTypeSelectorDiv.appendChild(setEntityType); 
   embeddedCreateDiv.appendChild(entityTypeSelectorDiv);
   createNodeDiv.appendChild(embeddedCreateDiv);
- // console.log('Bug when clicking recognized unlinked ets.', startPositionInText, globalSelectionStart); 
   var startPositionInText = globalSelectionStart;   //pull from global scope
   var endPositionInText = globalSelectionEnd;       //pull from global scope
   var selectedString = globalSelectionText;         //pull from global scope
