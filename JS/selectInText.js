@@ -249,8 +249,7 @@ function toggleSlide(dir = 0) {
   }
 }
 
-//BUG: you're not actually using selectedString!
-function loadPropertiesOfSelectedType(selectedString, selected) {
+function loadPropertiesOfSelectedType(selected) {
   //reads from the DOM which entity is being created; 
   //does an AJAX call to fetch the structure of the entity and matches with config file
   //fields get generated and appended. If old fields exist, they are removed. 
@@ -902,7 +901,7 @@ function buildAnnotationCreationBox() {
     let e = event.source || event.target; 
     let d = document.getElementById('propertyBox');
     if (d !== null) { d.remove(); }
-    loadPropertiesOfSelectedType(selectedString, e.value);
+    loadPropertiesOfSelectedType(e.value);
     document.getElementById('annotationCreationDiv').classList.remove('hidden');
   })
 

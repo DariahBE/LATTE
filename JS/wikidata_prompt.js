@@ -411,7 +411,7 @@ let checkIfConnectionExists = async (qid) => {
           //OK
           let creationElement = document.getElementById('etcreate');
           creationElement.classList.add('getAttention');
-          loadPropertiesOfSelectedType(globalSelectionText, false);
+          loadPropertiesOfSelectedType(false);
           resolve(0);
         }
       })
