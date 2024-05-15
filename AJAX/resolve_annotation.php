@@ -1,17 +1,11 @@
 <?php
 
-/**
- * Annotations which are loaded in having the Annotation_auto label don't fit the pattern expected here. 
- * You need to run an extra check and split logic!
- */
-
-
-
 header('Content-Type: application/json; charset=utf-8');
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR."\includes\getnode.inc.php");
-include_once(ROOT_DIR."\includes\annotation.inc.php");
-include_once(ROOT_DIR."\includes\user.inc.php");
+include_once(ROOT_DIR.'/includes/getnode.inc.php');
+include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
+include_once(ROOT_DIR.'/includes/annotation.inc.php');
+include_once(ROOT_DIR.'/includes/user.inc.php');
 
 $annotationId = $_GET['annotation'];    //should be a UUIDV4 ID.
 
@@ -22,25 +16,22 @@ $formattedResponse = array(
   'variants' => array()
 );
 
-$graph = new Node($client);
-$annotation = new Annotation($client);
-//TODO (critical): Test transaction implementation. 
-$annotation->startTransaction(); 
+//cudnode for access to data that's still in a transaction elsewhere.
+$graph = new CUDNode($client);
+$graph->startTransaction(); 
+$annotation = new Annotation(False, $graph->gettsx());
 
 
 $user = new User($client);
-//BUG: potential conflict with graph and annotation class. Could be that both need to exchange the data stored in a transaction!!
-//TODO PATCH: generate a new method which acts as classifier to distinguish Annotation and Annotation_auto nodes! 
 $annotation_type = $graph->fetchLabelByUUID($annotationId); 
 //end of dealing with the annotation type
 // Prevent leaking any other nodes than the annotation and automatic annotations!!
 if(!(in_array($annotation_type, array(ANNONODE, 'Annotation_auto')))){
-  die(json_encode(array('code'=> -1, 'error'=>'Annotation type not supported!')));
+  die(json_encode(array('code'=> -1, 'error'=>'This node type is not supported!')));
 }
 //$annotation type is now constrained to one of two valid options: use the UID which is always present as means of identification. 
 $egodata = $graph->matchSingleNode($annotation_type, 'uid', $annotationId);
 $egoId = $egodata['neoID'];
-//var_dump($egoId); 
 if ($annotation_type === ANNONODE){
   $mode = 'controll'; 
   $neighbours = $annotation->getAnnotationInfo($egoId);
@@ -53,9 +44,15 @@ if ($annotation_type === ANNONODE){
   }else{
     $owner = false;
   }
+  //each ANNOTATION has at most ONE entity connected to it using the 'references'
+  //labels for a relation. Use this to find the node, extract the label from it.
+  // This is only required when loading entities (so on non-automatic annotations!)
+  $connectedEntity = $graph->getNeighbours($egoId, 'references'); 
+  $connectedEntityLabel = $connectedEntity[0]['t']->getLabels()[0]; 
   // end of dealing with the author of an annotation
   $annotationInformation = $neighbours['annotation'];
   $formattedResponse['annotationFields'] = NODEMODEL[ANNONODE];
+  $formattedResponse['entityFields'] = NODEMODEL[$connectedEntityLabel];
   foreach ($annotationInformation['properties'] as $key => $value) {
     $allowedToEdit = $user->hasEditRights($user->myRole, $user->myName === $owner);
     $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key), $allowedToEdit);
@@ -68,13 +65,12 @@ if ($annotation_type === ANNONODE){
 }else if($annotation_type === 'Annotation_auto'){
   $mode = 'automated'; 
   $annot_key  = 'Automatic_annotation'; 
-  $autodata = $annotation->fetchAutomaticAnnotationById($egoId);    // TODO stuck here!!
+  //$autodata = $annotation->fetchAutomaticAnnotationById($egoId);    // not required any longer
   //var_dump($autodata); 
   //structure of Annotation_auto is pulled from the annotation.inc.php class as private property. 
   // it is structured the same way as the nodesmodel in config.inc.php; 
   $formattedResponse['annotationFields']= $annotation->auto_model[$annot_key]; 
   $formattedResponse['neo_id_of_auto_anno']  = $egoId;       //pass the internal NEOID to js; needed at later stage for update. 
-  //TODO: implement key and value here. True and 0 should remain. 
 
   //$formattedResponse['annotation']['properties'] = ['starts' => ['starts', 'vl', true, 0], 'stops' => ['stops', 'vl', true, 0]];
   //var_dump($egodata['data'][0][0]);

@@ -2,7 +2,6 @@ let globalSelectionText = null;
 let globalSelectionStart = null;
 let globalSelectionEnd = null;
 let targetOfInfo = null; 
-const selectInTexDebug = false; 
 
 
 function insertAfter(referenceID, elementToAdd){
@@ -1379,9 +1378,6 @@ function loadIntoSuggestionBox(data, from, to) {
   keySpanNode.appendChild(nodesKey);
   keySpanNode.classList.add('font-bold');
   keySpanEdge.classList.add('font-bold');
-  if(selectInTexDebug){
-    console.log(data);
-  }
   var retrievedCoreElements = data.nodes.filter(node => coreNodes.includes(node[1]));
   var valueSpanEdge = document.createTextNode(data.edges.length);
   var valueSpanNode = document.createTextNode(data.nodes.length + ' | ' + retrievedCoreElements.length);
@@ -1441,11 +1437,6 @@ function triggerSelection() {
   unmark()
   var selectedTextProperties = getTextSelection();
   var selectedText = selectedTextProperties[0];
-  if(selectInTexDebug){
-    console.log('call into triggerselection()');
-    console.log('callresult', selectedTextProperties);
-    console.log('Properties: ', selectedTextProperties);
-  }
   var selectedTextStart = selectedTextProperties[1];
   var selectedTextEnd = selectedTextProperties[2];
   //Always set datamode to null when you select an et and go through the manual annotation proces. 

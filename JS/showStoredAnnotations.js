@@ -14,11 +14,14 @@ function unmark(){
 function markBasedOnId(id){
   unmark();
   var letters = document.getElementsByClassName('ltr');
+  let highlightedText = ''; 
   for (var l = 0; l < letters.length; l++){
     if (letters[l].dataset.annotation  && (letters[l].dataset.annotation.split(',').includes(id)) ){
       letters[l].classList.add('markedAnnotation');
+      highlightedText += letters[l].textContent;
     }
   }
+  globalSelectionText = highlightedText;
 }
 
 

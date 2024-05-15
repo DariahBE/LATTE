@@ -117,11 +117,13 @@ class Annotation{
     return $result[0]['uid']; 
   }
 
+  /* 
+  //obsolete!
   public function fetchAutomaticAnnotationById($neoId){
     $query = 'MATCH (a:Annotation_auto) WHERE id(a) = $neo RETURN a; '; 
     $result = $this->tsx->run($query, array('neo'=>(int)$neoId)); 
     return $result; 
-  }
+  }*/
 
   public function countPersonalAnnotations($userid){
     $query = ('MATCH (a:'.ANNONODE.')<-[r:priv_created]-(u:priv_user) WHERE u.user_sqlid = $userid RETURN COUNT(a) as annotationcount');

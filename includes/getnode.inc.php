@@ -599,13 +599,9 @@ function executePremadeParameterizedQuery($query, $parameters){
 
 
   public function findEntity($id){
-    //move variant code to seperate method!
     $result = array('entity'=> array(), 'labelVariants'=>array());
     $query = 'match(n)-[r:references]-(p) where n.uid = $graphid return p, id(p) as entityID'; 
     $data = $this->client->run($query, ['graphid'=>$id]); 
-    //var_dump($data[0]['entityID']);
-    //in $data there is at most one entry!
-    //also get the model to show in DOM: 
     $result['entity']['neoID'] = $data[0]['entityID'];
     $etStableUri = $this->generateURI($data[0]['entityID']); 
     foreach($data as $row){
@@ -617,24 +613,12 @@ function executePremadeParameterizedQuery($query, $parameters){
       foreach($node['properties'] as $property => $value){
         if(array_key_exists($property, $model)){
           $showAs = array($model[$property][0], $node['properties'][$property], $model[$property][1]);
-          $result['entity']['properties'][] = $showAs;
+          $showAs = array($property, $value, true, null);
+          $result['entity']['properties'][$property] = $showAs;
         }
       }
       $result['entity']['stableURI'] = $etStableUri; 
     }
-    /*
-    $query2 = 'match(v)-[r:same_as]-(n) where id(n) = $entityid return v' ;
-    $data2 = $this->client->run($query2, ['entityid'=> $data[0]['entityID']]);
-    $variantModel = NODEMODEL['Variant'];
-    foreach($data2 as $labelvariant){
-      $variantRow = $labelvariant['v'];
-      foreach($variantRow['properties'] as $property => $value){
-        if(array_key_exists($property, $variantModel)){
-          $showAs = array($variantModel[$property][0], $value);
-          $result['labelVariants'][] = $showAs;
-        }
-      }
-    }*/
     return $result; 
   }
 

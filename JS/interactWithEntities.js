@@ -113,6 +113,16 @@ function createStableLinkingBlock(nodeid, stableURI) {
 
 
 function createEditRemoveBox(etnodeid, annonodeid){ 
+  /**
+   * Creates 2 blocks of two buttons: 
+   *    one edit and delete block for the entity node id.
+   *    one edit and delete block for the annotation node.
+   * 
+   * If one of both arguemtns is === false, the block
+   * for that specific ID is not generated.
+   * 
+   * The Given IDS should be the neo4J internal IDS.
+   */
   let subdivGateway = document.createElement('div');
   if(!(globalLoginAvailable)){return subdivGateway;}
   let annotationPart = document.createElement('div'); 
@@ -286,6 +296,9 @@ function showdata(data) {
     //puts the annotation metadata in the annotationtarget element.
     var fieldFormatted = writeField(rowkey, rowdata, protected, annotationStructure);
     annotationTarget.appendChild(fieldFormatted);
+    console.log('annotation values: '); 
+    console.log(rowkey, rowdata, protected, annotationStructure); 
+  
   });
   //for all annotationExtraFields create a new editable field:
   for (var i = 0; i < annotationExtraFields.length; i++) {
@@ -298,21 +311,19 @@ function showdata(data) {
     var etStable = data['entity'][0]['stableURI'];
     //etType.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex', 'justify-center');
     //var etTypeText = document.createTextNode('Entity: ' + data['entity'][0]['type']);
-    // TODO: LOW PRIORITY: styling. properties of entity needs to be shown here!! 
+    var entityStructure = data['entityFields'];
     let etpropdiv = document.createElement('div'); 
     etpropdiv.classList.add('etPropContainer'); 
-    data['entity'][0].properties.forEach(prop => {
-      let displayName = prop[0];
-      let displayValue = prop[1];
-      let displayType = prop[2];
-      //let subelem = writeField(displayName, displayValue, true, structure);
-      etpropdiv.appendChild(writeField(displayName, displayValue, true, annotationStructure)); 
+    Object.keys(data['entity'][0].properties).forEach(key => {
+      var row = data['entity'][0].properties[key];
+      let displayName = row[0];
+      let displayValue = row[1];
+      etpropdiv.appendChild(writeField(displayName, displayValue, true, entityStructure)); 
     });
     //etType.appendChild(etTypeText);
     annotationTarget.appendChild(etType);
     annotationTarget.appendChild(etpropdiv); 
     let neoid = data['entity'][0]['neoID'];
-
     checklogin()
     .then(valid => {
         kb = new KnowledgeBase(neoid, valid);
@@ -321,7 +332,6 @@ function showdata(data) {
       kb = new KnowledgeBase(false, false);
     })
     gateWay.appendChild(createStableLinkingBlock(neoid, etStable));
-    //TODO pass id.
     gateWay.appendChild(createEditRemoveBox(neoid, globalAnnoInteractId));
     if(exists){
       //patch
@@ -340,31 +350,28 @@ function showdata(data) {
       })*/
     //displayET_variant(data['variants'], neoid);
     //With the type known: look up if there's a wikidata attribute: 
-    var qidArr = data['entity'][0]['properties'].filter(ar => ar[2] == 'wikidata');
-    if (qidArr.length === 1) {
-      var qid = qidArr[0][1];
+    let wdLabelAccordingToModel = Object.keys(entityStructure).filter(ar => entityStructure[ar][1] == 'wikidata')[0] || false;
+    if (wdLabelAccordingToModel !==  false) {
+      let qid = data['entity'][0].properties[wdLabelAccordingToModel][1]; 
       var wd = new wikibaseEntry(qid, wdProperties, 'slideover', 'qid');
       wd.getWikidata()
         .then(function () { wd.renderEntities(qid) });
     }
   } else if (datamode === 'automated') {
-    console.log('start here: converts automatic annotation to confirmed one. ');
-    // BUG  this is related to double trigger of entity dropdown menu, but not the cause!. 
-    // you probably will need a way to pass datamode to the appropriate function! since datamode
-    // is part of the global scope, this shouldn't be difficult!
-
-    //find the selected text: 
-    let highlighted = document.getElementsByClassName("markedAnnotation");
-    let highlightedText = '';
-    for (const element of highlighted) {
-      highlightedText += element.textContent;
-    }
-    console.log('highlight is', highlightedText);
-    globalSelectionText = highlightedText;
+    // improved code by relying on the global! 
+    //  value is assigned to globalSelectionText by using the annotation trigger. 
+    // //find the selected text: 
+    // //let highlighted = document.getElementsByClassName("markedAnnotation");
+    // /*let highlightedText = '';
+    // for (const element of highlighted) {
+    //   highlightedText += element.textContent;
+    // }
+    // console.log('highlight is', highlightedText);
+    // globalSelectionText = highlightedText;*/
     $baseURL = '/AJAX/getEntitySuggestion.php?';
     $parameters = {
       'type': '',    //type is empty as there was no pickup by NERtool
-      'value': highlightedText,
+      'value': globalSelectionText,
       'casesensitive': false
     };
     $sendTo = $baseURL + jQuery.param($parameters);
@@ -374,14 +381,6 @@ function showdata(data) {
     .then((data) => {
         loadIntoSuggestionBox(data, globalSelectionStart, globalSelectionEnd);
       })
-    // TODO: CRITICAL
-    /**
-     *        1) code needs to perform a lookup in the DOM and see what the annotated text is.                                        OK
-     *        2) This annotated text should be treated as if you select a part of the DOM text and look it up in the DB.              OK
-     *        3) UPON approval= 
-     *            - update annotation Label from annotation_auto to annotation
-     *            - add other fields in DOM to approve edit and let the user annotate properly. 
-     */
 
     // TODO: TESTPROCEDURES you need a good test procedure to finish the JS components: 
     /**     TAKE TEXT 10004 for this:
@@ -484,7 +483,6 @@ function loadAnnotationData(annotationID = false) {
         //console.log(data); 
         showdata(data);
         updateState('State', 'An annotated entity was selected, you can now see the data held in the database.'); 
-
       }
     })
   .catch(err => handleError(err) );
