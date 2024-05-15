@@ -316,7 +316,7 @@ function loadPropertiesOfSelectedType(selected) {
           }
           newFieldInput.classList.add('attachValidator');
           newFieldInput.classList.add('validateAs_' + datatype);
-          newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
+          newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5', 'my-1');
           newFieldContainer.appendChild(newFieldLabel);
           newFieldContainer.appendChild(newFieldInput);
           formBox.appendChild(newFieldContainer);
@@ -415,7 +415,7 @@ function buildPropertyInputFieldsFor(label) {
             }
             newFieldInput.classList.add('attachValidator');
             newFieldInput.classList.add('validateAs_' + datatype);
-            newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
+            newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5', 'my-1');
             newFieldContainer.appendChild(newFieldLabel);
             newFieldContainer.appendChild(newFieldInput);
             fieldContents.push(newFieldContainer);
@@ -823,7 +823,8 @@ function buildAnnotationCreationBox() {
           newFieldInput.classList.add('inputelement');
           newFieldLabel.appendChild(document.createTextNode(humanLabel + ': '));
           newFieldLabel.setAttribute('for', key);
-          newFieldInput.setAttribute('name', key);
+          newFieldInput.setAttribute('data-name', key);
+          newFieldInput.setAttribute('data-nodetype_override', annocoreNode);
           let htmlType = typeToHtml(datatype);
           if (htmlType !== false) {
             newFieldInput.setAttribute('type', htmlType);
@@ -834,12 +835,11 @@ function buildAnnotationCreationBox() {
             newFieldInput.setAttribute('pattern', expectedPattern);
           }
           if(uniqueness){
-            //TODO: test if uniqueness class is part of the DOM: 
             newFieldInput.classList.add('validateAs_unique');
           }
           newFieldInput.classList.add('attachValidator');
           newFieldInput.classList.add('validateAs_' + datatype);
-          newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5');
+          newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5', 'my-1');
           newFieldContainer.appendChild(newFieldLabel);
           newFieldContainer.appendChild(newFieldInput);
           topBox.appendChild(newFieldContainer);

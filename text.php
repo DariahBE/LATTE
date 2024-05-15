@@ -154,6 +154,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
     </div>
     <script>
       var coreNodes = <?php echo json_encode($coreNodeFiltered); ?>;
+      var annocoreNode = <?php echo json_encode(ANNONODE); ?>;
       var languageOptions = {
         'text': <?php echo json_encode($textString)?>,
         'ISO_code': <?php echo json_encode(false)?>,

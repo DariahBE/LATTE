@@ -85,7 +85,14 @@ class Validator{
           var correct = mainclass.linkValidator(this);
         }
         if(this.classList.contains('validateAs_unique')){
-          var selectedNode = document.getElementById('nodeTypeSelection').firstChild.value;
+        var selectedNode ; 
+          if (this.hasAttribute('data-nodetype_override')) {
+            alert('JEP');
+            selectedNode = this.getAttribute('data-nodetype_override');
+          }else{
+            alert('NOPE');
+            selectedNode = document.getElementById('nodeTypeSelection').firstChild.value;
+          }
           var property = this.getAttribute('data-name');
           var unique = await fetch('/AJAX/uniqueness.php?nodetype='+selectedNode+'&property='+property+'&value='+this.value)
           .then((response) => response.json())

@@ -65,7 +65,8 @@ $nodesDatamodel = array(
     "private" => ["Private Annotation", "bool", false, false, false],
     "note" => ["Note", "string", false, false, true],
     "extra" => ["Extra", "string", false, false, true], 
-    "url" => ["Link", 'uri', false, false, false]
+    "url" => ["Link", 'uri', false, false, false],
+    "cid" => ["comment identifier", 'string', true, false, false]
   ],
   'Full' =>[      //testing all datatypes:
     "nr" => ['ID', 'int', true, false, true], 
