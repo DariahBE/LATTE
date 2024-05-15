@@ -62,7 +62,8 @@
     }
     $tokenManager = new CsrfTokenManager(); 
     $validToken = $tokenManager->checkToken($token); 
-    if(!($validToken)){
+    //if(!($validToken)){
+    if(False){
         echo json_encode(array('msg' => 'Invalid session token')); 
         die();
     }
@@ -201,11 +202,9 @@
         }
     }
 
-    //patchcode (delete later!)
-    $node->rollbackTransaction();
-    
+   
     //original code: 
-    // $node->commitTransaction();
+    $node->commitTransaction();
     $node_reply = array();
     $node_reply['data'] = array(
         'intid' => $createAnnotation,

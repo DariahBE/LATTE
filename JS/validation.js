@@ -1,7 +1,7 @@
 
 // // // Obsolete code!
 // function checkPairValidity(value, datatype){
-//   //TODO: figure out a way of vallidating all datatypes
+//   //TO DO: figure out a way of vallidating all datatypes
 //   // actually, this is already being done by the validator class. 
 //   // is this then really needed? 22/2/24 bug!
 //   return true; 
@@ -9,10 +9,6 @@
 
 class Validator{
 
-  /*
-  globalState(){
-    return false;
-  }*/
 
   intValidator(data){
     let shouldBe = parseInt(data)+0; 
@@ -60,14 +56,12 @@ class Validator{
   }
   pickup(){
     var elements = document.getElementsByClassName('attachValidator'); 
-    console.log(elements); 
     var mainclass = this;
     for(var n=0; n<elements.length; n++){
       var target = elements[n];
       //BUG: system evaluates everything as wikidata entry! // OKAY => new bug integer validator not working.
       //eventlistener is stuck to the last object in the array!
       target.addEventListener('change', async function(){
-        console.log(target);
         if(this.classList.contains('validateAs_string')){
           var correct = [true]; //not really required; strings are allowed to be empty anyway!
         }
@@ -93,7 +87,6 @@ class Validator{
         if(this.classList.contains('validateAs_unique')){
           var selectedNode = document.getElementById('nodeTypeSelection').firstChild.value;
           var property = this.getAttribute('data-name');
-          // BUG: uniqueness can only handle integers for now!!
           var unique = await fetch('/AJAX/uniqueness.php?nodetype='+selectedNode+'&property='+property+'&value='+this.value)
           .then((response) => response.json())
           .then((data) =>{
