@@ -45,7 +45,6 @@ function buildCaroussel(){
             copyRightDiv.innerHTML = goToWikidata; 
             var img = document.createElement('img'); 
             //BUG (low): when doing requests of an image: you get a cookie warning. 
-            //document.cookie = "NetworkProbeLimit=0; SameSite=None";
             // https://gerrit.wikimedia.org/r/c/operations/puppet/+/989457
             // Cookie “NetworkProbeLimit” does not have a proper “SameSite” attribute value 
             img.setAttribute('src', allImagesInList[i][0]);

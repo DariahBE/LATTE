@@ -152,7 +152,9 @@ function acceptQID(qid = -1) {
           //add the annotationfields to the DOM as properties. EXCLUDE start, stop and selectedtext fields. 
           let annotationProperties = document.createElement('div');
           let annoSubContent = document.createElement('div');
-          buildPropertyInputFieldsFor('Annotation').then((content) => {
+          //TODO
+          alert('should be replaced by call to: buildAnnotationCreationBox')
+          buildPropertyInputFieldsFor(annocoreNode).then((content) => {
             for (let i = 0; i < Object.keys(content).length; i++) {
               //don't show: start, stop, selectedtext. 
               let field = content[i];

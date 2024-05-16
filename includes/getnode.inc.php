@@ -302,6 +302,22 @@ function executePremadeParameterizedQuery($query, $parameters){
     }
   }
 
+  function extractCoreID($nodedata, $coreproperty, $fallback = 'uid'){
+    if(array_key_exists($coreproperty, array($nodedata['properties']))){
+      // By default if possible, return the coreproperty as defined
+      // by the config.inc.php nodesmodel that matches the nodetype
+      // requested by the enduser. 
+      return $nodedata->getProperty($coreproperty); 
+    }else{
+      // UID is a hardcoded property that should be in ALL nodes.
+      // it is a good fallbackproperty that guarantees uniqueness
+      // in case $coreproperty is missing. Catches bugs that are 
+      // caused by a missing coreproperty (e.g. adding new properties
+      // after project start); 
+      return $nodedata->getProperty($fallback); 
+    }
+  }
+
 
   function matchSingleNode($type, $key, $value){
     if (is_numeric($value)){
@@ -322,7 +338,7 @@ function executePremadeParameterizedQuery($query, $parameters){
         $core = helper_extractPrimary($type);
         $node = array(
           //get the name of the text PK:
-          'coreID'=>$record['node']->getProperty($core),
+          'coreID'=> $this->extractCoreID($record['node'], $core),
           'model'=>array_key_exists($type, NODES) ? NODES[$type] : null, 
           'neoID'=>$record['ID']
         );

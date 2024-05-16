@@ -109,7 +109,6 @@ function showNodeMetadata(metadata, nodeId){
   .done(function(data){
     const uriTarget = document.getElementById('nodeLinkBox'); 
     uriTarget.innerHTML= '';
-    //console.log(data);
     if(data.uri.length === 1){
       var uriDisplay = document.createElement('a'); 
       uriDisplay.href = data['uri'][0]; 
@@ -322,7 +321,6 @@ function init(neoIDFromEgo){
       var node = network.body.data.nodes.get(clickedOn); 
       showNodeMetadata(node['properties'], clickedOn);
     });
-    //body.on('click', function(){toggleSlide(0);})
   } 
   )
 }
