@@ -28,7 +28,7 @@ if (!boolval($text)){
     header('Location: /error.php');
     die('rejected node');
 }
-$textString = $text['text'];
+$textString = $text[TEXNODETEXT];
 //set raw text: 
 $export->setText($textString); 
 $i = 0; 

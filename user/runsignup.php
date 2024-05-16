@@ -10,7 +10,6 @@ $csrf_name = 'registrationtoken';
 $user = new User($client);
 $graph = new Node($client);
 
-//TODO: user invite code should be rewritten to use the SQLITE database. 
 
 
 /**
@@ -75,18 +74,29 @@ if(!empty($missing)) {
 
         //3: does the invitetoken belong to the provided e-mail.
         //check that inviteToken and e-mail addres are a valid pair: 
-        $query = 'MATCH (n:priv_user) WHERE n.invitationcode = $token AND n.mail = $mail RETURN n'; 
-        $parameters = array(
-          'token' => $_POST['invitetoken'], 
-          'mail' => $_POST['email']
-        ); 
-        $data = $graph->executionOfParameterizedQuery($query, $parameters); 
-        if($data->count() === 1){
-            $existingNodeId = $data[0]['n']['id'];
-        }else{
+        //TODO: test invite code, rewritten to use SQLITE now. . 
+        //$query = 'MATCH (n:priv_user) WHERE n.invitationcode = $token AND n.mail = $mail RETURN n'; 
+        $query = 'SELECT * FROM userdata WHERE userdata.mail  = ? AND userdata.token = ? AND userdata.token IS NOT NULL'
+        $stmt = $this->sqlite->prepare($query);
+        $stmt->execute(array($_POST['email'], $_POST['invitetoken']));
+        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        if(count($result) === 0){
             echo json_encode(array('msg' => 'Invalid invitecode'));
             die();
+        }else{
+            $existingNodeId = $data[0]['n']['id'];
         }
+        // $parameters = array(
+        //   'token' => $_POST['invitetoken'], 
+        //   'mail' => $_POST['email']
+        // ); 
+        // $data = $graph->executionOfParameterizedQuery($query, $parameters); 
+        // if($data->count() === 1){
+        //     $existingNodeId = $data[0]['n']['id'];
+        // }else{
+        //     echo json_encode(array('msg' => 'Invalid invitecode'));
+        //     die();
+        // }
     }
     //var_dump($existingNodeId); 
     
@@ -123,6 +133,7 @@ if(!empty($missing)) {
     }
 
     $result = $graph->executionOfParameterizedQuery($query, $data); 
+    //TODO var_dump cleanup. 
     var_dump($result); 
 
     

@@ -30,7 +30,7 @@ if($user_uuid === false){
 }
 
 
-
+/*
 //BUG //TODO: why is this delete statement here?
 $graph = new CUDNode($client); 
 $graph->startTransaction(); 
@@ -41,7 +41,7 @@ try {
     $graph->rollbackTransaction(); 
     die(); 
 }
-$graph->commitTransaction(); 
+$graph->commitTransaction(); */
 
 
 $tokenManager = new CsrfTokenManager();
@@ -137,11 +137,12 @@ function generateSecondBox(){
         $silos = count($siloConnections);
         $repl .= "<p>This text holds {$silos} connection".($silos != 1 ? "s" : "")." to external resources. 
         Deleting this text will delete all links and will remove all of the nodes which are uniquely connected to this text.</p>";
-
     }elseif($ntype == 'anno'){
+        // can stay empty. deleting an annotation only impacts a single text, no need to show it. 
 
     }elseif($ntype == 'entity'){
-        //TODO
+        //can stay empty, you already know the impact 
+        //for texts and annotations. 
     }
     return $repl; 
 }
