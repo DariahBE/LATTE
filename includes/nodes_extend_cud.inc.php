@@ -258,14 +258,20 @@ class CUDNode extends Node {
   }
 
 
-  public function determineRightsSet($requestedLevel){
-    //TODO: incomplete method
+  public function determineRightsSet($requestedLevel, $neoid){
+    //TODO: incomplete method (should be okay, requires testing)
     include_once(ROOT_DIR.'\includes\user.inc.php');
     $user = new User($this->client); 
     //var_dump($user->myRole); 
-    $nodetype = '';         //TODO: determine the nodetype! Some nodes require lower level deletes than others. 
-    $ownerShip = False;     //TODO: determine whether or not the user owns the node!!
-    $whatRightSetApplies = $user->hasEditRights($user->myRole, $ownerShip); 
+    $ownerShip = $this->checkOwnershipOfNode($neoid, $user->neoId);
+
+    $whatRightSetApplies = $user->hasEditRights($user->myRole); 
+    //ownerShip override: if requestlevel = 3, userright = 2 but ownership == true;
+    //then the user has the right to delete (lift the userright up)
+    if ($requestedLevel === 3 && $ownerShip === true && $whatRightSetApplies === 2) {
+      //increase right of 'researcher' level users to delete self-created nodes. 
+      $whatRightSetApplies = 2;
+    }
     if ($whatRightSetApplies >= $requestedLevel){
         return True;
     }else{
@@ -466,7 +472,7 @@ class CUDNode extends Node {
       */
       $repl = []; 
       $relatedAnnoIds = []; 
-      $allowedToDelete = $this->determineRightsSet(3); 
+      $allowedToDelete = $this->determineRightsSet(3, $id); 
       $repl['permission'] = $allowedToDelete; 
       if($allowedToDelete){
         $annosToKillQuery = 'MATCH (n)-[r:contains]-(a) WHERE id(n) = $neoid RETURN id(a) AS killthis;'; 

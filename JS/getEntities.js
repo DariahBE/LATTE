@@ -23,7 +23,6 @@ function entity_extraction_launcher(){
 }
 function getEntities(options){
   var language = options['ISO_code'];
-  alert(language); 
   var nodeid = options['nodeid'];
   const param = {
     node: nodeid,
@@ -282,8 +281,8 @@ function displayEntities(entities){
   $counterTarget.text(entities['meta']['found_entities_number']);
   $modelTarget.text(entities['meta']['used_model']);
   $foundEntities = entities['data'];
-  $entitiesDisplay = document.createElement('div');
-  $($entitiesDisplay).attr('id', 'showEntitiesHere');
+  // $entitiesDisplay = document.createElement('div');
+  // $($entitiesDisplay).attr('id', 'showEntitiesHere');
   let allAnnotations = {...automatic_annotations, ...storedAnnotations.relations};
 
   for (var i = 0; i < $foundEntities.length; i++) {
@@ -294,34 +293,36 @@ function displayEntities(entities){
     if (checkRange(allAnnotations, et_start, et_stop)){
       continue; 
     }
-
-    //adding entity element to the side: 
-    $singleEntity = document.createElement('p');
-    $primaryTextSpan = document.createElement('span');
-    $secondaryTextSpan = document.createElement('span');
-    $singleEntityText = document.createTextNode($foundEntities[i]['text']);
-    $($singleEntity).attr('data-start', et_start);
-    $($singleEntity).attr('data-end', et_stop);
-    if (et_type !== '#$#undefined#$#'){
-      //et_type = 'person';
-      $($singleEntity).attr('data-type', et_type);
-    }
-    $($singleEntity).attr('data-stringExact', $foundEntities[i]['text']);
-    //$($singleEntity).attr('data-stringNormalized');
-    $primaryTextSpan.appendChild($singleEntityText);
-
-    $singleEntity.appendChild($primaryTextSpan);
-    $singleEntity.appendChild($secondaryTextSpan);
-    $($primaryTextSpan).addClass('firstSpanElementOfEntity');
-    $($primaryTextSpan).addClass('ignoreElementDepth');
-    $($secondaryTextSpan).addClass('secondSpanElementOfEntity');
-    $($singleEntity).addClass(et_type);
-    $($singleEntity).addClass('anEntity');
-    var clickForInfo = function(e){
-      getInfoByClick(e);
-    }
-    $($singleEntity).click(clickForInfo);
-    $entitiesDisplay.appendChild($singleEntity);
+    //adding the annotations to the side: not required any longer. 
+    // code disabled
+    /*
+      //adding entity element to the side: 
+      // $singleEntity = document.createElement('p');
+      // $primaryTextSpan = document.createElement('span');
+      // $secondaryTextSpan = document.createElement('span');
+      // $singleEntityText = document.createTextNode($foundEntities[i]['text']);
+      // $($singleEntity).attr('data-start', et_start);
+      // $($singleEntity).attr('data-end', et_stop);
+      // if (et_type !== '#$#undefined#$#'){
+      //   //et_type = 'person';
+      //   $($singleEntity).attr('data-type', et_type);
+      // }
+      // $($singleEntity).attr('data-stringExact', $foundEntities[i]['text']);
+      //$($singleEntity).attr('data-stringNormalized');
+      // $primaryTextSpan.appendChild($singleEntityText);
+      // $singleEntity.appendChild($primaryTextSpan);
+      // $singleEntity.appendChild($secondaryTextSpan);
+      // $($primaryTextSpan).addClass('firstSpanElementOfEntity');
+      // $($primaryTextSpan).addClass('ignoreElementDepth');
+      // $($secondaryTextSpan).addClass('secondSpanElementOfEntity');
+      // $($singleEntity).addClass(et_type);
+      // $($singleEntity).addClass('anEntity');
+      // var clickForInfo = function(e){
+      //   getInfoByClick(e);
+      // }
+      // $($singleEntity).click(clickForInfo);
+      // $entitiesDisplay.appendChild($singleEntity);
+    */
 
     //adding entity element to text as annotation_auto
     const ltrElements = document.querySelectorAll('.ltr');
@@ -345,7 +346,7 @@ function displayEntities(entities){
   }
 
 
-  $entitiesTarget.append($entitiesDisplay);
+  //$entitiesTarget.append($entitiesDisplay);
 }
 // Add the event listener
 const clickHandler = () => {

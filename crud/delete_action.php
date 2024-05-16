@@ -40,12 +40,10 @@ if(!($validToken)){
 }
 
 //Check if deleterights are granted: 
-// assume no ownership; does not impact the delete rights. 
-$ownership = False; 
 $user = new User($client); 
 $user->checkSession();
 //implement: // TODO   !!!!! 
-$allowedDelete = $user->hasEditRights($user->myRole, $ownership);
+$allowedDelete = $user->hasEditRights($user->myRole);
 if($allowedDelete < 3){
     die(); 
 }

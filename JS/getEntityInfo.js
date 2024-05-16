@@ -1,5 +1,4 @@
 function getInfoFromBackend(url){
-  //alert('called1');
   var myPromise = new Promise ((resolve, reject)=>{
     $.ajax({
       type:"GET",
@@ -14,8 +13,10 @@ function getInfoFromBackend(url){
   return myPromise;
 }
 
+/*
+//Obsole code, only required for the entity side panel provided by the 
+LATTE connector. 
 function showInfoFromBackend(info, elem){
-  //alert('called2');
   var matchingRecords = info['meta']['entities'];
   var nodes = info['nodes'];
   var edges = info['edges'];
@@ -28,16 +29,21 @@ function showInfoFromBackend(info, elem){
   elem.target.setAttribute('data-retrievedEdges', JSON.stringify(edges));
   elem.target.getElementsByClassName('secondSpanElementOfEntity')[0].removeEventListener('click', backendHandler);
   elem.target.getElementsByClassName('secondSpanElementOfEntity')[0].addEventListener('click', backendHandler);
-}
+}*/
 
+/*
 function getInfoByClick(e){
+  extracts stored info from the database for a node that's stored with 
+  same spellng as the click-event comes from.
+  Triggers are applied to the side column where matched entities are present
+  after analysis by LATTE connector. 
   //depends on use of normalization.
   var nodetype = e.target.getAttribute('data-type');
   var strValue = e.target.getAttribute('data-stringExact');
   /*
   if(useNormalization){
     strValue = e.target.getAttribute('data-stringNormalized');
-  }*/
+  }* /
   $baseURL = '/AJAX/getEntitySuggestion.php?';
   $parameters = {
     'type':nodetype,
@@ -49,4 +55,4 @@ function getInfoByClick(e){
   .then((data)=>{
     showInfoFromBackend(data, e);
   })
-}
+}*/

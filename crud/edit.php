@@ -13,8 +13,8 @@ include_once(ROOT_DIR.'/includes/buildform.inc.php');
 //Edit portal is only open for registered users: 
 //  SO: check user registration
 $user = new User($client);
-$user_uuid = $user->checkSession();
-if($user_uuid === false){
+$user_id = $user->checkSession();
+if($user_id === false){
   header("Location: /user/login.php");
   die("redir required"); 
 }

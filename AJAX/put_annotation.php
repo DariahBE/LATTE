@@ -20,7 +20,7 @@
     //check if the annotation is being created by a valid user: If no user is logged in => die()
     $user = new User($client);
     //check user
-    $user_uuid = $user->checkSession();
+    $user_id = $user->checkSession();
     if(!(isset($_POST['data']))){
         echo json_encode(array('msg' => 'Data is missing in request. Your request was rejected.'));
         die(); 

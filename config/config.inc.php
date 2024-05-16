@@ -101,24 +101,6 @@ $propertyContainingText = 'article';   //Which property holds the text to show o
 
 
 
-
-/**Feed the edges to the application: 
- * each key in the model is an edgename 
- * the value for each key is an array.
- * In that array the first two arguments are two separate arrays of nodes the edge connects.
- * The third argument is a boolean True/False is accepted here. If True the 
- * edge is directed (node1)->(node2) and goes from your first argument to your second argument
- * If False, the edge is not-directed and goes back and forth. (node1)--(node2)
-//  */
-// $edgesDatamodel = array(
-//   'contains' => [array('Text'), array('Annotation'), True],
-//   'references' => [array('Annotation'), array('Person', 'Dog', 'Place'), True],
-//   'same_as' => [array('Variant'), array('Person', 'Dog', 'Place'), True], 
-//   'see_also' => [array('Person', 'Dog', 'Place'), array('See_Also'), True]
-// );
-
-
-
 //node properties that are protected by the application and automatically generated. 
 $privateProperties = array('uid');
 

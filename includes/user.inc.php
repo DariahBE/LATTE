@@ -143,7 +143,7 @@ public function checkForSession($redir="/user/mypage.php"){
     }
   }
 
-  public function hasEditRights($role, $isOwner){
+  public function hasEditRights($role){
     /*
       0 = Deny all
       1 = Create New
@@ -151,7 +151,6 @@ public function checkForSession($redir="/user/mypage.php"){
       3 = Create, update and delete
       4 = SuperUser: allow all.
     */
-    //TODO ownership check!!!!
     $role = strtolower($role); 
     if($role === 'admin'){
       //if you're admin, you can edit it.
@@ -164,10 +163,12 @@ public function checkForSession($redir="/user/mypage.php"){
       // you can edit nodes and edges.
       return 2;
     }
-    if($isOwner){
-      //if you own the record, you can edit and update. - even when restricted to the contributor role.
-      return 2;
-    }
+    // ownership check is moved elsewhere
+    // obsolete code. 
+    // if($isOwner){
+    //   //if you own the record, you can edit and update. - even when restricted to the contributor role.
+    //   return 2;
+    // }
     if($role === 'contributor'){
       //user can add, but can not edit
       return 1;

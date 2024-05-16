@@ -40,7 +40,7 @@ $crudNode = new CUDNode($client);
  * 
 */
 $crudNode->startTransaction(); 
-$IsTheUserAllowedToDelete = $crudNode->determineRightsSet(3); 
+$IsTheUserAllowedToDelete = $crudNode->determineRightsSet(3, (int)$_GET['id']); 
 if(isset($_GET['checkrights'])){
     die(json_encode(array('actionAllowed'=>$IsTheUserAllowedToDelete)));//if the application only has to check for the delete rights
 }

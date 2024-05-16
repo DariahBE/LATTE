@@ -11,8 +11,8 @@ include_once(ROOT_DIR.'/includes/csrf.inc.php');
 //checks for user: 
 $user = new User($client);
 $user->checkAccess(TEXTSAREPUBLIC);
-$user_uuid = $user->checkSession();
-if(!(boolval($user_uuid))){
+$user_id = $user->checkSession();
+if($user_id === false){
   die();        //only registered users can make changes to the database.
 }
 //connect to graph database

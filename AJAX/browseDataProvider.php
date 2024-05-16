@@ -8,7 +8,7 @@
 
   $user = new User($client);
 
-  $user_uuid = $user->checkSession();
+  $user_id = $user->checkSession();
 
 
   $value = $_GET['value'];    // DO NOT typecast, can be alfanumerical!

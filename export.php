@@ -21,7 +21,7 @@ $annotation = new Annotation($client);
 $annotation->startTransaction(); 
 $user = new User($client);
 //check user
-$user_uuid = $user->checkSession();
+$user_id = $user->checkSession();
 //get text: set it to the exporter together with identified text.
 $text = $node->matchTextByNeo($neoId);
 if (!boolval($text)){
@@ -41,7 +41,7 @@ foreach(new MbStrIterator($textString) as $c){
 
 $export->setIdentifiedText($identifiedText); 
 //get annotations: 
-$existingAnnotation = $annotation->getExistingAnnotationsInText($neoId, $user_uuid);
+$existingAnnotation = $annotation->getExistingAnnotationsInText($neoId, $user_id);
 $export->setAnnotations($existingAnnotation); 
 //get automatic annotations: the ones recognized by NER-tools: 
 $autoAnnotation = $annotation->getUnlinkedAnnotationsInText($neoId); 

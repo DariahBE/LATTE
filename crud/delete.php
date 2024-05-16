@@ -24,8 +24,8 @@ if(!isset($_GET['id'])){
 }
 
 $user = new User($client);
-$user_uuid = $user->checkSession();
-if($user_uuid === false){
+$user_id = $user->checkSession();
+if($user_id === false){
     die('login required');
 }
 

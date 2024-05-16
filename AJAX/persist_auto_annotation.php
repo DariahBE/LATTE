@@ -44,7 +44,7 @@ $tokenManager->revokeToken();   //kill the token.
 //do a new permissioncheck!!
 //(the token could be stored from elsewhere and be used here to bypass the check in the tokenmanager)
 $user = new User($client);
-if($user->hasEditRights($user->myRole, False) < $local_permissionLevel){
+if($user->hasEditRights($user->myRole) < $local_permissionLevel){
     die();
 };
 

@@ -32,22 +32,7 @@ $node->testNewQuery(5911, 2); */
 
 
 
-
-$node->startTransaction();
-
-
-// var_dump($node->generateUniqueKey('Text', 'texid'));
-// var_dump($node->generateUniqueKey('Test', 'id'));
-// var_dump($node->generateUniqueKey('Test', 'id'));
-// var_dump($node->generateUniqueKey('Test', 'ids'));
-// var_dump($node->generateUniqueKey('Testje', 'id'));
-// var_dump($node->generateUniqueKey('Testje', 'ibm'));
-
-
-
-
-
-$node->rollbackTransaction(); 
+var_dump($node->checkOwnershipOfNode(0, 1));
 
 
 die('exit'); 

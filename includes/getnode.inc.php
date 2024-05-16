@@ -39,27 +39,6 @@ function ignoreRegex($strIn){
   return $strOut;
 }
 
-/*
-function process_relationshipNodes($nodeIn){
-  //data is controlled: only a single node.
-  //TODO: code is not being referenced, should you keep it then??
-  // BUG:
-  /*
-      Flawed datamodel: code should use dynamic properties as they are set by
-      the config.inc.php file. Do not rely on static hardcoded models!
-      SAME bugfix as in ghet process_entityNodes method!
-  * /
-  $id = $nodeIn['id'];
-  $label = $nodeIn['labels'][0];
-  $data = array(
-    'label'=>'LINK',
-    'name'=>$nodeIn['properties']['partner'],
-    'id'=>$nodeIn['properties']['partner_id'],
-    'uri'=>$nodeIn['properties']['partner_uri'],
-  );
-  return array($id, $label, $data);
-}*/
-
 function valueExtract($node, $key){
   try {
     return $node[$key];
@@ -481,9 +460,8 @@ function executePremadeParameterizedQuery($query, $parameters){
         //      $result =>q = entity: equals P when matchted against a label variant.
         //      $result =>i,j entity that link to external project
         if(!(is_null($result['i']))){
-          //$iPartner = process_relationshipNodes($result['i']);
           $iPartner = process_entityNodes($result['i']);
-          $iPartner['siloForEt'] = 0;//todo
+          $iPartner['siloForEt'] = 0;//TODO
 
           if(!(in_array($iPartner[0], $registeredNodes))){
             $registeredNodes[] = $iPartner[0];
@@ -491,9 +469,8 @@ function executePremadeParameterizedQuery($query, $parameters){
           }
         }
         if(!(is_null($result['j']))){
-          //$jPartner = process_relationshipNodes($result['j']);
           $jPartner = process_entityNodes($result['j']);
-          $jPartner['siloForEt'] = 0; //todo
+          $jPartner['siloForEt'] = 0; //TODO
           if(!(in_array($jPartner[0], $registeredNodes))){
             $registeredNodes[] = $jPartner[0];
             $formattedResults['silo'][] = $jPartner;
@@ -594,6 +571,20 @@ function executePremadeParameterizedQuery($query, $parameters){
     }
     //var_dump($result['labels'][0]);
     return $result; 
+  }
+
+  public function checkOwnershipOfNode($id, $userid){
+    /** takes the internal NEO id of the node and the internal 
+     * neo id of the user. Then checks if the two are connected
+     * by an edge. 
+     */
+    $query = 'MATCH (u:priv_user)-[r:priv_created]->(n) WHERE id(n) = $node AND id(u) = $user return n, r, u'; 
+    $result = $this->client->run($query, ['node'=>(int)$id, 'user'=>(int)$userid]);
+    //if the resultset has at least one row; get the row ==> the first row is also the only row!!
+    if(boolval($result->count())){
+      return True;
+    }
+    return False; 
   }
 
   public function countConnections($id){

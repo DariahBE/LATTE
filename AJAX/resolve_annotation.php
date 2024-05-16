@@ -54,7 +54,7 @@ if ($annotation_type === ANNONODE){
   $formattedResponse['annotationFields'] = NODEMODEL[ANNONODE];
   $formattedResponse['entityFields'] = NODEMODEL[$connectedEntityLabel];
   foreach ($annotationInformation['properties'] as $key => $value) {
-    $allowedToEdit = $user->hasEditRights($user->myRole, $user->myName === $owner);
+    $allowedToEdit = $user->hasEditRights($user->myRole);
     $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key), $allowedToEdit);
   }
   //Find the connecting entity that is linked to the annotation and labelvariants associated with this entity: 

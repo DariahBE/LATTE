@@ -30,7 +30,7 @@ $annotation = new Annotation($client);
 $annotation->startTransaction(); 
 $wikidata = new Wikidata_user($client);
 
-$user_uuid = $user->checkSession();
+$user_id = $user->checkSession();
 
 
 $wikidata->buildPreferences();
@@ -42,7 +42,7 @@ if(!boolval($text) or !array_key_exists('coreID', $text)){
 }
 $nodeId = $text['coreID'];
 $neoId = $text['neoID'];  
-$existingAnnotation = $annotation->getExistingAnnotationsInText($neoId, $user_uuid);
+$existingAnnotation = $annotation->getExistingAnnotationsInText($neoId, $user_id);
 $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId); 
 
 
