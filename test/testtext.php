@@ -13,6 +13,7 @@ include_once(ROOT_DIR."\includes\datasilo.inc.php");
 include_once(ROOT_DIR."\includes\\nodes_extend_cud.inc.php"); 
 
 $node = new CUDNode($client);
+$anno = new Annotation($client); 
 /*
 echo 'CASE1: EXPECT NODE'; 
 $node->testNewQuery(789, 9999); 
@@ -31,9 +32,9 @@ $node->testNewQuery(5911, 2); */
 
 
 
-
-var_dump($node->checkOwnershipOfNode(0, 1));
-
+$anno->startTransaction(); 
+var_dump($anno->testNodePrivacyDection(0, 1));
+//$anno->endTransaction();
 
 die('exit'); 
 /*

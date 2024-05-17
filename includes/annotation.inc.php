@@ -354,46 +354,100 @@ class Annotation{
     return $data;
   }
 
+  public function extractboolval($value){
+    $value = strtolower(trim($value));
+    if($value == 'true'){return true;}
+    if($value == 'false'){return false;}
+    if($value === null){return false;}
+    return boolval($value); 
+  }
+
+  // TESTCODE: can be deleted in cleanup phase
+      // public function testNodePrivacyDection($neoid){
+      //   var_dump($neoid); 
+      //   $query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) 
+      //   OPTIONAL MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')<-[pc:priv_created]-(u:priv_user) 
+      //   WHERE id(t)=$neoid
+      //   RETURN id(a) as annoid, u.user_sqlid as userid, a.private as annoprivacyflag, t,a,p,u;';
+      //   //patch: consider returning the property and extracting that; by default cypher will nullify non-existing properties.
+      //   $result = $this->tsx->run($query, ['neoid'=>$neoid]);
+      //   $anno_to_user = []; 
+        
+      //   foreach ($result as $key => $annotationRecord) {
+      //     /**
+      //      *  user is either NULL or a NODE ID.
+      //      *    if NULL ==> there is no user linked to the record = public
+      //      *    IF NODE ==> the ID is the owner of the node 
+      //      * an annotation is private if stored as KEY in assoc array $anno_to_user, 
+      //      * the owner is set as VALUE for the stored KEY
+      //     */
+      //     if($this->extractboolval($annotationRecord->get('annoprivacyflag'))){
+      //       $anno_to_user[$annotationRecord->get('annoid')] = $annotationRecord->get('userid'); 
+      //     }
+
+      //   }
+      //   var_dump($anno_to_user); 
+      // }
+  //    TESTCODE END!
   
-  public function getExistingAnnotationsInText($neoid, $user = false){
+  public function getExistingAnnotationsInText($neoid, $user_sql_id_int = false){
+    //$user_sql_id_int = 5;//   TEST PASSED: private nodes do not show when missmatch between owner(u.user_sqlid) and viewer(user_sql_id_int)
     //when user is false ==> only show public annotations.
     // when user is set to a matching priv_user.userid ==> show all public annotation + private annotations by $user
     //user parameter to determine if a node is private or not
-    $query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) where id(t)=$neoid return t,a,p;';
-
+    // this should be a patch for the bug further down. 
+    //$query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) where id(t)=$neoid return t,a,p;';
+    $query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) 
+    OPTIONAL MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')<-[pc:priv_created]-(u:priv_user) 
+    WHERE id(t)=$neoid
+    RETURN id(a) as annoid, u.user_sqlid as userid, a.private as annoprivacyflag, t,a,p,u;';
     //patch: consider returning the property and extracting that; by default cypher will nullify non-existing properties.
     $result = $this->tsx->run($query, ['neoid'=>$neoid]);
     $data = array();
-    $data['user'] = $user;
+    $data['user'] = $user_sql_id_int;
     $annotationData = array();
+    //$anno_to_user = []; 
 
-
-    function controlledReply($object, $propertyName, $controlledOutput){
-      /*
-        The getProperty() method does not return null when a property is not set!!!
-        In other words it must exist for the code to work, patched for now by putting
-        it in a try catch block; with default output given as function argument.
-      */
-      try {
-        return $object->getProperty($propertyName);
-      } catch (\Exception $e) {
-        return $controlledOutput;
-      }
-    }// endof controlledReply.
+    //OBSOLETE CODE SINCE UPDATE
+        // function controlledReply($object, $propertyName, $controlledOutput){
+        //   /*
+        //     The getProperty() method does not return null when a property is not set!!!
+        //     In other words it must exist for the code to work, patched for now by putting
+        //     it in a try catch block; with default output given as function argument.
+        //   */
+        //   try {
+        //     return $object->getProperty($propertyName);
+        //   } catch (\Exception $e) {
+        //     return $controlledOutput;
+        //   }
+        // }// endof controlledReply.
+    // END OF OBSOLETE CODE
 
     foreach ($result as $key => $annotationRecord) {
       $targetNodeType = $annotationRecord['p']->getLabels()[0];
-        foreach($annotationRecord as $subkey => $node){
+      if($this->extractboolval($annotationRecord->get('annoprivacyflag'))){
+        $isPrivate = True;
+        //$anno_to_user[$annotationRecord->get('annoid')] = $annotationRecord->get('userid'); 
+      }else{
+        $isPrivate = False; 
+      }
+      $node = $annotationRecord->get('a');
+       // foreach($annotationRecord as $subkey => $node){
+          // var_dump($node);
           if($node->labels()[0] === ANNONODE){
             $anno_uuid = $node->getProperty('uid');
-            $isPrivate = controlledReply($node, 'priv_private', False);
-            $creator_uuid = controlledReply($node, 'priv_creator', False);
+            //$isPrivate = controlledReply($node, 'priv_private', False);
+            //$creator_uuid has to be replaced by a boolean that checks if the 
+            // user is connected to this node. 
+            // should be done in the root of this foreach loop to minimize addition queries. 
+            // should only be done if $isPrivate === True!!
+            $creator_sqlid = $annotationRecord->get('userid');
             $annotationStart = $node->getProperty(ANNOSTART);
             $annotationStop = $node->getProperty(ANNOSTOP);
             $neoID = $node['id']; 
             $map = array(
               'annotation' => $anno_uuid,
-              'creator' => $creator_uuid,
+              'creator' => $creator_sqlid,
               'private' => $isPrivate,
               'start' => $annotationStart,
               'stop' => $annotationStop,
@@ -401,14 +455,14 @@ class Annotation{
               'neoid' => $neoID
             );
             if($isPrivate){
-              if($user!==false and $creator_uuid === $user){
+              if($user_sql_id_int !== false AND $creator_sqlid === $user_sql_id_int){
                 $annotationData[$anno_uuid] = $map;
               }
             }else{
               $annotationData[$anno_uuid] = $map;
             }
           }
-        }
+        //}
     }
     $data['relations'] = $annotationData;
     return $data;

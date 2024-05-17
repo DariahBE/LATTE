@@ -21,6 +21,8 @@ $annotation = new Annotation($client);
 $annotation->startTransaction(); 
 $user = new User($client);
 //check user
+//checkSession returns: the session['userid'] value
+// which is the SQL id!!!
 $user_id = $user->checkSession();
 //get text: set it to the exporter together with identified text.
 $text = $node->matchTextByNeo($neoId);
@@ -41,6 +43,8 @@ foreach(new MbStrIterator($textString) as $c){
 
 $export->setIdentifiedText($identifiedText); 
 //get annotations: 
+// pass the user ID! NOT the UUID!
+//send SQL ID of the user! (OK)
 $existingAnnotation = $annotation->getExistingAnnotationsInText($neoId, $user_id);
 $export->setAnnotations($existingAnnotation); 
 //get automatic annotations: the ones recognized by NER-tools: 

@@ -30,6 +30,8 @@ $annotation = new Annotation($client);
 $annotation->startTransaction(); 
 $wikidata = new Wikidata_user($client);
 
+//checkSession returns: the session['userid'] value
+// which is the SQL id!!!
 $user_id = $user->checkSession();
 
 
@@ -42,6 +44,8 @@ if(!boolval($text) or !array_key_exists('coreID', $text)){
 }
 $nodeId = $text['coreID'];
 $neoId = $text['neoID'];  
+// pass the user ID! NOT the UUID!
+//send SQL ID of the user! (OK)
 $existingAnnotation = $annotation->getExistingAnnotationsInText($neoId, $user_id);
 $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId); 
 
