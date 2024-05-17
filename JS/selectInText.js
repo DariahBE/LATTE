@@ -1428,6 +1428,17 @@ function getTextSelection() {
   }
 }
 
+function open_ld_maxhits(){
+  let isChecked = document.getElementById('use_ld').checked; 
+  console.log(isChecked); 
+  if (isChecked){
+    document.getElementById('max_ld').classList.remove('hidden');
+
+  }else{
+    document.getElementById('max_ld').classList.add('hidden');
+  }
+}
+
 function triggerSelection() {
   unmark()
   var selectedTextProperties = getTextSelection();
@@ -1441,14 +1452,14 @@ function triggerSelection() {
   if (selectedText) {
     //get parameters for levenshtein bool and ints
 
-    //TODO: include levenshteit parameters (allow_levenshtein (True/False) and levenshtein_items (int)   )
+    //TODO: Do something with the returned score indicators (weight and levensthein_distance. )
     $baseURL = '/AJAX/getEntitySuggestion.php?';
     $parameters = {
       'type': '',    //type is empty as there was no pickup by NERtool
       'value': selectedText,
       'casesensitive': false, 
-      'allow_levenshtein': true, 
-      'levenshtein_items': 5 
+      'allow_levenshtein': $('#use_ld').is(":checked"), 
+      'levenshtein_items': $('#max_ld').val()
     };
     $sendTo = $baseURL + jQuery.param($parameters);
     makeSuggestionBox();
@@ -1460,7 +1471,7 @@ function triggerSelection() {
 }
 
 $(document).ready(function () {
-  // bug: if cursor lets go off the letter, trigger doesn't work, attach it higher up!
+  //BUG: if cursor lets go off the letter, trigger doesn't work, attach it higher up!
   document.getElementById('textcontent').addEventListener('mouseup', function () { triggerSelection() });
   document.getElementById('textcontent').addEventListener('keyup', function () { triggerSelection() });
   //use esc key to delete the suggestionbox:

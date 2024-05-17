@@ -403,7 +403,6 @@ function executePremadeParameterizedQuery($query, $parameters){
 
 
   function getEntities($entityType, $entityValue, $caseSensitive=false, $limit=100, $offset=0, $allow_levenshtein=false, $levenshtein_hits = 5){
-    //TODO test and patch. 
     // All spelling variants are linked to an entity, you should look at the variants
     // track them back to the related entity and see if that matches the option type given!
     // Levenshtein lookups are only allowed if there is no direct match found. 
@@ -513,15 +512,16 @@ function executePremadeParameterizedQuery($query, $parameters){
         //      DROPPED YOU CAN NOT MATCH DIRECTLY: -----$result =>p, = entity------
         //      $result =>q = entity: equals P when matchted against a label variant.
         //      $result =>i,j entity that link to external project
-        /*if(!(is_null($result['i']))){
-          $iPartner = process_entityNodes($result['i']);
-          $iPartner['siloForEt'] = 0;//TODO
+        // processing i-nodes is obsolete: reduced query complexity. 
+        // /*if(!(is_null($result['i']))){
+        //   $iPartner = process_entityNodes($result['i']);
+        //   $iPartner['siloForEt'] = 0;//TODO
 
-          if(!(in_array($iPartner[0], $registeredNodes))){
-            $registeredNodes[] = $iPartner[0];
-            $formattedResults['silo'][] = $iPartner;
-          }
-        }*/
+        //   if(!(in_array($iPartner[0], $registeredNodes))){
+        //     $registeredNodes[] = $iPartner[0];
+        //     $formattedResults['silo'][] = $iPartner;
+        //   }
+        // }*/
         if(!(is_null($result['j']))){
           $jPartner = process_entityNodes($result['j']);
           $jPartner['siloForEt'] = 0; //TODO
@@ -537,22 +537,23 @@ function executePremadeParameterizedQuery($query, $parameters){
             $formattedResults['labelvariants'][] = $variant;
           }
         }
-        /*
-        if(!(is_null($result['p']))){
-          $entity = process_entityNodes($result['p']);
-          $etWeight = $result['pcount'];
-          if(!(in_array($entity[0], $registeredNodes))){
-            $formattedResults['weights'][$entity[0]] = $etWeight; 
-            if($allow_levenshtein){
-              $distance = $result['distance']; 
-              var_dump($entity[0], $distance); 
-              $formattedResults['levenshtein_dist'][$entity[0]] = $distance; 
-            }
-            $registeredNodes[] = $entity[0];
-            $entities+=1;
-            $formattedResults['nodes'][] = $entity;
-          }
-        }*/
+        // processing p-nodes is obsolete: reduced query complexity. 
+        // /*
+        // if(!(is_null($result['p']))){
+        //   $entity = process_entityNodes($result['p']);
+        //   $etWeight = $result['pcount'];
+        //   if(!(in_array($entity[0], $registeredNodes))){
+        //     $formattedResults['weights'][$entity[0]] = $etWeight; 
+        //     if($allow_levenshtein){
+        //       $distance = $result['distance']; 
+        //       var_dump($entity[0], $distance); 
+        //       $formattedResults['levenshtein_dist'][$entity[0]] = $distance; 
+        //     }
+        //     $registeredNodes[] = $entity[0];
+        //     $entities+=1;
+        //     $formattedResults['nodes'][] = $entity;
+        //   }
+        // }*/
         if(!(is_null($result['q']))){
           $entity = process_entityNodes($result['q']);
           $etWeight = $result['qcount'];
@@ -576,14 +577,17 @@ function executePremadeParameterizedQuery($query, $parameters){
           $formattedResults['edges'][] = $edge;
         }
       }
-      /*
-      if(!(is_null($result['r2']))){
-        $edge = process_edge($result['r2']);
-        if(!(in_array($edge['edgeID'], $registeredEdges))){
-          $registeredEdges[] = $edge['edgeID'];
-          $formattedResults['edges'][] = $edge;
-        }
-      }*/
+      
+      //Obsolete
+      // processing r2-edges is obsolete: reduced query complexity. 
+      // /*
+      // if(!(is_null($result['r2']))){
+      //   $edge = process_edge($result['r2']);
+      //   if(!(in_array($edge['edgeID'], $registeredEdges))){
+      //     $registeredEdges[] = $edge['edgeID'];
+      //     $formattedResults['edges'][] = $edge;
+      //   }
+      // }*/
       if(!(is_null($result['r3']))){
         $edge = process_edge($result['r3']);
         if(!(in_array($edge['edgeID'], $registeredEdges))){

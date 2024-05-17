@@ -368,14 +368,16 @@ function showdata(data) {
     // }
     // console.log('highlight is', highlightedText);
     // globalSelectionText = highlightedText;*/
-    //TODO: include levenshteit parameters (allow_levenshtein (True/False) and levenshtein_items (int)   )
+    
+    //TODO: Do something with the returned score indicators (weight and levensthein_distance. )
+    $ld_count = $('#max_ld'); 
     $baseURL = '/AJAX/getEntitySuggestion.php?';
     $parameters = {
       'type': '',    //type is empty as there was no pickup by NERtool
       'value': globalSelectionText,
       'casesensitive': false, 
-      'allow_levenshtein': true, 
-      'levenshtein_items': 5 
+      'allow_levenshtein': $('#use_ld').is(":checked"), 
+      'levenshtein_items': $('#max_ld').val()
     };
     $sendTo = $baseURL + jQuery.param($parameters);
     //there's no need to keep the call to the suggestionbox during the conversion process!
