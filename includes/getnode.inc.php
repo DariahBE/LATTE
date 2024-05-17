@@ -402,7 +402,12 @@ function executePremadeParameterizedQuery($query, $parameters){
 
 
 
-  function getEntities($entityType, $entityValue, $caseSensitive=false, $limit=100, $offset=0){
+  function getEntities($entityType, $entityValue, $caseSensitive=false, $limit=100, $offset=0, $allow_levenshtein=false, $levenshtein_hits = 5){
+    //TODO test and patch. 
+    // All spelling variants are linked to an entity, you should look at the variants
+    // track them back to the related entity and see if that matches the option type given!
+    // Levenshtein lookups are only allowed if there is no direct match found. 
+    // with the option levenshtein_hits parameter you can increase the amount of extra nodes returned. 
     $lim = (int)$limit; 
     $offset = (int)$offset;   // intended to bese used as pagination!!! So multiply with $limit. 
     boolval($offset) ? $extraOffset = ' SKIP '.$lim*$offset : $extraOffset = '';
@@ -412,36 +417,82 @@ function executePremadeParameterizedQuery($query, $parameters){
     if(boolval($entityType)){
       $entityType = ':'.$entityType;
     }
-    if($caseSensitive){
-      $cypherQuery = '
-          OPTIONAL MATCH (p'.$entityType.' {label:$nameValue1})
-          OPTIONAL MATCH (v {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
-          OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
+  if($allow_levenshtein){
+    $cypherQuery = '
+      // Match the variant :$nameValue2 and its relationships
+      MATCH (v {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
+      OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+      
+      // Collect direct matches
+      WITH v, q, r1, r3, j, size((q)--()) AS qcount, 
+          COALESCE(size((q)--()), 0) AS collectiveScore
+      RETURN v, q, r1, r3, j, qcount, collectiveScore, 1 as distance
+      UNION
+      // Handle cases where there is no direct match by using Levenshtein distance
+      CALL {
+          WITH $nameValue2 AS target
+          // Find nodes that could be potential matches
+          MATCH (v)
+          WHERE NOT EXISTS { MATCH (v {variant:$nameValue2}) }
+          WITH v, apoc.text.levenshteinDistance(v.variant, target) AS distance
+          // Sort by distance and take the top 5 closest matches
+          ORDER BY distance
+          LIMIT '.(int)$levenshtein_hits.' 
+          RETURN v, distance
+      }
+      MATCH (v)-[r1:same_as]-(q'.$entityType.')
+      OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+      WITH COALESCE(size((q)--()), 0) AS collectiveScore, 
+          v, q, r1, r3, j, size((q)--()) AS qcount, distance
+      RETURN v, q, r1, r3, j, qcount, collectiveScore, distance
+      '.$limString;
+  
+    $placeholders = array(
+      'nameValue2'=>$entityValue
+    );
+  }else if($caseSensitive){
+      // $cypherQuery = '
+      //     //OPTIONAL MATCH (p'.$entityType.')
+      //     MATCH (v {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
+      //     // OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
+      //     OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+      //     WITH COALESCE(size((p)--()), 0)+COALESCE(size((q)--()), 0) AS collectiveScore, p AS p, v AS v, q AS q, r1 AS r1, r2 AS r2, r3 AS r3, i AS i, j AS j
+      //     RETURN p,v,q,r1,r2,r3,i,j, size((p)--()) AS pcount, size((q)--()) AS qcount, collectiveScore
+      //      '.$limString;
+        $cypherQuery = '
+          MATCH (v {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
           OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
-          WITH COALESCE(size((p)--()), 0)+COALESCE(size((q)--()), 0) as collectiveScore, p as p, v as v, q as q, r1 as r1, r2 as r2, r3 as r3, i as i, j as j
-          return p,v,q,r1,r2,r3,i,j, size((p)--()) as pcount, size((q)--())as qcount, collectiveScore
-           '.$limString;
+          WITH COALESCE(size((q)--()), 0) AS collectiveScore, v AS v, q AS q, r1 AS r1, r3 AS r3, j AS j
+          RETURN v,q,r1,r3,j, size((q)--()) AS qcount, collectiveScore
+          '.$limString;
       $placeholders = array(
-          'nameValue1'=>$entityValue,
           'nameValue2'=>$entityValue
       );
     }else{
       //case Insensitive ==> using regex
       $entityValueCleaned = ignoreRegex($entityValue);
-      $cypherQuery = '
-          OPTIONAL MATCH (p'.$entityType.') WHERE p.label =~ $nameValue1
-          OPTIONAL MATCH (v)-[r1:same_as]-(q'.$entityType.') WHERE v.variant =~ $nameValue2
-          OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
-          OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
-          WITH COALESCE(size((p)--()), 0)+COALESCE(size((q)--()), 0) as collectiveScore, p as p, v as v, q as q, r1 as r1, r2 as r2, r3 as r3, i as i, j as j
-          return p,v,q,r1,r2,r3,i,j, size((p)--()) as pcount, size((q)--())as qcount, collectiveScore
-           '.$limString;
+      // $cypherQuery = '
+          // //OPTIONAL MATCH (p'.$entityType.')
+          // MATCH (v)-[r1:same_as]-(q'.$entityType.') WHERE v.variant =~ $nameValue2
+          // // OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
+          // OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+          // WITH COALESCE(size((p)--()), 0)+COALESCE(size((q)--()), 0) AS collectiveScore, p AS p, v AS v, q AS q, r1 AS r1, r2 AS r2, r3 AS r3, i AS i, j AS j
+          // RETURN p,v,q,r1,r2,r3,i,j, size((p)--()) AS pcount, size((q)--()) AS qcount, collectiveScore
+          //  '.$limString;
+
+        $cypherQuery = '
+        MATCH (v)-[r1:same_as]-(q'.$entityType.') WHERE v.variant =~ $nameValue2
+        OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+        WITH COALESCE(size((q)--()), 0) AS collectiveScore, v AS v, q AS q, r1 AS r1, r3 AS r3, j AS j
+        RETURN v,q,r1,r3,j, size((q)--()) AS qcount, collectiveScore
+        '.$limString;
       $placeholders = array(
-          'nameValue1'=>'(?i)'.$entityValueCleaned,
           'nameValue2'=>'(?i)'.$entityValueCleaned
       );
     }
-    //var_dump($cypherQuery);
+
+
+  
     $resultRaw = $this->client->run($cypherQuery,$placeholders);
     $formattedResults = array(
       'nodes'=>array(),
@@ -449,17 +500,20 @@ function executePremadeParameterizedQuery($query, $parameters){
       'edges'=>array(),
       'labelvariants'=>array(),
       'meta'=>array('entities'=>0), 
-      'weights'=>array()
+      'weights'=>array(), 
+      'levenshtein_dist' => array()
     );
     $registeredNodes = array();
     $registeredEdges = array();
     $entities = 0;
+    $lev_dists = array(); 
     foreach ($resultRaw as $result){
-      //nodes:
-        //      $result =>p, v = entity
+      //var_dump($result['distance']); 
+      //nodes:  $result -> v = entity variant
+        //      DROPPED YOU CAN NOT MATCH DIRECTLY: -----$result =>p, = entity------
         //      $result =>q = entity: equals P when matchted against a label variant.
         //      $result =>i,j entity that link to external project
-        if(!(is_null($result['i']))){
+        /*if(!(is_null($result['i']))){
           $iPartner = process_entityNodes($result['i']);
           $iPartner['siloForEt'] = 0;//TODO
 
@@ -467,7 +521,7 @@ function executePremadeParameterizedQuery($query, $parameters){
             $registeredNodes[] = $iPartner[0];
             $formattedResults['silo'][] = $iPartner;
           }
-        }
+        }*/
         if(!(is_null($result['j']))){
           $jPartner = process_entityNodes($result['j']);
           $jPartner['siloForEt'] = 0; //TODO
@@ -483,16 +537,22 @@ function executePremadeParameterizedQuery($query, $parameters){
             $formattedResults['labelvariants'][] = $variant;
           }
         }
+        /*
         if(!(is_null($result['p']))){
           $entity = process_entityNodes($result['p']);
           $etWeight = $result['pcount'];
           if(!(in_array($entity[0], $registeredNodes))){
             $formattedResults['weights'][$entity[0]] = $etWeight; 
+            if($allow_levenshtein){
+              $distance = $result['distance']; 
+              var_dump($entity[0], $distance); 
+              $formattedResults['levenshtein_dist'][$entity[0]] = $distance; 
+            }
             $registeredNodes[] = $entity[0];
             $entities+=1;
             $formattedResults['nodes'][] = $entity;
           }
-        }
+        }*/
         if(!(is_null($result['q']))){
           $entity = process_entityNodes($result['q']);
           $etWeight = $result['qcount'];
@@ -501,6 +561,10 @@ function executePremadeParameterizedQuery($query, $parameters){
             $registeredNodes[] = $entity[0];
             $entities+=1;
             $formattedResults['nodes'][] = $entity;
+          }
+          if($allow_levenshtein){
+            $distance = $result['distance']; 
+            $lev_dists[$entity[0]][] = $distance; 
           }
         }
 
@@ -512,13 +576,14 @@ function executePremadeParameterizedQuery($query, $parameters){
           $formattedResults['edges'][] = $edge;
         }
       }
+      /*
       if(!(is_null($result['r2']))){
         $edge = process_edge($result['r2']);
         if(!(in_array($edge['edgeID'], $registeredEdges))){
           $registeredEdges[] = $edge['edgeID'];
           $formattedResults['edges'][] = $edge;
         }
-      }
+      }*/
       if(!(is_null($result['r3']))){
         $edge = process_edge($result['r3']);
         if(!(in_array($edge['edgeID'], $registeredEdges))){
@@ -526,8 +591,12 @@ function executePremadeParameterizedQuery($query, $parameters){
           $formattedResults['edges'][] = $edge;
         }
       }
+
     }
+    $lev_dists = array_map('min', $lev_dists);
     $formattedResults['meta']['entities'] = $entities;
+    $formattedResults['levenshtein_dist'] = $lev_dists; 
+    //HIGH WEIGHTS AND LOW LEVENSHTEIN_DIST ARE BEST MATCHING NODES. 
     return $formattedResults;
     //$result should be processed in a NODE ; EDGE list
   }
@@ -769,35 +838,32 @@ function executePremadeParameterizedQuery($query, $parameters){
 
 
 
+  // OBSOLETE CODE was used for testing purposes.
+        // public function testNewQuery($nodeId, $userid){
+        //   $query = 'MATCH (n1)
+        //   WHERE id(n1) = $neoid
+        //   OPTIONAL MATCH (n1)-[r:priv_created]-(p:priv_user)
+        //   RETURN
+        //   CASE 
+        //       WHEN n1.private = false THEN n1
+        //       WHEN n1.private is null THEN n1
+        //       WHEN n1.private = true and p.user_sqlid = $user THEN n1
+        //   END AS n; ';
+        //   $queryData = array(
+        //     'neoid' => (int)$nodeId, 
+        //     'user' => $userid
+        //   ); 
+        //   $data = $this->client->run($query, $queryData); 
 
-  public function testNewQuery($nodeId, $userid){
-    //TODO: is this used? 
-    $query = 'MATCH (n1)
-    WHERE id(n1) = $neoid
-    OPTIONAL MATCH (n1)-[r:priv_created]-(p:priv_user)
-    RETURN
-    CASE 
-        WHEN n1.private = false THEN n1
-        WHEN n1.private is null THEN n1
-        WHEN n1.private = true and p.user_sqlid = $user THEN n1
-    END AS n; ';
-    $queryData = array(
-      'neoid' => (int)$nodeId, 
-      'user' => $userid
-    ); 
-    $data = $this->client->run($query, $queryData); 
+        //   foreach($data as $row){
+        //     $et = $row->get('n'); 
+        //     var_dump($et); 
+        //   }
 
-    foreach($data as $row){
-      $et = $row->get('n'); 
-      var_dump($et); 
-    }
+        // }
+  //END OF obsolete code. 
 
-  }
-
-
-  public function fetchRawEtById($id, $byUser=0){
-    //TODO: obsolete call with $byUser parameter.
-    //    this method has acces to the session where the userid is stored
+  public function fetchRawEtById($id){
     //returns the raw node data by neoid (neo4J property)
     //with node label.
     //the byUser variable defaults to 0, which will only return the public nodes
@@ -805,37 +871,8 @@ function executePremadeParameterizedQuery($query, $parameters){
     $queryData = array(
       'neoid' => $id
     );
-    //PATCH  21/3/24_A: privacy level here assumes the presence of priv_created
-    //    SHOULD BE based on connection to priv_user; 
-    // THIS QUERY IS A BETTER FIT BUT REQUIRES FURTHER TESTING: 
-    // 
-    //     MATCH (n1)
-    //     WHERE id(n1) = 3081
-    //     OPTIONAL MATCH (n1)-[r:priv_created]-(p:priv_user)
-    //     RETURN
-    //     CASE 
-    //         WHEN n1.private = false THEN n1
-    //         WHEN n1.private is null THEN n1
-    //         WHEN n1.private = true and p.userid = '4a10bcc4-4677-495b-9f20-6b79f259335f' THEN n1
-    //     END AS n; 
-    //  
-    /*
-    if($byUser === 0){
-      $query = 'MATCH (n)
-        WHERE id(n) = $neoid
-          AND NOT n:priv_user
-          AND (NOT exists(n.private) OR n.private <> true)
-        RETURN n'; 
-    }else{
-      $queryData['usr'] = $byUser;
-      $query = 'MATCH (n)
-        WHERE id(n) = $neoid
-          AND (NOT n:priv_user
-          AND ((NOT exists(n.private) OR n.private <> true)
-              OR (n.priv_creator = $usr AND n.private = true)))
-        RETURN n';
-    }*/
-
+    //REQUIRED: relation priv_created is required to determine priv_user owner of node n1 
+    //REQUIRED: property .private is required for nodes to be marked as private
     $query = 'MATCH (n1)
     WHERE id(n1) = $neoid
     OPTIONAL MATCH (n1)-[r:priv_created]-(p:priv_user)
@@ -875,8 +912,9 @@ function executePremadeParameterizedQuery($query, $parameters){
 
 
   public function checkNodeVisibility($nodeObject, $owner, $userId){
-    //TODO: this has to be documented. 
-    //        DOCUMENT: the 'private' key is a reserved keyword by application logic
+    //TODO (Document): this has to be documented. 
+    //    DOCUMENT: the 'private' key is a reserved keyword by application logic
+    //    It should be present for all nodes that need to have privacy levels set. 
     if (isset($nodeObject['properties']['private']) && $nodeObject['properties']->get('private') === true && $userId != $owner){
       return True; 
     }

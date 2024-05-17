@@ -7,7 +7,6 @@
  *    Should be able to fetch annotations and encode them according to the mode. 
  */
 
- //TODO: what's going on with annotationToEt property?
 class Exporter {
   protected $client; 
   private $allowedModes; 
@@ -62,10 +61,6 @@ class Exporter {
         $this->breakpoints[$i][] = $value['annotation']; 
       }
     }
-    //TODO: add breakpoints to the $this->breakpoints array()  without replacing existing breakpoints!
-    //var_dump($breakpoints); 
-    //$this->breakpoints = array_merge($this->breakpoints, $breakpoints);
-
   }
 
   public function outputHeaders(){
@@ -167,20 +162,6 @@ class Exporter {
       $dom->appendChild($root);
       return $dom->saveXML();
     }else if ($this->mode == 'json'){
-      //var_dump($this->varspellings[3202]['labelVariants']); 
-      /*
-      foreach($this->varspellings as $subkey =>$subvalue){
-        var_dump($subkey); 
-        if(array_key_exists('labelVariants', $subvalue)){
-          foreach($subvalue['labelVariants'] as $showkey => $showvalue){
-            //var_dump($showvalue['value']); 
-            //var_dump($showvalue['uid']);
-          }
-        }
-      }*/
-
-
-
       $taggedTextArray = array(); 
       foreach($this->XMLTaggedText as $key => $value){
         $taggedTextArray[] = array(
@@ -190,7 +171,6 @@ class Exporter {
         );
       }
       $annotationLinks = array();
-      //var_dump($this->annotations);
       foreach($this->annotationToEt as $key => $value){
         $annotationLinks[] = array(
           'annotationId' => $key,
@@ -198,23 +178,17 @@ class Exporter {
         );
       }
       $entityLinks = array(); 
-      //var_dump($this->entityDict);
       foreach($this->entityDict as $key => $value){
-        //$entityLinks[$key] = $value;
-        //var_dump($key);
         $properties = array(); 
         foreach($value['properties'] as $propkey =>$propvalue){
           $properties[]=$propvalue;
         }
 
         // new code for variant display
-        //$oneEt = array();
         $etkey = $value['et_neo'];
-        //var_dump($etkey);
         $variantBox = array(); 
         if(array_key_exists('labelVariants', $this->varspellings[$etkey])){
           foreach($this->varspellings[$etkey]['labelVariants'] as $showkey => $showvalue){
-            //OK //var_dump($showvalue);
             $variantRow = array(); 
             $varValue = $showvalue['value'];
             $varUID = $showvalue['uid']; 
@@ -230,7 +204,6 @@ class Exporter {
           'properties' => $properties,
           'variants'=> $variantBox
         );
-        //$oneEt[]= $variantBox; 
       }
         
       

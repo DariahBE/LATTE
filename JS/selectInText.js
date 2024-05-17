@@ -1439,11 +1439,16 @@ function triggerSelection() {
 
   //fetch from BE:
   if (selectedText) {
+    //get parameters for levenshtein bool and ints
+
+    //TODO: include levenshteit parameters (allow_levenshtein (True/False) and levenshtein_items (int)   )
     $baseURL = '/AJAX/getEntitySuggestion.php?';
     $parameters = {
       'type': '',    //type is empty as there was no pickup by NERtool
       'value': selectedText,
-      'casesensitive': false
+      'casesensitive': false, 
+      'allow_levenshtein': true, 
+      'levenshtein_items': 5 
     };
     $sendTo = $baseURL + jQuery.param($parameters);
     makeSuggestionBox();
