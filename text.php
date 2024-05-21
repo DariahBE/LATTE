@@ -195,10 +195,12 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
           <label for='strictLookup'>Use language fallback</label>
         </div>
         <br>
-        <div>
+        <div class='resize-none'>
           <h4 class="font-bold text-lg">Fuzzy Matching</h4>
-          <label  for='use_ld'>Levenshtein Distance: </label>
+          <div class="flex flex-row">
+          <p class="pr-1 mr-1">Levenshtein Distance: </p>
           <input type="checkbox" name='allow_ld' id='use_ld' onclick="open_ld_maxhits()">
+          </div>
           <input class="hidden" type="number" min="1" name='max_ld_hits' id='max_ld' value='5'>
         </div>
         <?php

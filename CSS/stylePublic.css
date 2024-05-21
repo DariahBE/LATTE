@@ -594,6 +594,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .mb-1 {
   margin-bottom: 0.25rem;
 }
+.mr-1 {
+  margin-right: 0.25rem;
+}
 .mb-4 {
   margin-bottom: 1rem;
 }
@@ -1959,6 +1962,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 .pb-1 {
   padding-bottom: 0.25rem;
+}
+.pr-1 {
+  padding-right: 0.25rem;
 }
 .pl-10 {
   padding-left: 2.5rem;

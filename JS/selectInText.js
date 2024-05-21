@@ -493,7 +493,7 @@ function deleteIfExistsById(id){
 }
 
 let wikidataID; 
-function showET(etdata) {
+function showET(etdata, levscore = false, weightscore = false) {
   //TODO test if label is pressent by all callers!
   //alert('labeltest required from all callers!')
   /**
@@ -516,12 +516,22 @@ function showET(etdata) {
   // etLabelElem.appendChild(document.createTextNode(etLabel)); 
   // etLabelElem.classList.add('text-lgss', 'font-bold'); 
   //remove old elements by their ID.
+  deleteIfExistsById('lev_weight_box');
+  let levbox = document.createElement('div')
+  levbox.setAttribute('id', 'lev_weight_box'); 
+  let levdist = document.createElement('p'); 
+  levdist.appendChild(document.createTextNode('Levenshtein distance: '+ levscore)); 
+  let weight = document.createElement('p'); 
+  weight.appendChild(document.createTextNode('Node weight: '+weightscore))
+  levbox.appendChild(levdist)
+  levbox.appendChild(weight)
   deleteIfExistsById('assignEtToSelectionParent');
   deleteIfExistsById('annotationCreationDiv');
   let wd = null;
   let wdboxToDrop = document.getElementById('WDResponseTarget');
   if (wdboxToDrop) { wdboxToDrop.remove(); }
   let subtarget = document.getElementById('entitycontent');
+  subtarget.appendChild(levbox)
   if (subtarget === null){
     subtarget = createMainBox(); 
     insertAfter('neobox', subtarget); 
@@ -1148,6 +1158,16 @@ function triggerSidePanelAction(entityData) {
   const topbox = document.getElementById('topblock');
   targetOfInfo = document.getElementById('slideoverDynamicContent');
 
+    //detect if levenshtein is enabled: DO NOT rely on DOM; use the data itself
+    let levscores = entityData['levenshtein_dist'];
+    let weightscores = entityData['weights'];
+    console.log(levscores); 
+    console.log(weightscores); 
+    let hasLevenshtein = Object.keys(levscores).length > 0 
+    console.warn('shows lev weights???'); 
+    // console.log(data)
+    // console.warn('contains lev???');
+
   if (entityData['nodes'].length) {
     //create a title that show the information about the matching entities: 
     let topTex = document.createElement('h3');
@@ -1157,6 +1177,8 @@ function triggerSidePanelAction(entityData) {
     //start with interpreting the edges: connect the entitynode with the variants once you know that!
     //BUG: entityID gets repeated on one to many relations with variants!
     dataDictionary = entityData['nodes'];
+    console.log(dataDictionary); 
+    console.warn('is ID in here??');
 
     topTex.appendChild(document.createTextNode("Found " + dataDictionary.length + " nodes based on matching string."));
     topbox.appendChild(topTex);
@@ -1171,11 +1193,20 @@ function triggerSidePanelAction(entityData) {
     //node with the heighest weight is presented first: >> load the first node: 
     var firstNode = dataDictionary[0];
     targetOfInfo.appendChild(createMainBox());
-    showET(firstNode);
+    //BUG: levenshteinscore not showing?
+    let lev = false;
+    let wght = false;
+    if (hasLevenshtein){
+      let nodeId = firstNode[0]; 
+      lev = levscores[nodeId];
+      wght = weightscores[nodeId];
+    }
+    showET(firstNode, lev, wght);
     var datadictpage = 0;
     var pageLength = dataDictionary.length;
 
     function navET(dir) {
+      //levenshtein scoring shown here to help user choose. 
       console.warn('moving ET');
       //navigates through the dataDictionary and picks a page(entity). 
       //only used when 2 or more possible entities are part of the selection.
@@ -1201,7 +1232,17 @@ function triggerSidePanelAction(entityData) {
         document.getElementById('ETSuggestionArrowRight').classList.remove('invisible');
       }
       document.getElementById('xofindicator').innerHTML = datadictpage + 1;
-      showET(dataDictionary[datadictpage]);
+      //BUG: levenshteinscore not showing?
+
+      let lev = false;
+      let wght = false;
+      if (hasLevenshtein){
+        let nodeId = dataDictionary[datadictpage][0]; 
+        lev = levscores[nodeId];
+        wght = weightscores[nodeId];
+      }
+      showET(firstNode, lev, wght);
+      showET(dataDictionary[datadictpage], lev, wght);
     }
 
     if (Object.keys(dataDictionary).length > 1) {
