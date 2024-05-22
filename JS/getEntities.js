@@ -146,8 +146,11 @@ function findItercounterRange(segmentId) {
   }
   let lowestValue = Number.MAX_SAFE_INTEGER;
   let highestValue = Number.MIN_SAFE_INTEGER;
+  let selectedText = ''; 
   
   spans.forEach(element => {
+    console.log(element); 
+      selectedText+=element.textContent;
       const iterCounter = parseInt(element.getAttribute('data-itercounter'));
       if (iterCounter < lowestValue) {
           lowestValue = iterCounter;
@@ -159,7 +162,8 @@ function findItercounterRange(segmentId) {
 
   return {
       lowest: lowestValue,
-      highest: highestValue
+      highest: highestValue, 
+      text: selectedText
   };
 }
 
@@ -168,14 +172,22 @@ function updateSegmentedAnnotation(segment, uuid){
    * GETS an annotation with a specific segment id and: 
    * - replaces the segment ID it with a UUIDV4
    * - Removes the unstored class from the annotation
+   * - Removes unneeded attributes from all segment elements. 
    * - simulates the click event for further disambiguation. (by calling the function!)
    */
-  let spans = document.querySelectorAll('span[data-segment_id="' + segment + '"]');
-  spans.forEach(ltr => {
-    ltr.classList.remove('automatic_unstored');   //remove class that indicates it is an unstored node
-    ltr.classList.add('linked', 'underline', 'markedAnnotation');     //add classes to bring the layout and functionality in line with persistent app_automatic nodes. 
-    ltr.setAttribute('data-annotation', uuid);    //add the UUID attribute to the node. 
-  });
+      //REMOVE FROM ELEMENT: 
+    //                    data-entitytype AND data-segment_id attributes
+    
+    let spans = document.querySelectorAll('span[data-segment_id="' + segment + '"]');
+    spans.forEach(ltr => {
+      deleteAttribute(ltr, 'data-entitytype');
+      deleteAttribute(ltr, 'data-segment_id');
+      ltr.removeEventListener('click', clickHandler);
+      ltr.addEventListener('click', function(){loadAnnotationData();}); 
+      ltr.classList.remove('automatic_unstored');   //remove class that indicates it is an unstored node
+      ltr.classList.add('linked', 'underline', 'markedAnnotation');     //add classes to bring the layout and functionality in line with persistent app_automatic nodes. 
+      ltr.setAttribute('data-annotation', uuid);    //add the UUID attribute to the node. 
+    });
   loadAnnotationData(uuid); //call the function that's normally triggered by an onclick event. 
 }
 
@@ -183,6 +195,11 @@ function disableButtonByElemId(elemid){
   let button = document.getElementById(elemid);
   button.disabled = true;
   button.classList.add('disabled'); //disable the button
+}
+
+
+function deleteAttribute(fromElement, attributeName){
+    fromElement.removeAttribute(attributeName); 
 }
 
 function persistSuggestionOfLatteConnector(segment){
@@ -206,6 +223,7 @@ function persistSuggestionOfLatteConnector(segment){
     let bounds = findItercounterRange(segment); 
     let start = bounds['lowest'];
     let stop = bounds['highest'];
+    globalSelectionText = bounds['text']
     disableButtonByElemId('suggestionbox_saveButton'); 
     disableButtonByElemId('suggestionbox_dropButton');     
     if (start > -1 && stop >= start){

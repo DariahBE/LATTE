@@ -471,7 +471,6 @@ async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selec
 }
 
 function startEntityCreationFromScratch(){
-  //TODO critical functionality still missing ! (should be okay for now. - problem solved. )
   //update state: make it clear that the user instantiated this: 
   updateState('State', 'A match was rejected, you can now create a new annotation and entity.'); 
   acceptQID(-1);
@@ -519,19 +518,37 @@ function showET(etdata, levscore = false, weightscore = false) {
   deleteIfExistsById('lev_weight_box');
   let levbox = document.createElement('div')
   levbox.setAttribute('id', 'lev_weight_box'); 
+  //levenshtein key + score elmement. 
   let levdist = document.createElement('p'); 
-  levdist.appendChild(document.createTextNode('Levenshtein distance: '+ levscore)); 
+  //key for indicator
+  let levdist1 = document.createElement('span'); 
+  levdist1.appendChild(document.createTextNode('Levenshtein distance: '))
+  levdist1.classList.add('font-bold'); 
+  //score indicator
+  let levdist2 = document.createElement('span'); 
+  levdist2.appendChild(document.createTextNode(levscore));
+  levdist.appendChild(levdist1); 
+  levdist.appendChild(levdist2); 
+  //weight key + score element. 
   let weight = document.createElement('p'); 
-  weight.appendChild(document.createTextNode('Node weight: '+weightscore))
-  levbox.appendChild(levdist)
-  levbox.appendChild(weight)
+  //key for indicator
+  let weight1 = document.createElement('span');
+  weight1.appendChild(document.createTextNode('Node weight: '))
+  weight1.classList.add('font-bold');
+  //score indicator
+  let weight2 = document.createElement('span');
+  weight2.appendChild(document.createTextNode(weightscore));
+  weight.appendChild(weight1);
+  weight.appendChild(weight2);
+
+  levbox.appendChild(levdist);
+  levbox.appendChild(weight);
   deleteIfExistsById('assignEtToSelectionParent');
   deleteIfExistsById('annotationCreationDiv');
   let wd = null;
   let wdboxToDrop = document.getElementById('WDResponseTarget');
   if (wdboxToDrop) { wdboxToDrop.remove(); }
   let subtarget = document.getElementById('entitycontent');
-  subtarget.appendChild(levbox)
   if (subtarget === null){
     subtarget = createMainBox(); 
     insertAfter('neobox', subtarget); 
@@ -539,6 +556,7 @@ function showET(etdata, levscore = false, weightscore = false) {
     //referenceNode.parentNode.insertBefore(subtarget, referenceNode.nextSibling);
   }
   subtarget.innerHTML = '';
+  subtarget.appendChild(levbox);
   //TODO: test that you don't create multiple labels!
   let labelElement = document.createElement('h3'); 
   labelElement.appendChild(document.createTextNode('Entity: '+ etLabel)); 
@@ -784,7 +802,7 @@ function createWDPromptBox(createNodeDiv, positionDiv){
 }
 
 function buildAnnotationCreationBox() {
-  console.warn('call into buildAnnotationCreationBox'); 
+  //console.warn('call into buildAnnotationCreationBox'); 
   if (document.getElementById('etcreate') !== null){
     return; 
   }
@@ -1161,13 +1179,7 @@ function triggerSidePanelAction(entityData) {
     //detect if levenshtein is enabled: DO NOT rely on DOM; use the data itself
     let levscores = entityData['levenshtein_dist'];
     let weightscores = entityData['weights'];
-    console.log(levscores); 
-    console.log(weightscores); 
     let hasLevenshtein = Object.keys(levscores).length > 0 
-    console.warn('shows lev weights???'); 
-    // console.log(data)
-    // console.warn('contains lev???');
-
   if (entityData['nodes'].length) {
     //create a title that show the information about the matching entities: 
     let topTex = document.createElement('h3');
@@ -1177,23 +1189,21 @@ function triggerSidePanelAction(entityData) {
     //start with interpreting the edges: connect the entitynode with the variants once you know that!
     //BUG: entityID gets repeated on one to many relations with variants!
     dataDictionary = entityData['nodes'];
-    console.log(dataDictionary); 
-    console.warn('is ID in here??');
-
     topTex.appendChild(document.createTextNode("Found " + dataDictionary.length + " nodes based on matching string."));
     topbox.appendChild(topTex);
     for (let k of Object.keys(dataDictionary)) {
       dataDictionary[k]['weight'] = entityData['weights'][dataDictionary[k][0]];
     }
+    //BUG sort is not working! Disabled for now. 
+    /*
     //sort the entities according to their score coming from the backend: 
     Object.keys(dataDictionary).sort(score);
     function score(a, b) {
-      return dataDictionary[a]['weight'] - dataDictionary[b]['weight'];
-    }
+      return dataDictionary[a]['weight'] + dataDictionary[b]['weight'];
+    }*/
     //node with the heighest weight is presented first: >> load the first node: 
     var firstNode = dataDictionary[0];
     targetOfInfo.appendChild(createMainBox());
-    //BUG: levenshteinscore not showing?
     let lev = false;
     let wght = false;
     if (hasLevenshtein){
@@ -1207,7 +1217,6 @@ function triggerSidePanelAction(entityData) {
 
     function navET(dir) {
       //levenshtein scoring shown here to help user choose. 
-      console.warn('moving ET');
       //navigates through the dataDictionary and picks a page(entity). 
       //only used when 2 or more possible entities are part of the selection.
       if (dir === '-') {
@@ -1232,8 +1241,6 @@ function triggerSidePanelAction(entityData) {
         document.getElementById('ETSuggestionArrowRight').classList.remove('invisible');
       }
       document.getElementById('xofindicator').innerHTML = datadictpage + 1;
-      //BUG: levenshteinscore not showing?
-
       let lev = false;
       let wght = false;
       if (hasLevenshtein){
@@ -1241,7 +1248,6 @@ function triggerSidePanelAction(entityData) {
         lev = levscores[nodeId];
         wght = weightscores[nodeId];
       }
-      showET(firstNode, lev, wght);
       showET(dataDictionary[datadictpage], lev, wght);
     }
 
@@ -1492,8 +1498,6 @@ function triggerSelection() {
   //fetch from BE:
   if (selectedText) {
     //get parameters for levenshtein bool and ints
-
-    //TODO: Do something with the returned score indicators (weight and levensthein_distance. )
     $baseURL = '/AJAX/getEntitySuggestion.php?';
     $parameters = {
       'type': '',    //type is empty as there was no pickup by NERtool
@@ -1512,7 +1516,6 @@ function triggerSelection() {
 }
 
 $(document).ready(function () {
-  //BUG: if cursor lets go off the letter, trigger doesn't work, attach it higher up!
   document.getElementById('textcontent').addEventListener('mouseup', function () { triggerSelection() });
   document.getElementById('textcontent').addEventListener('keyup', function () { triggerSelection() });
   //use esc key to delete the suggestionbox:

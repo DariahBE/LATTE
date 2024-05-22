@@ -275,6 +275,7 @@ class wikibaseEntry {
     //    cases can go from 0 to multiple entities!
     //in Q-mode:
     //    One entity only; 
+    console.log(qid); 
     var madeAtLeastOneMatch = false;
     var baseBlock = {'wikilink': [], 'uri':[], 'geo':[], 'img':[], 'str':[]}; 
     var promisses = []; 

@@ -153,7 +153,7 @@ function acceptQID(qid = -1) {
           let annotationProperties = document.createElement('div');
           let annoSubContent = document.createElement('div');
           //TODO
-          alert('should be replaced by call to: buildAnnotationCreationBox')
+          alert('should be replaced by call to: buildAnnotationCreationBox');
           buildPropertyInputFieldsFor(annocoreNode).then((content) => {
             for (let i = 0; i < Object.keys(content).length; i++) {
               //don't show: start, stop, selectedtext. 
