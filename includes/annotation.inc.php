@@ -398,11 +398,30 @@ class Annotation{
     // this should be a patch for the bug further down. 
     //$query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) where id(t)=$neoid return t,a,p;';
     $query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) 
+    WHERE id(t)=$neoid AND (NOT exists(a.private) OR a.private <> true)
     OPTIONAL MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')<-[pc:priv_created]-(u:priv_user) 
-    WHERE id(t)=$neoid
+    WHERE id(t)=$neoid and u.user_sqlid = $usersqlid
     RETURN id(a) as annoid, u.user_sqlid as userid, a.private as annoprivacyflag, t,a,p,u;';
+
+
+    $query = '
+    // First part of the query: annotations that do not have private=true
+    MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p)
+    WHERE id(t) = $neoid AND (NOT exists(a.private) OR a.private <> true)
+    RETURN id(a) as annoid, null as userid, a.private as annoprivacyflag, t, a, null as u, p
+    
+    UNION ALL
+    
+    // Second part of the query: annotations that have private=true and match the user condition
+    MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')<-[pc:priv_created]-(u:priv_user), (a)-[l:references]->(p)
+    WHERE id(t) = $neoid AND u.user_sqlid = $usersqlid AND a.private = true
+    RETURN id(a) as annoid, u.user_sqlid as userid, a.private as annoprivacyflag, t, a, u, p
+    ';
     //patch: consider returning the property and extracting that; by default cypher will nullify non-existing properties.
-    $result = $this->tsx->run($query, ['neoid'=>$neoid]);
+    $result = $this->tsx->run($query, [
+      'neoid'=>$neoid, 
+      'usersqlid'=>$user_sql_id_int
+    ]);
     $data = array();
     $data['user'] = $user_sql_id_int;
     $annotationData = array();
