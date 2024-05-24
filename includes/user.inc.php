@@ -18,6 +18,9 @@ class User{
   protected $client;
   protected $path_to_sqlite; 
   public $neoId;
+  public $myRole;
+  public $myName;
+  public $myId;
   function __construct($client)  {
     $this->path_to_sqlite = ROOT_DIR."/user/protected/users.sqlite";
     $this->sqlite = new PDO('sqlite:' . $this->path_to_sqlite);

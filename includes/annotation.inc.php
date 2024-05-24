@@ -397,12 +397,12 @@ class Annotation{
     //user parameter to determine if a node is private or not
     // this should be a patch for the bug further down. 
     //$query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) where id(t)=$neoid return t,a,p;';
-    $query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) 
+    /*$query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) 
     WHERE id(t)=$neoid AND (NOT exists(a.private) OR a.private <> true)
     OPTIONAL MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')<-[pc:priv_created]-(u:priv_user) 
     WHERE id(t)=$neoid and u.user_sqlid = $usersqlid
     RETURN id(a) as annoid, u.user_sqlid as userid, a.private as annoprivacyflag, t,a,p,u;';
-
+  */
 
     $query = '
     // First part of the query: annotations that do not have private=true

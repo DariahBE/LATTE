@@ -70,6 +70,7 @@ if(array_key_exists('coreID', $core)){
 }
 ?>
 
+
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
@@ -84,6 +85,7 @@ if(array_key_exists('coreID', $core)){
     <script src="/JS/wikidata_SDK/wikibase-sdk.js"></script>
     <script src="/JS/wikidata_SDK/wikidata-sdk.js"></script>
     <script src="/JS/wikidata.js"></script>
+    <script src="/JS/interactWithEntities.js"></script>
     <!-- extra script for wikidata content: -->
     <script src="/JS/caroussel.js"></script>
     <script src="/JS/makeMap.js"></script>

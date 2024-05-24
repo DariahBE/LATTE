@@ -264,9 +264,9 @@ define("NERCOLOR", $ner_color);
 $use_connector = True;
 /*SECTION: LATTE WEB APP: PYTHON ENVIRONMENT:*/
 //  Your virtual environment used for the LATTE_connector
-$pyenv = "C:/Workdir/MyApps/Python_VENV/LATTE_connector/Scripts/python.exe";
+$pyenv = "C:/Workdir/MyApps/Python_VENV/LATTE_connector_demo/Scripts/python.exe";
 //  The folder where the scripts are located in LATTE_connector
-$scripts = "C:/Workdir/MyApps/Python_VENV/LATTE_connector/hostfiles/";
+$scripts = "C:/Workdir/MyApps/Python_VENV/LATTE_connector_demo/hostfiles/";
 #which language detection model to use; currenly only langid supported. 
 $languageDetectionEngine =    'langid';
 define("LATTECONNECTOR", $use_connector); 
