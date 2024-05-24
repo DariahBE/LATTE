@@ -1097,11 +1097,11 @@ function createSideSkelleton() {
   //1   Data section
   const textblock = document.createElement('div');
   textblock.setAttribute('id', 'topblock');
-  textblock.innerHTML = '<p>HAS CONTENT (topblock)??</p>';
+  textblock.innerHTML = '';
   //2   Variants section
   const middleblock = document.createElement('div');
   middleblock.setAttribute('id', 'neobox');
-  middleblock.innerHTML = '<p>HAS CONTENT (neobox)??</p>';
+  middleblock.innerHTML = '';
 
   //    2.1:    relatedtextstats: shows amount of connections. 
   const statsTarget = document.createElement('div');

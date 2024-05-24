@@ -211,15 +211,23 @@ function writeField(key, data, protected, structure) {
     fieldvalue.appendChild(optionFalse);
     fieldvalue.value = data ? 'true' : 'false'; // set the selected option based on the data
     field.appendChild(fieldvalue);
-
   } else if (fieldType === 'uri') {
     var fieldvalue = document.createElement('a');
+    fieldvalue.classList.add('externalURILogo');
     fieldvalue.setAttribute('href', data);
     fieldvalue.setAttribute('target', '_blank');
     fieldvalue.appendChild(document.createTextNode(data));
     field.appendChild(fieldvalue);
     fieldvalue.setAttribute('type', 'url');
-  } else {
+  } else if (fieldType === 'wikidata'){
+    var fieldvalue = document.createElement('a');
+    fieldvalue.setAttribute('href', 'https://www.wikidata.org/wiki/'+data);
+    fieldvalue.setAttribute('target', '_blank');
+    fieldvalue.classList.add('externalURILogo');
+    fieldvalue.appendChild(document.createTextNode(data));
+    field.appendChild(fieldvalue);
+    fieldvalue.setAttribute('type', 'url');
+  }else {
     var fieldvalue = document.createElement('span');
     var fieldvalueString = document.createTextNode(data);
     fieldvalue.appendChild(fieldvalueString);
