@@ -52,6 +52,7 @@ class MbStrIterator implements Iterator
     }
 
     // Current
+    #[\ReturnTypeWillChange]
     public function current() {
 
         // If we're done
@@ -71,6 +72,7 @@ class MbStrIterator implements Iterator
     }
 
     // Key
+    #[\ReturnTypeWillChange]
     public function key()
     {
         // Return the current position
@@ -78,6 +80,7 @@ class MbStrIterator implements Iterator
     }
 
     // Next
+    #[\ReturnTypeWillChange]
     public function next()
     {
         // Increment the position by the current size and then recalculate
@@ -86,6 +89,7 @@ class MbStrIterator implements Iterator
     }
 
     // Rewind
+    #[\ReturnTypeWillChange]
     public function rewind()
     {
         // Reset the position and size
@@ -94,6 +98,7 @@ class MbStrIterator implements Iterator
     }
 
     // Valid
+    #[\ReturnTypeWillChange]
     public function valid()
     {
         // Return if the current position is valid

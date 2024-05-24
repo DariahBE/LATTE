@@ -1,17 +1,6 @@
-#RewriteEngine On
-#RewriteBase /onboarding/
-#RewriteCond %{DOCUMENT_ROOT}/onboarding/
-#RewriteCond %{REQUEST_URI} !(onboarding) [NC]
-#RewriteRule ^(.*) /onboarding/ [L,redirect=302]
-
-
+RewriteEngine On
 RewriteRule API/([\w-]+)/([^/]*)$ /API/identify.php?type=$1&uuid=$2 [NC,L]
 RewriteRule text/([^/]*)$ /text.php?texid=$1 [NC,L]
 RewriteRule URI/([^/]*)/([^/]*)$ /stable.php?type=$1&uuid=$2 [NC,L]
 RewriteRule explore/([^/]*)$ /browse/index.php?value=$1 [NC,L]                          #Graph explorer of nodes in the database. 
 RewriteRule edit/([^/]*)$ /crud/edit.php?id=$1 [NC,L]                          #Edit a node. 
-
-#RewriteRule place/([^/]*)$ /stable.php?type=place&uuid=$1 [NC,L]
-#RewriteRule person/([^/]*)$ /stable.php?type=person&uuid=$1 [NC,L]
-#RewriteRule event/([^/]*)$ /stable.php?type=event&uuid=$1 [NC,L]
-#RewriteRule annotation/([^/]*) /stable.php?type=annotation&uuid=$1 [NC,L]

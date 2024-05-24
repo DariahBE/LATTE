@@ -513,34 +513,41 @@ function showET(etdata, levscore = false, weightscore = false) {
   //Show the node label: 
   // let etLabelElem = document.createElement('h2'); 
   // etLabelElem.appendChild(document.createTextNode(etLabel)); 
-  // etLabelElem.classList.add('text-lgss', 'font-bold'); 
+  // etLabelElem.classList.add('text-lgss', 'font-bold');  
   //remove old elements by their ID.
   deleteIfExistsById('lev_weight_box');
   let levbox = document.createElement('div')
   levbox.setAttribute('id', 'lev_weight_box'); 
   //levenshtein key + score elmement. 
+  alert(levscore, weightscore); 
+  
   let levdist = document.createElement('p'); 
-  //key for indicator
-  let levdist1 = document.createElement('span'); 
-  levdist1.appendChild(document.createTextNode('Levenshtein distance: '))
-  levdist1.classList.add('font-bold'); 
-  //score indicator
-  let levdist2 = document.createElement('span'); 
-  levdist2.appendChild(document.createTextNode(levscore));
-  levdist.appendChild(levdist1); 
-  levdist.appendChild(levdist2); 
+  if (levscore !== false){
+    //key for indicator
+    let levdist1 = document.createElement('span'); 
+    levdist1.appendChild(document.createTextNode('Levenshtein distance: '))
+    levdist1.classList.add('font-bold'); 
+    //score indicator
+    let levdist2 = document.createElement('span'); 
+    levdist2.appendChild(document.createTextNode(levscore));
+    levdist.appendChild(levdist1); 
+    levdist.appendChild(levdist2); 
+  }
   //weight key + score element. 
+  
   let weight = document.createElement('p'); 
-  //key for indicator
-  let weight1 = document.createElement('span');
-  weight1.appendChild(document.createTextNode('Node weight: '))
-  weight1.classList.add('font-bold');
-  //score indicator
-  let weight2 = document.createElement('span');
-  weight2.appendChild(document.createTextNode(weightscore));
-  weight.appendChild(weight1);
-  weight.appendChild(weight2);
-
+  if(weightscore !== false){
+    //key for indicator
+    let weight1 = document.createElement('span');
+    weight1.appendChild(document.createTextNode('Node weight: '))
+    weight1.classList.add('font-bold');
+    //score indicator
+    let weight2 = document.createElement('span');
+    weight2.appendChild(document.createTextNode(weightscore));
+    weight.appendChild(weight1);
+    weight.appendChild(weight2);
+  }
+   
   levbox.appendChild(levdist);
   levbox.appendChild(weight);
   deleteIfExistsById('assignEtToSelectionParent');

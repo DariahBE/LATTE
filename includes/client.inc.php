@@ -1,4 +1,5 @@
 <?php
+error_reporting(E_ALL ^ (E_NOTICE | E_WARNING | E_DEPRECATED));
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 require ROOT_DIR.'/vendor/autoload.php';
 

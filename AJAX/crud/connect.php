@@ -1,6 +1,6 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-include_once('../../config/config.inc.php');
+include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
 include_once(ROOT_DIR.'/includes/annotation.inc.php');
@@ -56,7 +56,7 @@ if (1 ==1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['c
     $entityLabel = $entityNode['labels'][0];
     $user = $data['user'][0]['u'];
     $mergeToDict['annotation'] = $annotationNode['properties'][$annotationprimary];     //SOLVED??? 
-    $mergeToDict['creator'] = $user['properties']['userid'];
+    $mergeToDict['creator'] = $user['properties']['user_sqlid'];
     $mergeToDict['private'] = false;
     $mergeToDict['start'] = $annotationNode['properties'][ANNOSTART];
     $mergeToDict['stop'] = $annotationNode['properties'][ANNOSTOP];
