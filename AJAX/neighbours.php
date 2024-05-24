@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
-include_once("../config/config.inc.php");
-include_once(ROOT_DIR."\includes\getnode.inc.php");
+include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+include_once(ROOT_DIR.'/includes/getnode.inc.php');
 
 function getTranslation($nodeLabel, $propertyName){
   if(array_key_exists($propertyName, NODEMODEL[$nodeLabel])){

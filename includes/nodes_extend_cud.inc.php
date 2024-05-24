@@ -260,7 +260,7 @@ class CUDNode extends Node {
 
   public function determineRightsSet($requestedLevel, $neoid){
     //TODO: incomplete method (should be okay, requires testing)
-    include_once(ROOT_DIR.'\includes\user.inc.php');
+    include_once(ROOT_DIR.'/includes/user.inc.php');
     $user = new User($this->client); 
     //var_dump($user->myRole); 
     $ownerShip = $this->checkOwnershipOfNode($neoid, $user->neoId);

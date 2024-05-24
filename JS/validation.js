@@ -87,10 +87,8 @@ class Validator{
         if(this.classList.contains('validateAs_unique')){
         var selectedNode ; 
           if (this.hasAttribute('data-nodetype_override')) {
-            alert('JEP');
             selectedNode = this.getAttribute('data-nodetype_override');
           }else{
-            alert('NOPE');
             selectedNode = document.getElementById('nodeTypeSelection').firstChild.value;
           }
           var property = this.getAttribute('data-name');

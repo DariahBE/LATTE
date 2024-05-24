@@ -6,7 +6,7 @@ $value = $_GET['value'];
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 //to identify a node use:
 if(isset($_GET['property'])){ 
-  include_once(ROOT_DIR."\includes\getnode.inc.php");
+  include_once(ROOT_DIR.'/includes/getnode.inc.php');
   $graph = new Node($client);
   $keyname = $_GET['property'];
   $subresult = $graph->matchSingleNode(false, $keyname, $value);

@@ -1,8 +1,8 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR."\includes\getnode.inc.php");
-
+include_once(ROOT_DIR.'/includes/getnode.inc.php');
+ 
 /**
  * Lockdown this endpoint, should only be reachable for logged in users.
  */
