@@ -152,21 +152,23 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
       </div>
       <div id="textcontent">
       <?php
-        //TODO: if TEXNODETEXT has no matching values, then you shouldn't show this!
-        $textString = $text['data'][0]->first()['node']['properties'][TEXNODETEXT];
-        $i = 0;
-        foreach(new MbStrIterator($textString) as $c) {
-          echo "<span class='ltr' data-itercounter=$i>".nl2br($c)."</span>";
-          $i++;
-        }
+        if(array_key_exists(TEXNODETEXT, $text['data'][0]->first()['node']['properties']->toArray())){
 
-        $coreNodeFiltered = array(); 
-        foreach(array_keys(CORENODES) as $cn){
-          if($cn !== TEXNODE && $cn !== ANNONODE){
-            $coreNodeFiltered[]=$cn; 
+          $textString = $text['data'][0]->first()['node']['properties'][TEXNODETEXT];
+          $i = 0;
+          foreach(new MbStrIterator($textString) as $c) {
+            echo "<span class='ltr' data-itercounter=$i>".nl2br($c)."</span>";
+            $i++;
+          }
+          
+          $coreNodeFiltered = array(); 
+          foreach(array_keys(CORENODES) as $cn){
+            if($cn !== TEXNODE && $cn !== ANNONODE){
+              $coreNodeFiltered[]=$cn; 
+            }
           }
         }
-      ?>
+       ?>
 
       </div>
     </div>
