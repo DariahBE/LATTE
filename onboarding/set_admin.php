@@ -14,6 +14,11 @@
     <body class="container mx-auto">
     
 <?php
+
+    $file_path = '../user/protected/users.sqlite';
+    if (file_exists($file_path) && strpos(dirname($file_path), 'protected') !== false) {
+        die('Illegal request blocked. The onboarding process is closed.');
+    }
     //var_dump($_POST);
         if( isset($_POST['username'])
             && isset($_POST['email'])

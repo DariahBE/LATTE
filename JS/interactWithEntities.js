@@ -377,7 +377,6 @@ function showdata(data) {
     // console.log('highlight is', highlightedText);
     // globalSelectionText = highlightedText;*/
     
-    //TODO: Do something with the returned score indicators (weight and levensthein_distance. )
     $ld_count = $('#max_ld'); 
     $baseURL = '/AJAX/getEntitySuggestion.php?';
     $parameters = {

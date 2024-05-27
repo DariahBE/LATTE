@@ -13,11 +13,18 @@
 </head>
 <body>
     <div class="container">
+        <?php
+            $file_path = '../user/protected/users.sqlite';
+            if (file_exists($file_path) && strpos(dirname($file_path), 'protected') !== false) {
+                die('Illegal request blocked. The onboarding process is closed.');
+            }
+        ?>
 		<div class="p-2 text-2xl">Modules!</div>
 
 		<div class="p-2">This will check if certain Apache modules and extensions are enabled. If any of the below modules are marked as problematic, resolve their configuration and restart the onboarding process.</div>
         <div class="p-2 text-xl">Extensions</div>
 		<?php
+
             $carry_on = true;
             $required_extensions = array(
                 'gd' => array('The GD extension is missing', 'GD'),

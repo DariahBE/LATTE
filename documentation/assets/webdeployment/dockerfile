@@ -3,6 +3,9 @@ FROM php:8.2-apache
 
 # Enable Apache mod_rewrite
 RUN a2enmod rewrite
+RUN a2enmod headers
+RUN a2enmod include
+RUN a2enmod ssl
 
 # Install necessary PHP extensions
 RUN apt-get update && apt-get install -y \

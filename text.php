@@ -97,6 +97,19 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
     <!-- content-->
 
 <div class="top ">
+  <!-- Navigation for elements to browse between texts: -->
+  <div class="flex flex-row justify-between items-center w-full">
+    <?php
+      $firstText = $node->getFirstText();
+      $prevText = $node->getPreviousText($propId);
+      $nextText = $node->getNextText($propId);
+      $lastText = $node->getLastText();
+    ?>
+    <div><a class='<?php echo ($firstText === False) ? 'disabled' : '' ;?>' href='/text/<?php echo $firstText ; ?>'><< First text</a></div>
+    <div><a class='<?php echo ($prevText === False) ? 'disabled' : '' ;?>' href='/text/<?php echo $prevText; ?>'>< Previous text</a></div>
+    <div><a class='<?php echo ($nextText === False) ? 'disabled' : '' ;?>' href='/text/<?php echo $nextText; ?>'>Next text ></a></div>
+    <div><a class='<?php echo ($lastText === False) ? 'disabled' : ''; ?>' href='/text/<?php echo $lastText; ?>'>Last text >></a></div>
+  </div>
   <!-- <div id='normalizationDialogue' class="w-full">
     <h3 class='text-xl'>Normalization Options: </h3>
     <p>Normalization improves the pickup of entities. When enabled the Named entity returned by the NER-tool is modified by removing a list of specific characters.</p>
@@ -139,6 +152,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
       </div>
       <div id="textcontent">
       <?php
+        //TODO: if TEXNODETEXT has no matching values, then you shouldn't show this!
         $textString = $text['data'][0]->first()['node']['properties'][TEXNODETEXT];
         $i = 0;
         foreach(new MbStrIterator($textString) as $c) {

@@ -65,8 +65,7 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
               <div class="">
                 <ul>
                   <li><a href="users/login.php">Log in</a></li>
-                  <li><a href="search/node.php">search for a node</a></li>
-                  <li><a href="search/text.php">search for a text</a></li>
+                  <li><a href="search.php">search for a node</a></li>
                 </ul>
               </div>
               <div class="">

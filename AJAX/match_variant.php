@@ -12,8 +12,8 @@ $graph = new Node($client);
 $data = $graph->findEntitiesWithVariantValue($connectedTo, $variantString);
 echo json_encode($data->getResults());
 die();
-$r = $data['data'];
-var_dump($r); 
+// $r = $data['data'];
+// var_dump($r); 
 //echo json_encode($data); 
 
 ?>

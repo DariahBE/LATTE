@@ -85,6 +85,70 @@ class Node{
     $this->client = $client;
   }
 
+
+
+  function getFirstText(){
+    $nodeType = TEXNODE;
+    $propKey = helper_extractPrimary($nodeType);
+    $query = 'MATCH(n:'.TEXNODE.') RETURN n ORDER BY n.'.$propKey.' LIMIT 1'; 
+    $result = $this->client->run($query); 
+    if (boolval(count($result))){
+      $recordID = $result[0]['n']->getProperty($propKey);
+      return($recordID);
+    }
+    return False; 
+    }
+
+  function getPreviousText($current){
+    $nodeType = TEXNODE;
+    $propKey = helper_extractPrimary($nodeType);
+    $query = 'MATCH (n:'.TEXNODE.')
+    WHERE n.'.$propKey.'  < $curval
+    WITH n
+    ORDER BY n.'.$propKey.' 
+    LIMIT 1
+    return n; '; 
+    $result = $this->client->run($query, array('curval'=>$current)); 
+    if (boolval(count($result))){
+      $recordID = $result[0]['n']->getProperty($propKey);
+      return($recordID);
+    }
+    return False; 
+  }
+
+  function getNextText($current){
+    $nodeType = TEXNODE;
+    $propKey = helper_extractPrimary($nodeType);
+    $query = 'MATCH (n:'.TEXNODE.')
+    WHERE n.'.$propKey.'  > $curval
+    WITH n
+    ORDER BY n.'.$propKey.' 
+    LIMIT 1
+    return n; '; 
+    $result = $this->client->run($query, array('curval'=>$current)); 
+    if (boolval(count($result))){
+      $recordID = $result[0]['n']->getProperty($propKey);
+      return($recordID);
+    }
+    return False; 
+  }
+
+  function getLastText(){
+    $nodeType = TEXNODE;
+    $propKey = helper_extractPrimary($nodeType);
+    $query = 'MATCH (n:'.TEXNODE.')
+    RETURN n
+    ORDER BY n.'.$propKey.' DESC
+    LIMIT 1; ';
+    $result = $this->client->run($query);
+    if (boolval(count($result))){
+      $recordID = $result[0]['n']->getProperty($propKey);
+      return($recordID);
+    }
+    return False; 
+  }
+
+
 function executePremadeParameterizedQuery($query, $parameters){
   /*
     takes a query and parameters argument. the query is a paramaterized cypher query
