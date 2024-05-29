@@ -9,6 +9,7 @@
   include_once(ROOT_DIR."/includes/navbar.inc.php");
   include_once(ROOT_DIR."/includes/integrity.inc.php");
   include_once(ROOT_DIR."/includes/csrf.inc.php");
+  include_once(ROOT_DIR."/includes/getnode.inc.php");
   //there must be a logged in  user; if no session is active, make them log in and redirect back here. 
   if(isset($_SESSION["userid"])){
     $user = new User($client);
@@ -46,6 +47,7 @@
   <body class="bg-neutral-200 w-full">
   <?php
     $navbar = new Navbar($adminMode); 
+    $node = new Node($client); 
     echo $navbar->getNav();
     $integrity = new Integrity($client);
     $tokenManager = new CsrfTokenManager();
@@ -68,50 +70,38 @@
       </div>
     </div>
   </div> -->
+
+  
   <?php
-    $navbar = new Navbar($adminMode); 
-    echo $navbar->getNav();
+    //$navbar = new Navbar($adminMode); 
+    //echo $navbar->getNav();
     include_once('admin_tasks.php');
   ?>
 
 
 
+    <div class= 'grid grid-cols-1 md:grid-cols-2 gap-4'>
 
-  <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-2 lg:grid-cols-2 gap-4">
-    <div class=" margin-auto p-4">
-      <h3>Inconsistent Nodes</h3>
-      <ul>
-      <?php
-        $results = $integrity->checkNodesNotMatchingModel();
-        foreach($results as $key => $value){
-          echo '<li>'.$key.' ('.$value.') <button type="button" onclick="dropnodefromdb(\''.$key.'\', \''.$token.'\')"> Fix </button> </li>';
-        }
-      ?>
-      </ul>
-    </div>
-    <div class=" p-4">
-      <h3>Nodes missing UUID</h3>
+        
+        
+    <?php
+    $indexed_columns = $node->getIndexes(); 
+    var_dump($indexed_columns); 
 
-    </div>
-    <div class=" p-4">
+    foreach(NODEMODEL as $label => $properties){
+        echo '<div>
+            <h4>'.$label.'</h4>'; 
+            for($i = 0 ; $i<count($properties); $i++){
+                echo '<p>'.$properties[$i][0].'</p>';
+            }
 
-    </div>
-    <div class=" p-4">
-
-    </div>
-  </div>
-
-
-
-
-  <div class='container'>
-    <div>
-
-    </div>
-    <div>
-      
+        echo '</div>'; 
+    }
+    // query for adding an index: CREATE INDEX index_name FOR (n:Variant) ON (n.variant)
+    //abstracted === CREATE INDEX index_name FOR (n:<<Labelename>>) ON (n.<<propertyname>>)
+    ?>
     </div>
 
-  </div>
-  </body>
-</html>
+
+
+</body>

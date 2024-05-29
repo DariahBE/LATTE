@@ -18,6 +18,9 @@
             <a href="/" class="text-gray-900 dark:text-white hover:underline" aria-current="page">Home</a>
           </li>
           <li>
+            <a href="/text/-1" class="text-gray-900 dark:text-white hover:underline" aria-current="page">Texts</a>
+          </li>
+          <li>
             <a href="/user/login.php" class="text-gray-900 dark:text-white hover:underline">Userpage</a>
           </li>
           <li>

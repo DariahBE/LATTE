@@ -51,7 +51,7 @@
           $alignmentText = 'All users passed the alignment check, no further action required. ';
         }
       ?>
-        <div class="lm-2 lp-2 <?php echo $classes; ?>" role="alert">
+        <div class="lm-2 lp-2 <?php echo $classes; ?> z-10" role="alert">
           <strong class="font-bold"><?php echo $boxText; ?></strong>
           <span class="block sm:inline"><?php echo $alignmentText; ?></span>
         </div>

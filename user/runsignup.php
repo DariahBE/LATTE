@@ -76,7 +76,7 @@ if(!empty($missing)) {
         //check that inviteToken and e-mail addres are a valid pair: 
         //TODO: test invite code, rewritten to use SQLITE now. . 
         //$query = 'MATCH (n:priv_user) WHERE n.invitationcode = $token AND n.mail = $mail RETURN n'; 
-        $query = 'SELECT * FROM userdata WHERE userdata.mail  = ? AND userdata.token = ? AND userdata.token IS NOT NULL'
+        $query = 'SELECT * FROM userdata WHERE userdata.mail  = ? AND userdata.token = ? AND userdata.token IS NOT NULL';
         $stmt = $this->sqlite->prepare($query);
         $stmt->execute(array($_POST['email'], $_POST['invitetoken']));
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -134,7 +134,7 @@ if(!empty($missing)) {
 
     $result = $graph->executionOfParameterizedQuery($query, $data); 
     //TODO var_dump cleanup. 
-    var_dump($result); 
+    //var_dump($result); 
 
     
 

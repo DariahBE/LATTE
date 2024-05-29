@@ -8,6 +8,8 @@ include_once(ROOT_DIR.'/includes/multibyte_iter.inc.php');
 include_once(ROOT_DIR.'/includes/annotation.inc.php');
 include_once(ROOT_DIR.'/includes/navbar.inc.php');
 
+$node = new Node($client);
+
 
 if(isset($_GET['texid'])){
   $propId = $_GET['texid'];
@@ -20,9 +22,27 @@ if(isset($_GET['texid'])){
     $propId = (int)$propId;
   }
 }else{
+  //load the first text OR error out
+  // if we get a returned value from our method ==> load it. 
   header('Location: /error.php?type=textmissing');
   die();
 }
+//die($propId); 
+
+if($propId == -1){
+  //load the first text OR error out
+  // if we get a returned value from our method ==> load it. 
+  $firstText = $node->getFirstText();
+  //var_dump($firstText); 
+  //die(); 
+  if($firstText !== false){
+      header("Location: /text/$firstText");
+  }else{
+    //else: DB holds no texts ==> error out: 
+      header('Location: /error.php?type=textmissing');
+    }
+    die();
+  }
 
 $user = new User($client);
 $user->checkAccess(TEXTSAREPUBLIC);
@@ -36,7 +56,6 @@ $user_id = $user->checkSession();
 
 
 $wikidata->buildPreferences();
-$node = new Node($client);
 $text = $node->matchSingleNode($nodeType, $propKey, $propId);
 if(!boolval($text) or !array_key_exists('coreID', $text)){
   header('Location: /error.php?type=text&id='.$propId);
@@ -104,11 +123,12 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
       $prevText = $node->getPreviousText($propId);
       $nextText = $node->getNextText($propId);
       $lastText = $node->getLastText();
+      
     ?>
-    <div><a class='<?php echo ($firstText === False) ? 'disabled' : '' ;?>' href='/text/<?php echo $firstText ; ?>'><< First text</a></div>
-    <div><a class='<?php echo ($prevText === False) ? 'disabled' : '' ;?>' href='/text/<?php echo $prevText; ?>'>< Previous text</a></div>
-    <div><a class='<?php echo ($nextText === False) ? 'disabled' : '' ;?>' href='/text/<?php echo $nextText; ?>'>Next text ></a></div>
-    <div><a class='<?php echo ($lastText === False) ? 'disabled' : ''; ?>' href='/text/<?php echo $lastText; ?>'>Last text >></a></div>
+    <div class="<?php echo ($firstText === $propId) ? 'invisible' : 'hover:underline font-bold' ;?>"><a disabled class='' href='/text/<?php echo $firstText ; ?>'><< First text</a></div>
+    <div><a class=' <?php echo ($prevText === False) ? 'invisible' : 'hover:underline font-bold' ;?>' href='/text/<?php echo $prevText; ?>'>< Previous text</a></div>
+    <div><a class=' <?php echo ($nextText === False) ? 'invisible' : 'hover:underline font-bold' ;?>' href='/text/<?php echo $nextText; ?>'>Next text ></a></div>
+    <div><a class=' <?php echo ($lastText === $propId) ? 'invisible' : 'hover:underline font-bold'; ?>' href='/text/<?php echo $lastText; ?>'>Last text >></a></div>
   </div>
   <!-- <div id='normalizationDialogue' class="w-full">
     <h3 class='text-xl'>Normalization Options: </h3>

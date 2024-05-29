@@ -1029,10 +1029,6 @@ Ensure the default browser behavior of the `hidden` attribute.
      -moz-appearance: none;
           appearance: none;
 }
-.columns-2 {
-  -moz-columns: 2;
-       columns: 2;
-}
 .break-before-auto {
   -moz-column-break-before: auto;
        break-before: auto;

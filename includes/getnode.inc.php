@@ -86,8 +86,25 @@ class Node{
   }
 
 
+  function getIndexes(){
+    /**returns an overview of all Label.properties that have 
+     * an index in the linded database. 
+     */
+    //TODO needs to return assoc array LABEL > indexedProperties
+    $query = 'SHOW INDEXES'; 
+    $result = $this->client->run($query); 
+     foreach($result as $key=> $value){
+       var_dump($value); 
+     }
+    //return $result; 
+  }
 
+  //Text order methods: 
   function getFirstText(){
+    /**   PART OF TEXT NAVIGATION LOGIC
+     * Looks for the primary key used in TEXT nodes and returns
+     * the lowest value found. 
+     */
     $nodeType = TEXNODE;
     $propKey = helper_extractPrimary($nodeType);
     $query = 'MATCH(n:'.TEXNODE.') RETURN n ORDER BY n.'.$propKey.' LIMIT 1'; 
@@ -100,6 +117,10 @@ class Node{
     }
 
   function getPreviousText($current){
+    /**   PART OF TEXT NAVIGATION LOGIC
+     * Looks for the primary key used in TEXT nodes and returns
+     * the lowest value found which is higher than the given $current value. 
+     */
     $nodeType = TEXNODE;
     $propKey = helper_extractPrimary($nodeType);
     $query = 'MATCH (n:'.TEXNODE.')
@@ -117,6 +138,10 @@ class Node{
   }
 
   function getNextText($current){
+    /**   PART OF TEXT NAVIGATION LOGIC
+     * Looks for the primary key used in TEXT nodes and returns
+     * the highest value found which is lower than the given $current value. 
+     */
     $nodeType = TEXNODE;
     $propKey = helper_extractPrimary($nodeType);
     $query = 'MATCH (n:'.TEXNODE.')
@@ -134,6 +159,10 @@ class Node{
   }
 
   function getLastText(){
+    /**   PART OF TEXT NAVIGATION LOGIC
+     * Looks for the primary key used in TEXT nodes and returns
+     * the highest value found. 
+     */
     $nodeType = TEXNODE;
     $propKey = helper_extractPrimary($nodeType);
     $query = 'MATCH (n:'.TEXNODE.')

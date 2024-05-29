@@ -15,11 +15,11 @@ $URI = 'neo4j://localhost:7687';
  *     CONFIGURATION OF THE EMAIL CONNECTION
  */
 $mailprotocol = 'SMTP';          // 'SMTP' or ''.
-$originEmail = 'donotreply@trismegistos.org';     //emailadress used to sent the message.
+$originEmail = '';     //emailadress used to sent the message.
 $smtpUser = false;     //account use on the server to send the mail. set to false if there is no authentication method
 $smtpPassword = false;     //password associated to the email adress. set to false if there is no authentication method
-$smtpServer = 'smtp.kuleuven.be';
-$smtpPort = 25;     //port of the SMTP server
+$smtpServer = '';
+$smtpPort = 0;     //port of the SMTP server  //default = 25
 $selfSignedCertificates = true;           //set to true for servers where a self-signed SSL-certificate is being used (see Bug info described here: https://github.com/PHPMailer/PHPMailer/issues/718 )
 
 
