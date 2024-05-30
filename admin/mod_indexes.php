@@ -80,25 +80,28 @@
 
 
 
-    <div class= 'grid grid-cols-1 md:grid-cols-2 gap-4'>
+    <div class= '2xl:w-1/2 xl:w-2/3 items-center m-auto grid grid-cols-1 md:grid-cols-2 gap-4'>
 
         
         
     <?php
     $indexed_columns = $node->getIndexes(); 
-    var_dump($indexed_columns); 
-
     foreach(NODEMODEL as $label => $properties){
-        echo '<div>
-            <h4>'.$label.'</h4>'; 
-            for($i = 0 ; $i<count($properties); $i++){
-                echo '<p>'.$properties[$i][0].'</p>';
+      echo '<div class="align-top">
+          <h4>'.$label.'</h4>'; 
+          //var_dump($properties); 
+          //TODO test drop and create of indices. 
+          foreach ($properties as $propName => $propparameters){
+            if(array_key_exists($propName, $indexed_columns[$label])){
+              echo "<p class='m-2 p-2'><span>".$propparameters[0]."</span><span data_nodeLabel='".$label."' data_nodeProp='".$propName."' data_idxname = '".$indexed_columns[$label][$propName]."' class='hasIndex m-1 p-1 bg-green-200'> &#9889;</span></p>";
+            }else{
+              echo "<p class='m-2 p-2'><span>".$propparameters[0]."</span><span data_nodeLabel='".$label."' data_nodeProp='".$propName."' class='noIndex m-1 p-1 bg-red-200'> &#9889;</span></p>";
             }
+              
+          }
 
-        echo '</div>'; 
+      echo '</div>'; 
     }
-    // query for adding an index: CREATE INDEX index_name FOR (n:Variant) ON (n.variant)
-    //abstracted === CREATE INDEX index_name FOR (n:<<Labelename>>) ON (n.<<propertyname>>)
     ?>
     </div>
 

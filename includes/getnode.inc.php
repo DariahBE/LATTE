@@ -90,13 +90,50 @@ class Node{
     /**returns an overview of all Label.properties that have 
      * an index in the linded database. 
      */
-    //TODO needs to return assoc array LABEL > indexedProperties
+    $indexedProperties = array(); 
     $query = 'SHOW INDEXES'; 
     $result = $this->client->run($query); 
-     foreach($result as $key=> $value){
-       var_dump($value); 
+     foreach($result as $key=> $value){ 
+      #Composite indexes aren't used so [0] is safe to use. 
+      $nodeLabel = $value['labelsOrTypes'][0]; 
+      $property = $value['properties'][0]; 
+      $idxname = $value['name'];
+      if(!(array_key_exists($nodeLabel, $indexedProperties))){
+        $indexedProperties[$nodeLabel] = array(); 
+      }
+      //TODO has to be returned too: to make idempotent drop $idxname 
+      if(!(array_key_exists($property, $indexedProperties[$nodeLabel]))){
+        $indexedProperties[$nodeLabel][$property] = $idxname; 
+      }
      }
-    //return $result; 
+    return $indexedProperties; 
+  }
+
+  function modifyIndex($label, $prop, $action, $idxname){
+    /*adds or removes the index on a $label.prop from a node. 
+      $label = labelname
+      $prop = propertyname
+      $action = add or drop (str)
+    */
+          //TODO test drop and create of indices. 
+
+    $allowed_actions = ['add', 'drop']; 
+    if (in_array($action, $allowed_actions)){
+      if($action === 'add'){
+        $query = 'CREATE INDEX IF NOT EXISTS FOR (p:'.$label.') ON (p.'.$prop.');';
+      }else{
+        //TODO: dropping indexes on non-exising ones results in a bug. 
+        if($action === 'drop'){
+          if($idxname === null){
+            die(); 
+          }else{
+            $query = 'DROP INDEX ON '.$idxname.' IF EXISTS;';
+          }
+        }
+      }
+      $this->client->run($query); 
+    }
+
   }
 
   //Text order methods: 
