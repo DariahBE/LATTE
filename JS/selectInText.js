@@ -201,9 +201,9 @@ function saveNewDB() {
         //if the datamode indicates it's an automated node: you need to pass the node UID so it can be updated. 
         //Annotation_auto nodes always have a UID, so that's a feasable solution.
         dataObject['neo_id_internal'] = auto_annotation_internal_id; 
-        console.log("savenewdb", dataObject);
+        // console.log("savenewdb", dataObject);
         //send dataobject to backend: 
-        console.warn('sending data put_annotation.php:');
+        // console.warn('sending data put_annotation.php:');
         // backend needs to know if this is an update or insert operation! Annotation or Annotation_auto node
         $.post("/AJAX/put_annotation.php", { data: dataObject })
           .then(function( data ) {
@@ -279,7 +279,7 @@ function loadPropertiesOfSelectedType(selected) {
         var nodedata = data['data'];
         Object.entries(nodedata).forEach(entry => {
           const [key, value] = entry;
-          console.log(key, value);
+          // console.log(key, value);
           var humanLabel = value[0];
           var datatype = value[1];
           let uniqueness = value[2]; 
@@ -410,7 +410,6 @@ function buildPropertyInputFieldsFor(label) {
             }
             if(uniqueness){
             //TODO: test if uniqueness class is part of the DOM: 
-            alert("Pending testcase to check: selectInText.js > buildPropertyInputFieldsFor > TODO (uniqueness"); 
             newFieldInput.classList.add('validateAs_unique');
             }
             newFieldInput.classList.add('attachValidator');
@@ -431,7 +430,7 @@ function buildPropertyInputFieldsFor(label) {
 }
 
 async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selection_end, selected_text, extra_properties, token){
-  console.log(neoid_et, text_neo_id, selection_start, selection_end, selected_text, token); 
+  // console.log(neoid_et, text_neo_id, selection_start, selection_end, selected_text, token); 
   await new Promise((resolve) => {
     let postData = {
       sourceNeoID: neoid_et,
@@ -519,7 +518,6 @@ function showET(etdata, levscore = false, weightscore = false) {
   let levbox = document.createElement('div')
   levbox.setAttribute('id', 'lev_weight_box'); 
   //levenshtein key + score elmement. 
-  alert(levscore, weightscore); 
   
   let levdist = document.createElement('p'); 
   if (levscore !== false){
@@ -661,7 +659,7 @@ function showET(etdata, levscore = false, weightscore = false) {
 
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
           let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
-          console.log(annotationCollectionBox);
+          // console.log(annotationCollectionBox);
           await connectAnnoToEntity(etdataNeoId, languageOptions['nodeid'], globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox,  csrf); 
 
         });
@@ -977,7 +975,7 @@ function buildAnnotationCreationBox() {
 
   checklogin()
   .then(valid => {
-    console.log(valid); 
+    // console.log(valid); 
     //rst = valid['valid'];
     spellingVariantDOMReturn = new SpellingVariant(null, null, valid);
   })
@@ -1484,7 +1482,7 @@ function getTextSelection() {
 
 function open_ld_maxhits(){
   let isChecked = document.getElementById('use_ld').checked; 
-  console.log(isChecked); 
+  // console.log(isChecked); 
   if (isChecked){
     document.getElementById('max_ld').classList.remove('hidden');
 

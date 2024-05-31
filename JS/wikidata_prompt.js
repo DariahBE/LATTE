@@ -24,7 +24,7 @@ function wdprompt(string, offset = 0) {
   }
 
   let by = 10;
-  console.warn('STRINGVAL WD', string);
+  // console.warn('STRINGVAL WD', string);
   //make sure to use encodeURIComponent for strings that have special characters (e.g. P&G)
   let promptURL = "https://www.wikidata.org/w/api.php?action=wbsearchentities&search=" + encodeURIComponent(string) + "&origin=*&format=json&errorformat=plaintext&type=item&language=" + language + extra1 + "&limit=" + by + "&continue=" + offset + extra2;
   const target = document.getElementById('wdpromptBox');
@@ -35,7 +35,7 @@ function wdprompt(string, offset = 0) {
     .then((response) => response.json())
     .then((data) => {
       //needs a title item for wikidata:
-      console.log(data);
+      // console.log(data);
       var searchResults = data['search'];
       if (searchResults.length === 0) {
         target.innerHTML = '';
@@ -153,7 +153,6 @@ function acceptQID(qid = -1) {
           let annotationProperties = document.createElement('div');
           let annoSubContent = document.createElement('div');
           //TODO
-          alert('should be replaced by call to: buildAnnotationCreationBox');
           buildPropertyInputFieldsFor(annocoreNode).then((content) => {
             for (let i = 0; i < Object.keys(content).length; i++) {
               //don't show: start, stop, selectedtext. 
@@ -236,7 +235,6 @@ function pickThisQID(qid) {
   });
   acceptButton.addEventListener('click', function () {
     //when normally annotating an entity then selecting and accepting a Q-id. 
-    alert('acceptqid trigger'); 
     acceptQID(qid);
   });
 
@@ -282,7 +280,7 @@ function showHit(id) {
     if (xhr.status >= 200 && xhr.status < 300) {
       // Request was successful
       var jsonResponse = JSON.parse(xhr.responseText);
-      console.log(jsonResponse);
+      // console.log(jsonResponse);
       const etid = id; 
       const label = jsonResponse['extra']['label']; 
       const properties = jsonResponse['props']; 
@@ -310,15 +308,15 @@ let checkIfConnectionExists = async (qid) => {
    */
   var existingConnection = new Promise((resolve, reject) => {
     //make a .fetch call in javascript
-    console.warn('checking if QID exists.');
+    // console.warn('checking if QID exists.');
     fetch("/AJAX/checkWDExists.php?qid=" + qid)
       .then((response) => response.json())
       .then((data) => {
         let hits = data['data'];
         //TODO: there's still testcode in here to trigger multihit responses!!
-        console.warn('testdata still present in code!!');
-        hits.push(148);
-        hits.push(146);
+        // console.warn('testdata still present in code!!');
+        // hits.push(148);
+        // hits.push(146);
         let j = 0;
         if (data['hits'] != 0) {
           //load the first hit anyway: 
@@ -382,14 +380,13 @@ let checkIfConnectionExists = async (qid) => {
             let connectButton = document.createElement('button'); 
             connectButton.appendChild(document.createTextNode('Connect')); 
             connectButton.classList.add('bg-green-500', 'font-bold'); 
-            console.log(hits[j])
-            console.log(globalSelectionStart, globalSelectionEnd, globalSelectionText); 
+            // console.log(hits[j])
+            // console.log(globalSelectionStart, globalSelectionEnd, globalSelectionText); 
             connectButton.addEventListener('click', function(){
-              alert('extratest! 10/4/24: Remove pending TODO if test passes!'); 
               //TODO: extra properties need to be tested (OKAY IF implementationtest passes. ). 
               let annotationProperties = document.getElementById('embeddedAnnotation').getElementsByClassName('property');
               let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
-              console.log(annotationCollectionBox);      
+              // console.log(annotationCollectionBox);      
               //fetch a fresh CSRF token: 
               fetch('/user/AJAX/profilestate.php')
                 .then((response) => response.json())
@@ -405,7 +402,7 @@ let checkIfConnectionExists = async (qid) => {
 
 
           }
-          console.log(data['hits'], ' hits found; ');
+          // console.log(data['hits'], ' hits found; ');
           resolve(data['hits']);
         } else {
           //let the user fill out the entity type and go from there

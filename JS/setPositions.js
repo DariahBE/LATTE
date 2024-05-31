@@ -1,4 +1,3 @@
-alert('required?');
 /*file can be deleted. No dependencies */
 
 var confirmedEntities = '';

@@ -42,13 +42,13 @@ function performBasicSearch(){
 }
 
 function labelSelected(){
-  console.log('selected');
+  // console.log('selected');
   var source = event.source||event.target;
   var target = document.getElementById('nodeProperties').getElementsByClassName('subbox')[0];
   fetch('AJAX/nodes.php?action=properties&on='+source.value)
     .then(response => response.json())
     .then(data => {
-      console.log(data);
+      // console.log(data);
       var form = document.createElement('form');
       form.classList.add('w-full');
       var maindiv = document.createElement('div');
@@ -98,7 +98,7 @@ function addEdgeFilter(){
   fetch('AJAX/nodes.php?action=connections&on='+getTickedLabel())
     .then(response => response.json())
     .then(data => {
-      console.log(data);
+      // console.log(data);
       for(var i = 0; i < data.length; i++){
         var oneRelation = data[i];
         var relationDB = oneRelation[0];
@@ -123,7 +123,7 @@ function addEdgeFilter(){
 
 
 function addSecondNode(){
-  console.log('TODO: add a target node to the original selection!'); 
+  // console.log('TODO: add a target node to the original selection!'); 
   var target = document.getElementById('secondnodeFilter');
   target.classList.remove('hidden');
   var innertarget = document.getElementById('nodeFilterInnercontent'); 

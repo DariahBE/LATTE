@@ -12,7 +12,7 @@
 // get the search instruction from sessionStorage:
 if(typeof(Storage) !== 'undefined'){
      var x = sessionStorage.getItem('mySearchCommand');
-     console.log(JSON.parse(x));
+    //  console.log(JSON.parse(x));
      var jsondata = JSON.parse(x);
  }
 

@@ -35,7 +35,7 @@ function update_idx_trigger(){
         action = 'add';
     }
 
-    console.log(label, property, idxname, has_idx); 
+    // console.log(label, property, idxname, has_idx); 
     fetch("/AJAX/getdisposabletoken.php")
     .then(response => response.json())
     .then(data => {

@@ -275,7 +275,7 @@ class wikibaseEntry {
     //    cases can go from 0 to multiple entities!
     //in Q-mode:
     //    One entity only; 
-    console.log(qid); 
+    // console.log(qid); 
     var madeAtLeastOneMatch = false;
     var baseBlock = {'wikilink': [], 'uri':[], 'geo':[], 'img':[], 'str':[]}; 
     var promisses = []; 
@@ -515,7 +515,7 @@ class wikibaseEntry {
       }else if(counted === 1){
         preferredProperty = propertyset[0]; 
       }else{
-        console.warn('No property found, dropping statement for ', property); 
+        // console.warn('No property found, dropping statement for ', property); 
       }
       let propertyUnit = preferredProperty['mainsnak']['datavalue']['value']['unit'];
       let lowerbound = null; 
@@ -578,7 +578,7 @@ class wikibaseEntry {
         into.push(pelement); 
       }
     }else{
-      console.warn('Unsupported datatype: ', propertyDataType); 
+      // console.warn('Unsupported datatype: ', propertyDataType); 
     }
   }
 

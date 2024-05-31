@@ -1,4 +1,4 @@
-console.log('contextMenuEnitites still required? ');
+// console.log('contextMenuEnitites still required? ');
 
 function closeEntityOnSelectDiv(){
   var boxes = document.getElementsByClassName('entityBySelectBox');
@@ -15,7 +15,7 @@ function buildSelectController(){
     var selectedString=  document.selection.createRange().text;
   }
   if(selectedString.length > 0){
-    console.log(selectedString);
+    // console.log(selectedString);
     var source = event.target || event.srcElement;
     var xCoord = event.pageX;
     var yCoord = event.pageY;

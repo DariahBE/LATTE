@@ -1514,7 +1514,7 @@ module.exports = function (buildUrl) {
     ids.forEach(validate.entityId);
 
     if (ids.length > 50) {
-      console.warn('getEntities accepts 50 ids max to match Wikidata API limitations:\n      this request won\'t get all the desired entities.\n      You can use getManyEntities instead to generate several request urls\n      to work around this limitation');
+      // console.warn('getEntities accepts 50 ids max to match Wikidata API limitations:\n      this request won\'t get all the desired entities.\n      You can use getManyEntities instead to generate several request urls\n      to work around this limitation');
     }
 
     // Properties can be either one property as a string

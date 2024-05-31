@@ -17,7 +17,7 @@ function checklogin() {
 }
 checklogin()
   .then(valid => {
-    console.log(valid); 
+    // console.log(valid); 
     globalLoginAvailable = valid;
   })
   .catch(error => {
@@ -279,7 +279,7 @@ function showdata(data) {
     findRelatedTexts(data['entity'][0]['neoID']);
   } else if (datamode === 'automated'){
     console.warn('extract start and stop from automated ets. '); 
-    console.log(data.annotation.properties[startcode][1])
+    // console.log(data.annotation.properties[startcode][1])
     globalSelectionEnd = data.annotation.properties[stopcode][1];
     globalSelectionStart = data.annotation.properties[startcode][1];
     auto_annotation_internal_id = data['neo_id_of_auto_anno']; 
@@ -304,8 +304,8 @@ function showdata(data) {
     //puts the annotation metadata in the annotationtarget element.
     var fieldFormatted = writeField(rowkey, rowdata, protected, annotationStructure);
     annotationTarget.appendChild(fieldFormatted);
-    console.log('annotation values: '); 
-    console.log(rowkey, rowdata, protected, annotationStructure); 
+    // console.log('annotation values: '); 
+    // console.log(rowkey, rowdata, protected, annotationStructure); 
   
   });
   //for all annotationExtraFields create a new editable field:
@@ -477,7 +477,7 @@ function handleError(e) {
 
 function loadAnnotationData(annotationID = false) {
 
-  console.log(globalLoginAvailable); 
+  // console.log(globalLoginAvailable); 
   if (!(annotationID)){
     //get annotationID in case of clickevent trigger: find the source of the event. 
     var eventsource = event.source || event.target;

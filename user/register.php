@@ -209,7 +209,7 @@ if(REGISTRATIONPOLICY === 2){
                             captcha: document.getElementById('captchaSolution').value,
                             invitetoken: document.getElementById('invitecode').value
                           };
-                          console.log(signupData);
+                          // console.log(signupData);
                           $.ajax({
                             type: 'POST',
                             url: 'runsignup.php',
@@ -226,7 +226,7 @@ if(REGISTRATIONPOLICY === 2){
                                   });
                                 }
                               } else { // if false, show some sort of message with errors
-                                console.log('nope');
+                                // console.log('nope');
                                 $("#status").text('Something went wrong.');
                               }
                             }

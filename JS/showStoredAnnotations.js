@@ -68,7 +68,7 @@ function visualizeStoredAnnotations(){
       ltr.dataset.annotationCount = positions[ltr.dataset.itercounter][0].length;
       ltr.classList.add(positions[ltr.dataset.itercounter][1])
       ltr.addEventListener('click', function(){
-        console.log('letterBasedEntry');
+        // console.log('letterBasedEntry');
         var origin = event.source || event.target;
         var relatedAnnotationIDS = origin.dataset.annotation;
         markBasedOnId(relatedAnnotationIDS);
