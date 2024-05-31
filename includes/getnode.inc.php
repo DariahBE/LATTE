@@ -115,7 +115,6 @@ class Node{
       $prop = propertyname
       $action = add or drop (str)
     */
-          //TODO test drop and create of indices. 
     $allowed_actions = ['add', 'drop']; 
     if (in_array($action, $allowed_actions)){
       if($action === 'add'){

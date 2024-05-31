@@ -20,7 +20,7 @@ if(isset($_SESSION["userid"])){
   $adminMode = False;
   if($user->myRole !== "Admin"){
     header("HTTP/1.0 403 Forbidden");
-    die();
+    die(); 
   }else{
     $adminMode = True;
   }

@@ -52,23 +52,7 @@
     echo $navbar->getNav();
     $integrity = new Integrity($client);
   ?>
-  <!-- <div class="2xl:w-1/2 xl:w-2/3 items-center m-auto">
-    <div>
-      <h3>User Management</h3>
-      <div>
-        <ul>
-          <li><a href="invite.php">Invite user</a></li>
-          <li><a href="remove.php">Remove user</a></li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>Database Management</h3>
-      <div>
-        <li><a href="validate_db.php">Database Validation</a></li>
-      </div>
-    </div>
-  </div> -->
+
 
   
   <?php
@@ -88,8 +72,6 @@
     foreach(NODEMODEL as $label => $properties){
       echo '<div class="align-top">
           <h4>'.$label.'</h4>'; 
-          //var_dump($properties); 
-          //TODO test drop and create of indices. 
           foreach ($properties as $propName => $propparameters){
             if( (is_array($indexed_columns[$label])) && (array_key_exists($propName, $indexed_columns[$label]))){
               echo "<p class='m-2 p-2'><span>".$propparameters[0]."</span><span data_nodeLabel='".$label."' data_nodeProp='".$propName."' data_idxname = '".$indexed_columns[$label][$propName]."' class='idxBolt hasIndex m-1 p-1 bg-green-200'> &#9889;</span></p>";
@@ -97,7 +79,6 @@
               echo "<p class='m-2 p-2'><span>".$propparameters[0]."</span><span data_nodeLabel='".$label."' data_nodeProp='".$propName."' class='idxBolt noIndex m-1 p-1 bg-red-200'> &#9889;</span></p>";
             }              
           }
-
       echo '</div>'; 
     }
     ?>
