@@ -116,22 +116,36 @@ class Node{
       $action = add or drop (str)
     */
           //TODO test drop and create of indices. 
-
     $allowed_actions = ['add', 'drop']; 
     if (in_array($action, $allowed_actions)){
       if($action === 'add'){
+        //NEO4J does not give you the index name directly in a create statemnt :(
         $query = 'CREATE INDEX IF NOT EXISTS FOR (p:'.$label.') ON (p.'.$prop.');';
       }else{
-        //TODO: dropping indexes on non-exising ones results in a bug. 
         if($action === 'drop'){
           if($idxname === null){
             die(); 
           }else{
-            $query = 'DROP INDEX ON '.$idxname.' IF EXISTS;';
+            $query = 'DROP INDEX '.$idxname.' IF EXISTS;';
           }
         }
       }
-      $this->client->run($query); 
+
+      $result =  $this->client->run($query); 
+      $added = $result->getSummary()->getCounters()['indexesAdded']; 
+      $removed = $result->getSummary()->getCounters()['indexesRemoved']; 
+      $idx_name = Null;
+      //To get the name we need an extra query if a new index was $added
+      if($added === 1 ){
+        $extra_query = 'CALL db.indexes() YIELD name, labelsOrTypes, properties
+        WHERE labelsOrTypes = ["'.$label.'"] AND properties = ["'.$prop.'"]
+        RETURN name;'; 
+        $extra_result = $this->client->run($extra_query); 
+        if(boolval($extra_result)){
+          $idx_name = $extra_result->getResults()[0]['name']; 
+        }
+      }
+      return array('added'=>$added, 'removed'=>$removed, 'name'=>$idx_name); 
     }
 
   }

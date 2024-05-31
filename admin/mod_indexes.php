@@ -40,6 +40,7 @@
     <title><?php echo PROJECTNAME ?></title>
     <script src="/JS/jquery-3.6.0.min.js"></script>
     <script src="/admin/JS/validation.js"></script>
+    <script src="/admin/JS/idx_handles.js"></script>
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
@@ -50,8 +51,6 @@
     $node = new Node($client); 
     echo $navbar->getNav();
     $integrity = new Integrity($client);
-    $tokenManager = new CsrfTokenManager();
-    $token = $tokenManager->generateToken(); 
   ?>
   <!-- <div class="2xl:w-1/2 xl:w-2/3 items-center m-auto">
     <div>
@@ -92,12 +91,11 @@
           //var_dump($properties); 
           //TODO test drop and create of indices. 
           foreach ($properties as $propName => $propparameters){
-            if(array_key_exists($propName, $indexed_columns[$label])){
-              echo "<p class='m-2 p-2'><span>".$propparameters[0]."</span><span data_nodeLabel='".$label."' data_nodeProp='".$propName."' data_idxname = '".$indexed_columns[$label][$propName]."' class='hasIndex m-1 p-1 bg-green-200'> &#9889;</span></p>";
+            if( (is_array($indexed_columns[$label])) && (array_key_exists($propName, $indexed_columns[$label]))){
+              echo "<p class='m-2 p-2'><span>".$propparameters[0]."</span><span data_nodeLabel='".$label."' data_nodeProp='".$propName."' data_idxname = '".$indexed_columns[$label][$propName]."' class='idxBolt hasIndex m-1 p-1 bg-green-200'> &#9889;</span></p>";
             }else{
-              echo "<p class='m-2 p-2'><span>".$propparameters[0]."</span><span data_nodeLabel='".$label."' data_nodeProp='".$propName."' class='noIndex m-1 p-1 bg-red-200'> &#9889;</span></p>";
-            }
-              
+              echo "<p class='m-2 p-2'><span>".$propparameters[0]."</span><span data_nodeLabel='".$label."' data_nodeProp='".$propName."' class='idxBolt noIndex m-1 p-1 bg-red-200'> &#9889;</span></p>";
+            }              
           }
 
       echo '</div>'; 
@@ -105,6 +103,8 @@
     ?>
     </div>
 
-
+<script>
+  attach_dom_idx_triggers(); 
+</script>>
 
 </body>

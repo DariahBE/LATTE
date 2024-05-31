@@ -5,8 +5,11 @@ include_once($_SERVER["DOCUMENT_ROOT"]."/config/config.inc.php");
 include_once(ROOT_DIR."/includes/client.inc.php");
 include_once(ROOT_DIR."/includes/user.inc.php");
 include_once(ROOT_DIR."/includes/csrf.inc.php");
-//test if user === admin
+include_once(ROOT_DIR."/includes/getnode.inc.php");
 
+
+//          !!!!!!!!!!!!!!!!!!!!!
+//test if user === admin
 if(isset($_SESSION["userid"])){
     $user = new User($client);
   }else{
@@ -24,13 +27,30 @@ if(isset($_SESSION["userid"])){
 
   $node = new Node($client); 
 
-if(isset($_GET['action']) && isset($_GET['label']) && isset($_GET['prop'])){
-    $action = $_GET['action']; 
-    $label = $_GET['label']; 
-    $prop = $_GET['prop']; 
+//check and revoke the token here: 
+if(isset($_POST['token'])){
+    $token = $_POST['token'];
+    $tokenManager = new CsrfTokenManager();
+    $validToken = $tokenManager->checkToken($token); 
+    if(!($validToken)){
+        die();
+    }
+    $tokenManager->revokeToken();   //kill the token if valid and continue code logic
+}else{
+    die(); 
+}
+
+//          code continues if token is valid (at this point, token has been revoked): 
+
+if(isset($_POST['action']) && isset($_POST['label']) && isset($_POST['prop'])){
+    $action = $_POST['action']; 
+    $label = $_POST['label']; 
+    $prop = $_POST['prop']; 
     $idxname = null; 
     if($action === 'drop'){
-        $idxname = $_GET['idxname']; 
+        if(isset($_POST['idxname'])){
+            $idxname = $_POST['idxname']; 
+        }
     }
     $result = $node->modifyIndex($label, $prop, $action, $idxname); 
     echo json_encode($result);
