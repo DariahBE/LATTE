@@ -40,32 +40,17 @@ $selfSignedCertificates = true;           //set to true for servers where a self
 */
 
 $nodesDatamodel = array(
-  'Person' => [
-    "label" => ["Name", "string", false, true, true],
-    "sex" =>["Gender", "string", false, false, true], 
-    "wikidata" => ["Wikidata Label", 'wikidata', false, false, false]
-  ],
-  'Text' => [
-    "texid" => ["Text ID", "int", true, true, true],
-    "text" => ["Text", "string", false, false, true],
-    "language" => ["Document language", "string", false, false, true],
-    "publication" => ["Publisher", "string", false, false, true],
-    "place" => ["Publishing Place", "string", false, false, true]
-  ],
-  'Place' => [
-    "geoid" => ["Trismegistos Place ID", "int", false, false, true],
-    "label" => ["Label", "string", false, true, true],
-    "region" => ["Regionname", "string", false, false, true], 
-    "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
-  ],
+  //Variant Nodes are required to be encoded like this: 
   'Variant' => [                                                //'Variant' label is a required nodelabel in the current model! IS not allowed to change. 
     "variant" => ["Label", "string", false, true, true],        //'variant' proprety is a required property in the current model! IS not allowed to change.
     "remark" => ["Remark", "string", false, false, true]
   ],
+  //Knowledgebase Nodes are required to be encoded like this:
   'See_Also' => [
     "partner" => ["Projectname", "string", false, false, true],
     "partner_uri" => ["Link", "uri", false, false, true]
   ],
+  //A node that is chose as 'annotation'nodes is required, the model can be chosen freely. For the DH-workshop we use this as a template
   'Annotation' => [
     "starts" => ["Annotation Start", "int", false, false, false],
     "stops" => ["Annotation End", "int", false, false, false],
@@ -74,27 +59,33 @@ $nodesDatamodel = array(
     "extra" => ["Extra", "string", false, false, true], 
     "url" => ["Link", 'uri', false, false, false]
   ],
+  //For the dh_demo workshop we set up the model for Text-nodes alreay: you are free to choose this 
+  'Text' => [
+    "text" => ["Text", "string", false, false, true],
+    "title" =>['Title', 'string', false, false, true],
+    "texid" => ["Text ID", "int", true, true, true],
+    "language" => ["Document language", "string", false, false, true],
+    "publication" => ["Publisher", "string", false, false, true],
+    "date" => ["Publishing date", "string", false, false, false], 
+    "url" => ["Link", "uri", false, false, false]
+  ],
+  /*
+  'Place' => [
+    "geoid" => ["Trismegistos Place ID", "int", false, false, true],
+    "label" => ["Label", "string", false, true, true],
+    "region" => ["Regionname", "string", false, false, true], 
+    "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
+  ],
   'Organization' =>[
     "label" => ["Label", "string", false, true, true],
     "uid" => ["Label", "string", false, false, true],
     "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
   ],
-  'Dog' => [
-    "breed" => ["Breed", "string", false, false, true],
-    "age" => ["Age", "int", false, false, false],
+  'Person' => [
     "label" => ["Name", "string", false, true, true],
-    "wikidata" => ["Wikidata Label", 'wikidata', false, false, false],
-    "smart" => ["Did tricks", 'bool', false, false, false],
-  ], 
-  'Test' =>[      //testing all datatypes:
-    "id" => ['ID', 'int', true, false, true], 
-    "minscore" => ['Lowest score', 'float', false, false, true], 
-    "highscore" => ['Highest score', 'float', false, false, true], 
-    "validated" => ['Validated', 'bool', false, false, true], 
-    "wikidata" => ['Wikdata ID', 'wikidata', true, false, true], 
-    "name" => ['Name', 'string', true, false, true], 
-    "link" => ['Link', 'uri', false, false, true]
-  ] /*
+    "sex" =>["Gender", "string", false, false, true], 
+    "wikidata" => ["Wikidata Label", 'wikidata', false, false, false]
+  ],
   'Organization' => [
     "label" => ["Label", "string", false, false, true]
   ], 
@@ -105,6 +96,7 @@ $nodesDatamodel = array(
   ]*/
 );
 
+//Filled in for the DH-demo: should match the names and properties you choose in your model. 
 //what is the node used for Annotations: Should match a key used in your Nodesmodel:
 $nodeAsAnnotation = 'Annotation'; 
 //what is the property that indicates the startposition of an Annotation:
@@ -116,25 +108,6 @@ $nodeAsText = 'Text';
 $propertyContainingText = 'text';   //Which property holds the text to show on the screen and to annotate into?
 
 
-
-
-/**Feed the edges to the application: 
- * each key in the model is an edgename 
- * the value for each key is an array.
- * In that array the first two arguments are two separate arrays of nodes the edge connects.
- * The third argument is a boolean True/False is accepted here. If True the 
- * edge is directed (node1)->(node2) and goes from your first argument to your second argument
- * If False, the edge is not-directed and goes back and forth. (node1)--(node2)
-//  */
-// $edgesDatamodel = array(
-//   'contains' => [array('Text'), array('Annotation'), True],
-//   'references' => [array('Annotation'), array('Person', 'Dog', 'Place'), True],
-//   'same_as' => [array('Variant'), array('Person', 'Dog', 'Place'), True], 
-//   'see_also' => [array('Person', 'Dog', 'Place'), array('See_Also'), True]
-// );
-
-
-
 //node properties that are protected by the application and automatically generated. 
 $privateProperties = array('uid');
 
@@ -144,14 +117,12 @@ $privateProperties = array('uid');
 // config object above; Asign the color value to them you want to use in the DOM. The keys used in this 
 //dictionary should match the names of entitytypes which are part of the researchproject!
 $matchOnNodes = array(
-  'Person' => 'rgba(39, 123, 245, 0.6)',
-  'Place' => 'rgba(245, 178, 39, 0.6)',
+  //'Person' => 'rgba(39, 123, 245, 0.6)',
+  //'Place' => 'rgba(245, 178, 39, 0.6)',
   //'Event' => 'rgba(39, 245, 123, 0.6)',
   'Text' => 'rgba(28, 200, 28, 0.6)',
   'Annotation' => 'rgba(200, 28, 28, 0.6)', 
-  'Organization' => 'rgba(145,100,52,0.6)', 
-  'Dog' => 'rgba(200,20,200,0.6)',
-  'Test' => 'rgba(200,200,20,0.6)'
+  //'Organization' => 'rgba(145,100,52,0.6)', 
 );
 
 //automatically fill out below config based on nodesDatamodel:
@@ -189,14 +160,13 @@ $edges_translate = array(
   'see_also' => 'Knowledgebase relations',
 );
 $nodes_translate = array(
-  'Person' => 'People',
+  //'Person' => 'People',
   'See_Also' => 'External Links',
   'Variant' => 'Spelling variants',
-  'Place' => 'Places',
+  //'Place' => 'Places',
   'Text' => 'Texts',
   'Annotation' => 'Annotations',
-  'Dog' => 'Dogs',
-  'priv_user' => 'Users'
+  //'priv_user' => 'Users'
 );
 
 ########## HOW TO DISPLAY PICKUP BY NER-TOOL: ############
@@ -210,7 +180,7 @@ $entityPublic = True;          //  True/False; True = stable pages are publicly 
 ######################
 
 //provide the base URL of the website. This should match the pattern: http://example.com
-$baseURI = 'http://entitylinker.test';
+$baseURI = 'http://demo.test';
 
 
 

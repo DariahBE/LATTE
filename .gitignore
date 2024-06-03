@@ -1,2 +1,3 @@
 /test/
 import_data/utils/__pycache__/
+user/protected/users.sqlite
