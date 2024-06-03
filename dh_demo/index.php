@@ -24,6 +24,7 @@ try {
     // Display records in an HTML table
 
 
+    $i=0;
     while ($row = $stmt->fetch(PDO::FETCH_ASSOC)) {
         $article = $row['article'];
         $title = $row['title'];
@@ -31,7 +32,6 @@ try {
         $date = $row['date'];
         $language = $row['language'];
         $url = $row['digitized url']; 
-        $i=0;
         $data = array(
             'text'=>$article, 
             'title'=>$title,
