@@ -176,7 +176,7 @@ class Node{
     $query = 'MATCH (n:'.TEXNODE.')
     WHERE n.'.$propKey.'  < $curval
     WITH n
-    ORDER BY n.'.$propKey.' 
+    ORDER BY n.'.$propKey.' DESC 
     LIMIT 1
     return n; '; 
     $result = $this->client->run($query, array('curval'=>$current)); 

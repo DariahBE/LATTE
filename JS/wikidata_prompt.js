@@ -152,8 +152,6 @@ function acceptQID(qid = -1) {
           //add the annotationfields to the DOM as properties. EXCLUDE start, stop and selectedtext fields. 
           let annotationProperties = document.createElement('div');
           let annoSubContent = document.createElement('div');
-          //TODO
-          alert('should be replaced by call to: buildAnnotationCreationBox');
           buildPropertyInputFieldsFor(annocoreNode).then((content) => {
             for (let i = 0; i < Object.keys(content).length; i++) {
               //don't show: start, stop, selectedtext. 
@@ -165,12 +163,11 @@ function acceptQID(qid = -1) {
               }
             }
             annotationProperties.appendChild(annoSubContent);
-  
             document.getElementById('embeddedAnnotation').appendChild(annotationProperties);
             //attach validator after content is in the DOM:  
             let validator = new Validator;
             validator.pickup();
-  
+
           });
           //NO changes needed to DOM in here.
         }

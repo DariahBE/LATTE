@@ -163,7 +163,6 @@ foreach(array_keys($nodesDatamodel) as $node){
 
 /*set the primary keys for your nodes. If No primary key is set, the database will revert to using UUID.*/
 /*The UUID key is shortened as 'uid' */
-// // BUG: HOW to get to defaulted uid key!!!?
 $primaryKeys = array_map(function ($ar){
   /*
     You should have all the keys of nodesDatamodel here and default them to uid.
@@ -174,6 +173,7 @@ $primaryKeys = array_map(function ($ar){
       return $key;
     }
   }
+  //TODO Consider returning UID in stead of false. 
   //return 'uid';
   return false;
 }, $nodesDatamodel);

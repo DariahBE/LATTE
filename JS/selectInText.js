@@ -833,53 +833,58 @@ function buildAnnotationCreationBox() {
   fetch('/AJAX/get_structure.php?type=createNewAnnotation')
     .then((response) => response.json())
     .then((data) => {
-      //BUG ==> does not catch rejected requests from the server. Look at other get_structure calls for the correct implementation. 
-      //exclude: start, stop and selectedtext info!
-      Object.entries(data['data']).forEach(entry => {
-        const [key, value] = entry;
-        var humanLabel = value[0];
-        var datatype = value[1];
-        let uniqueness = value[2]; 
-        if (data['exclude'] && data['exclude'].includes(key)) {
-          //do not use the key:
-        } else {
-          let newFieldContainer = document.createElement('div');
-          newFieldContainer.classList.add('property');
-          let newFieldLabel = document.createElement('label');
-          let newFieldInput;
-          // if (datatype === 'longtext') {  
-          //   //longtext not used any longer. 
-          //   newFieldInput = document.createElement('textarea');
-          // } else {
-          //   newFieldInput = document.createElement('input');
-          // }
-          newFieldInput = document.createElement('input');
+      if (data['msg'] == 'success') {
+        //exclude: start, stop and selectedtext info!
+        Object.entries(data['data']).forEach(entry => {
+          const [key, value] = entry;
+          var humanLabel = value[0];
+          var datatype = value[1];
+          let uniqueness = value[2]; 
+          if (data['exclude'] && data['exclude'].includes(key)) {
+            //do not use the key:
+          } else {
+            let newFieldContainer = document.createElement('div');
+            newFieldContainer.classList.add('property');
+            let newFieldLabel = document.createElement('label');
+            let newFieldInput;
+            // if (datatype === 'longtext') {  
+            //   //longtext not used any longer. 
+            //   newFieldInput = document.createElement('textarea');
+            // } else {
+            //   newFieldInput = document.createElement('input');
+            // }
+            newFieldInput = document.createElement('input');
 
-          newFieldInput.classList.add('inputelement');
-          newFieldLabel.appendChild(document.createTextNode(humanLabel + ': '));
-          newFieldLabel.setAttribute('for', key);
-          newFieldInput.setAttribute('data-name', key);
-          newFieldInput.setAttribute('data-nodetype_override', annocoreNode);
-          let htmlType = typeToHtml(datatype);
-          if (htmlType !== false) {
+            newFieldInput.classList.add('inputelement');
+            newFieldLabel.appendChild(document.createTextNode(humanLabel + ': '));
+            newFieldLabel.setAttribute('for', key);
+            newFieldInput.setAttribute('data-name', key);
+            newFieldInput.setAttribute('data-nodetype_override', annocoreNode);
+            let htmlType = typeToHtml(datatype);
+            if (htmlType !== false) {
+              newFieldInput.setAttribute('type', htmlType);
+            }
             newFieldInput.setAttribute('type', htmlType);
+            let expectedPattern = typeToPattern(datatype);
+            if (expectedPattern) {
+              newFieldInput.setAttribute('pattern', expectedPattern);
+            }
+            if(uniqueness){
+              newFieldInput.classList.add('validateAs_unique');
+            }
+            newFieldInput.classList.add('attachValidator');
+            newFieldInput.classList.add('validateAs_' + datatype);
+            newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5', 'my-1');
+            newFieldContainer.appendChild(newFieldLabel);
+            newFieldContainer.appendChild(newFieldInput);
+            topBox.appendChild(newFieldContainer);
           }
-          newFieldInput.setAttribute('type', htmlType);
-          let expectedPattern = typeToPattern(datatype);
-          if (expectedPattern) {
-            newFieldInput.setAttribute('pattern', expectedPattern);
-          }
-          if(uniqueness){
-            newFieldInput.classList.add('validateAs_unique');
-          }
-          newFieldInput.classList.add('attachValidator');
-          newFieldInput.classList.add('validateAs_' + datatype);
-          newFieldInput.classList.add('border', 'border-gray-300', 'text-gray-900', 'rounded-lg', 'p-2.5', 'my-1');
-          newFieldContainer.appendChild(newFieldLabel);
-          newFieldContainer.appendChild(newFieldInput);
-          topBox.appendChild(newFieldContainer);
-        }
-      });
+        });
+    }else if (data['msg'] == 'failed'){
+      if(data['datacode'] = 0 ){
+        handleNoLogin()
+      }
+    }
     });
 
 
