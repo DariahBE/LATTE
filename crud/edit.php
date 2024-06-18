@@ -36,8 +36,11 @@ $requestedNode = $node->fetchRawEtById($id);
 $requestedNodeLabel = $requestedNode['label'];
 //with label and properties known for the node, get the model as defined in config file. 
 //restrict edit to entitytypes in CORENODES constant
-//and do not allow users to edit the text property of text nodes!!
-var_dump($requestedNode);
+//and :
+//      do not allow users to edit the text property of text nodes!!
+//      do not allow users to edit value that are used in unique keys! (API's depend on them)
+//      do not allow users to edit UUID fields. 
+//var_dump($requestedNode);
 $model = false; 
 if(array_key_exists($requestedNodeLabel, CORENODES)){
   $model = NODEMODEL[$requestedNodeLabel]; 
@@ -111,7 +114,8 @@ if($requestedNodeLabel === ANNONODE){
               }
               $form->add_element($key, $value, $dbvalue); 
             }
-            $form->generateHiddenToken('token', $token);
+            $form->generateHiddenToken('csrf_token', $token);
+            $form->generateNodeFieldattributes($requestedNodeLabel, $id); 
             $form->addSubmitButton(); 
             echo $form->renderForm();
           ?>
@@ -149,7 +153,7 @@ if($requestedNodeLabel === ANNONODE){
 
       //add the hidden csrf token to the form
       //echo "<input hidden readonly name='token' type='text' value='$token'>"; 
-      $tokenManager->outputToken();
+      // $tokenManager->outputToken();
 
       ?>
     </div>

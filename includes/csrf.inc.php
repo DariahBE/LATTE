@@ -12,6 +12,11 @@ class CsrfTokenManager {
         if(is_null($this->getTokenFromSession())){
             return false;
         }
+        if ($submittedToken === null){
+            return False;
+        }
+        //var_dump($this->getTokenFromSession()); 
+        //var_dump($submittedToken);
         return hash_equals($this->getTokenFromSession(), $submittedToken);
     }
 

@@ -16,4 +16,5 @@ if(isset($_GET['mode']) && ($_GET['mode'] == 'list')){
     echo json_encode($graph->countTextsConnectedToEntityWithID((int)$neoID));
 }
 
+
 ?>

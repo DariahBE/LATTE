@@ -12,8 +12,9 @@
  class FormGenerator {
 
     function __construct($targetPage){
-        $formElement = array(); 
+        $this->formElement = array(); 
         $this->formAction = $targetPage;
+        $this->nodeAttrs = array(); 
         $tokenElement = ''; 
         $submitButton = ''; 
     }
@@ -104,17 +105,32 @@
         $this->tokenElement = "<label class='hidden' for='$id'>tkn</label> <input id='$id' type='hidden' name='$name' value='$value'>";
     }
 
+    public function generateNodeFieldattributes($label, $neoid){
+        //generates a post field which is hidden to pass down the nodelabel. 
+        //passes down the LABEL (str) and NEO4J ID (int) of the updated node. 
+        //ALWAYS like this. 
+        $id = $this->idgen(); 
+        $this->nodeAttrs[] = "<label class='hidden' for='$id'>label</label> <input id='$id' type='hidden' name='app_logic_db_label' value='$label'>"; 
+        $id = $this->idgen(); 
+        $this->nodeAttrs[] = "<label class='hidden' for='$id'>nid</label> <input id='$id' type='hidden' name='app_logic_db_neoid' value='".(int)$neoid."'>"; 
+    }
+
     public function addSubmitButton(){
         $this->submitButton = "<button type='submit' class='btn btn-primary'>Submit</button>";
     }
 
 
     function renderForm(){
-        $form = "<form action='".$this->formAction."' class='grid gap-6 mb-6 md:grid-cols-2'>";
+        $form = "<form action='".$this->formAction."'  method='POST' class='grid gap-6 mb-6 md:grid-cols-2'>";
         foreach($this->formElement as $elem){
             $form.= '<div class="form-group">'.$elem.'</div>'; 
         }
         $form .= '<div class="form-group">'.$this->tokenElement.'</div>'; 
+        if(boolval($this->nodeAttrs)){
+            //always contains two elements, so this is an acceptable solution. 
+            $form .= '<div class="form-group">'.$this->nodeAttrs[0].'</div>'; 
+            $form .= '<div class="form-group">'.$this->nodeAttrs[1].'</div>'; 
+        }
         $form .= $this->submitButton;
         $form .= "</form>";
 

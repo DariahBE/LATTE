@@ -37,7 +37,7 @@
                 //'SimpleXML' => array('The simpleXML extension is missing', 'SIMPLEXML'),
                 'xml' => array('The xml extension is missing', 'XML'),
                 'session' => array('The session extension is missing', 'SESSION'),
-                'json' => array('The cujsonrl extension is missing', 'JSON'),
+                'json' => array('The json extension is missing', 'JSON'),
                 'hash' => array('The hash extension is missing', 'HASH'),
             );
             $loaded = get_loaded_extensions();

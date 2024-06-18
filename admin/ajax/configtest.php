@@ -21,6 +21,7 @@ if(isset($_SESSION["userid"])){
     $adminMode = True;
   }
 
+  //most of this is in the onboarding tool!
   //check CSRF
   function databaseReachable(){
     // TODO 
@@ -40,15 +41,7 @@ if(isset($_SESSION["userid"])){
     return 'TODO';
   }
 
-  function checkApacheConfig(){
-    // TODO
-    /**
-     *              DEPENDENCIES IN APACHE:
-     * GD  ==> needed for image functions (e.g.: imagetruecolor()  ===> https://stackoverflow.com/questions/4560996/call-to-undefined-function-imagecreatetruecolor-error-in-php-pchart)
-     * Redirect ==> Needed for htacces redirects (e.g. 301 ) ===> ?? 
-     * 
-     */
-  }
+
 
   function coreNodeCheck(){
     /**
@@ -111,7 +104,8 @@ if(isset($_SESSION["userid"])){
         'stop_exists' => annotationHasStop(),
     ), 
     'Server' => array(
-      'apache_modules_enabled' => checkApacheConfig(), 
+      // moved to modules check as part of the onboarding process. 
+      //'apache_modules_enabled' => checkApacheConfig(), 
     )
     
   ));
