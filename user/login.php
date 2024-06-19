@@ -33,7 +33,7 @@
             <div class="block bg-white shadow-lg rounded-lg">
               <div class="lg:flex lg:flex-wrap g-0">
                 <div class="md:w-6/12 px-4 md:px-0 sm:w-full">
-                  <div id='loginsquare' class="md:p-12 md:mx-6">
+                  <div id='loginsquare' class="md:p-12 md:mx-6 sm:w-full sm:mx-0">
                     <div class="" id='status'>
 
                     </div>

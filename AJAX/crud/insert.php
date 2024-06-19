@@ -23,23 +23,22 @@ $entity_type = $submitdata['etype'];
 $tokenManager = new CsrfTokenManager();
 $node = new CUDNode($client);
 //check the token ==> die if invalid
-//TODO anonymyze error messages. 
 if(!($tokenManager->checkToken($token))){
-    die(json_encode(array('error'=>'Invalid request (invalid token).'))); 
+    die(json_encode(array('error'=>'Invalid request.'))); 
 }
 
 if(!(array_key_exists($entity_type,NODEMODEL))){
-    die(json_encode(array('error'=>'Invalid request. (invalid nodetype)'))); 
+    die(json_encode(array('error'=>'Invalid request.'))); 
 }
 
 if(!array_key_exists('formdata', $submitdata)){
-    die(json_encode(array('error'=>'Invalid request. (invalid data submission)'))); 
+    die(json_encode(array('error'=>'Invalid request.'))); 
 }
 
 // if token is accepted and ETType is valid: insert it as ETTYpe with $form as properties: 
 foreach ($submitdata['formdata'] as $key => $value) {
     if(!(array_key_exists($key, NODEMODEL[$entity_type]))){
-        die(json_encode(array('error'=>'Invalid request. (invalid property)')));
+        die(json_encode(array('error'=>'Invalid request.')));
     }
 }
 
@@ -50,7 +49,7 @@ $graphResult = $node->createNewNode($entity_type, $submitdata['formdata'], true)
 //connect the user who created the node to $graphResult: 
 //var_dump($_SESSION['neoid'], $graphResult); 
 $connection = $node->connectCreatorToNode($_SESSION['neoid'], $graphResult); 
-var_dump($connection); 
+// var_dump($connection); 
 $node->commitTransaction(); 
 
 if (boolval($graphResult)){

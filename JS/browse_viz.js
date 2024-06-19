@@ -223,13 +223,30 @@ function colorLookup(label){
 function extendGraphOneHop(){
   //stop rendering the network while the graph is being extended
   network.setOptions( { physics: false } );
+  extend_replies = []; 
   for(var x = 0; x < allNodes.length; x++){
     if (!(excludeNodeIdFromNextXHR.includes(allNodes[x]))){
-      requestExtend(allNodes[x]);
+      extend_replies.push(requestExtend(allNodes[x], false));
     }
   } 
-  //once all nodes are in the graph: redraw.
-  //BUG (low): network is being updated before all nodes are in there. Enforce it to wait for all pending AJAX-requests.
+  Promise.all(extend_replies)
+  .then((results) => {
+    //console.log(results); 
+    results.forEach((result) => {
+      result = result[0]
+      if (result[0].length !== 0 && result[0]!== undefined) {
+        network.body.data.nodes.update(result[0]);
+      }
+
+      if (result[1].length !== 0 && result[1]!== undefined) {
+          network.body.data.edges.update(result[1]);
+      }
+    });
+    
+  })
+  .catch((error) => {
+    console.error("An error occurred:", error);
+  });  //once all nodes are in the graph: redraw.
   network.setOptions( { physics: true } );
 }
 
@@ -275,19 +292,56 @@ function updateCounters(){
   document.getElementById('nodeDisplay').innerText = allNodes.length; 
 }
 
-function requestExtend(onId){
-  extend(onId).then((data) => {
-    var dedupData = preProcess(data['nodes'], data['edges']);
-    //if there's a new node; add it:
-    if (dedupData[0].length !== 0){
-      network.body.data.nodes.update(dedupData[0]);
-    }
-    // if there's a new edge; add it: 
-    if(dedupData[1].length !== 0){
-      network.body.data.edges.update(dedupData[1]);
-    }
-  })
+// function requestExtend(onId, autocommit=true){
+//   extend(onId).then((data) => {
+//     var dedupData = preProcess(data['nodes'], data['edges']);
+//     //if there's a new node; add it:
+//     if (dedupData[0].length !== 0){
+//       if (autocommit){
+//         network.body.data.nodes.update(dedupData[0]);
+//       }
+//     }
+//     // if there's a new edge; add it: 
+//     if(dedupData[1].length !== 0){
+//       if(autocommit){
+//         network.body.data.edges.update(dedupData[1]);
+//       }
+//     }
+
+//     if(!(autocommit)){
+//       return [dedupData]; 
+//     }
+//   })
+// }
+
+
+function requestExtend(onId, autocommit = true) {
+  return new Promise((resolve, reject) => {
+    extend(onId).then((data) => {
+      var dedupData = preProcess(data['nodes'], data['edges']);
+      
+      if (dedupData[0].length !== 0) {
+        if (autocommit) {
+          console.log(dedupData[0]);
+          network.body.data.nodes.update(dedupData[0]);
+        }
+      }
+      
+      if (dedupData[1].length !== 0) {
+        if (autocommit) {
+          network.body.data.edges.update(dedupData[1]);
+        }
+      }
+      
+      if (!autocommit) {
+        resolve([dedupData]);
+      }
+    }).catch((error) => {
+      reject(error);
+    });
+  });
 }
+
 
 function init(neoIDFromEgo){
   buildTopController();
@@ -301,7 +355,7 @@ function init(neoIDFromEgo){
     network.on("doubleClick", function(properties) {
       if(!properties.nodes.length){return};
       var doubleClickedOn = properties.nodes[0];
-      requestExtend(doubleClickedOn);
+      requestExtend(doubleClickedOn, true);
     });
     network.on("click", function(properties){
       restoreNodeColor();

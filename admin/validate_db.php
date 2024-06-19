@@ -69,8 +69,6 @@
     </div>
   </div> -->
   <?php
-    $navbar = new Navbar($adminMode); 
-    echo $navbar->getNav();
     include_once('admin_tasks.php');
   ?>
 
