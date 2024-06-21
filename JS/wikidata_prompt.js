@@ -228,12 +228,10 @@ function pickThisQID(qid) {
     }
     deleteIfExistsById('embeddedWDConfirmationGroup'); 
     deleteIfExistsById('WDResponseTarget')
-    //document.getElementById('embeddedWDConfirmationGroup').remove();
-    //document.getElementById('WDResponseTarget').remove();
   });
   acceptButton.addEventListener('click', function () {
     //when normally annotating an entity then selecting and accepting a Q-id. 
-    alert('acceptqid trigger'); 
+    console.log('Calling acceptQID with: ', qid); 
     acceptQID(qid);
   });
 

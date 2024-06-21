@@ -27,13 +27,6 @@ class KnowledgeBase {
             this.buildCreationDisplay(); 
         });
     }
-/*
-
-    purgecontainer(){
-        //needed?
-        this.subKBElement.innerHTML = ''; 
-    }
-*/
 
     binkb(e){
     /**
@@ -77,7 +70,6 @@ class KnowledgeBase {
         p_one.appendChild(document.createTextNode(partnername)); 
 
         kb_block.appendChild(p_one);
-        // console.log('CLASSCOPE IN EVENTLOOP', classScope.userstate); 
         if(classScope.userstate){
             const p_two = document.createElement('p');
             p_two.classList.add('xsbinicon', 'bg-green-200', 'm-1', 'p-1', 'rounded-full'); 
@@ -179,9 +171,7 @@ class KnowledgeBase {
             $.post("/AJAX/fetch_kb.php?mode=create&token=" + token + "&id=" + this.neoIdOfEt, { data: postData })
                 .then(function( data ) {
                     self.appendToDom(data); 
-                    //console.log(data); 
             })
-
         })
         this.handleClose();
     }

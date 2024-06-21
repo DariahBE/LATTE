@@ -214,6 +214,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
       ?>
     </style>
   </div>
+
   <div class="right float-right" id="rightMainPanel">
       <div class="meta" id="topmeta">
         <!--controlling options for WD string-lookups-->
