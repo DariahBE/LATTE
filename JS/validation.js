@@ -2,7 +2,6 @@
 class Validator{
 
   reset(){
-    //TODO implement reset calls in all type methods.
     let e = event.src || event.target; 
     console.log(e); 
 
@@ -14,6 +13,11 @@ class Validator{
 
 
   intValidator(data){
+    // BUG low priority: it is possible to enter alphabetic characters in a number field. 
+    // this does not trigger a valid check though! non-numeric characters will always render
+    // data to '' an empty string, which is not a problem.
+    data = data.value; 
+    if(data == ''){this.reset(); return[];}
     let shouldBe = parseInt(data)+0; 
     if(shouldBe == data){
       return [true];
@@ -43,6 +47,8 @@ class Validator{
   }
 
   floatValidator(data){
+    data = data.value; 
+    if (data == ''){this.reset(); return [];}
     if(!isNaN(parseFloat(data)) && isFinite(data)){
       return [true];
     }else{
@@ -64,9 +70,8 @@ class Validator{
     var mainclass = this;
     for(var n=0; n<elements.length; n++){
       var target = elements[n];
-      //BUG: system evaluates everything as wikidata entry! // OKAY => new bug integer validator not working.
-      //eventlistener is stuck to the last object in the array!
       target.addEventListener('change', async function(){
+        // console.log("detected change");
         if(this.classList.contains('validateAs_string')){
           var correct = [true]; //not really required; strings are allowed to be empty anyway!
         }
@@ -78,13 +83,13 @@ class Validator{
           var correct = mainclass.regexValidator(this.value);
         }
         if(this.classList.contains('validateAs_int')){
-          var correct = mainclass.intValidator(this.value);
+          var correct = mainclass.intValidator(this);
         }
         if(this.classList.contains('validateAs_bool')){
           var correct = mainclass.boolValidator(this);
         }
         if(this.classList.contains('validateAs_float')){
-          var correct = mainclass.floatValidator(this.value);
+          var correct = mainclass.floatValidator(this);
         }
         if(this.classList.contains('validateAs_uri')){
           var correct = mainclass.linkValidator(this);

@@ -72,7 +72,8 @@ $nodesDatamodel = array(
     "private" => ["Private Annotation", "bool", false, false, false],
     "note" => ["Note", "string", false, false, true],
     "extra" => ["Extra", "string", false, false, true], 
-    "url" => ["Link", 'uri', false, false, false]
+    "url" => ["Link", 'uri', true, false, false], 
+    "my_id" =>['My ID', 'int', true, false, false]
   ],
   'Organization' =>[
     "label" => ["Label", "string", false, true, true],

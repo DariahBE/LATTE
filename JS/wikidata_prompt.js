@@ -35,21 +35,22 @@ function wdprompt(string, offset = 0) {
     .then((response) => response.json())
     .then((data) => {
       //needs a title item for wikidata:
-      console.log(data);
       var searchResults = data['search'];
-      if (searchResults.length === 0) {
-        target.innerHTML = '';
-        const noresultmsg = document.createElement('p');
-        noresultmsg.classList.add('border-t-2', 'mt-1', 'pt-1');
-        const noresulttext = document.createTextNode('No results found for the given search query.');
-        noresultmsg.appendChild(noresulttext);
-        /*let manualCreateButton = document.createElement('button'); 
-        let manualCreateButtonText = document.createTextNode('Add manual annotation'); 
-        manualCreateButton.appendChild(manualCreateButtonText); */
-        target.appendChild(noresultmsg);
-        acceptQID();
-        return;
-      }
+      // let notice = ''; 
+      // if (searchResults.length === 0) {
+      //   notice = 'Wikidata returned no results for '+ encodeURIComponent(string) + '. Change the spelling to try again.'
+      //   target.innerHTML = '';
+      //   const noresultmsg = document.createElement('p');
+      //   noresultmsg.classList.add('border-t-2', 'mt-1', 'pt-1');
+      //   const noresulttext = document.createTextNode('No results found for the given search query.');
+      //   noresultmsg.appendChild(noresulttext);
+      //   /*let manualCreateButton = document.createElement('button'); 
+      //   let manualCreateButtonText = document.createTextNode('Add manual annotation'); 
+      //   manualCreateButton.appendChild(manualCreateButtonText); */
+      //   target.appendChild(noresultmsg);
+      //   acceptQID();
+      //   return;
+      // }
       for (var s = 0; s < searchResults.length; s++) {
         let qid, title, descr = '';
         try {
@@ -122,6 +123,11 @@ function wdprompt(string, offset = 0) {
       target.innerHTML = '';
       target.appendChild(navigateReply);
       target.appendChild(table);
+      if (searchResults.length == 0){
+        let noResults = document.createElement('p');
+        noResults.appendChild(document.createTextNode('Wikidata returned no results for '+ JSON.stringify(string) + '. Change the spelling to try again.')); 
+        target.appendChild(noResults); 
+      }
     });
 }
 

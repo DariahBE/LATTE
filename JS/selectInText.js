@@ -409,9 +409,7 @@ function buildPropertyInputFieldsFor(label) {
               newFieldInput.setAttribute('pattern', expectedPattern);
             }
             if(uniqueness){
-            //TODO: test if uniqueness class is part of the DOM: 
-            alert("Pending testcase to check: selectInText.js > buildPropertyInputFieldsFor > TODO (uniqueness"); 
-            newFieldInput.classList.add('validateAs_unique');
+              newFieldInput.classList.add('validateAs_unique');
             }
             newFieldInput.classList.add('attachValidator');
             newFieldInput.classList.add('validateAs_' + datatype);
@@ -493,7 +491,6 @@ function deleteIfExistsById(id){
 
 let wikidataID; 
 function showET(etdata, levscore = false, weightscore = false) {
-  //TODO test if label is pressent by all callers!
   //alert('labeltest required from all callers!')
   /**
    *      function will display WD, label and properties for any 
@@ -503,7 +500,7 @@ function showET(etdata, levscore = false, weightscore = false) {
    *    - CALLED BY: 
    *  1) (OK)When the database holds a single string that matches the selection (datadictionary contains 1 item) (call comes from triggerSidePanelAction() with the first loaded node)
    *  2) (OK)When a string matches 2 or more existing annotations in the database (datadictionary contains more than 1 item)  (call comes from triggerSidePanelAction()>navET)
-   *  3) (BUGGED) showHit ==> BUG!! 10/4/24 (labels are okay!)
+   *  3) (OK) showHit bugpatch confirmed!
    */
   //read the properties from the entity passed as an argument
   let etdataNeoId = etdata[0];
@@ -928,7 +925,6 @@ function buildAnnotationCreationBox() {
   var selectedString = globalSelectionText;         //pull from global scope
   var positionDiv = document.createElement('div');
   positionDiv.setAttribute('id', 'embeddedAnnotation');   // only exists here! Should be put right after annotationCreationDiv
-  //BUG 20/3/24 Duplicate code for creating annotationelements. (From Buildannotationcrationbox())
   var positionTitle = document.createElement('h3');
   //console.log('annoinformationHere');
   positionTitle.appendChild(document.createTextNode('Annotation properties: '));
