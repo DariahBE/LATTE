@@ -55,6 +55,13 @@ if (1 ==1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['c
     $entityNode = $data['data'][0]['e'];
     $entityLabel = $entityNode['labels'][0];
     $user = $data['user'][0]['u'];
+    var_dump($annotationNode['properties']);
+    die(); 
+    var_dump($annotationprimary); 
+    var_dump($annotationNode);
+    //BUG // TODO
+    var_dump($annotationNode['properties']->getProperty($annotationprimary));
+    var_dump(array_key_exists($annotationprimary, $annotationNode['properties']));
     $mergeToDict['annotation'] = $annotationNode['properties'][$annotationprimary];     //SOLVED??? 
     $mergeToDict['creator'] = $user['properties']['user_sqlid'];
     $mergeToDict['private'] = false;

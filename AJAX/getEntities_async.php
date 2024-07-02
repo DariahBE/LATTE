@@ -12,7 +12,7 @@ if (isset($x['node']) && isset($x['lang'])){
 
   $pathOverride = SCRIPTROOT;
   $command = PYTHON.' "'.$pathOverride.'entity_extractor.py" --lang='.$lang.'  --nodeid='.$nodeid. ' --uri="'.URI.'" --username="'.USERNAME.'" --password="'.PASSWORD.'" --database="'.DBNAME.'" --textlabel="'.TEXNODE.'"  --textproperty="'.TEXNODETEXT.'"';
-  // echo $command; 
+  //echo $command; 
   // die(); 
   // $command = PYTHON.' "'.$pathOverride.'hello.py"';
   $scriptResult = shell_exec($command);

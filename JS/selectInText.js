@@ -516,7 +516,7 @@ function showET(etdata, levscore = false, weightscore = false) {
   let levbox = document.createElement('div')
   levbox.setAttribute('id', 'lev_weight_box'); 
   //levenshtein key + score elmement. 
-  alert(levscore, weightscore); 
+  alert('LEV/Weight', levscore, weightscore); 
   
   let levdist = document.createElement('p'); 
   if (levscore !== false){

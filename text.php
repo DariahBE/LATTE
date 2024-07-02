@@ -298,7 +298,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
     <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
   </svg>
 
-      <div id="slideoverDynamicContent" class="absolute text-gray-600 top-0 w-full h-full justify-center left-0 m-5 p-5">
+      <div id="slideoverDynamicContent" class="absolute text-gray-600 top-0 w-full h-full justify-center left-0 m-6 p-6">
         <!-- with xhr data loaded: put the response here!
           this panel serves as the target for showing data in the NEO database as well as wikidata responses. 
       -->

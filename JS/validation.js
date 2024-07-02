@@ -7,8 +7,10 @@ class Validator{
 
     e.classList.remove('validatorFlaggedMistake'); 
     e.classList.remove('bg-red-50');
+    e.classList.remove('bg-green-50');
     e.classList.remove('border-red-500'); 
-    e.classList.add('border-gray-300', 'text-gray-900'); 
+    e.classList.remove('border-green-500'); 
+    e.classList.add('border-gray-300', 'text-gray-900', 'border'); 
   }
 
 
@@ -73,7 +75,11 @@ class Validator{
       target.addEventListener('change', async function(){
         // console.log("detected change");
         if(this.classList.contains('validateAs_string')){
-          var correct = [true]; //not really required; strings are allowed to be empty anyway!
+          if(this.value == ''){
+            mainclass.reset(); return [];
+          }else{
+            var correct = [true]; //not really required; strings are allowed to be empty anyway!
+          }
         }
         /*    //longtext is dropped as a type!
         if(this.classList.contains('validateAs_longtext')){

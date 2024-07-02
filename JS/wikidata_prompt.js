@@ -316,10 +316,7 @@ let checkIfConnectionExists = async (qid) => {
       .then((response) => response.json())
       .then((data) => {
         let hits = data['data'];
-        //TODO: there's still testcode in here to trigger multihit responses!!
-        console.warn('testdata still present in code!!');
-        hits.push(148);
-        hits.push(146);
+
         let j = 0;
         if (data['hits'] != 0) {
           //load the first hit anyway: 
