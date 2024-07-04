@@ -45,24 +45,22 @@ if (1 ==1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['c
     'success'=> $annotationState
   );
   if($annotationState){
+    $annotationNode = $data['data'][0]['a'];
+
     $annotationprimary = 'uid';
     // $type = ANNONODE;
     if (array_key_exists(ANNONODE, PRIMARIES) && boolval(PRIMARIES[ANNONODE])){
       $annotationprimary = PRIMARIES[ANNONODE];
+      //check if the primary key of the ANNOTATION is set in the node, otherwise do go back to uid.
+      if(!(array_key_exists($annotationprimary, $annotationNode['properties']->toArray()))){
+        $annotationprimary = 'uid';
+      }
     }
     $assignedID = $data['data'][0]['id(a)']; 
-    $annotationNode = $data['data'][0]['a'];
     $entityNode = $data['data'][0]['e'];
     $entityLabel = $entityNode['labels'][0];
     $user = $data['user'][0]['u'];
-    var_dump($annotationNode['properties']);
-    die(); 
-    var_dump($annotationprimary); 
-    var_dump($annotationNode);
-    //BUG // TODO
-    var_dump($annotationNode['properties']->getProperty($annotationprimary));
-    var_dump(array_key_exists($annotationprimary, $annotationNode['properties']));
-    $mergeToDict['annotation'] = $annotationNode['properties'][$annotationprimary];     //SOLVED??? 
+    $mergeToDict['annotation'] = $annotationNode['properties'][$annotationprimary];
     $mergeToDict['creator'] = $user['properties']['user_sqlid'];
     $mergeToDict['private'] = false;
     $mergeToDict['start'] = $annotationNode['properties'][ANNOSTART];

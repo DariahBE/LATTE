@@ -561,7 +561,6 @@ function showET(etdata, levscore = false, weightscore = false) {
   }
   subtarget.innerHTML = '';
   subtarget.appendChild(levbox);
-  //TODO: test that you don't create multiple labels!
   let labelElement = document.createElement('h3'); 
   labelElement.appendChild(document.createTextNode('Entity: '+ etLabel)); 
   labelElement.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex', 'justify-center'); 
@@ -1193,9 +1192,6 @@ function triggerSidePanelAction(entityData) {
     let topTex = document.createElement('h3');
     topTex.classList.add('w-full');
     //create a box notice where the information is shown: 
-    //find a way of attaching variants to the nodes!!
-    //start with interpreting the edges: connect the entitynode with the variants once you know that!
-    //BUG: entityID gets repeated on one to many relations with variants!
     dataDictionary = entityData['nodes'];
     topTex.appendChild(document.createTextNode("Found " + dataDictionary.length + " nodes based on matching string."));
     topbox.appendChild(topTex);

@@ -212,13 +212,15 @@ function writeField(key, data, protected, structure) {
     fieldvalue.value = data ? 'true' : 'false'; // set the selected option based on the data
     field.appendChild(fieldvalue);
   } else if (fieldType === 'uri') {
-    var fieldvalue = document.createElement('a');
-    fieldvalue.classList.add('externalURILogo');
-    fieldvalue.setAttribute('href', data);
-    fieldvalue.setAttribute('target', '_blank');
-    fieldvalue.appendChild(document.createTextNode(data));
-    field.appendChild(fieldvalue);
-    fieldvalue.setAttribute('type', 'url');
+    if (data != ''){
+      var fieldvalue = document.createElement('a');
+      fieldvalue.classList.add('externalURILogo');
+      fieldvalue.setAttribute('href', data);
+      fieldvalue.setAttribute('target', '_blank');
+      fieldvalue.appendChild(document.createTextNode(data));
+      field.appendChild(fieldvalue);
+      fieldvalue.setAttribute('type', 'url');
+    }
   } else if (fieldType === 'wikidata'){
     var fieldvalue = document.createElement('a');
     fieldvalue.setAttribute('href', 'https://www.wikidata.org/wiki/'+data);
