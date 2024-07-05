@@ -1,5 +1,4 @@
 <?php
-//TODO check conflicting implementation in AJAX/Crud/delete.php
 
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
@@ -28,20 +27,6 @@ $user_id = $user->checkSession();
 if($user_id === false){
     die('login required');
 }
-
-
-/*
-//BUG //TODO: why is this delete statement here?
-$graph = new CUDNode($client); 
-$graph->startTransaction(); 
-try {
-    $graph->deleteText($id); 
-    //echo json_encode($data); 
-} catch(\Throwable $th) {
-    $graph->rollbackTransaction(); 
-    die(); 
-}
-$graph->commitTransaction(); */
 
 
 $tokenManager = new CsrfTokenManager();

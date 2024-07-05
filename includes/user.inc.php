@@ -164,6 +164,8 @@ public function checkForSession($redir="/user/mypage.php"){
     }
     if($role === 'researcher'){
       // you can edit nodes and edges.
+      //  ==> nodes that are created by this user can be edited by extra
+      // check done in determinerightset method. 
       return 2;
     }
     // ownership check is moved elsewhere

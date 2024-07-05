@@ -760,10 +760,8 @@ function createWDPromptBox(createNodeDiv, positionDiv){
   if(globalLoginAvailable){
     noWikidataId.addEventListener('click', function () {
       //IF you pass -1 the application won't store the QID. Any newly created entity won't have a value set in the wikidata field. 
-      //TODO: 
-      //      You still need to reset the entity container:
-      //      build element with ID : embeddedET
-      //      trigger element with ID: etcreate
+      qid = -1; 
+      wd = null; 
       acceptQID(-1);
     }); 
   }

@@ -270,8 +270,8 @@ class CUDNode extends Node {
     //then the user has the right to delete (lift the userright up)
     if ($requestedLevel === 3 && $ownerShip === true && $whatRightSetApplies === 2) {
       //increase right of 'researcher' level users to delete self-created nodes. 
-      //BUG: shouldn't this be 3? 
-      $whatRightSetApplies = 2;
+      //lift user up to allow them to edit self-created nodes. 
+      $whatRightSetApplies = 3;
     }
     if ($whatRightSetApplies >= $requestedLevel){
         return True;
@@ -287,10 +287,10 @@ class CUDNode extends Node {
      * the dryRun argument will report how many
      * edges are to be deleted in addition to the node.
     */
-    //TODO: test implementation of transactions!
+    //test implementation of transactions!
       //    1) AJAX/crud/delete.php ==> OK
       //    2) AJAX/fetch_kb.php ==> OK
-      //    3) crud/delete.php ==> //TODO
+      //    3) crud/delete.php ==> //NA
     public function delete($id, $dryRun=False){
       //function WILL cast $id to int!
         if($dryRun){
@@ -299,7 +299,6 @@ class CUDNode extends Node {
             $deletedEdges = $this->tsx->run($query_EdgesToBeRemoved, ['nodeid'=>(int)$id]); 
             $isolationDetection = $this->tsx->run($query_NodesToBecomeIsolated, ['nodeid'=>(int)$id]);
             $returnData = array('impactedEdges'=> 0, 'disconnectedNodes' => 0);
-
             foreach($deletedEdges as $record){
                 $returnData['impactedEdges'] = $record->get('count'); 
             }

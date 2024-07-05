@@ -658,7 +658,7 @@ function executePremadeParameterizedQuery($query, $parameters){
         // processing i-nodes is obsolete: reduced query complexity. 
         // /*if(!(is_null($result['i']))){
         //   $iPartner = process_entityNodes($result['i']);
-        //   $iPartner['siloForEt'] = 0;//TODO
+        //   $iPartner['siloForEt'] = 0;
 
         //   if(!(in_array($iPartner[0], $registeredNodes))){
         //     $registeredNodes[] = $iPartner[0];
@@ -667,7 +667,7 @@ function executePremadeParameterizedQuery($query, $parameters){
         // }*/
         if(!(is_null($result['j']))){
           $jPartner = process_entityNodes($result['j']);
-          $jPartner['siloForEt'] = 0; //TODO
+          $jPartner['siloForEt'] = 0;
           if(!(in_array($jPartner[0], $registeredNodes))){
             $registeredNodes[] = $jPartner[0];
             $formattedResults['silo'][] = $jPartner;
