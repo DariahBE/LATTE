@@ -36,6 +36,8 @@ $token = $tokenManager->generateToken();
 
 //get all data of the node: 
 //  EGO info:   
+$graph = new CUDNode($client);  
+$graph->startTransaction(); 
 $egoLabel = $graph->fetchLabelById($id); 
 if($egoLabel === NULL){
     //if there's no EGO => redir to error and stop execution
@@ -95,7 +97,7 @@ function generateFirstBox(){
         $repl .= '<h4 class="w-full text-lg font-bold text-center m-1 p-1 mt-2 pt-2">Entities.</h4>'; 
         $connectedEntities = $graph->find_isolated_entities(array($id)); 
         $ets = count($connectedEntities); //should always be 1
-        $repl .= "<p>This annotation is linked to  {$ets} distinct ". ($ets != 1 ? "entities" : "entity")."</p>";
+        $repl .= "<p>This annotation is uniquely linked to  {$ets} ". ($ets != 1 ? "entities" : "entity")."</p>";
         $repl .= "<p>Deleting this annotation will delete: </p>" ;
         $repl .= "<ul><li>This unique annotation</li><li>The <b>uniquely connected entity</b> to this annotation </li><li>All <b>Knowledgebase and Variant connections</b> to the connected entity.</li></ul>"; 
     }elseif($ntype == 'entity'){
@@ -188,3 +190,9 @@ function generateSecondBox(){
         </div>
     </body>
 </html>
+
+<?php
+    //rollback anyway, there's no commitable operation done here: 
+    $graph->rollbackTransaction(); 
+    $graph = null; 
+?>

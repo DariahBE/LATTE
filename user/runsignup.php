@@ -23,7 +23,7 @@ $graph = new Node($client);
 $hashedPassword = password_hash('prevent', PASSWORD_DEFAULT);
 password_verify('timingattack', $hashedPassword); 
 
-
+//TODO make transactional!
 
 /**
  * CORRECT REGISTRATION PROCEDURE NEEDS TO CHECK A FEW THINGS

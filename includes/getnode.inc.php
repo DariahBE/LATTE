@@ -88,7 +88,7 @@ class Node{
 
   function getIndexes(){
     /**returns an overview of all Label.properties that have 
-     * an index in the linded database. 
+     * an index in the linked database. 
      */
     $indexedProperties = array(); 
     $query = 'SHOW INDEXES'; 
@@ -98,10 +98,11 @@ class Node{
       $nodeLabel = $value['labelsOrTypes'][0]; 
       $property = $value['properties'][0]; 
       $idxname = $value['name'];
+      // if label does not exist in return value: add it
       if(!(array_key_exists($nodeLabel, $indexedProperties))){
         $indexedProperties[$nodeLabel] = array(); 
       }
-      //TODO has to be returned too: to make idempotent drop $idxname 
+      // for existing node labels add the properties. 
       if(!(array_key_exists($property, $indexedProperties[$nodeLabel]))){
         $indexedProperties[$nodeLabel][$property] = $idxname; 
       }
@@ -666,10 +667,11 @@ function executePremadeParameterizedQuery($query, $parameters){
         //   }
         // }*/
         if(!(is_null($result['j']))){
-          $jPartner = process_entityNodes($result['j']);
-          $jPartner['siloForEt'] = 0;
+          $jPartner = process_entityNodes($result['j']); 
+          $jPartner['siloForEt'] = $result['q']['id'];
           if(!(in_array($jPartner[0], $registeredNodes))){
             $registeredNodes[] = $jPartner[0];
+            $jPartner['uuid'] = (array_key_exists('uid', $result['j']['properties']->toArray())) ? $result['j']['properties']['uid'] : null; 
             $formattedResults['silo'][] = $jPartner;
           }
         }

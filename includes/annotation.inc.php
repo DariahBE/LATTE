@@ -178,11 +178,17 @@ class Annotation{
       cast to the correct type; the second value is the boolval result of the $value
       or overridden to true where it makes sense. If this second values returns False
       the value will be rejected an NOT stored in the database.
+      !!!!!!!!!!!
+      Empty strings or values which can be interpreted as empty values are not 
+      stored in the database if the second value of the return object is false!
+      !!!!!!!!!!!!
     */
-    //BUG: it's impossible to tell at the moment if an empty string should be used or not!
     $expectedType = NODEMODEL[$entity][$property][1]; 
     switch ($expectedType) {
       case 'string':
+        //boolval of '' = false!
+        $value = strval($value); 
+        $value = trim($value); 
         return [strval($value), boolval($value)]; 
         break;
       case 'float':
@@ -225,7 +231,7 @@ class Annotation{
     //      - SEE BUG 13
     $constraintTwo = False;
     $userNeo = $user->neoId;
-    $userAppId = $user->myId;  
+    $userAppId = $user->myId;
     //put a constraint on the label of t: ensure that this is the text!
     $query = 'MATCH (t:'.TEXNODE.') WHERE id(t) = $texid RETURN t';
     $result = $this->tsx->run($query, ['texid'=>$neoIDText]);
@@ -250,12 +256,10 @@ class Annotation{
     foreach ($extra as $key => $value) {
       $cast_data = $this->setToTypeByModel(ANNONODE, $key, $value); 
       if($cast_data[1]){
-
         $phval = $phval+1; 
         $phstr = 'ph_'.strval($phval); 
         $queryparameters[] = $key.': '.'$'.$phstr; 
         $querydata[$phstr] = $cast_data[0];
-        # code...
       }
     }
     if($constraintOne && $constraintTwo){

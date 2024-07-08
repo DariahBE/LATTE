@@ -259,7 +259,6 @@ class CUDNode extends Node {
 
 
   public function determineRightsSet($requestedLevel, $neoid){
-    //TODO: incomplete method (should be okay, requires testing)
     include_once(ROOT_DIR.'/includes/user.inc.php');
     $user = new User($this->client); 
     //var_dump($user->myRole); 
@@ -319,7 +318,6 @@ class CUDNode extends Node {
       //function WILL cast $id to int! Method only used by KnowledgeBase code 
       //but the code is portable to be used with other tripples:
       // (n:leftNeoId)-[r:edgelabel]-(m:rightNeoId)
-      //TODO return value has to be made more explicit in interface!
       $query = 'MATCH (n)-[r:'.$edgelabel.']-(m) WHERE id(n) = $neoleft AND id(m) = $neoright DELETE r;'; 
       $querydata = array('neoleft'=> (int)$leftNeoId, 'neoright'=> (int)$rightNeoId); 
       $deletedEdges = $this->tsx->run($query, $querydata); 

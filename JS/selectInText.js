@@ -544,11 +544,13 @@ function showET(etdata, levscore = false, weightscore = false) {
     weight.appendChild(weight1);
     weight.appendChild(weight2);
   }
-   
+  
   levbox.appendChild(levdist);
   levbox.appendChild(weight);
   deleteIfExistsById('assignEtToSelectionParent');
-  deleteIfExistsById('annotationCreationDiv');
+  //TODO  //BUG: (8/7/24) this call had to be removed to enable annotations of existings nodes matching Q-ids. 
+  //What's the impact?
+  //deleteIfExistsById('annotationCreationDiv');
   let wd = null;
   let wdboxToDrop = document.getElementById('WDResponseTarget');
   if (wdboxToDrop) { wdboxToDrop.remove(); }
@@ -1161,7 +1163,7 @@ function triggerSidePanelAction(entityData) {
     BUT
         ==> You have the ability to call wikidata/ backend for matching options. 
         :> these matching options may hold entities! 
-  */
+  */ 
   toggleSlide(1);
   //console.log(entityData);
   let = dataDictionary = {};
@@ -1403,6 +1405,10 @@ function makeSuggestionBox() {
   document.body.appendChild(div);
 }
 
+function handleKbs(kbs){
+  document.getElementById('urlrelations'); 
+}
+
 function loadIntoSuggestionBox(data, from, to) {
   // console.log('data', data);
   // console.log('from', from);
@@ -1446,6 +1452,7 @@ function loadIntoSuggestionBox(data, from, to) {
     document.getElementById("suggestionboxspinner").parentNode.insertBefore(datadiv, document.getElementById('suggestionboxspinner'));
     document.getElementById('suggestionboxspinner').remove();
   }
+  handleKbs(data['silo']); 
 }
 
 function getTextSelection() {
@@ -1488,6 +1495,7 @@ function open_ld_maxhits(){
   }
 }
 
+
 function triggerSelection() {
   unmark()
   var selectedTextProperties = getTextSelection();
@@ -1513,6 +1521,7 @@ function triggerSelection() {
     getInfoFromBackend($sendTo)
       .then((data) => {
         loadIntoSuggestionBox(data, selectedTextStart, selectedTextEnd);
+        //handleKbs(data['silo']); 
       })
   }
 }
