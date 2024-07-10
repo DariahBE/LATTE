@@ -370,14 +370,6 @@ function showdata(data) {
   } else if (datamode === 'automated') {
     // improved code by relying on the global! 
     //  value is assigned to globalSelectionText by using the annotation trigger. 
-    // //find the selected text: 
-    // //let highlighted = document.getElementsByClassName("markedAnnotation");
-    // /*let highlightedText = '';
-    // for (const element of highlighted) {
-    //   highlightedText += element.textContent;
-    // }
-    // console.log('highlight is', highlightedText);
-    // globalSelectionText = highlightedText;*/
     
     $ld_count = $('#max_ld'); 
     $baseURL = '/AJAX/getEntitySuggestion.php?';

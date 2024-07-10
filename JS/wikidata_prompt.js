@@ -388,6 +388,8 @@ let checkIfConnectionExists = async (qid) => {
               //TODO: extra properties need to be tested (OKAY IF implementationtest passes. ). 
               let annotationProperties = document.getElementById('embeddedAnnotation').getElementsByClassName('property');
               let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
+              alert('PENDING BUG TEST(1) HERE RELATED TO BUG MARKED AS //BUG 9-7-24'); 
+              //TODO: BUG: 9-7-24: verify this annotationCollectionBox contains Key-value pairs for the connect operation!
               console.log(annotationCollectionBox);      
               //fetch a fresh CSRF token: 
               fetch('/user/AJAX/profilestate.php')

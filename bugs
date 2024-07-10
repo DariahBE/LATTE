@@ -15,10 +15,6 @@ ________________________
 6) annotatoin.inc.php ==> method:  createAnnotation:
   - Uses static code, what if a property does not exist, rewrite!
 
-7) Python: extractTextFromDB:
-  - Assumes static text property for a static node Text;
-  - rewrite it so that you extract it from the DB based on the id()-attribute
-  - pass the name where the text is stored as an additional property!
 
 
 11) Bug in getnode.inc.php
@@ -69,3 +65,8 @@ ________________________________________________________________________________
   - .htaccess has the same flaw: what if node does not exist. 
       <-> Fixed by using URI prefix - already implemented. 
       TO-DO: test /URI/ prefix in other views!!
+
+7) Python: extractTextFromDB: OK
+  - Assumes static text property for a static node Text;
+  - rewrite it so that you extract it from the DB based on the id()-attribute
+  - pass the name where the text is stored as an additional property!

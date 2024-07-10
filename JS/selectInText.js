@@ -55,6 +55,9 @@ function handleNoLogin(){
 }
 
 function extractAnnotationPropertiesFromDOM(domBlock) {
+  console.log(domBlock); 
+   //BUG 9-7-24 cause is here: properties aren't sent to the backend!
+    // not confirmed in second call!
   let prop = {}
   // console.log('extracting DOM properties'); 
   for (let i = 0; i < domBlock.length; i++) {
@@ -178,6 +181,8 @@ function saveNewDB() {
         dataObject['nodetype'] = etType;
         //let annotationCollectionBox = {};
         let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
+        alert('PENDING BUG TEST(3) HERE RELATED TO BUG MARKED AS //BUG 9-7-24'); 
+        //TODO: BUG: 9-7-24: verify this annotationCollectionBox contains Key-value pairs for the connect operation!
         let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
         // 
         /*for(let i = 0; i < annotationProperties.length; i++){
@@ -440,6 +445,7 @@ async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selec
       selection: selected_text, 
       properties: extra_properties
     };
+    //BUG 9-7-24 cause is here: properties aren't sent to the backend!
     $.ajax({
       type: "POST",
       url: "/AJAX/crud/connect.php",
@@ -660,6 +666,8 @@ function showET(etdata, levscore = false, weightscore = false) {
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
           let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
           console.log(annotationCollectionBox);
+          alert('PENDING BUG TEST(2) HERE RELATED TO BUG MARKED AS //BUG 9-7-24'); 
+          //BUG 9-7-24 cause is here: properties aren't sent to the backend!
           await connectAnnoToEntity(etdataNeoId, languageOptions['nodeid'], globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox,  csrf); 
 
         });
