@@ -26,8 +26,6 @@ $selectionStart = (int)$data['start'];
 $selectionEnd = (int)$data['stop'];
 $token = $data['csrf'];
 $extra = $data['properties'];
-//BUG 9-7-24: $extra does not receive the KEYS required to correctly link the data to the correct node properties!
-//connectiontoken should not be older than 5 minutes. 
 //check if token equals the session variable and that the session did not yet expire 
 if (1 ==1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connectiontoken']) && $token === $_SESSION['connectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
   //destroy the token: can only be used once. 

@@ -253,11 +253,8 @@ class Annotation{
       'endnumb' => $end
     ]; 
     $queryparameters = [ANNOSTART.': $startnumb', ANNOSTOP.': $endnumb', 'uid: apoc.create.uuid()']; 
-    var_dump($extra); 
     foreach ($extra as $key => $value) {
-      var_dump($key, $value);
       $cast_data = $this->setToTypeByModel(ANNONODE, $key, $value); 
-      var_dump($cast_data); 
       if($cast_data[1]){
         $phval = $phval+1; 
         $phstr = 'ph_'.strval($phval); 
