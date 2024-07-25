@@ -345,7 +345,6 @@ class CUDNode extends Node {
                 $placeholderValues = array();
                 //var_dump($data); 
                 foreach($data as $key => $value){
-                  //var_dump($key, NODEMODEL[$label][$key][2], $value);
                     //empty uri triggers fatal error: empty values should not be parsed as data!! Unless it's for PK field: 
                     //LOGIC: 
                     //do not store empty values in the database! drop them from data: 
@@ -357,7 +356,11 @@ class CUDNode extends Node {
                         $data[$key] = $value;
                       }else{
                         //return array('ERR'=> 'Empty value given for unique attribute ('.NODEMODEL[$label][$key][0].'). Request rejected.');
-                        throw new Exception('Empty value given for unique attribute ('.NODEMODEL[$label][$key][0].'). Request rejected.');
+                        echo json_encode(array('ERR'=> 'Empty value given for unique attribute ('.NODEMODEL[$label][$key][0].'). Request rejected.'));
+                        //throw new Exception();
+                        //rollback the transaction before calling DIE to revert all pending changes!
+                        $this->rollbackTransaction();
+                        die();
                       }
                     }
                     if($value !== ''){
@@ -367,7 +370,9 @@ class CUDNode extends Node {
                             $reformattedValue = $this->helper_enforceType(NODEMODEL[$label][$key][1],$value); 
                             $placeholderValues['placeholder_'.$placeholder] = $reformattedValue; 
                         }else{
-                            throw new Exception("Data does not match node definition. Request rejected.");
+                            echo json_encode(array('ERR'=>"Data does not match node definition. Request rejected." ));
+                            $this->rollbackTransaction(); 
+                            die();
                         }
                         $placeholder++; 
                     }

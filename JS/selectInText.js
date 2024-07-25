@@ -204,6 +204,8 @@ function saveNewDB() {
         dataObject['neo_id_internal'] = auto_annotation_internal_id; 
         console.log("savenewdb", dataObject);
         //send dataobject to backend: 
+        //BUG: when leaving a UNIQUE field EMPTY and submitting the data, the error is not caught and fails without giving proper user feedback!
+
         console.warn('sending data put_annotation.php:');
         // backend needs to know if this is an update or insert operation! Annotation or Annotation_auto node
         $.post("/AJAX/put_annotation.php", { data: dataObject })
@@ -213,12 +215,14 @@ function saveNewDB() {
             displayUpdatedText(put_rs['type'], put_rs['start'], put_rs['stop'], put_rs['uuid']); 
           })
           .catch(function(data){
+            console.log("data caught by system:", data);
             let errorMessage = data['ERR']; 
+            console.log('received errmessage: ', errorMessage);
+            alert('caught err');
             updateState('ERROR', errorMessage); 
-             
           })
           .always(function(){
-            auto_annotation_internal_id= NaN; 
+            auto_annotation_internal_id = NaN; 
           })
       }); 
       document.getElementById('saveEtToDb').setAttribute('disabled', true); // Prevents dual submission!

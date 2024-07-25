@@ -224,8 +224,7 @@ class Annotation{
 
   public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user, $start, $end, $extra){
     //OK; static properties! OK
-    // TODO: test required from connect.php 
-    // BUG: Test found that creating the annoation work,
+    // BUG: Test found that creating the annoation work, (works from interface using connect.php)
     // it is however failing to connect the user to the annotation node when triggered from 
     // wikidata interface. This method is bugfree, but you need the code from here to patch the bug. 
     //      - SEE BUG 13
@@ -258,7 +257,7 @@ class Annotation{
       if($cast_data[1]){
         $phval = $phval+1; 
         $phstr = 'ph_'.strval($phval); 
-        $queryparameters[] = $key.': '.'$'.$phstr; 
+        $queryparameters[] = $key.': '.'$'.$phstr;
         $querydata[$phstr] = $cast_data[0];
       }
     }
@@ -366,33 +365,6 @@ class Annotation{
     return boolval($value); 
   }
 
-  // TESTCODE: can be deleted in cleanup phase
-      // public function testNodePrivacyDection($neoid){
-      //   var_dump($neoid); 
-      //   $query = 'MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')-[l:references]->(p) 
-      //   OPTIONAL MATCH (t:'.TEXNODE.')-[r:contains]->(a:'.ANNONODE.')<-[pc:priv_created]-(u:priv_user) 
-      //   WHERE id(t)=$neoid
-      //   RETURN id(a) as annoid, u.user_sqlid as userid, a.private as annoprivacyflag, t,a,p,u;';
-      //   //patch: consider returning the property and extracting that; by default cypher will nullify non-existing properties.
-      //   $result = $this->tsx->run($query, ['neoid'=>$neoid]);
-      //   $anno_to_user = []; 
-        
-      //   foreach ($result as $key => $annotationRecord) {
-      //     /**
-      //      *  user is either NULL or a NODE ID.
-      //      *    if NULL ==> there is no user linked to the record = public
-      //      *    IF NODE ==> the ID is the owner of the node 
-      //      * an annotation is private if stored as KEY in assoc array $anno_to_user, 
-      //      * the owner is set as VALUE for the stored KEY
-      //     */
-      //     if($this->extractboolval($annotationRecord->get('annoprivacyflag'))){
-      //       $anno_to_user[$annotationRecord->get('annoid')] = $annotationRecord->get('userid'); 
-      //     }
-
-      //   }
-      //   var_dump($anno_to_user); 
-      // }
-  //    TESTCODE END!
   
   public function getExistingAnnotationsInText($neoid, $user_sql_id_int = false){
     //$user_sql_id_int = 5;//   TEST PASSED: private nodes do not show when missmatch between owner(u.user_sqlid) and viewer(user_sql_id_int)

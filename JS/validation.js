@@ -100,9 +100,9 @@ class Validator{
         if(this.classList.contains('validateAs_uri')){
           var correct = mainclass.linkValidator(this);
         }
-        if (correct.length != 0){          
+        if (correct.length != 0){
           if(this.classList.contains('validateAs_unique')){
-          var selectedNode ; 
+          var selectedNode; 
             if (this.hasAttribute('data-nodetype_override')) {
               selectedNode = this.getAttribute('data-nodetype_override');
             }else{
