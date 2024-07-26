@@ -11,6 +11,11 @@ class Validator{
     for (let i = 0; i < unique_elements.length; i++) {
       let elm = unique_elements[i];
       if (elm.value == '') {
+        var msgHolder = document.createElement('p');
+        msgHolder.classList.add('errorNotification');
+        var msgText = document.createTextNode('An empty value was given to a unique-field. Provide a unique value.'); 
+        msgHolder.appendChild(msgText);
+        elm.parentNode.insertBefore(msgHolder, elm);
         elm.classList.add('bg-red-50', 'border', 'border-red-500', 'validatorFlaggedMistake');
         elm.classList.remove('bg-green-50', 'border', 'border-green-500');
       }
@@ -19,8 +24,6 @@ class Validator{
 
   reset(){
     let e = event.src || event.target; 
-    console.log(e); 
-
     e.classList.remove('validatorFlaggedMistake'); 
     e.classList.remove('bg-red-50');
     e.classList.remove('bg-green-50');
@@ -76,7 +79,7 @@ class Validator{
 
   regexValidator(data){
     if (data == ''){this.reset(); return [];}
-    var pattern = /(^Q\d*$)/;
+    var pattern = /(^Q\d+$)/;
     if(pattern.test(data)){
       return [true];
     }else{

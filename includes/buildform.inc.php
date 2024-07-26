@@ -19,26 +19,25 @@
         $submitButton = ''; 
     }
 
-    function add_element($key, $settings, $value){
-        //var_dump($settings);
+    function add_element($key, $settings, $value, $border = False, $fill = False){
         switch ($settings[1]) {
             case 'int':
-                $this->generateIntegerInput($key, $settings, $value);
+                $this->generateIntegerInput($key, $settings, $border, $fill, $value);
                 break;
             case 'string':
-                $this->generateTextInput($key, $settings, $value);
+                $this->generateTextInput($key, $settings, $border, $fill, $value);
                 break;
             case 'bool':
-                $this->generateBooleanInput($key, $settings, $value);
+                $this->generateBooleanInput($key, $settings, $border, $fill, $value);
                 break;
             case 'wikidata': 
-                $this->generateWikidataIdInput($key, $settings, $value);
+                $this->generateWikidataIdInput($key, $settings, $border, $fill, $value);
                 break;
             case 'uri':
-                $this->generateUriInput($key, $settings, $value); 
+                $this->generateUriInput($key, $settings, $border, $fill, $value); 
                 break;
             case 'float': 
-                $this->generateFloatInput($key, $settings, $value);
+                $this->generateFloatInput($key, $settings, $border, $fill, $value);
             default:
                 //invalid types: don't do anything with these.
                 break;
@@ -50,53 +49,53 @@
     }
 
     //all methods below are called by the constructor!
-    public function generateFloatInput($name, $settings, $value = null) {
+    public function generateFloatInput($name, $settings,$border, $fill, $value = null) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
         $dataunique = $settings[2]; 
         $id = $this->idgen(); 
-        $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique' type='number' step=any name='$name' value='$value'> </textarea>";
+        $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique $border $fill' type='number' step=any name='$name'>".htmlspecialchars($value)."</textarea>";
     }
 
-    public function generateUriInput($name, $settings, $value = null) {
+    public function generateUriInput($name, $settings, $border, $fill, $value = null) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
         $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
-        $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique' type='url' name='$name' value = '$value'></textarea>"; 
+        $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique $border $fill' type='url' name='$name'>".htmlspecialchars($value)."</textarea>"; 
     }
     
-    public function generateIntegerInput($name, $settings, $value = null) {
+    public function generateIntegerInput($name, $settings, $border, $fill, $value = null) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
         $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
-        $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique' type='number' step=1 name='$name' value='$value'> </textarea>";
+        $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique $border $fill' type='number' step=1 name='$name'>".htmlspecialchars($value)."</textarea>";
     }
     
-    public function generateBooleanInput($name, $settings, $checked = false) {
+    public function generateBooleanInput($name, $settings, $border, $fill, $checked = false) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
         $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
         $checkedAttr = $checked ? "checked" : "";
-        $this->formElement[] = "<label for='$id'>$labelname</label> <input id='$id' class='w-full form-control attachValidator $dataunique' type='checkbox' name='$name' $checkedAttr>";
+        $this->formElement[] = "<label for='$id'>$labelname</label> <input id='$id' class='w-full form-control attachValidator $dataunique $border $fill' type='checkbox' name='$name' $checkedAttr>";
     }
     
-    public function generateTextInput($name, $settings, $value = null) {
+    public function generateTextInput($name, $settings, $border, $fill, $value = null) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
         $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
-        $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique' type='text' name='$name' value='$value'> </textarea>";
+        $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique $border $fill' type='text' name='$name' >".htmlspecialchars($value)."</textarea>";
     }
     
-    public function generateWikidataIdInput($name, $settings, $value = null) {
+    public function generateWikidataIdInput($name, $settings, $border, $fill, $value = null) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
         $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
-        $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique' type='text' name='$name' pattern='^Q[0-9]+$' value='$value' title='Please enter a Wikidata ID (e.g., Q123)'> </textarea>";
+        $this->formElement[] = "<label for='$id'>$labelname</label> <textarea id='$id' class='w-full form-control attachValidator $dataunique $border $fill' type='text' name='$name' pattern='^Q[0-9]+$' title='Please enter a Wikidata ID (e.g., Q123)'>".htmlspecialchars($value)."</textarea>";
     }
 
     public function generateHiddenToken($name, $value) {

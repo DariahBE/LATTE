@@ -99,10 +99,9 @@ if($requestedNodeLabel === ANNONODE){
             foreach($model as $key => $value){
               //key = name used in NEO4J
               //value = properties of the KEY: 
-              //stuck on problem: the KEY matches the last item in the properties value array of $requestedNode!!
+              //BUG: $value is NOT matching what's stored in the DB!!
+              //BUG: the KEY matches the last item in the properties value array of $requestedNode!!
               //method isn't used anywhere else, maybe chage the method? .
-              //TODO pass the written value from the DB
-              //var_dump($value); 
               //echo '<br>';
               // 3rd argument:                          $requestedNode['properties'][$key]
               if(array_key_exists($key, $requestedNode['properties'])){
@@ -112,7 +111,7 @@ if($requestedNodeLabel === ANNONODE){
                 //if the node doesn't have the key property; set the value to null. 
                 $dbvalue = null; 
               }
-              $form->add_element($key, $value, $dbvalue); 
+              $form->add_element($key, $value, $dbvalue, $border='border-solid border-2 border-grey rounded-md', $fill = 'bg-white-200'); 
             }
             $form->generateHiddenToken('csrf_token', $token);
             $form->generateNodeFieldattributes($requestedNodeLabel, $id); 
