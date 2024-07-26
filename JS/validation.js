@@ -1,6 +1,22 @@
 
 class Validator{
 
+  checkRequired(){
+    //required is set to all elements which have the unique attribute
+    /**
+     * Called before sumbit event: you need this because the change event
+     * is never triggered when a user skips over required fields!.
+     */
+    let unique_elements = document.getElementsByClassName('validateAs_unique'); 
+    for (let i = 0; i < unique_elements.length; i++) {
+      let elm = unique_elements[i];
+      if (elm.value == '') {
+        elm.classList.add('bg-red-50', 'border', 'border-red-500', 'validatorFlaggedMistake');
+        elm.classList.remove('bg-green-50', 'border', 'border-green-500');
+      }
+    }
+  }
+
   reset(){
     let e = event.src || event.target; 
     console.log(e); 

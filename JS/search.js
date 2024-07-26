@@ -1,5 +1,5 @@
 //global
-let validator = new Validator;
+validator = new Validator;
 let labelname;
 let searchDict = {
   'node': null,

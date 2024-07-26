@@ -172,7 +172,7 @@ function acceptQID(qid = -1) {
             annotationProperties.appendChild(annoSubContent);
             document.getElementById('embeddedAnnotation').appendChild(annotationProperties);
             //attach validator after content is in the DOM:  
-            let validator = new Validator;
+            validator = new Validator;
             validator.pickup();
 
           });

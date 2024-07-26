@@ -138,10 +138,12 @@ function saveNewDB() {
    */
   let mistakes = document.getElementsByClassName('validatorFlaggedMistake');
   //IS erverything valid 
+  //check if required fields are set: 
+  validator.checkRequired(); 
   //validate in backend too!!
   let dataObject = {};
   if (mistakes.length == 0) {
-    //get a CSRF tokenà
+    //get a CSRF token
     fetch("/AJAX/getdisposabletoken.php?task=1")
       .then(response => response.json())
       .then(data => {
@@ -204,6 +206,7 @@ function saveNewDB() {
         dataObject['neo_id_internal'] = auto_annotation_internal_id; 
         console.log("savenewdb", dataObject);
         //send dataobject to backend: 
+        // UNIQUE == Required, but: 
         //BUG: when leaving a UNIQUE field EMPTY and submitting the data, the error is not caught and fails without giving proper user feedback!
 
         console.warn('sending data put_annotation.php:');
@@ -318,6 +321,7 @@ function loadPropertiesOfSelectedType(selected) {
           if(uniqueness){
             //test passed: DOM contains class!
             newFieldInput.classList.add('validateAs_unique');
+            newFieldInput.required = true; 
           }
           newFieldInput.classList.add('attachValidator');
           newFieldInput.classList.add('validateAs_' + datatype);
@@ -329,7 +333,7 @@ function loadPropertiesOfSelectedType(selected) {
         //formBox.appendChild(formBoxHeader);
         selector.parentElement.appendChild(formBox);
         //attach validator: 
-        let validator = new Validator;
+        validator = new Validator;
         validator.pickup();
         //make a save button to commit the data: 
         let saveNewEntry = document.createElement('button');
@@ -415,6 +419,7 @@ function buildPropertyInputFieldsFor(label) {
             }
             if(uniqueness){
               newFieldInput.classList.add('validateAs_unique');
+              newFieldInput.required = true; 
             }
             newFieldInput.classList.add('attachValidator');
             newFieldInput.classList.add('validateAs_' + datatype);
@@ -873,6 +878,7 @@ function buildAnnotationCreationBox() {
             }
             if(uniqueness){
               newFieldInput.classList.add('validateAs_unique');
+              newFieldInput.required = true;  
             }
             newFieldInput.classList.add('attachValidator');
             newFieldInput.classList.add('validateAs_' + datatype);

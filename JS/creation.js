@@ -2,6 +2,8 @@ class nodeCreator{
   creationLevel; 
   creationData; 
   coreNodes; 
+  //validator class lifted into global scope. 
+  validator; 
 
 
   constructor(coreDictionary){
@@ -151,6 +153,7 @@ class nodeCreator{
           if(uniqueness){
             //test if uniqueness class is part of the DOM: Test Passed
             inputField.classList.add('validateAs_unique');
+            inputField.required = true; 
           }
           inputField.classList.add('validateAs_'+attributes[1].toLowerCase());
           inputField.dataset.name=keys[i];
@@ -179,6 +182,7 @@ class nodeCreator{
           if(uniqueness){
             //test if uniqueness class is part of the DOM: Test Passed
             inputField.classList.add('validateAs_unique');
+            inputField.required = true; 
           }
           inputField.classList.add('validateAs_'+attributes[1].toLowerCase());
           inputField.dataset.name=keys[ikey];
@@ -192,8 +196,8 @@ class nodeCreator{
         submit.classList.add('btn','bg-blue-400', 'm-2', 'p-2', 'rounded-sm'); 
         form.appendChild(submit);
         formTarget.appendChild(form);
-        const validation = new Validator;
-        validation.pickup();
+        validator = new Validator;
+        validator.pickup();
       });
   }
 
