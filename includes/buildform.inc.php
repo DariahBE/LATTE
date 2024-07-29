@@ -115,7 +115,8 @@
     }
 
     public function addSubmitButton(){
-        $this->submitButton = "<button type='submit' class='btn btn-primary'>Submit</button>";
+        // bg-green-500 border-solid hover:bg-green-600 p-2 m-2 rounded-lg text-white font-bold
+        $this->submitButton = "<button type='submit' class='btn btn-primary bg-green-500 border-solid hover:bg-green-600 p-2 m-2 rounded-lg text-white font-bold'>Submit</button>";
     }
 
 

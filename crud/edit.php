@@ -99,7 +99,6 @@ if($requestedNodeLabel === ANNONODE){
             foreach($model as $key => $value){
               //key = name used in NEO4J
               //value = properties of the KEY: 
-              //BUG: $value is NOT matching what's stored in the DB!!
               //BUG: the KEY matches the last item in the properties value array of $requestedNode!!
               //method isn't used anywhere else, maybe chage the method? .
               //echo '<br>';

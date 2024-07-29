@@ -44,11 +44,31 @@ $modelslice = NODEMODEL[$neo_label_constraint];
 //var_dump($postdata); 
 $datadir = array(); 
 $retain = array_intersect_key($postdata, $modelslice);
+echo 'NEO ID: ';
+var_dump($neo_id_constraint);
+echo 'properties:';
 var_dump($retain);
 //4 do a query constraint: Updata node with ID == <read from post> and label == <read from post>
-
-
-//5 kill the toeken: 
+// we can have datafields which are empty: this means you want to UNSET the values for those fields
+// (i.e. the property gets removed from the NODE together with the stored value!)
+// non-empty fields should be updated (i.e. the property gets assigned a new value)
+// ===> https://neo4j.com/docs/cypher-manual/current/clauses/remove/ 
+$remove_command = array();
+foreach ($retain as $key => $value) {
+    if ($value == ''){
+        //BUG: when testing: if you validate integers and cast '' to 0 on the clientside, then
+        // it becomes impossible to remove an integer value by setting it to ''
+        $remove_command[] = 'n.'.$key;
+    }
+}
+//TODO; can you optimize this block and integrate an update statement?
+if (boolval($remove_command)){
+    $remove_command = implode(', ', $remove_command);
+    $query = 'MATCH (n) WHERE id (n) = $neoid REMOVE '.$remove_command;
+    var_dump($query);
+}
+//TODO:  $retain might contain data which has not changed. Do you then really need to update this?
+//5 kill the token: 
 //$tokenManager->revokeToken(); 
 
 ?>;
