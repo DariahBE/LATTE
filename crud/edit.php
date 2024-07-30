@@ -6,9 +6,8 @@ include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/csrf.inc.php');
 include_once(ROOT_DIR.'/includes/buildform.inc.php');
-//TODO pending integration
-//edits are allowed to use the NEO4J ID. As long as the node exists, the ID does not change. 
-//when committing changes check that the node still exists. Otherwise you're good. 
+//TODO: validation is not happening fully because DOM structure is wrong!
+//  ==> UNIQUE elements are still not validated properly because the 'property' attribute is missing in the XHR call!
 
 //Edit portal is only open for registered users: 
 //  SO: check user registration
@@ -21,6 +20,12 @@ if($user_id === false){
 
 $tokenManager = new CsrfTokenManager(); 
 $token = $tokenManager->generateToken();
+
+//referrer: 
+$ref = false;
+if(isset($_SERVER['HTTP_REFERER'])){
+  $ref = $_SERVER['HTTP_REFERER']; 
+}
 
 
 //get the node ID: 
@@ -40,7 +45,6 @@ $requestedNodeLabel = $requestedNode['label'];
 //      do not allow users to edit the text property of text nodes!!
 //      do not allow users to edit value that are used in unique keys! (API's depend on them)
 //      do not allow users to edit UUID fields. 
-//var_dump($requestedNode);
 $model = false; 
 if(array_key_exists($requestedNodeLabel, CORENODES)){
   $model = NODEMODEL[$requestedNodeLabel]; 
@@ -95,6 +99,8 @@ if($requestedNodeLabel === ANNONODE){
         </div>
           <?php
             $form = new FormGenerator('update_action.php');
+            $form->setHTMLID('updateform');
+            $form->setNodeType($requestedNodeLabel);
               //var_dump($requestedNode);
             foreach($model as $key => $value){
               //key = name used in NEO4J
@@ -114,7 +120,7 @@ if($requestedNodeLabel === ANNONODE){
             }
             $form->generateHiddenToken('csrf_token', $token);
             $form->generateNodeFieldattributes($requestedNodeLabel, $id); 
-            $form->addSubmitButton(); 
+            $form->addSubmitButton($submitID='custom_submit'); 
             echo $form->renderForm();
           ?>
             <!--
@@ -152,8 +158,55 @@ if($requestedNodeLabel === ANNONODE){
       //add the hidden csrf token to the form
       //echo "<input hidden readonly name='token' type='text' value='$token'>"; 
       // $tokenManager->outputToken();
-
       ?>
     </div>
   </body>
+  <script>
+  //validation of input fields!
+  validator = new Validator;
+  validator.pickup();
+
+  const ref = "<?php echo htmlspecialchars($ref) ?>";
+  document.addEventListener('DOMContentLoaded', function() {
+    const form = document.getElementById('updateform');
+    //const responseDiv = document.getElementById('response');
+
+    form.addEventListener('submit', function(event) {
+        // Prevent the default form submission
+        event.preventDefault(); 
+
+        const formData = new FormData(form);
+
+        fetch(form.action, {
+            method: 'POST',
+            body: formData
+        })
+        .then(response => response.json())
+        .then(data => {
+            let submitButton = document.getElementById('custom_submit');
+            if(data['success']){
+              submitButton.remove();
+              //go back to the page that brought you on the edit portal:
+              if (ref!== ''){
+                window.location.href = ref;
+              }else{
+                //if referrer is not working: use the window state. 
+                history.back(); 
+              }
+            }else{
+              submitButton.innerHTML = "Update failed";
+              submitButton.classList.add('bg-red-500');
+              submitButton.classList.remove('bg-green-500'); 
+              submitButton.classList.remove('hover:bg-green-600'); 
+            }
+        })
+        .catch(error => {
+            console.error('Error:', error);
+        });
+    });
+  });
+
+
+
+  </script>
 </html>

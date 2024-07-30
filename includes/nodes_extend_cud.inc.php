@@ -540,6 +540,59 @@ class CUDNode extends Node {
       return array($texids, $annoids);
     }
 
+  
+
+    public function updateNode($neo_id, $data){
+      /**
+       * Takes the neo id of a node and the new data that has to be stored
+       * strings which are empty "" will have the relate property deleted
+       * from the node. Properties where data is set will receive an update.
+       */
+      //iterator to distinguish query placeholders. 
+      $ph = 1; 
+      $placeholders = array(); 
+      function ph_generator($ph){
+        $ph_name = 'PH_'.$ph; 
+        return $ph_name; 
+      }
+
+      //handle the actual given data: 
+      $remove_command = array();
+      $update_command = array(); 
+      foreach ($data as $key => $value) {
+        if ($value == '') {
+            //BUG: when testing: if you validate integers and cast '' to 0 on the clientside, then
+            // it becomes impossible to remove an integer value by setting it to ''
+            $remove_command[] = 'n.'.$key;
+        } else {
+            $placeholder = ph_generator($ph); 
+            $ph++; 
+            $placeholders[$placeholder] = $value; 
+            // $phs[$placeholders[0]] -> $value; 
+            $update_command[] = 'n.'.$key.' = $'.$placeholder;
+        }
+      }
+
+      if (boolval($remove_command)){
+        $remove_command = implode(', ', $remove_command);
+        $remove_query = 'MATCH (n) WHERE id(n) = $neoid REMOVE '.$remove_command;
+      }
+      if (boolval($update_command)){
+        $update_command = implode(', ', $update_command);
+        $update_query = 'MATCH (n) WHERE id(n) = $neoid  SET '.$update_command.'; '; 
+      }
+      $placeholders['neoid'] = (int)$neo_id;
+      try {
+        $result_delete = $this->tsx->run($remove_query, array('neoid' => (int)$neo_id));
+        $result_update = $this->tsx->run($update_query, $placeholders);
+        $result = array('success'=> true); 
+      } catch (\Throwable $th) {
+        $result = array('success'=> false);
+        $this->rollbackTransaction(); 
+      }
+      echo json_encode($result); 
+    }
+
 
 
 }
