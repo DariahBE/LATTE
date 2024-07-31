@@ -6,9 +6,6 @@ include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/csrf.inc.php');
 include_once(ROOT_DIR.'/includes/buildform.inc.php');
-//TODO: validation is not happening fully because DOM structure is wrong!
-//  ==> UNIQUE elements are still not validated properly because the 'property' attribute is missing in the XHR call!
-
 //Edit portal is only open for registered users: 
 //  SO: check user registration
 $user = new User($client);
@@ -105,10 +102,6 @@ if($requestedNodeLabel === ANNONODE){
             foreach($model as $key => $value){
               //key = name used in NEO4J
               //value = properties of the KEY: 
-              //BUG: the KEY matches the last item in the properties value array of $requestedNode!!
-              //method isn't used anywhere else, maybe chage the method? .
-              //echo '<br>';
-              // 3rd argument:                          $requestedNode['properties'][$key]
               if(array_key_exists($key, $requestedNode['properties'])){
                 //if the node has the key property: extract the value from it
                 $dbvalue = $requestedNode['properties'][$key][1]; 
@@ -123,18 +116,6 @@ if($requestedNodeLabel === ANNONODE){
             $form->addSubmitButton($submitID='custom_submit'); 
             echo $form->renderForm();
           ?>
-            <!--
-              in here you need a form with pre-filled content,
-              DO NOT show the start-stop content if the node is an ANNOTATION NODE    (OK)
-              DO attach the validator again. 
-              Attach a token to the form
-              Send token with data to edit_action.php
-              reshow the result. 
-            -->
-
-
-        
-
       </div>
 
 
@@ -142,28 +123,14 @@ if($requestedNodeLabel === ANNONODE){
 
 
       <?php
-        //var_dump($model);
-        /*foreach($requestedNode as $key=>$value){
-          var_dump($value);
-          echo'<br>';
-          //look for the model properties: 
-          var_dump($key);
-          echo'<br>';
-          var_dump($model); 
-          echo '<br>';
-          echo '<br>';
-        }*/
-      }
-
-      //add the hidden csrf token to the form
-      //echo "<input hidden readonly name='token' type='text' value='$token'>"; 
-      // $tokenManager->outputToken();
+        }
       ?>
+
     </div>
   </body>
   <script>
   //validation of input fields!
-  validator = new Validator;
+  let validator = new Validator;
   validator.pickup();
 
   const ref = "<?php echo htmlspecialchars($ref) ?>";

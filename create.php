@@ -73,6 +73,8 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
       const texnode = '<?php echo TEXNODE ?>'; 
       const texnodetext = '<?php echo TEXNODETEXT ?>' ;
       const creator = new nodeCreator(core); 
+      let validator = new Validator; 
+      validator.pickup(); 
   </script>
   </body>
 </html>
