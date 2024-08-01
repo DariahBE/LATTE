@@ -893,6 +893,11 @@ function buildAnnotationCreationBox() {
         handleNoLogin()
       }
     }
+    })
+    .then(()=> {
+      console.warn('Attaching new validator'); 
+      validator = new Validator; 
+      validator.pickup(); 
     });
 
 

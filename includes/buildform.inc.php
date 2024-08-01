@@ -64,7 +64,6 @@
         $id = $this->idgen(); 
         $this->formElement[] = "<div class='property'><label for='$id'>$labelname</label> <textarea $this->nodeTypeData id='$id' class='w-full form-control attachValidator $validation_class $dataunique $border $fill' data-name='$name' type='number' step=any name='$name'>".htmlspecialchars($value)."</textarea></div>";
     }
-
     public function generateUriInput($name, $settings, $border, $fill, $value = null) {
         $labelname = $settings[0]; 
         $datatype = $settings[1]; 
