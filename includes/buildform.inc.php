@@ -89,7 +89,7 @@
         $dataunique = $dataunique = ($settings[2] === true) ? 'validateAs_unique' : '';
         $id = $this->idgen(); 
         $checkedAttr = $checked ? "checked" : "";
-        $this->formElement[] = "<div class='property'><label for='$id'>$labelname</label> <input $this->nodeTypeData id='$id' class='w-full form-control attachValidator $validation_class $dataunique $border $fill' data-name='$name' type='checkbox' name='$name' $checkedAttr></div>";
+        $this->formElement[] = "<div class='property'><label for='$id'>$labelname</label> <input value=true $this->nodeTypeData id='$id' class='w-full form-control attachValidator $validation_class $dataunique $border $fill' data-name='$name' type='checkbox' name='$name' $checkedAttr></div>";
     }
     
     public function generateTextInput($name, $settings, $border, $fill, $value = null) {

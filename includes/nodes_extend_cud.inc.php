@@ -542,11 +542,13 @@ class CUDNode extends Node {
 
   
 
-    public function updateNode($neo_id, $data){
+    public function updateNode($neo_id, $data, $dropbools){
       /**
        * Takes the neo id of a node and the new data that has to be stored
        * strings which are empty "" will have the relate property deleted
        * from the node. Properties where data is set will receive an update.
+       * Bools that are listed in the $dropbools array will be deleted from
+       * the property. 
        */
       //iterator to distinguish query placeholders. 
       $ph = 1; 
@@ -573,6 +575,11 @@ class CUDNode extends Node {
         }
       }
 
+      //attach $dropbools to the $remove_command here to handle delete of 'false' values!
+      // i.e. ==> empty(POST) === false(LOGIC) === null(DATABASE). 
+      foreach ($dropbools as $val) {
+        $remove_command[] = 'n.'.$val; 
+      }
       if (boolval($remove_command)){
         $remove_command = implode(', ', $remove_command);
         $remove_query = 'MATCH (n) WHERE id(n) = $neoid REMOVE '.$remove_command;
