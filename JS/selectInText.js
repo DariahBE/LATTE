@@ -895,8 +895,6 @@ function buildAnnotationCreationBox() {
     }
     })
     .then(()=> {
-      console.warn('Attaching new validator'); 
-      //BUG: 31/7/24; still present. UNIQUE elements are not treated as required here!
       validator = new Validator; 
       validator.pickup(); 
     });

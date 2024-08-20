@@ -269,7 +269,9 @@ function executePremadeParameterizedQuery($query, $parameters){
       if (!in_array($textValue, $result['texts'])){
         $result['texts'][] = $textValue;
       }
-      $annotationValue = $value['n']->getProperty($primaryForAnnotation);
+      //UID is always there (controlled by LATTE)
+      $annotationValue = $this->extractCoreID($value['n'], $primaryForAnnotation, 'uid');
+      //$annotationValue = $value['n']->getProperty($primaryForAnnotation);
       if (!in_array($annotationValue, $result['annotations'])){
         $result['annotations'][] = $annotationValue;
       }
@@ -918,8 +920,6 @@ function executePremadeParameterizedQuery($query, $parameters){
           
         }
       }
-      
-
     }
     return false;     //default!
   }
