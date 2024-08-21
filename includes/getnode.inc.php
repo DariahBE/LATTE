@@ -428,7 +428,7 @@ function executePremadeParameterizedQuery($query, $parameters){
   }
 
   function extractCoreID($nodedata, $coreproperty, $fallback = 'uid'){
-    if(array_key_exists($coreproperty, array($nodedata['properties']))){
+    if($nodedata['properties']->hasKey($coreproperty)){
       // By default if possible, return the coreproperty as defined
       // by the config.inc.php nodesmodel that matches the nodetype
       // requested by the enduser. 
@@ -455,6 +455,10 @@ function executePremadeParameterizedQuery($query, $parameters){
     }
     //$result = $this->client->run("MATCH (node:".$type."{".$key.":".$value."}) RETURN node, id(node) AS ID LIMIT 1");
     $result = $this->client->run('MATCH (node'.$typeQuery.'{'.$key.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
+    // if $result == 0 and $key != uid ==> it could be the unique key is not set on the node. Fallback to UUID search!
+    if(count($result)==0 && $key != 'uid'){
+      $result = $this->client->run('MATCH (node'.$typeQuery.'{uid: $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
+    }
     // A row is a \Laudis\Neo4j\Types\CypherMap
     $node = false;
     //var_dump($result);
@@ -777,12 +781,20 @@ function executePremadeParameterizedQuery($query, $parameters){
       }
       //TEXT is the core component: make this unique.
       //any other node should be prefixed with /URI/
-      if(strtolower($label)==='text'){
+      if(strtolower($label)===strtolower(TEXNODE)){
         $insert = '';
       }else{
         $insert = 'URI/';
       }
-      $URLString = trim(WEBURL, '/').'/'.$insert.$label.'/'.$result['properties'][$primaryKeyName];
+      //BUG in extractCoreID
+      // var_dump($primaryKeyName);
+      // if(array_key_exists($primaryKeyName, array($result['properties'])[0])){
+      //   die('qlkdjf');
+      // }
+      // var_dump($result);
+      // die();
+      $val = $this->extractCoreID($result, $primaryKeyName, 'uid');
+      $URLString = trim(WEBURL, '/').'/'.$insert.$label.'/'.$val;
       $result = array($URLString); 
       //die();
     }else{
