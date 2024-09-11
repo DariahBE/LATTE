@@ -181,9 +181,7 @@ $primaryKeys = array_map(function ($ar){
 
 /*Provide an optional translation for edges.
 Edgelabels may use another name in the database than in the tool's GUI.
-This allows for more intuitive names. 
-// TODO: edge information should not be editable by user anyway,
-//        Is it then really needed in the config file? 
+This allows for more intuitive names.  
 */
 $edges_translate = array(
   'same_as' => 'Variant',

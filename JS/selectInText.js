@@ -172,7 +172,6 @@ function saveNewDB() {
           let pairValue = pair.value;
           //let pairType = pair.type; 
           properties[pairName] = pairValue;
-
         }
 
         //appending to dataObject
@@ -218,10 +217,10 @@ function saveNewDB() {
             displayUpdatedText(put_rs['type'], put_rs['start'], put_rs['stop'], put_rs['uuid']); 
           })
           .catch(function(data){
-            console.log("data caught by system:", data);
+            //console.log("data caught by system:", data);
             let errorMessage = data['ERR']; 
             console.log('received errmessage: ', errorMessage);
-            alert('caught err');
+            alert('TODOcaught err');
             updateState('ERROR', errorMessage); 
           })
           .always(function(){

@@ -10,7 +10,6 @@ include_once(ROOT_DIR.'/includes/navbar.inc.php');
 if(isset($_SESSION['userid'])){
   $user = new User($client);
   $annotation = new Annotation($client);
-  //TODO (critical): Test transaction implementation. 
   $annotation->startTransaction(); 
 }else{
   header('Location: /user/login.php');

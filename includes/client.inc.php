@@ -12,12 +12,9 @@ use Laudis\Neo4j\Contracts\TransactionInterface;
 $user = USERNAME;
 $pw = PASSWORD;
 
-
 $auth = Authenticate::basic($user, $pw);
-
 $client = ClientBuilder::create()
     ->withDriver('bolt', 'bolt://'.HOSTNAME.':'.HOSTPORT.'?database='.DBNAME, $auth) // creates a bolt driver
     ->withDriver('neo4j', 'neo4j://'.HOSTNAME.':'.HOSTPORT.'?database='.DBNAME, $auth) // creates an auto routed driver
     ->withDefaultDriver('bolt')
     ->build();
-

@@ -61,6 +61,7 @@ let searchSymbols = {
 }
 
 function updateDict(){
+  clearResults();
   let readObject = document.getElementsByClassName('form-block'); 
   for(var i = 0; i < readObject.length; i++){
     let currentObject = readObject[i];
@@ -224,6 +225,9 @@ function loadPropertyBox(on){
   }
   //attach validator here: Undo this constructor!
   validator.pickup();
+  //activate the search button: 
+  let searchButton = document.getElementById('searchButtonTrigger'); 
+  searchButton.removeAttribute('disabled'); 
 }
 
 function createForm(formElements){
@@ -244,6 +248,13 @@ function createForm(formElements){
     wrapper.appendChild(elem);
     target.appendChild(wrapper);
   }
+}
+
+function clearResults(){
+  //empties the container holding the results from a previous search after triggering
+  // an action that would load new results (pagination or new search command ); 
+  let oldResultsContainer = document.getElementById('tableHere'); 
+  oldResultsContainer.innerHTML = '';
 }
 
 function simpleResponseTableGenerator(data){

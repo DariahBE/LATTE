@@ -62,7 +62,11 @@ $limit = 20;
         echo "<script>searchFields = ".json_encode($output)."</script>";
       ?>
       <script>createForm(searchFields);</script>
-      <div id='searchbutton'><button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick='updateDict()'>Search</button></div>
+      <div id='searchbutton'>
+        <button id='searchButtonTrigger' type='button' disabled class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" onclick='updateDict()'>
+          Search
+        </button>
+      </div>
       <div>
         <script>
           <?php echo 'let offset = '.$offset.';';

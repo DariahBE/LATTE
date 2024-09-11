@@ -132,10 +132,16 @@ class Search{
     }
 
     $query = " OPTIONAL MATCH (n:$label) "; 
-    $query.=" WHERE ".implode(' AND ', $constraints); 
+    if (boolval($constraints)){
+      $query.=" WHERE ".implode(' AND ', $constraints); 
+    }
     //add constraint on type!
     if(boolval(count($optconstraints))){
-      $query.= " OPTIONAL MATCH (q:$label)--(v:Variant) WHERE ".implode(' AND ', $optconstraints);
+      $constraints = implode(' AND ', $optconstraints);
+      $query.= " OPTIONAL MATCH (q:$label)--(v:Variant) ". ' ';
+      if (boolval($optconstraints)){
+        $query .= ' WHERE '. $constraints; 
+      }
     }
     $query.=" RETURN distinct(n)";
     if(boolval(count($optconstraints))){

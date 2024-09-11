@@ -786,13 +786,6 @@ function executePremadeParameterizedQuery($query, $parameters){
       }else{
         $insert = 'URI/';
       }
-      //BUG in extractCoreID
-      // var_dump($primaryKeyName);
-      // if(array_key_exists($primaryKeyName, array($result['properties'])[0])){
-      //   die('qlkdjf');
-      // }
-      // var_dump($result);
-      // die();
       $val = $this->extractCoreID($result, $primaryKeyName, 'uid');
       $URLString = trim(WEBURL, '/').'/'.$insert.$label.'/'.$val;
       $result = array($URLString); 
@@ -1073,7 +1066,6 @@ function executePremadeParameterizedQuery($query, $parameters){
 
 
   public function checkNodeVisibility($nodeObject, $owner, $userId){
-    //TODO (Document): this has to be documented. 
     //    DOCUMENT: the 'private' key is a reserved keyword by application logic
     //    It should be present for all nodes that need to have privacy levels set. 
     if (isset($nodeObject['properties']['private']) && $nodeObject['properties']->get('private') === true && $userId != $owner){
@@ -1184,7 +1176,6 @@ function executePremadeParameterizedQuery($query, $parameters){
       //should be //var anyway! 
       $etprops = $var['properties']; 
       $varModel = NODEMODEL['Variant']; 
-      //var_dump($varModel); 
       //the Variant node is a static node type; properties should always be
       // PK and valuestring
       //variant has embedded UID property as fallback.  otherwise use the assigned property!
@@ -1193,16 +1184,15 @@ function executePremadeParameterizedQuery($query, $parameters){
         if ($k === $pk){
           $pkval = $etprops[$pk];
           $pkdata = array($pk, $pkval);
-          //var_dump($pk);
-          //var_dump($pkval);
-          $field = array('label'=> $etprops['variant'], 'primary'=> $pkdata, 'neoid'=>$varid);
-          $repl[] = $field;
+          //Be very sure variant exists as a key in there. Key 'variant' is required in labels with Variant label!
+          if ($etprops->hasKey('variant')){
+            $field = array('label'=> $etprops['variant'], 'primary'=> $pkdata, 'neoid'=>$varid);
+            $repl[] = $field;
+          }
           //pk = getprimaries
           //valuestring => encoded in 'variant' property. 
-
         }
       }
-
     }
     return $repl; 
   }

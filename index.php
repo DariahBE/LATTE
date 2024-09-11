@@ -69,7 +69,6 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
                 </ul>
               </div>
               <div class="">
-                <!-- // TODO code cleanup! -->
               </div>
 
             </div>
