@@ -117,7 +117,7 @@ class Search{
     $conditions = array(); 
     $optconstraints = array(); 
 
-    foreach($searchdict as $key => $opt){
+    foreach($searchdict as $key => $opt){ 
       if(array_key_exists($key, NODEMODEL[$label])){      
         $singleParameter= $this->convertOperatorToCypher($opt['operator'], $opt['type'], $key, $opt['values']);
         $constraints[]=$singleParameter['constraint']; 
@@ -127,7 +127,6 @@ class Search{
         foreach($singleParameter['placeholders'] as $k =>$v){
           $conditions[$k] =$v;
         }
-
       }
     }
 

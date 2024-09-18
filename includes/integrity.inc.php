@@ -12,8 +12,8 @@ class Integrity{
 		$data =  $this->client->run($query);
 		foreach($data as $key => $value){
 			$label = $value['label'];
-			$applicationDrivenNodes = array('priv_user');
-
+			// do not remove priv_user or Annotation_auto nodes!
+			$applicationDrivenNodes = array('priv_user', 'Annotation_auto');
 			if((!in_array($label, array_keys(NODEMODEL))) && (!in_array($label, $applicationDrivenNodes))){
 				//echo $label.'<br>';
 				//do a count of nodes for the offending label: 
@@ -29,14 +29,16 @@ class Integrity{
 	}
 
 	function deleteNodesNotMatchingModel(){
-
+		//TODO
 	}
 
 	function checkNodesWithoutUUID(){
+		//TODO
 
 	}
 
 	function asignUUIDToNodes(){
+		//TODO
 
 	}
 

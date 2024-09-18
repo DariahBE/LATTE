@@ -54,7 +54,6 @@ if(isset($_SESSION["userid"])){
             // Code to execute if none of the options match
             header("HTTP/1.0 403 Forbidden");
             die();
-            break;
         }
   }
 
