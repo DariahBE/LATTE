@@ -125,7 +125,7 @@ class Search{
           $optconstraints[]= $singleParameter['varconstraint'];
         }
         foreach($singleParameter['placeholders'] as $k =>$v){
-          $conditions[$k] =$v;
+          $conditions[$k] = $v;
         }
       }
     }

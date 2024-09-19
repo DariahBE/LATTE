@@ -2,6 +2,7 @@
 header('Content-Type: application/json; charset=utf-8');
 
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+include_once(ROOT_DIR.'/includes/client.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/csrf.inc.php');
@@ -24,21 +25,35 @@ if(isset($_SESSION["userid"])){
   //most of this is in the onboarding tool!
   //check CSRF
   function databaseReachable(){
-    // TODO 
     /**
      * Checks if the database is properly configured and can be accessed by the tool.
      */
-    return 'TODO';
-
+    global $client;
+    try {
+      $result = $client->run("RETURN 1 AS test");
+      // var_dump($result[0]['test']);
+      //code...
+      return boolval($result[0]['test']);
+    } catch (\Throwable $th) {
+      //throw $th;
+      return False;
+    }
     return False;
   }
 
   function pluginExists(){
-    // TODO
     /**
      * Checks if the APOC plugin can  be used by the tool. 
      */
-    return 'TODO';
+    global $client; 
+    try {
+      $result = $client->run('RETURN apoc.version() AS v;');
+      return $result[0]['v'];
+    } catch (\Throwable $th){
+      return False;
+    }
+    return False;
+
   }
 
 
@@ -102,12 +117,7 @@ if(isset($_SESSION["userid"])){
         'key_exists' => correctAnnotationSet(), 
         'start_exists' => annotationHasStart(),
         'stop_exists' => annotationHasStop(),
-    ), 
-    'Server' => array(
-      // moved to modules check as part of the onboarding process. 
-      //'apache_modules_enabled' => checkApacheConfig(), 
-    )
-    
+    )    
   ));
   die(); 
 
