@@ -1,4 +1,7 @@
 <?php
+/**
+ * Deletes a Node from teh database when the node detail view is triggered following the text pane. 
+ */
 header('Content-Type: application/json; charset=utf-8');
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');

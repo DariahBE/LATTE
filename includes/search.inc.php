@@ -48,7 +48,7 @@ class Search{
             'varconstraint' =>'v.variant = $'.$phnamevar, 
             'placeholders'=>array(
               $phname=>$value[0],
-              $phnamevar=>$value[0],
+              $phnamevar=>$value[0]
             )
           );
           break; 

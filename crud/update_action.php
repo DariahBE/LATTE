@@ -11,14 +11,11 @@ include_once(ROOT_DIR.'/includes/csrf.inc.php');
 
 $postdata = $_POST;
 $token = $postdata['csrf_token']; 
-
 $tokenManager = new CsrfTokenManager(); 
 $node = new CUDNode($client);
-$node->startTransaction(); 
 if(!($tokenManager->checkToken($token))){
     die(); 
 }
-
 //1 check if extra parameters are present in the psotdata request. 
 //otherwise kill it!
 if(!array_key_exists('app_logic_db_label', $postdata)){
@@ -38,29 +35,19 @@ if(!(array_key_exists($neo_label_constraint, NODEMODEL))){
 }
 $modelslice = NODEMODEL[$neo_label_constraint]; 
 
+$node->startTransaction(); 
 
 //token accepted: 
-//var_dump($modelslice); 
 //3 iterate over POSTDATA and compare to NODESMODEL
 
-//BUGS: 
-//BOOLEAN fields are missing in the postdata when they're not selected!! (OK Solved)
-//BOOLEAN fiels are set to 'true' (str) when checked in stead of true (bool)!!
-//  Wider problem: same is true for integer fields. 
-//  TODO ==> retain values need to be cast!
-
-
-//var_dump($postdata); 
 $datadir = array(); 
 $retain = array_intersect_key($postdata, $modelslice);
-
 //4 do a query constraint: Updata node with ID == <read from post> and label == <read from post>
 // we can have datafields which are empty: this means you want to UNSET the values for those fields
 // (i.e. the property gets removed from the NODE together with the stored value!)
 // non-empty fields should be updated (i.e. the property gets assigned a new value)
 // ===> https://neo4j.com/docs/cypher-manual/current/clauses/remove/ 
-//var_dump($modelslice); 
-$all_bools = array_filter($modelslice, function($key){
+$all_bools = array_filter($modelslice, function($key): bool{
     return $key[1] === 'bool'; 
 }); 
 // if the array_key_exists in $all_bools but not in $retain, then it means the property has to be unset!
@@ -71,20 +58,29 @@ $filteredKeys = array_filter(array_keys($all_bools), function($key) use ($retain
 foreach ($retain as $key => $value) {
     $type = $modelslice[$key][1]; 
     if($type === 'int'){
-        $retain[$key] = (int)$retain[$key]; 
+        if($retain[$key]==''){
+            $filteredKeys[] = $key;
+            unset($retain[$key]); 
+        }else{
+            $retain[$key] = (int)$retain[$key]; 
+        }
     } else if ($type === 'bool'){
         $retain[$key] = (bool)$retain[$key]; 
     } else if ($type === 'float'){
         $retain[$key] = floatval($retain[$key]); 
     }
 }
-
-$node->updateNode((int)$neo_id_constraint, $retain, $filteredKeys); 
+//casting of $retain data should be done there!
+try {
+    $node->updateNode((int)$neo_id_constraint, $retain, $filteredKeys); 
+    $node->commitTransaction();
+} catch (\Throwable $th) {
+    //throw $th;
+    $node->rollbackTransaction(); 
+}
 
 
 
 //5 kill the token: 
 $tokenManager->revokeToken(); 
-//if everything went okay > Commit data: 
-$node->commitTransaction();
 ?>

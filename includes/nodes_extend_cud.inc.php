@@ -162,22 +162,18 @@ class CUDNode extends Node {
         //is empty when there is no node found ==> otherwise it will have a property set where relations could be 0 or more. 
         if ($checkResult->isempty()){
           return array('msg'=>'Invalid request: one or more nodes do not exists.'); 
-          die(); 
         }
         //check how many relations the query returned: 
         if($checkResult->first()->get('relations') === 0){
           //required to make a new relation
           $matchAndConnectResult = $this->tsx->run('MATCH (n), (t) WHERE id(n) = $varid AND id(t) = $etid CREATE (n)-[r:same_as]->(t)', array('varid'=> $existingVariantId, 'etid'=>$entitySource));
           return array('msg'=> 'New relation created', 'node' => $matchAndConnectResult, 'data' => ['uuid'=> $variant_uuid, 'nid'=> $existingVariantId] ); 
-          die(); 
         }else{
           //do not modify anything: a relation already exists
           return (array('msg'=>'A relation already exists, no changes made to the database.', 'data' => ['uuid'=> $variant_uuid, 'nid'=> $existingVariantId])); 
-          die();
         }
       }else{
         return array('msg'=> 'Invalid entity node.');
-        die();
       }
     }else{
       // this is currently the case for auto node converts. 
@@ -458,8 +454,6 @@ class CUDNode extends Node {
       foreach ($result as $row) {
         $floater = $row['float_id'];
         $float_connections = $row['connected_entities']; 
-        //var_dump($entity);
-        //var_dump($annosOfEntity->toArray());
         //https://www.php.net/manual/en/function.array-diff.php 
         // array_diff returns everything that is in the first array but not in the second!!
         // you can use it to figure out if an entity is connected to annotations which are not flagged for deletion!
@@ -467,7 +461,6 @@ class CUDNode extends Node {
         if(!(boolval($diff))){
           $entities_to_delete[] = $floater;
         }
-        //echo "NEW ROW: \n"; 
     }
 
       return array_unique($entities_to_delete);
@@ -563,8 +556,6 @@ class CUDNode extends Node {
       $update_command = array(); 
       foreach ($data as $key => $value) {
         if ($value == '') {
-            //BUG: when testing: if you validate integers and cast '' to 0 on the clientside, then
-            // it becomes impossible to remove an integer value by setting it to ''
             $remove_command[] = 'n.'.$key;
         } else {
             $placeholder = ph_generator($ph); 
@@ -589,13 +580,16 @@ class CUDNode extends Node {
         $update_query = 'MATCH (n) WHERE id(n) = $neoid  SET '.$update_command.'; '; 
       }
       $placeholders['neoid'] = (int)$neo_id;
-      try {
-        $result_delete = $this->tsx->run($remove_query, array('neoid' => (int)$neo_id));
-        $result_update = $this->tsx->run($update_query, $placeholders);
+      try{
+        if(boolval($remove_query)){
+          $result_delete = $this->tsx->run($remove_query, array('neoid' => (int)$neo_id));
+        }
+        if(boolval($update_query)){
+          $result_update = $this->tsx->run($update_query, $placeholders);
+        }
         $result = array('success'=> true); 
       } catch (\Throwable $th) {
         $result = array('success'=> false);
-        $this->rollbackTransaction(); 
       }
       echo json_encode($result); 
     }
