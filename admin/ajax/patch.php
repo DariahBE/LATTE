@@ -5,6 +5,7 @@ include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/csrf.inc.php');
+include_once(ROOT_DIR.'/includes/integrity.inc.php');
 
 if(isset($_SESSION["userid"])){
     $user = new User($client);
@@ -23,9 +24,10 @@ if(isset($_SESSION["userid"])){
 
   //check CSRF
   $token = False;
-  if(isset($_GET['token'])){
-    $token = $_GET['token']; 
+  if(isset($_POST['token'])){
+    $token = $_POST['token']; 
   }
+  
   $tokenManager = new CsrfTokenManager();
   $tokenIsValid = $tokenManager->checkToken($token);
 
@@ -36,15 +38,15 @@ if(isset($_SESSION["userid"])){
     // CSRF is valid and the user is an admin: 
     //revoke the CSRF it's a single use token.
     $tokenManager->revokeToken();
-    
+    $integrity = new Integrity($client); 
     switch ($_GET['operation']){
         case "noderemoval":
             // Code to execute for option 1
             echo "Option 1 selected";
             break;
-        case "uuid_append":
+        case "fixuuid":
             // Code to execute for option 2
-            echo "Option 2 selected";
+            $integrity->asignUUIDToNodes(); 
             break;
         case "option3":
             // Code to execute for option 3

@@ -9,14 +9,14 @@ class CsrfTokenManager {
     }
 
     public function checkToken($submittedToken) {
+        // var_dump($this->getTokenFromSession()); 
+        // var_dump($submittedToken);
         if(is_null($this->getTokenFromSession())){
             return false;
         }
-        if ($submittedToken === null){
+        if (!$submittedToken){
             return False;
         }
-        //var_dump($this->getTokenFromSession()); 
-        //var_dump($submittedToken);
         return hash_equals($this->getTokenFromSession(), $submittedToken);
     }
 

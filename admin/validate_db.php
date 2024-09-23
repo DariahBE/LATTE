@@ -51,23 +51,7 @@
     $tokenManager = new CsrfTokenManager();
     $token = $tokenManager->generateToken(); 
   ?>
-  <!-- <div class="2xl:w-1/2 xl:w-2/3 items-center m-auto">
-    <div>
-      <h3>User Management</h3>
-      <div>
-        <ul>
-          <li><a href="invite.php">Invite user</a></li>
-          <li><a href="remove.php">Remove user</a></li>
-        </ul>
-      </div>
-    </div>
-    <div>
-      <h3>Database Management</h3>
-      <div>
-        <li><a href="validate_db.php">Database Validation</a></li>
-      </div>
-    </div>
-  </div> -->
+
   <?php
     include_once('admin_tasks.php');
   ?>
@@ -89,7 +73,16 @@
     </div>
     <div class=" p-4">
       <h3>Nodes missing UUID</h3>
-
+        <?php
+          $results = $integrity->checkNodesWithoutUUID();
+          if($results == 0){
+            $message = "No nodes with missing UUID property found.";
+          }else{
+            $n = ($results == 1) ? '' : 's';
+            $message = "The UUID property is missing from $results node$n. <button type='button' onclick='patchUUID(\"{$token}\")'> Fix </button> </li>";
+          }
+          echo "<p>$message</p>";
+        ?>
     </div>
     <div class=" p-4">
 

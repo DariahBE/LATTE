@@ -397,7 +397,7 @@ let checkIfConnectionExists = async (qid) => {
                   }
                 })
             })
-            let navelem = document.getElementById('navigateETs')
+            let navelem = document.getElementById('navigateETs');
             navelem.appendChild(navigateHits);
             navelem.appendChild(connectButton); 
 
