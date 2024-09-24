@@ -64,6 +64,8 @@
       <h3>Inconsistent Nodes</h3>
       <ul>
       <?php
+      //BUG!! You cannot pass the token via the DOM: the first operation works, the second will not work due to toke revocation! (On it)
+      //TODO: integrate validation.js with an AJAX-endpoint to get a token; (OK)
         $results = $integrity->checkNodesNotMatchingModel();
         foreach($results as $key => $value){
           echo '<li>'.$key.' ('.$value.') <button type="button" onclick="dropnodefromdb(\''.$key.'\', \''.$token.'\')"> Fix </button> </li>';
