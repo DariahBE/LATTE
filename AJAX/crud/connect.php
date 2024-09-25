@@ -27,6 +27,8 @@ $selectionEnd = (int)$data['stop'];
 $token = $data['csrf'];
 $extra = $data['properties'];
 //check if token equals the session variable and that the session did not yet expire 
+//TODO: remove token bypass after debugging connect.php page. 
+//    related to bug13
 if (1 ==1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connectiontoken']) && $token === $_SESSION['connectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
   //destroy the token: can only be used once. 
   unset($_SESSION['connectiontoken']);

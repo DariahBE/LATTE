@@ -17,6 +17,7 @@ class CsrfTokenManager {
         if (!$submittedToken){
             return False;
         }
+        $submittedToken = trim($submittedToken, '"');
         return hash_equals($this->getTokenFromSession(), $submittedToken);
     }
 

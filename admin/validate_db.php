@@ -22,14 +22,14 @@
     die("Insufficient rights, forbidden access");
   }
 
-    //only allow admins here; 
-    $adminMode = False;
-    if($user->myRole !== "Admin"){
-      header("HTTP/1.0 403 Forbidden");
-      die("Insufficient rights, forbidden access");
-    }else{
-      $adminMode = True;
-    }
+  //only allow admins here; 
+  $adminMode = False;
+  if($user->myRole !== "Admin"){
+    header("HTTP/1.0 403 Forbidden");
+    die("Insufficient rights, forbidden access");
+  }else{
+    $adminMode = True;
+  }
 
 ?>
 <!DOCTYPE html>
@@ -48,8 +48,6 @@
     $navbar = new Navbar($adminMode); 
     echo $navbar->getNav();
     $integrity = new Integrity($client);
-    $tokenManager = new CsrfTokenManager();
-    $token = $tokenManager->generateToken(); 
   ?>
 
   <?php
@@ -64,11 +62,9 @@
       <h3>Inconsistent Nodes</h3>
       <ul>
       <?php
-      //BUG!! You cannot pass the token via the DOM: the first operation works, the second will not work due to toke revocation! (On it)
-      //TODO: integrate validation.js with an AJAX-endpoint to get a token; (OK)
         $results = $integrity->checkNodesNotMatchingModel();
         foreach($results as $key => $value){
-          echo '<li>'.$key.' ('.$value.') <button type="button" onclick="dropnodefromdb(\''.$key.'\', \''.$token.'\')"> Fix </button> </li>';
+          echo '<li>'.$key.' ('.$value.') <button type="button" onclick="dropnodefromdb(\''.$key.'\')"> Fix </button> </li>';
         }
       ?>
       </ul>
@@ -81,7 +77,7 @@
             $message = "No nodes with missing UUID property found.";
           }else{
             $n = ($results == 1) ? '' : 's';
-            $message = "The UUID property is missing from $results node$n. <button type='button' onclick='patchUUID(\"{$token}\")'> Fix </button> </li>";
+            $message = "The UUID property is missing from $results node$n. <button type='button' onclick='patchUUID()'> Fix </button> </li>";
           }
           echo "<p>$message</p>";
         ?>

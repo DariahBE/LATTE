@@ -27,7 +27,6 @@ if(isset($_SESSION["userid"])){
   if(isset($_POST['token'])){
     $token = $_POST['token']; 
   }
-  
   $tokenManager = new CsrfTokenManager();
   $tokenIsValid = $tokenManager->checkToken($token);
 
@@ -42,7 +41,7 @@ if(isset($_SESSION["userid"])){
     switch ($_GET['operation']){
         case "noderemoval":
             // Code to execute for option 1
-            echo "Option 1 selected";
+            $integrity->deleteNodesNotMatchingModel($_GET['nodename']); 
             break;
         case "fixuuid":
             // Code to execute for option 2

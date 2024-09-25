@@ -1,16 +1,23 @@
 function dropnodefromdb(nodeName){
-    let token = getDisposableToken();
-    let url = 'ajax/patch.php?operation=noderemoval&nodename='+nodeName;
-    $.ajax({
-        type: "POST",
-        url: url,
-        data: {token: token}
-    });}
+    getDisposableToken()
+    .then(token => {
+        console.log(token);
+        let url = 'ajax/patch.php?operation=noderemoval&nodename='+nodeName;
+        $.ajax({
+            type: "POST",
+            url: url,
+            data: {token: token}
+        });
+    })
+    .catch(error => {
+        console.error(error); // Handle errors from getDisposableToken
+    });
+
+}
 
     function patchUUID() {
         getDisposableToken()
             .then(token => {
-                alert(token);
                 let url = 'ajax/patch.php?operation=fixuuid';
                 $.ajax({
                     type: "POST",

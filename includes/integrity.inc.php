@@ -25,11 +25,13 @@ class Integrity{
 	}
 
 	function deleteNodesNotMatchingModel($label){
-		//WILL delete all nodes with the $label (str) as label. 
-		//TODO: Implement
+		//WILL delete all nodes with the $label (str) as label.
+		if (str_starts_with($label, 'priv_')){
+			// do not allow the deletion of labels marked with priv_
+			return;
+		}
 		$badLabels = 'MATCH (n:'.$label.') DETACH DELETE (n)';
 		$data =  $this->client->run($badLabels);
-		var_dump($data); 
 	}
 
 	function checkNodesWithoutUUID(){
@@ -42,7 +44,6 @@ class Integrity{
 	}
 
 	function asignUUIDToNodes(){
-		//TODO: Implement
 		//ASSIGNS a UUID to all nodes where the UUID is missing. 
 		$create_uuid_query = "MATCH (n) WHERE (NOT EXISTS (n.uid) AND NOT n:priv_user) SET n.uid = apoc.create.uuid() RETURN n; ";
 		$data =  $this->client->run($create_uuid_query);
