@@ -5,6 +5,7 @@ include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
 include_once(ROOT_DIR.'/includes/annotation.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
+include_once(ROOT_DIR.'/includes/csrf.inc.php');
 
 //check if the user is logged in; 
 if(isset($_SESSION['userid'])){
@@ -18,6 +19,9 @@ if(isset($_SESSION['userid'])){
   die();
 }
 
+$tokenManager = new CsrfTokenManager();
+
+
 $data = $_POST;
 $texID = (int)$data['texNeoid'];
 $entityID = (int)$data['sourceNeoID'];
@@ -27,11 +31,9 @@ $selectionEnd = (int)$data['stop'];
 $token = $data['csrf'];
 $extra = $data['properties'];
 //check if token equals the session variable and that the session did not yet expire 
-//TODO: remove token bypass after debugging connect.php page. 
-//    related to bug13
-if (1 ==1 || isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['connectiontoken']) && $token === $_SESSION['connectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
+if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['fastconnectiontoken']) && $token === $_SESSION['fastconnectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
   //destroy the token: can only be used once. 
-  unset($_SESSION['connectiontoken']);
+  unset($_SESSION['fastconnectiontoken']);
   unset($_SESSION['connectiontokencreatetime']);
   try {
     $data = $annotation->createAnnotationWithExistingEt($texID, $entityID, $user, $selectionStart, $selectionEnd, $extra);

@@ -438,7 +438,6 @@ function buildPropertyInputFieldsFor(label) {
 }
 
 async function connectAnnoToEntity(neoid_et, text_neo_id, selection_start, selection_end, selected_text, extra_properties, token){
-  console.log(neoid_et, text_neo_id, selection_start, selection_end, selected_text, token); 
   await new Promise((resolve) => {
     let postData = {
       sourceNeoID: neoid_et,
@@ -525,7 +524,6 @@ function showET(etdata, levscore = false, weightscore = false) {
   let levbox = document.createElement('div')
   levbox.setAttribute('id', 'lev_weight_box'); 
   //levenshtein key + score elmement. 
-  alert('LEV/Weight', levscore, weightscore); 
   
   let levdist = document.createElement('p'); 
   if (levscore !== false){
@@ -579,7 +577,7 @@ function showET(etdata, levscore = false, weightscore = false) {
   var propdiv = document.createElement('div');
   for (let k in properties) {
     let show = null;
-    let key = k;
+    //let key = k;    //Deleted, not required in for scope!
     let value = properties[k];
     let valueType = value['vartype'];
     let valueDOM = value['DOMString'];
@@ -611,7 +609,7 @@ function showET(etdata, levscore = false, weightscore = false) {
   }
   let entityContentElement = document.getElementById('entitycontent'); 
   if(entityContentElement === null){
-    created_etnav = document.createElement('div');
+    let created_etnav = document.createElement('div');
     created_etnav.setAttribute('id', 'etnav'); 
     entityContentElement = document.createElement('div'); 
     entityContentElement.setAttribute('id', 'entitycontent'); 
@@ -630,7 +628,7 @@ function showET(etdata, levscore = false, weightscore = false) {
   //the text and existing ET. 
   var d = document.getElementById('assignEtToSelection');
   if (d !== null) { d.remove(); }
-  fetch('/user/AJAX/profilestate.php')
+  fetch('/user/AJAX/profilestate.php?fastconnect=1')
     .then((response) => response.json())
     .then((data) => {
       //console.log('profilestate', data);
@@ -668,7 +666,6 @@ function showET(etdata, levscore = false, weightscore = false) {
 
           let annotationProperties = document.getElementById('annotationCreationDiv').getElementsByClassName('property');
           let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
-          console.log(annotationCollectionBox);
           await connectAnnoToEntity(etdataNeoId, languageOptions['nodeid'], globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox,  csrf); 
 
         });

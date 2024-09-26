@@ -388,11 +388,12 @@ let checkIfConnectionExists = async (qid) => {
               let annotationProperties = document.getElementById('embeddedAnnotation').getElementsByClassName('property');
               let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
               console.log(annotationCollectionBox);      
-              //fetch a fresh CSRF token: 
-              fetch('/user/AJAX/profilestate.php')
+              //fetch a fresh CSRF token
+              fetch('/user/AJAX/profilestate.php?fastconnect=1')
                 .then((response) => response.json())
                 .then((token) => {
                   if(token.valid){
+                    //TODO: confirm this is working!
                     connectAnnoToEntity(hits[j], languageOptions.nodeid, globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox, token.csrf);
                   }
                 })

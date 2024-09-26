@@ -224,11 +224,6 @@ class Annotation{
 
   public function createAnnotationWithExistingEt($neoIDText, $neoIDEt, $user, $start, $end, $extra){
     //OK; static properties! OK
-    //  ==> Could not be reproduced!
-    // BUG: Test found that creating the annoation work, (works from interface using connect.php)
-    // it is however failing to connect the user to the annotation node when triggered from 
-    // wikidata interface. This method is bugfree, but you need the code from here to patch the bug. 
-    //      - SEE BUG 13
     $constraintTwo = False;
     $userNeo = $user->neoId;
     $userAppId = $user->myId;

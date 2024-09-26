@@ -50,7 +50,7 @@ $allowedDelete = $user->hasEditRights($user->myRole);
 if($allowedDelete < 3){
     die(); 
 }
-
+var_dump($allowedDelete);
 
 $crudNode = new CUDNode($client);
 $crudNode->startTransaction(); 
@@ -66,6 +66,9 @@ $egoLabel = $crudNode->fetchLabelById($id);
 
 $delete = []; 
 
+//TODO: linked see_also items are not part of the delete dictionary! Add them
+//      BUG confirmed: see_also nodes are not deleted upon deletion of parent node!
+//      FIX: ==> started by implementing method in CUDNode class. (find_floats_over_connection)
 //if egolabel is an entitynode! ==> Look for connected annotations
 if($egoLabel == TEXNODE ){
     //deleting a text:
@@ -95,8 +98,6 @@ if($egoLabel == TEXNODE ){
     //corenodes includes text and annonodes, but these cases are captured already
     $delete['entities'] = array($id); 
     $delete['et_floaters'] = $crudNode->find_floating_entity_connections(array($id)); //todo
-
-
 }else{
     //not allowed 
     die();

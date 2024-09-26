@@ -435,6 +435,53 @@ class CUDNode extends Node {
       return $repl; 
     }
 
+    public function find_floats_over_connection($id_array, $connectionLabel){
+      /*$takes a list of NEO4J Ids of nodes and a string representing the edge label. 
+      Returns a list of all ids() of nodes which are connected to a node in in the id_array and
+      have the edge label $connectionLabel. 
+      */
+      // Create a comma-separated string of IDs for the Cypher query
+
+      if (empty($id_array)) {
+        return [];
+      }
+
+      // Create a comma-separated string of IDs for the Cypher query
+      $idList = implode(',', $id_array);
+
+      // Prepare the Cypher query to find connected nodes
+      // The MATCH clause finds nodes connected by the specified edge label
+      // the $connectionLabel is required to be there. 
+      // relationshipCount is then automatically 1 or higher. 
+      // if one of the relations is 'created' (application logic) then the count increases to two.
+      // if there's more than 2 relations, the node is part of other clusters and should remain! 
+      // OK: what if there's two creation labels going from User to Node. Then relationshipCount becomes 3
+      // and the node might end up floating. the propper check would be: 
+      // relationshipCount - createdcount == 1
+      $query = "
+        MATCH (n)-[r]->(m)
+        WHERE id(n) IN [$idList] AND type(r) = '$connectionLabel'
+        WITH m, COUNT(r) AS relationshipCount
+        MATCH (m)
+        OPTIONAL MATCH (m)-[c:priv_created]->()
+        WITH m, relationshipCount, COUNT(c) AS createdCount
+        WHERE relationshipCount - createdCount = 1
+        RETURN DISTINCT id(m) AS connectedNodeId
+
+      ";
+
+      // Execute the query
+      $result = $this->client->run($query);
+
+      // Collect the results
+      $connectedNodeIds = [];
+      foreach ($result->getRecords() as $record) {
+          $connectedNodeIds[] = $record->get('connectedNodeId');
+      }
+
+      return $connectedNodeIds;
+    }
+
     public function find_floating_entity_connections($id_array){
     /**Takes a list of NEO4J Ids of entity nodes and returns a list of all ids() of nodes connected
      *  over the see_also and same_as edge relation that have no connections to entities with id's

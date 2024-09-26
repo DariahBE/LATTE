@@ -10,6 +10,10 @@ $repl = array();
 
 $token = bin2hex(random_bytes(24)); 
 
+if(isset($_GET['fastconnect']) && (int)$_GET['fastconnect'] == 1){
+    $_SESSION['fastconnectiontoken'] = $token;
+}
+
 $_SESSION['connectiontoken'] = $token;
 $_SESSION['connectiontokencreatetime'] = time(); 
 //todo, check login and edit the repl valid key; 

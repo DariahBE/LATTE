@@ -28,45 +28,4 @@ ________________________
     * as it is now, the only test has been done with Text type entities. 
     * preSubmitCheck() is missing a submit event!
 
-13) HIGH PRIORITY: FIX THIS TOMORROW!!
-  - when linking an existing entity-node to a new annotation: Priv_user gets connected to the annotation. 
-  - HOWEVER: when creating a new annotation using the wikidata interface; the connection to the annotation is missing!!!
 ________________________________________________________________________________________________________________________________________________
-
-(OK: 8) remove all use cases of entityviews.inc.php:
-  - the used architecture is not scalable!
-  - currently in: 
-    * stable.php
-    * identify.php
-    * resolve.php
-
-9) OK When clicking on an annotation in a text, the spelling variants are not being shown. There's also no option to add spelling variants. Problem is that this code is dupblicated. 
-  - There is code to deal with variants in interactWithEntities.js > displayWrittenVariants 
-  - Other code block is in: selectInText.js > spellingVariantCreation 
-
-10 OK ) race condition in JS frontent on /text/ portal causes two UI elements to replace one another.
-    DESCRIPTION: when clicking bruxelles in text 10000 the application finds one-to-many relations from variantspelling to entity.
-        This causes an extra function to be called in: 
-    CONFLICTING FUNCTIONS: 
-        selectInText.js > triggerSidePanelAction()
-        wikidata_prompt.js >acceptQID()         > classlist removal of baseElem (==> #embeddedET)
-    SOLUTION (todo:):
-        make the call to checkIfConnectionExists async. If there's no existing connection - carry on.
-        if a connection exists let the code clear its content BEFORE removing the hidden class!
-
-1OK:) inexisting nodes are not caught properly in the Text portal:   OK
-  - e.g.: http://entitylinker.test/text/518105
-  ==> VAR BUG:
-  1A: inexisting node is not caught properly when relying on the coreID return value:     OK
-    -e.g.: http://entitylinker.test/API/place/bf3861df-78ef-4b2e-b0c3-3e639287a7a ((should be: http://entitylinker.test/API/place/bf3861df-78ef-4b2e-b0c3-3e639287a7ae))
-    
-5 OK ) integration with entityview.inc.php:
-  - Static code!! what if node does not exist: 
-  - .htaccess has the same flaw: what if node does not exist. 
-      <-> Fixed by using URI prefix - already implemented. 
-      TO-DO: test /URI/ prefix in other views!!
-
-7) Python: extractTextFromDB: OK
-  - Assumes static text property for a static node Text;
-  - rewrite it so that you extract it from the DB based on the id()-attribute
-  - pass the name where the text is stored as an additional property!
