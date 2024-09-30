@@ -69,6 +69,7 @@ $delete = [];
 //TODO: linked see_also items are not part of the delete dictionary! Add them
 //      BUG confirmed: see_also nodes are not deleted upon deletion of parent node!
 //      FIX: ==> started by implementing method in CUDNode class. (find_floats_over_connection)
+//      TEST still ongoing of FIX implementation
 //if egolabel is an entitynode! ==> Look for connected annotations
 if($egoLabel == TEXNODE ){
     //deleting a text:
@@ -76,19 +77,21 @@ if($egoLabel == TEXNODE ){
     $annos = $crudNode->distinctAnnotationsInText($id);     //NEO4J ids of all ANNOTATIONS that will be deleted.
     $ets = $crudNode->find_isolated_entities($annos);       //NEO4J ids of all ENTITIES that only have ONE annotation which itself is marked for DELETION
     $delete['text'] = array($id); 
-    $delete['see_alsos'] = array(); 
     $delete['annotations'] = $annos;
     $delete['entities'] = $ets; 
-    $delete['et_floaters'] = $crudNode->find_floating_entity_connections($ets); //todo
+    $floating_ets = $crudNode->find_floating_entity_connections($ets);
+    $delete['et_floaters'] = $floating_ets;  //todo
+    $delete['see_alsos'] = $crudNode->find_floats_over_connection($floating_ets, 'see_also');
 }elseif (($egoLabel == ANNONODE ) || ($egoLabel == 'Annotation_auto') ) {
     //deleting an annotation
     $ntype = 'anno'; 
     $ets = $crudNode->find_isolated_entities(array($id));       //NEO4J ids of all ENTITIES that only have ONE annotation which itself is marked for DELETION
     $delete['text'] = array();
-    $delete['see_alsos'] = array();
     $delete['annotations'] = array($id); 
     $delete['entities'] = $ets;
-    $delete['et_floaters'] = $crudNode->find_floating_entity_connections($ets);; //todo
+    $floating_ets = $crudNode->find_floating_entity_connections($ets);
+    $delete['et_floaters'] = $floating_ets;  //todo    
+    $delete['see_alsos'] = $crudNode->find_floats_over_connection($floating_ets, 'see_also');
 }elseif(array_key_exists($egoLabel, CORENODES)){
     //deleting an entity
     $ntype = 'entity'; 
@@ -97,7 +100,10 @@ if($egoLabel == TEXNODE ){
     $delete['annotations'] = $crudNode->annotationsWithThisEntity($id); 
     //corenodes includes text and annonodes, but these cases are captured already
     $delete['entities'] = array($id); 
-    $delete['et_floaters'] = $crudNode->find_floating_entity_connections(array($id)); //todo
+    //$delete['et_floaters'] = $crudNode->find_floating_entity_connections(array($id)); //todo
+    $floating_ets = $crudNode->find_floating_entity_connections(array($id));
+    $delete['et_floaters'] = $floating_ets;  //todo    
+    $delete['see_alsos'] = $crudNode->find_floats_over_connection($floating_ets, 'see_also');
 }else{
     //not allowed 
     die();
