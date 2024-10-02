@@ -4,11 +4,11 @@
  */
 
 
-function unmark(){
-  var marked = document.getElementsByClassName('markedAnnotation');
-  for(var i = marked.length-1; i >= 0; i--){
-    marked[i].classList.remove('markedAnnotation');
-  }
+function unmark() {
+  const marked = document.querySelectorAll('.markedAnnotation');
+  marked.forEach(element => {
+      element.classList.remove('markedAnnotation');
+  });
 }
 
 function markBasedOnId(id){
@@ -22,6 +22,61 @@ function markBasedOnId(id){
     }
   }
   globalSelectionText = highlightedText;
+}
+
+function textByUUID(uuid){
+  /**
+   * Takes the UUID from an annotation and returns the text that's contained by it.
+   */
+  var letters = document.getElementsByClassName('ltr');
+  let text = '';
+  for (var l = 0; l < letters.length; l++){
+    if (letters[l].dataset.annotation && (letters[l].dataset.annotation.split(',').includes(uuid))){
+      text += letters[l].textContent;
+    } else{
+      //early return of text if text is not empty (has data in it) and the letter you parsed
+      // does not belong to the given uuid any more.
+      if(text != ''){
+        return text;
+      }
+    }
+  }
+  return text;
+}
+
+function makeMultiBox(ids){
+  /** When multiple entities have to be shown, creates a special modal box
+   * that will load the different uuids for the user to see and choose from.
+   * //BUG(#2-10-24):
+   */
+  //fetch the base box to diplay multi IDs: 
+  var [div, mode, topDst, height, leftDst] = makeBoxTemplate(); 
+  let multiElementDiv = document.createElement('div'); 
+  // multiElementDiv.classList.add('')
+  (ids).forEach(element => {
+    let displayText = textByUUID(element); 
+    let textElement = document.createElement('p');
+    textElement.classList.add('textElementMulti');
+    textElement.dataset.for_annotation = element; 
+    textElement.textContent = displayText;
+    textElement.onclick = () => {
+      let elm = event.srcElement || event.target;
+      let uuid = elm.dataset.for_annotation;
+      //alert(elm.dataset.for_annotation);
+      loadAnnotationData(uuid);
+  };
+    multiElementDiv.appendChild(textElement); 
+  });
+  div.appendChild(multiElementDiv); 
+  div.classList.add('suggestionBox', 'bg-white');
+  div.style.position = 'absolute';
+  div.style.top = topDst + height + 'px';
+  div.style.left = leftDst + 'px';
+  div.style.minWidth = '250px';
+  div.style.maxWidth = '300px';
+  div.style.minHeight = '100px';
+  div.style.maxHeight = '200px';
+  document.body.appendChild(div);
 }
 
 
@@ -71,7 +126,15 @@ function visualizeStoredAnnotations(){
         console.log('letterBasedEntry');
         var origin = event.source || event.target;
         var relatedAnnotationIDS = origin.dataset.annotation;
-        markBasedOnId(relatedAnnotationIDS);
+        //BUG(#2-10-24): double ids!
+        var relatedAnnotations = relatedAnnotationIDS.split(',');
+        console.log(relatedAnnotations);
+        console.log(relatedAnnotations[0]);
+        //TODO; implement other annotations in list!
+        markBasedOnId(relatedAnnotations[0]);
+        if(relatedAnnotations.length > 1){
+          makeMultiBox(relatedAnnotations); 
+        }
       })
     }
   }

@@ -476,7 +476,9 @@ function loadAnnotationData(annotationID = false) {
     //get annotationID in case of clickevent trigger: find the source of the event. 
     var eventsource = event.source || event.target;
     //event.preventDefault();
-    var annotationID = eventsource.dataset.annotation;
+    //BUG(#2-10-24): possibly related to issue where multiple annotations spanning the same string are not properly displayed. 
+    var relatedAnnotations = eventsource.dataset.annotation.split(',');
+    annotationID = relatedAnnotations[0];
   }
   //otherwise the annotationID is given as of the function call parameter(in case of
   //  programatically triggering the event). 

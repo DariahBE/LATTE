@@ -1319,6 +1319,41 @@ function dropLatteSuggestion(segment){
   ignoreSuggestion(); 
 }
 
+function makeBoxTemplate(){
+  /**
+   * creates a popup modal which can be calle dby other functions to customize further. 
+   */
+    if (event === undefined){return;}
+    let targetElement = event.src || event.target;  
+    let mode = 'stored';
+    if(targetElement && targetElement.classList.contains('automatic_unstored')){
+      var boxHeader = 'Unstored Annotation';
+      var headerColor = 'bg-blue-300'; 
+      mode = 'unstored';
+    }else{
+      var boxHeader = 'Entitites';
+      var headerColor = 'bg-teal-300';
+    }
+    ignoreSuggestion();
+    //external rangy library required!! 
+    //https://github.com/timdown/rangy
+    var topDst = rangy.getSelection().anchorNode.parentElement.offsetTop;
+    var height = rangy.getSelection().anchorNode.parentElement.offsetHeight;
+    var leftDst = rangy.getSelection().anchorNode.parentElement.offsetLeft - 125;
+    if (leftDst < 10) {
+      leftDst = 10;
+    }
+
+    //create div at fixed position: THIS IS ALWAYS REQUIRED
+    var div = document.createElement('div');
+    var tex = document.createTextNode(boxHeader);
+    var texheader = document.createElement('H3');
+    texheader.appendChild(tex);
+    texheader.classList.add(headerColor, 'text-center', 'font-bold');
+    div.appendChild(texheader);
+    return [div, mode, topDst, height, leftDst];
+}
+
 
 function makeSuggestionBox() {
   /**
@@ -1332,7 +1367,7 @@ function makeSuggestionBox() {
   //found by the LATTE connector. Interface checks for the presence of the
   //automatic_unstored class in the classlist to determine how the layout
   // of the suggestionbox should be. 
-  if (event === undefined){return;}
+  /*if (event === undefined){return;}
   let targetElement = event.src || event.target;  
   let mode = 'stored';
   if(targetElement && targetElement.classList.contains('automatic_unstored')){
@@ -1359,8 +1394,9 @@ function makeSuggestionBox() {
   var texheader = document.createElement('H3');
   texheader.appendChild(tex);
   texheader.classList.add(headerColor, 'text-center', 'font-bold');
-  div.appendChild(texheader);
+  div.appendChild(texheader);*/
   //Spinner is only needed when working with stored annotations. 
+  var [div, mode, topDst, height, leftDst] = makeBoxTemplate(); 
   if (mode === 'stored'){
     //create spinner;
     var spinner = document.createElement('div');
