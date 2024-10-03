@@ -1,6 +1,7 @@
 /**
  *  this is to visualize whatever is stored int he DB and show it to the USER
- * 
+ *  when overlapping annotations are detected, these are shown in a modal which 
+ *  allows the user to further refine the annotation they want to laod into the DOM
  */
 
 
@@ -47,10 +48,10 @@ function textByUUID(uuid){
 function makeMultiBox(ids){
   /** When multiple entities have to be shown, creates a special modal box
    * that will load the different uuids for the user to see and choose from.
-   * //BUG(#2-10-24):
    */
   //fetch the base box to diplay multi IDs: 
   var [div, mode, topDst, height, leftDst] = makeBoxTemplate(); 
+  div.setAttribute('id', 'multibox'); 
   let multiElementDiv = document.createElement('div'); 
   // multiElementDiv.classList.add('')
   (ids).forEach(element => {
@@ -59,6 +60,9 @@ function makeMultiBox(ids){
     textElement.classList.add('textElementMulti');
     textElement.dataset.for_annotation = element; 
     textElement.textContent = displayText;
+    //add color code for entity type to annotation in multibox.
+    let elmClass = storedAnnotations['relations'][element]['type']; 
+    textElement.classList.add(elmClass);
     textElement.onclick = () => {
       let elm = event.srcElement || event.target;
       let uuid = elm.dataset.for_annotation;
@@ -76,6 +80,15 @@ function makeMultiBox(ids){
   div.style.maxWidth = '300px';
   div.style.minHeight = '100px';
   div.style.maxHeight = '200px';
+  let closeButton = document.createElement('button'); 
+  let closeButtonText = document.createTextNode('Close'); 
+  closeButton.appendChild(closeButtonText);
+  closeButton.classList.add('red-bg-500'); 
+  closeButton.onclick = () => {
+    ignoreSuggestion("multibox");
+  }
+  div.appendChild(closeButton)
+  //add all content to the DOM
   document.body.appendChild(div);
 }
 
@@ -126,11 +139,9 @@ function visualizeStoredAnnotations(){
         console.log('letterBasedEntry');
         var origin = event.source || event.target;
         var relatedAnnotationIDS = origin.dataset.annotation;
-        //BUG(#2-10-24): double ids!
         var relatedAnnotations = relatedAnnotationIDS.split(',');
         console.log(relatedAnnotations);
         console.log(relatedAnnotations[0]);
-        //TODO; implement other annotations in list!
         markBasedOnId(relatedAnnotations[0]);
         if(relatedAnnotations.length > 1){
           makeMultiBox(relatedAnnotations); 

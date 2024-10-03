@@ -472,17 +472,19 @@ function handleError(e) {
 function loadAnnotationData(annotationID = false) {
 
   console.log(globalLoginAvailable); 
+  var relatedAnnotations = []; 
   if (!(annotationID)){
     //get annotationID in case of clickevent trigger: find the source of the event. 
     var eventsource = event.source || event.target;
     //event.preventDefault();
-    //BUG(#2-10-24): possibly related to issue where multiple annotations spanning the same string are not properly displayed. 
-    var relatedAnnotations = eventsource.dataset.annotation.split(',');
+    relatedAnnotations = eventsource.dataset.annotation.split(',');
     annotationID = relatedAnnotations[0];
   }
   //otherwise the annotationID is given as of the function call parameter(in case of
   //  programatically triggering the event). 
-  getInfoFromBackend("/AJAX/resolve_annotation.php?annotation=" + annotationID)
+  // to handle multiple overlapping annotations do a check here: is the even triggered by an overlap (2 or more) or not (1 or 0). 
+  if(relatedAnnotations.length <= 1){
+    getInfoFromBackend("/AJAX/resolve_annotation.php?annotation=" + annotationID)
     .then((data) => {
       if (data['code']==-1){
         handleError(''); 
@@ -493,7 +495,8 @@ function loadAnnotationData(annotationID = false) {
         updateState('State', 'An annotated entity was selected, you can now see the data held in the database.'); 
       }
     })
-  .catch(err => handleError(err) );
+    .catch(err => handleError(err) );
+  }
 }
 
 function addInteractionToEntities() {

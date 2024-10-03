@@ -19,8 +19,8 @@ function insertAfter(referenceID, elementToAdd){
   }
   referenceNode.parentNode.insertBefore(elementToAdd, referenceNode.nextSibling);
 }
-function ignoreSuggestion() {
-  var isOpen = document.getElementById("suggestionOnSelect");
+function ignoreSuggestion(box = "suggestionOnSelect") {
+  var isOpen = document.getElementById(box);
   if (isOpen) {
     isOpen.remove();
   }
