@@ -12,6 +12,8 @@ session_start();
  *    - a UUID          STR       (SQL: uuid    =   NEO4J: user_uuid )
  *    - username        STR       (SQL: username=   NEO4J: username)
  * 
+ * //// USER ROLES: 
+ *    admin     project_lead    researcher    collaborator
  */
 class User{
   protected $sqlite; 
@@ -364,10 +366,17 @@ public function checkForSession($redir="/user/mypage.php"){
         $name = $problem['username']; 
         $sql_id = (int)$problem['id']; 
         $this->createUserInNeo($uuid, $name, $sql_id);
-        
       }
     }
 
+  public function listAllUsers(){
+    $sql_query = 'SELECT id, uuid, mail, username, role, completed FROM userdata ORDER BY id ASC'; 
+    //$sql_query = 'SELECT * FROM userdata'; 
+    $stmt = $this->sqlite->prepare($sql_query);
+    $stmt->execute($checkData);
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result;
+  }
 
 }
 

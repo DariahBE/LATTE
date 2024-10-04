@@ -58,14 +58,14 @@ if(!empty($missing)) {
 }else{
 
 
-    //2: check email uniqueness ONLY if registrationpolicy === 2:
+    //2: check email uniqueness ONLY if registrationpolicy === 2: Registration is open to all. 
     if(REGISTRATIONPOLICY === 2){
         if(!($user->checkUniqueness($_POST['email']))){
             echo json_encode(array('msg' => 'The provided e-mail account is already in use.'));
             die();
         }
     }
-    
+    //registration is open only to invited users. 
     if(REGISTRATIONPOLICY === 1){
         if(!(array_key_exists('invitetoken', $_POST))){
             echo json_encode(array('msg' => 'Invalid invitecode'));

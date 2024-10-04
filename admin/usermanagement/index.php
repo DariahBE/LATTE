@@ -2,13 +2,20 @@
 
 //header('Content-Type: application/json; charset=utf-8');
 
-include_once($_SERVER["DOCUMENT_ROOT"].'config/config.inc.php');
+include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/mail.inc.php');
+include_once(ROOT_DIR.'/includes/client.inc.php');
+include_once(ROOT_DIR."/includes/navbar.inc.php");
+
+$user = new User($client);
 
 
-
-
+/**
+ *    LAYOUT DEPENDS ON REGISTRATION POLICY
+ *If the registration policy is invite-only (code 1) then, you need an extra form to add users. 
+ *When the registration policy is open to all, thenyou can skip that form.  
+ */
 
 ?>
 
@@ -17,11 +24,18 @@ include_once(ROOT_DIR.'/includes/mail.inc.php');
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Tailwind Page</title>
-  <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+  <title>Admin - User management</title>
+  <link rel="stylesheet" href="/CSS/stylePublic.css">
+  <link rel="stylesheet" href="/CSS/overlaystyling.css">
 </head>
 <body>
-  <div class="flex justify-center items-center h-screen">
+  <div>
+  <?php
+    $navbar = new Navbar($adminMode); 
+    echo $navbar->getNav();
+  ?>
+  </div>
+  <div class="flex justify-center py-4">
     <div class="space-y-4">
       <button id="addUserBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
         Add User
@@ -36,13 +50,95 @@ include_once(ROOT_DIR.'/includes/mail.inc.php');
   </div>
 
   <div id="addUserView" class="hidden">
+    <?php if(REGISTRATIONPOLICY == 1){ ?>
     <h2>Add User Form</h2>
     <!-- Add User Form HTML goes here -->
+    <form id="addUserForm" class="space-y-4">
+      <!-- Name Field -->
+      <div>
+        <label for="name" class="block text-sm font-medium text-gray-700">Name</label>
+        <input type="text" id="name" name="name" 
+               class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" 
+               placeholder="Enter name" required>
+      </div>
+      
+      <!-- Email Field -->
+      <div>
+        <label for="email" class="block text-sm font-medium text-gray-700">Email</label>
+        <input type="email" id="email" name="email"
+               class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500"
+               placeholder="Enter email" required>
+      </div>
+
+      <!-- Role Dropdown -->
+      <div>
+        <label for="role" class="block text-sm font-medium text-gray-700">Role</label>
+        <select id="role" name="role"
+                class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" 
+                required>
+          <option value="">Select role</option>
+          <option value="collaborator">Collaborator</option>
+          <option value="researcher">Researcher</option>
+          <option value="projectlead">Project leader</option>
+          <option value="admin">Admin</option>
+        </select>
+      </div>
+
+      <!-- Save Button -->
+      <div class="text-center">
+        <button type="submit" 
+                class="w-full bg-indigo-500 text-white rounded-md py-2 hover:bg-indigo-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:ring-opacity-50">
+          Save
+        </button>
+      </div>
+    </form>
+
+    <?php } ?>
+
   </div>
 
   <div id="promoteUserView" class="hidden">
     <h2>Promote User Form</h2>
-    <!-- Promote User Form HTML goes here -->
+    <!-- Promote User Form HTML goes here --> 
+    <table class="min-w-full bg-white border border-gray-300">
+    <thead>
+      <tr class="bg-gray-200 text-gray-600 uppercase text-sm">
+        <th class="py-3 px-4 border-b">ID</th>
+        <th class="py-3 px-4 border-b">UUID</th>
+        <th class="py-3 px-4 border-b">Mail</th>
+        <th class="py-3 px-4 border-b">Username</th>
+        <th class="py-3 px-4 border-b">Role</th>
+        <th class="py-3 px-4 border-b">Completed</th>
+        <th class="py-3 px-4 border-b">Save</th>
+      </tr>
+    </thead>
+      <tbody>
+        <?php 
+        $userdata = $user->listAllUsers(); 
+        foreach ($userdata as $row) {
+        ?>
+          <tr data-uid="<?php echo htmlspecialchars($row['uuid']); ?>" class="hover:bg-gray-100">
+            <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['id']); ?></td>
+            <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['uuid']); ?></td>
+            <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['mail']); ?></td>
+            <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['username']); ?></td>
+            <td class="py-3 px-4 border-b">
+              <select name="role" class="border border-gray-300 rounded role-dropdown">
+                <option value="Collaborator" <?php echo (strtolower($row['role']) === 'contributor') ? 'selected' : ''; ?>>Collaborator</option>
+                <option value="Researcher" <?php echo (strtolower($row['role']) === 'researcher') ? 'selected' : ''; ?>>Researcher</option>
+                <option value="Researcher" <?php echo (strtolower($row['role']) === 'projectlead') ? 'selected' : ''; ?>>Project leader</option>
+                <option value="Admin" <?php echo (strtolower($row['role']) === 'admin') ? 'selected' : ''; ?>>Admin</option>
+              </select>
+            </td>
+            <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['completed']); ?></td>
+            <td class="py-3 px-4 border-b">
+              <button class="save-button bg-gray-300 text-white py-1 px-3 rounded">Save</button>
+            </td>
+          </tr>
+        <?php } ?>
+      </tbody>
+    </table>
+    
   </div>
 
   <div id="resetUserView" class="hidden">
@@ -74,6 +170,89 @@ include_once(ROOT_DIR.'/includes/mail.inc.php');
       addUserView.classList.add('hidden');
       promoteUserView.classList.add('hidden');
       resetUserView.classList.remove('hidden');
+    });
+
+    document.querySelectorAll('.role-dropdown').forEach(dropdown => {
+        dropdown.addEventListener('change', function() {
+            const button = this.closest('tr').querySelector('.save-button');
+            button.classList.remove('bg-gray-300', 'bg-green-500');
+            button.classList.add('bg-red-500');
+        });
+    });
+
+    document.querySelectorAll('.save-button').forEach(button => {
+        button.addEventListener('click', function() {
+          const dropdown = this.closest('tr').querySelector('.role-dropdown');
+          const userId = dropdown.parentElement.parentElement.getAttribute('data-uid');
+          const selectedRole = dropdown.value;
+          fetch("/AJAX/getdisposabletoken.php")
+          .then(response => response.json())
+          .then(data => {
+            fetch('../ajax/update_user_data.php', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+              },
+              body: JSON.stringify({ 
+                id: userId, 
+                role: selectedRole, 
+                token: data
+              }),
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                this.classList.remove('bg-red-500');
+                this.classList.add('bg-green-500');
+              } else {
+
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+          });
+      });
+    });
+
+    
+    document.getElementById('addUserForm').addEventListener('submit', function (e) {
+      e.preventDefault();
+
+      // Fetch form data
+      const name = document.getElementById('name').value;
+      const email = document.getElementById('email').value;
+      const role = document.getElementById('role').value;
+
+      // Basic validation
+      if (!name || !email || !role) {
+        alert('Please fill in all fields.');
+        return;
+      }
+
+      // Prepare form data
+      const formData = new FormData();
+      formData.append('name', name);
+      formData.append('email', email);
+      formData.append('role', role);
+
+      // Send data via POST request
+      fetch('../ajax/add_new_user.php', {
+        method: 'POST',
+        body: formData,
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.success) {
+          alert('User added successfully!');
+        } else {
+          alert('Error adding user.');
+        }
+      })
+      .catch(error => {
+        console.error('Error:', error);
+        alert('Failed to add user.');
+      });
     });
   </script>
 </body>
