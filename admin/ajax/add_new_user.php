@@ -13,18 +13,21 @@
  include_once(ROOT_DIR."/includes/csrf.inc.php");
 
 $token = $_POST['token']; 
-
  //check token: 
 $tokenManager = new CsrfTokenManager();
 $tokenIsValid = $tokenManager->checkToken($token);
-var_dump($tokenIsValid); 
 $tokenManager->revokeToken(); 
+
+if(!($tokenIsValid)){
+    echo json_encode(array('msg'=>'request rejected.'));
+    die();
+}
 
 //check user admin level: 
 $user = new User($client);
 $user_id = $user->checkSession();
     //only allow admins here; No admin = kill process. 
-$adminMode = False;
+// $adminMode = False;
 if($user->myRole !== "Admin"){
 header("HTTP/1.0 403 Forbidden");
 die("Insufficient rights, forbidden access");
@@ -32,9 +35,13 @@ die("Insufficient rights, forbidden access");
 
 //check if the registration policy is set to 1 or 2. 
 if(in_array(REGISTRATIONPOLICY, array(1,2))){
-    echo "OK";
+    $mail = $_POST['email']; 
+    $role = $_POST['role'];
+    $name = $_POST['name'];
+    $backend_repl = $user->createUser($mail, $name, $role); 
+    var_dump($backend_repl); 
 }else{
-    echo "DIE";
+    echo json_encode(array('msg'=>'request rejected.')); 
 }
 
 ?>

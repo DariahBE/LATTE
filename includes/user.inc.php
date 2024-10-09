@@ -13,7 +13,7 @@ session_start();
  *    - username        STR       (SQL: username=   NEO4J: username)
  * 
  * //// USER ROLES: 
- *    admin     project_lead    researcher    collaborator
+ *    admin     project_lead    researcher    contributor
  */
 class User{
   protected $sqlite; 
@@ -23,6 +23,7 @@ class User{
   public $myRole;
   public $myName;
   public $myId;
+  protected $application_roles; 
   function __construct($client)  {
     $this->path_to_sqlite = ROOT_DIR."/user/protected/users.sqlite";
     $this->sqlite = new PDO('sqlite:' . $this->path_to_sqlite);
@@ -32,7 +33,7 @@ class User{
     $this->myName = isset($_SESSION['username']) ? $_SESSION['username'] : False;
     $this->myId = isset($_SESSION['userid']) ? $_SESSION['userid'] : False;
     $this->neoId = isset($_SESSION['neoid']) ? $_SESSION['neoid'] : False;
-
+    $this->$application_roles = array('contributor', 'researcher', 'projectlead', 'selected'); 
   }
 
 private function guidv4(){
@@ -201,6 +202,10 @@ public function checkForSession($redir="/user/mypage.php"){
   }
 
   public function createUser($mail, $name, $role){
+    //is $mail a valid adress: backend validation. 
+    if ((!filter_var($mail, FILTER_VALIDATE_EMAIL))) {
+      return (array('error', 'Invalid mail')); 
+    }
     //check if user with mail already exists:
     //$checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email RETURN count(n) as count';
     //$exists = $this->client->run($checkQuery, ['email'=>$mail]);
@@ -371,12 +376,25 @@ public function checkForSession($redir="/user/mypage.php"){
 
   public function listAllUsers(){
     $sql_query = 'SELECT id, uuid, mail, username, role, completed FROM userdata ORDER BY id ASC'; 
-    //$sql_query = 'SELECT * FROM userdata'; 
     $stmt = $this->sqlite->prepare($sql_query);
-    $stmt->execute($checkData);
+    //$stmt->execute($checkData); ??
+    $stmt->execute();
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
     return $result;
   }
+
+  public function promoteUser($user_uuid, $newRole){
+    if(in_array(strtolower($newRole), $this->$application_roles)){
+      $sql_query = 'UPDATE userdata SET `role` = ? WHERE userdata.uuid = ?; '; 
+      $stmt = $this->sqlite->prepare($sql_query);
+      $stmt->execute(array($newRole, $user_uuid));
+      $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      return $result;
+    }else{
+      return array('msg'=> 'request rejectedqdffqds.'); 
+    }
+  }
+
 
 }
 

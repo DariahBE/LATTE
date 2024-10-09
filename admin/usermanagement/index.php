@@ -10,6 +10,10 @@ include_once(ROOT_DIR."/includes/navbar.inc.php");
 
 $user = new User($client);
 
+if($user->myRole !== "Admin"){
+  header("HTTP/1.0 403 Forbidden");
+  die("Insufficient rights, forbidden access");
+  }
 
 /**
  *    LAYOUT DEPENDS ON REGISTRATION POLICY
@@ -77,7 +81,7 @@ $user = new User($client);
                 class="mt-1 block w-full border border-gray-300 rounded-md p-2 focus:ring-indigo-500 focus:border-indigo-500" 
                 required>
           <option value="">Select role</option>
-          <option value="collaborator">Collaborator</option>
+          <option value="contributor">Contributor</option>
           <option value="researcher">Researcher</option>
           <option value="projectlead">Project leader</option>
           <option value="admin">Admin</option>
@@ -124,9 +128,9 @@ $user = new User($client);
             <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['username']); ?></td>
             <td class="py-3 px-4 border-b">
               <select name="role" class="border border-gray-300 rounded role-dropdown">
-                <option value="Collaborator" <?php echo (strtolower($row['role']) === 'contributor') ? 'selected' : ''; ?>>Collaborator</option>
+                <option value="Contributor" <?php echo (strtolower($row['role']) === 'contributor') ? 'selected' : ''; ?>>Contributor</option>
                 <option value="Researcher" <?php echo (strtolower($row['role']) === 'researcher') ? 'selected' : ''; ?>>Researcher</option>
-                <option value="Researcher" <?php echo (strtolower($row['role']) === 'projectlead') ? 'selected' : ''; ?>>Project leader</option>
+                <option value="Projectlead" <?php echo (strtolower($row['role']) === 'projectlead') ? 'selected' : ''; ?>>Project leader</option>
                 <option value="Admin" <?php echo (strtolower($row['role']) === 'admin') ? 'selected' : ''; ?>>Admin</option>
               </select>
             </td>
@@ -185,19 +189,16 @@ $user = new User($client);
           const dropdown = this.closest('tr').querySelector('.role-dropdown');
           const userId = dropdown.parentElement.parentElement.getAttribute('data-uid');
           const selectedRole = dropdown.value;
+          let formData = new FormData();
+          formData.append('userId', userId);
+          formData.append('selectedRole', selectedRole);
           fetch("/AJAX/getdisposabletoken.php")
           .then(response => response.json())
           .then(data => {
+            formData.append('token', data);
             fetch('../ajax/update_user_data.php', {
               method: 'POST',
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify({ 
-                id: userId, 
-                role: selectedRole, 
-                token: data
-              }),
+              body: formData
             })
             .then(response => response.json())
             .then(data => {
@@ -235,24 +236,31 @@ $user = new User($client);
       formData.append('name', name);
       formData.append('email', email);
       formData.append('role', role);
+      //add the token to the post data. 
+      fetch("/AJAX/getdisposabletoken.php")
+          .then(response => response.json())
+          .then(data => {
+            formData.append('token', data); 
+            // Send data via POST request
+            fetch('../ajax/add_new_user.php', {
+              method: 'POST',
+              body: formData,
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                alert('User added successfully!');
+              } else {
+                alert('Error adding user.');
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+              alert('Failed to add user.');
+            });
+          });
 
-      // Send data via POST request
-      fetch('../ajax/add_new_user.php', {
-        method: 'POST',
-        body: formData,
-      })
-      .then(response => response.json())
-      .then(data => {
-        if (data.success) {
-          alert('User added successfully!');
-        } else {
-          alert('Error adding user.');
-        }
-      })
-      .catch(error => {
-        console.error('Error:', error);
-        alert('Failed to add user.');
-      });
+
     });
   </script>
 </body>
