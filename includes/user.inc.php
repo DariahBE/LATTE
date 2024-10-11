@@ -33,7 +33,7 @@ class User{
     $this->myName = isset($_SESSION['username']) ? $_SESSION['username'] : False;
     $this->myId = isset($_SESSION['userid']) ? $_SESSION['userid'] : False;
     $this->neoId = isset($_SESSION['neoid']) ? $_SESSION['neoid'] : False;
-    $this->$application_roles = array('contributor', 'researcher', 'projectlead', 'selected'); 
+    $this->$application_roles = array('contributor', 'researcher', 'projectlead', 'admin'); 
   }
 
 private function guidv4(){
@@ -58,7 +58,6 @@ private function getHash($l){
 
 public function checkForSession($redir="/user/mypage.php"){
   if(boolval($this->myName)){
-    //var_dump($redir); 
     header("Location: $redir");
     die(); 
   }
@@ -102,7 +101,6 @@ public function getMailFromUUID($uuid){
     //protected userdata is prepended with priv_
     //$query = 'MATCH (u:priv_user {mail:$email}) return u.password as pw, u.logon_attempts as att, id(u) as nodeid, u.userid as uid, u.role as role, u.name as name limit 1';
     //$result = $this->client->run($query, array('email'=>$email));
-    //var_dump($this->sqlite);
     $query = "SELECT * FROM userdata WHERE userdata.mail = ? AND userdata.logon_attempts <= 5 AND userdata.token IS NULL AND userdata.completed = 1 AND userdata.blocked = 0";
     $stmt = $this->sqlite->prepare($query);
     $stmt->execute(array($email));
@@ -238,7 +236,6 @@ public function getMailFromUUID($uuid){
         $stmt = $this->sqlite->prepare($query);
         $stmt->execute($insert_query_data);
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        //var_dump($result); 
         $sql_id = (int)$this->sqlite->lastInsertId(); 
         //duplicate node into NEO4J-database. Only store the essential data in there!!
         $this->createUserInNeo($uuid, $name ,$sql_id); 
@@ -295,8 +292,6 @@ public function getMailFromUUID($uuid){
       $stmt = $this->sqlite->prepare($checkQuery);
       $stmt->execute($checkData);
       $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-      //var_dump($result); 
-      //$result = $this->client->run('MATCH (n:priv_user) WHERE n.mail= $mail RETURN n',['mail'=>$mail]);
     }
     if(boolval(count($result))){
       //already exists 
@@ -399,7 +394,7 @@ public function getMailFromUUID($uuid){
       $sql_query = 'UPDATE userdata SET `role` = ? WHERE userdata.uuid = ?; '; 
       $stmt = $this->sqlite->prepare($sql_query);
       $stmt->execute(array($newRole, $user_uuid));
-      $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      $result = $stmt->rowCount();
       return $result;
     }else{
       return array('msg'=> 'request rejected.'); 

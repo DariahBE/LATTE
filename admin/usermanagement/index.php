@@ -253,8 +253,7 @@ if($user->myRole !== "Admin"){
           .catch(error => {
             console.error('Error:', error);
           });
-        });
-
+      });
     }
 
     const addUserBtn = document.getElementById('addUserBtn');
@@ -283,11 +282,11 @@ if($user->myRole !== "Admin"){
     });
 
     document.querySelectorAll('.role-dropdown').forEach(dropdown => {
-        dropdown.addEventListener('change', function() {
-            const button = this.closest('tr').querySelector('.save-button');
-            button.classList.remove('bg-gray-300', 'bg-green-500');
-            button.classList.add('bg-red-500');
-        });
+      dropdown.addEventListener('change', function() {
+        const button = this.closest('tr').querySelector('.save-button');
+        button.classList.remove('bg-gray-300', 'bg-green-500');
+        button.classList.add('bg-red-500');
+      });
     });
 
     document.querySelectorAll('.save-button').forEach(button => {

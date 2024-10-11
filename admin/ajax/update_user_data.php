@@ -50,6 +50,7 @@ if($_POST['action'] == 'block'){
   $userID = $_POST['userId']; 
   $newRole = $_POST['selectedRole']; 
   $updateResult = $user->promoteUser($userID, $newRole);
-  var_dump($updateResult); 
+  $good = $updateResult === 1 ? True : False;
+  echo json_encode(array('success'=>$good));
 }
 ?>
