@@ -147,10 +147,116 @@ if($user->myRole !== "Admin"){
 
   <div id="resetUserView" class="hidden">
     <h2>Reset User Access Form</h2>
-    <!-- Reset User Access Form HTML goes here -->
+    <table class="min-w-full bg-white border border-gray-300">
+    <thead>
+      <tr class="bg-gray-200 text-gray-600 uppercase text-sm">
+        <th class="py-3 px-4 border-b">ID</th>
+        <th class="py-3 px-4 border-b">UUID</th>
+        <th class="py-3 px-4 border-b">Mail</th>
+        <th class="py-3 px-4 border-b">Username</th>
+        <th class="py-3 px-4 border-b">Block</th>
+        <th class="py-3 px-4 border-b">Reset</th>
+      </tr>
+    </thead>
+    <?php 
+      foreach ($userdata as $row) {
+        $isAllowed = $row['blocked'] === 0; 
+        $blockPrompt = $isAllowed ? 'Block' : 'Unblock';
+        $blockClass = $isAllowed ? 'bg-red-500' : 'bg-green-500';
+        ?>
+        <tr data-uid="<?php echo htmlspecialchars($row['uuid']); ?>" class="hover:bg-gray-100">
+          <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['id']); ?></td>
+          <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['uuid']); ?></td>
+          <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['mail']); ?></td>
+          <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['username']); ?></td>
+          <td class="py-3 px-4 border-b">
+              <button onclick="runblock()" data-state=<?php echo $row['blocked']; ?> class="block-button <?php echo $blockClass; ?> text-white py-1 px-3 rounded"><?php echo $blockPrompt; ?></button>
+          </td>
+          <td class="py-3 px-4 border-b">
+            <button onclick="runreset()" class="reset-button bg-gray-300 text-white py-1 px-3 rounded">Reset</button>
+          </td>
+        </tr>
+
+    <?php
+      }
+    ?>
+      </tbody>
+
   </div>
 
   <script>
+
+    function runblock(){
+      const trigger = event.srcElement || event.target;
+      const user_row = trigger.closest('tr');
+      const user_uuid = user_row.getAttribute('data-uid');
+      let currentValue = trigger.getAttribute('data-state'); 
+      let toggledValue = currentValue ^ 1; 
+      let formData = new FormData();
+        formData.append('userId', user_uuid);
+        formData.append('blockValue', toggledValue);
+        formData.append('action', 'block');
+        fetch("/AJAX/getdisposabletoken.php")
+          .then(response => response.json())
+          .then(data => {
+            formData.append('token', data);
+            fetch('../ajax/update_user_data.php', {
+              method: 'POST',
+              body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+              if (data.success) {
+                //Toggle button Color.
+                trigger.classList.toggle('bg-red-500');
+                trigger.classList.toggle('bg-green-500');
+                //toglle number state: 
+                trigger.setAttribute('data-state', toggledValue); 
+                //toggle text: 
+                trigger.textContent = toggledValue===1 ? 'Unblock' : 'Block';
+              } else {
+                console.error('Error: Server failed to process request'); 
+              }
+            })
+            .catch(error => {
+              console.error('Error:', error);
+            });
+          });
+    }
+
+    function runreset(){
+      const trigger = event.srcElement || event.target;
+      const user_row = trigger.closest('tr');
+      const user_uuid = user_row.getAttribute('data-uid');
+      let formData = new FormData();
+      formData.append('userId', user_uuid);
+      formData.append('action', 'reset');
+      fetch("/AJAX/getdisposabletoken.php")
+        .then(response => response.json())
+        .then(data => {
+          formData.append('token', data);
+          fetch('../ajax/update_user_data.php', {
+            method: 'POST',
+            body: formData
+          })
+          .then(response => response.json())
+          .then(data => {
+            if (data.success) {
+              //Toggle button Color.
+              trigger.classList.add('bg-blue-500', 'delay-150', 'duration-300', 'ease-in-out', 'disabled:cursor-not-allowed'); 
+              //disable button for this pageview (admin can reset again later.)
+              trigger.disabled = true;
+            } else {
+              console.error('Error: Server failed to process request');
+            }
+          })
+          .catch(error => {
+            console.error('Error:', error);
+          });
+        });
+
+    }
+
     const addUserBtn = document.getElementById('addUserBtn');
     const promoteUserBtn = document.getElementById('promoteUserBtn');
     const resetUserBtn = document.getElementById('resetUserBtn');

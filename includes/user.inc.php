@@ -64,6 +64,17 @@ public function checkForSession($redir="/user/mypage.php"){
   }
 }
 
+public function getMailFromUUID($uuid){
+  $stmt = $this->sqlite->prepare("SELECT mail FROM userdata WHERE uuid = :uuid LIMIT 1");
+  $stmt->bindParam(':uuid', $uuid);
+  $stmt->execute(); 
+  $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+  if(boolval($result)){
+    return $result[0]['mail'];
+  }else{
+    die();
+  }
+}
 
   public function logout(){
     session_destroy();
@@ -92,7 +103,7 @@ public function checkForSession($redir="/user/mypage.php"){
     //$query = 'MATCH (u:priv_user {mail:$email}) return u.password as pw, u.logon_attempts as att, id(u) as nodeid, u.userid as uid, u.role as role, u.name as name limit 1';
     //$result = $this->client->run($query, array('email'=>$email));
     //var_dump($this->sqlite);
-    $query = "SELECT * FROM userdata WHERE userdata.mail = ? AND userdata.logon_attempts <= 5 AND userdata.token IS NULL AND userdata.completed = 1";
+    $query = "SELECT * FROM userdata WHERE userdata.mail = ? AND userdata.logon_attempts <= 5 AND userdata.token IS NULL AND userdata.completed = 1 AND userdata.blocked = 0";
     $stmt = $this->sqlite->prepare($query);
     $stmt->execute(array($email));
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -107,7 +118,7 @@ public function checkForSession($redir="/user/mypage.php"){
       $name = $result[0]['username'];
       $role = $result[0]['role'];
       //if 1 record returned: User exists;
-      //check max login attempts. Only try to vallidate the login if the limit has not been exceeded:
+      //check max login attempts. Only try to vallidate the login if the >limit has not been exceeded:
       if($attempts <= 5){
         //Check hash to pass:
         $match = password_verify($password, $hash);
@@ -245,7 +256,7 @@ public function checkForSession($redir="/user/mypage.php"){
   public function requestPasswordReset($mail){
     $hash = $this->getHash(32); 
     //$checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email SET n.resethash = $resetcode';
-    $checkQuery = "UPDATE userdata SET token = ? WHERE userdata.mail = ? "; 
+    $checkQuery = "UPDATE userdata SET token = ? WHERE userdata.mail = ? AND userdata.blocked = 0"; 
     $checkData = array($hash, $mail); 
     //$usr = $this->client->run($checkQuery, ['email'=>$mail, 'resetcode'=>$hash]);
     $stmt = $this->sqlite->prepare($checkQuery);
@@ -375,7 +386,7 @@ public function checkForSession($redir="/user/mypage.php"){
     }
 
   public function listAllUsers(){
-    $sql_query = 'SELECT id, uuid, mail, username, role, completed FROM userdata ORDER BY id ASC'; 
+    $sql_query = 'SELECT id, uuid, mail, username, role, completed, blocked FROM userdata ORDER BY id ASC'; 
     $stmt = $this->sqlite->prepare($sql_query);
     //$stmt->execute($checkData); ??
     $stmt->execute();
@@ -391,8 +402,19 @@ public function checkForSession($redir="/user/mypage.php"){
       $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
       return $result;
     }else{
-      return array('msg'=> 'request rejectedqdffqds.'); 
+      return array('msg'=> 'request rejected.'); 
     }
+  }
+
+
+  
+  public function setBlockTo($user, $toval){
+    $sql_query = "UPDATE userdata SET `blocked` = ? WHERE userdata.uuid = ?; ";
+    $data = array((int)$toval, $user);
+    $stmt = $this->sqlite->prepare($sql_query);
+    $stmt->execute($data);
+    $result = $stmt->rowCount();
+    return $result;
   }
 
 

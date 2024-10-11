@@ -74,7 +74,8 @@
                         wd_wikilink_preferences	TEXT default '',
                         wd_language_preferences TEXT default '',
                         token TEXT default Null, 
-                        completed INTEGER default 0
+                        completed INTEGER default 0, 
+                        blocked INTEGER default 0
                     )";
 
                 // Execute the query

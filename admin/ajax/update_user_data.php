@@ -4,7 +4,6 @@
  */
 
 
- //TODO: work in progress.
  header('Content-Type: application/json; charset=utf-8');
 
 
@@ -34,19 +33,23 @@ if(isset($_SESSION["userid"])){
     die("Insufficient rights, forbidden access");
 }
 
-
-// // Get the raw POST data
-// $postData = file_get_contents('php://input');
-
-// // Decode the JSON data
-// $data = json_decode($postData, true);
-
-// // Debugging: Check the received data
-// var_dump($data);
-
-
-$userID = $_POST['userId']; 
-$newRole = $_POST['selectedRole']; 
-$updateResult = $user->promoteUser($userID, $newRole);
-var_dump($updateResult); 
+if($_POST['action'] == 'block'){
+  $userID = $_POST['userId']; 
+  $toggleTo = $_POST['blockValue']; 
+  $updateResult = $user->setBlockTo($userID, $toggleTo);
+  $good = $updateResult === 1 ? True : False;
+  echo json_encode(array('success'=>$good)); 
+} else if($_POST['action'] == 'reset'){
+  $userID = $_POST['userId']; 
+  //you need to retrieve the usermail by passing the userid to the backend.
+  $usermail = $user->getMailFromUUID($userID);
+  $updateResult = $user->requestPasswordReset($usermail)[0];
+  $good = $updateResult === 1 ? True : False;
+  echo json_encode(array('success'=>$good)); 
+}else{
+  $userID = $_POST['userId']; 
+  $newRole = $_POST['selectedRole']; 
+  $updateResult = $user->promoteUser($userID, $newRole);
+  var_dump($updateResult); 
+}
 ?>
