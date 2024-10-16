@@ -51,7 +51,6 @@ class KnowledgeBase {
 
     displaySingleEntry(elem){
         const classScope = this; 
-        // console.log("thisloop userstate", this.userstate); 
         const partnername = elem.k.properties.partner;
         const kbuuid = elem.k.properties.uid;
         const kblink = elem.k.properties.partner_uri;
@@ -78,7 +77,6 @@ class KnowledgeBase {
             })
         kb_block.appendChild(p_two);
         }
-        // console.log(kb_block); 
         this.subKBElement.appendChild(kb_block); 
     }
   
@@ -139,41 +137,60 @@ class KnowledgeBase {
     }
 
     handleSubmit() {
+        function isValidURL(url) {
+            try {
+                new URL(url);
+                return true; // URL is valid
+            } catch (e) {
+                return false; // URL is invalid
+            }
+        }
+        
         // Handle form submission
         //get Label:
         const labelstring = document.getElementById('new_kb_name_field').value;
         // get url: 
         const url = document.getElementById('new_kb_url_field').value; 
+        //validate the URL before starting submission event: 
+        const validURL = isValidURL(url); 
         const submitButton = document.getElementById('submitBtn_kb'); 
-        const self = this; 
-        //fetch a token
-        fetch('/AJAX/getdisposabletoken.php?task=1')
-        .then((response) => response.json())
-        .then((token) => {
-          
-            // Prepare data for POST request
-            const postData = {
-                token: token,
-                id: this.neoIdOfEt,
-                label: labelstring, 
-                uri: url
-            };
-            //console.log(postData); 
-            // Define fetch options for POST request
-            const options = {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json'
-                },
-                body: JSON.stringify(postData)
-            };
+        if(validURL){
+            const self = this; 
+            //fetch a token
+            fetch('/AJAX/getdisposabletoken.php?task=1')
+            .then((response) => response.json())
+            .then((token) => {
+            
+                // Prepare data for POST request
+                const postData = {
+                    token: token,
+                    id: this.neoIdOfEt,
+                    label: labelstring, 
+                    uri: url
+                };
+                // Define fetch options for POST request
+                const options = {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(postData)
+                };
 
-            $.post("/AJAX/fetch_kb.php?mode=create&token=" + token + "&id=" + this.neoIdOfEt, { data: postData })
-                .then(function( data ) {
-                    self.appendToDom(data); 
+                $.post("/AJAX/fetch_kb.php?mode=create&token=" + token + "&id=" + this.neoIdOfEt, { data: postData })
+                    .then(function( data ) {
+                        self.appendToDom(data); 
+                })
             })
-        })
-        this.handleClose();
+            this.handleClose();
+        }else{
+            const urlElement = document.getElementById('new_kb_url_field'); 
+            urlElement.classList.add('animate-shake')
+            urlElement.addEventListener("animationend", function () {
+                urlElement.classList.remove('animate-shake');
+              }, false);
+        }
+
     }
     
     handleClose() {

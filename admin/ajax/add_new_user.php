@@ -3,7 +3,6 @@
 * ONLY open for admins
 */
 
- //TODO: work in progress.
  header('Content-Type: application/json; charset=utf-8');
 
 
@@ -29,8 +28,8 @@ $user_id = $user->checkSession();
     //only allow admins here; No admin = kill process. 
 // $adminMode = False;
 if($user->myRole !== "Admin"){
-header("HTTP/1.0 403 Forbidden");
-die("Insufficient rights, forbidden access");
+    header("HTTP/1.0 403 Forbidden");
+    die("Insufficient rights, forbidden access");
 }
 
 //check if the registration policy is set to 1 or 2. 
@@ -39,7 +38,11 @@ if(in_array(REGISTRATIONPOLICY, array(1,2))){
     $role = $_POST['role'];
     $name = $_POST['name'];
     $backend_repl = $user->createUser($mail, $name, $role); 
-    var_dump($backend_repl); 
+    if($backend_repl[0] == 'ok'){
+        echo json_encode(array('msg'=>'request completed.', 'success'=>true)); 
+    }else{
+        echo json_encode(array('msg'=>'request failed.')); 
+    }
 }else{
     echo json_encode(array('msg'=>'request rejected.')); 
 }

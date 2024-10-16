@@ -275,7 +275,6 @@ class wikibaseEntry {
     //    cases can go from 0 to multiple entities!
     //in Q-mode:
     //    One entity only; 
-    console.log(qid); 
     var madeAtLeastOneMatch = false;
     var baseBlock = {'wikilink': [], 'uri':[], 'geo':[], 'img':[], 'str':[]}; 
     var promisses = []; 
@@ -397,7 +396,8 @@ class wikibaseEntry {
     // https://www.wikidata.org/wiki/Property_talk:P625  
     /**can be one to many! In that case the first record is the preferred record. Show both, but with separate marker!*/
     var geoDiv = document.createElement('div'); 
-    geoDiv.classList.add('geocontainer_for_wikidata_coords', 'm-auto'); 
+    //sticky class required when viewing from URI stable endpoint!
+    geoDiv.classList.add('geocontainer_for_wikidata_coords', 'm-auto', 'sticky'); 
     geoDiv.setAttribute('id', property); 
     geoDiv.setAttribute('data-coordinates', JSON.stringify(wdresponse));
     geoDiv.setAttribute('data-wdprop', property);

@@ -243,7 +243,7 @@ public function getMailFromUUID($uuid){
         //$this->client->run($query, ['uuid'=>$uuid, 'username'=>$name, 'sqlite_id'=>$sql_id]);
         return array('ok', 'user created');
       } catch (\Throwable $th) {
-        return (array('error', 'User could not be added.')); 
+        return (array('error', 'User could not be added.'));
       }
     }
   }
