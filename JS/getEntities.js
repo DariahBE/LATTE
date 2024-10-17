@@ -368,6 +368,7 @@ function displayEntities(entities){
 }
 // Add the event listener
 const clickHandler = () => {
+  //trigger when clicking auto_anntoation element. 
   makeSuggestionBox();
 };
 

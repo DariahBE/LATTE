@@ -170,3 +170,181 @@ class Validator{
     }
   }
 }
+
+
+
+// REFACTORED CLASS - Work in progress.
+
+// class Validator {
+  
+//   checkRequired() {
+//     let unique_elements = document.getElementsByClassName('validateAs_unique'); 
+//     for (let i = 0; i < unique_elements.length; i++) {
+//       let elm = unique_elements[i];
+//       if (elm.value == '') {
+//         var msgHolder = document.createElement('p');
+//         msgHolder.classList.add('errorNotification');
+//         var msgText = document.createTextNode('An empty value was given to a unique-field. Provide a unique value.');
+//         msgHolder.appendChild(msgText);
+//         elm.parentNode.insertBefore(msgHolder, elm);
+//         elm.classList.add('bg-red-50', 'border', 'border-red-500', 'validatorFlaggedMistake');
+//         elm.classList.remove('bg-green-50', 'border', 'border-green-500');
+//       }
+//     }
+//   }
+
+//   reset() {
+//     let e = event.src || event.target; 
+//     e.classList.remove('validatorFlaggedMistake'); 
+//     e.classList.remove('bg-red-50');
+//     e.classList.remove('bg-green-50');
+//     e.classList.remove('border-red-500'); 
+//     e.classList.remove('border-green-500'); 
+//     e.classList.add('border-gray-300', 'text-gray-900', 'border'); 
+//   }
+
+//   intValidator(data) {
+//     data = data.value; 
+//     if(data == '') { this.reset(); return []; }
+//     let shouldBe = parseInt(data) + 0; 
+//     if(shouldBe == data) {
+//       return [true];
+//     } else {
+//       return [false, 'The provided input is not a valid real number.'];
+//     }
+//   }
+
+//   boolValidator(data) {
+//     var value = data.checked; 
+//     if (typeof value === 'boolean') {
+//       return [true];
+//     } else {
+//       return [false, 'The provided input is not a valid bool.']; 
+//     }
+//   }
+  
+//   linkValidator(data) {
+//     if (data.value == '') { this.reset(); return []; }
+//     try { 
+//       Boolean(new URL(data.value)); 
+//       return [true]; 
+//     } catch (e) { 
+//       return [false, 'The provided URL is invalid.']; 
+//     }
+//   }
+
+//   floatValidator(data) {
+//     data = data.value; 
+//     if (data == '') { this.reset(); return []; }
+//     if (!isNaN(parseFloat(data)) && isFinite(data)) {
+//       return [true];
+//     } else {
+//       return [false, 'The provided input is not a valid float e.g.: 3.14.'];
+//     }
+//   }
+
+//   regexValidator(data) {
+//     if (data == '') { this.reset(); return []; }
+//     var pattern = /(^Q\d+$)/;
+//     if (pattern.test(data)) {
+//       return [true];
+//     } else {
+//       return [false, 'Enter a valid Q-identifier: (e.g.: Q1234).'];
+//     }
+//   }
+
+//   // The named event handler function
+//   validateInput(event) {
+//     let mainclass = this;
+//     let target = event.target;
+
+//     if (target.classList.contains('validateAs_string')) {
+//       if (target.value == '') {
+//         mainclass.reset(); return [];
+//       } else {
+//         var correct = [true]; // Strings can be empty
+//       }
+//     }
+//     if (target.classList.contains('validateAs_wikidata')) {
+//       var correct = mainclass.regexValidator(target.value);
+//     }
+//     if (target.classList.contains('validateAs_int')) {
+//       var correct = mainclass.intValidator(target);
+//     }
+//     if (target.classList.contains('validateAs_bool')) {
+//       var correct = mainclass.boolValidator(target);
+//     }
+//     if (target.classList.contains('validateAs_float')) {
+//       var correct = mainclass.floatValidator(target);
+//     }
+//     if (target.classList.contains('validateAs_uri')) {
+//       var correct = mainclass.linkValidator(target);
+//     }
+//     console.log(correct); 
+//     if (correct.length != 0) {
+//       if (target.classList.contains('validateAs_unique')) {
+//         let selectedNode;
+//         if (target.hasAttribute('data-nodetype_override')) {
+//           selectedNode = target.getAttribute('data-nodetype_override');
+//         } else {
+//           selectedNode = document.getElementById('nodeTypeSelection').firstChild.value;
+//         }
+//         var property = target.getAttribute('data-name');
+//         var unique = fetch(`/AJAX/uniqueness.php?nodetype=${selectedNode}&property=${property}&value=${target.value}`)
+//           .then(response => response.json())
+//           .then(data => {
+//             return [data];
+//           });
+        
+//         var correctMsg = [];
+//         if (!correct[0]) {
+//           correctMsg.push(correct[1]);
+//         }
+//         if (!unique[0]) {
+//           correctMsg.push(unique[1]);
+//         }
+//         correctMsg = correctMsg.join(' and ');
+//         correct = [correct[0] && unique[0], correctMsg];
+//       }
+
+//       var inFront = target.previousElementSibling; 
+//       if (inFront && inFront.classList.contains('errorNotification')) {
+//         inFront.remove(); 
+//       }
+
+//       if (correct[0]) {
+//         target.classList.add('bg-green-50', 'border', 'border-green-500');
+//         target.classList.remove('bg-red-50', 'border', 'border-red-500', 'validatorFlaggedMistake');
+//       } else {
+//         var msg = correct[1];
+//         var msgHolder = document.createElement('p');
+//         msgHolder.classList.add('errorNotification');
+//         var msgText = document.createTextNode(msg); 
+//         msgHolder.appendChild(msgText);
+//         target.parentNode.insertBefore(msgHolder, target);
+//         target.classList.add('bg-red-50', 'border', 'border-red-500', 'validatorFlaggedMistake');
+//         target.classList.remove('bg-green-50', 'border', 'border-green-500');
+//       }
+//     }
+//   }
+
+//   // Adding the event listener with a named handler
+//   pickup() {
+//     var elements = document.getElementsByClassName('attachValidator'); 
+//     for (let n = 0; n < elements.length; n++) {
+//       var target = elements[n];
+//       // Bind 'this' to the named handler so it can access the class context
+//       target.addEventListener('change', this.validateInput.bind(this));
+//     }
+//   }
+
+//   // Removing the event listener by referring to the named handler
+//   removeListeners() {
+//     var elements = document.getElementsByClassName('attachValidator'); 
+//     for (let n = 0; n < elements.length; n++) {
+//       var target = elements[n];
+//       // Remove event listener by referring to the same named handler
+//       target.removeEventListener('change', this.validateInput.bind(this));
+//     }
+//   }
+// }

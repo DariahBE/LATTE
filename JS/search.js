@@ -224,6 +224,7 @@ function loadPropertyBox(on){
     target.appendChild(propDisplay);
   }
   //attach validator here: Undo this constructor!
+  //let validator = new Validator; 
   validator.pickup();
   //activate the search button: 
   let searchButton = document.getElementById('searchButtonTrigger'); 
