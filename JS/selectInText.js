@@ -509,6 +509,10 @@ function showET(etdata, levscore = false, weightscore = false) {
    *  1) (OK)When the database holds a single string that matches the selection (datadictionary contains 1 item) (call comes from triggerSidePanelAction() with the first loaded node)
    *  2) (OK)When a string matches 2 or more existing annotations in the database (datadictionary contains more than 1 item)  (call comes from triggerSidePanelAction()>navET)
    *  3) (OK) showHit bugpatch confirmed!
+   * ________________ TEST FOR //BUG: (8/7/24) in this function: 
+   * 1) DB holds a single match
+   * 2) String matches 2 or more existing annotaations
+   * 3) When called by showHit function. 
    */
   //read the properties from the entity passed as an argument
   let etdataNeoId = etdata[0];
@@ -557,6 +561,7 @@ function showET(etdata, levscore = false, weightscore = false) {
   deleteIfExistsById('assignEtToSelectionParent');
   //TODO  //BUG: (8/7/24) this call had to be removed to enable annotations of existings nodes matching Q-ids. 
   //What's the impact?
+  alert('call to delete the annotationcreationdiv has been removed. Impact??'); 
   //deleteIfExistsById('annotationCreationDiv');
   let wd = null;
   let wdboxToDrop = document.getElementById('WDResponseTarget');
@@ -1228,6 +1233,7 @@ function triggerSidePanelAction(entityData) {
       wght = weightscores[nodeId];
     }
     showET(firstNode, lev, wght);
+    alert('CASE1- showET CALL: //BUG 8/7/24');
     var datadictpage = 0;
     var pageLength = dataDictionary.length;
 
@@ -1264,6 +1270,7 @@ function triggerSidePanelAction(entityData) {
         lev = levscores[nodeId];
         wght = weightscores[nodeId];
       }
+      alert('CASE2- showET CALL: //BUG 8/7/24');
       showET(dataDictionary[datadictpage], lev, wght);
     }
 
@@ -1537,12 +1544,12 @@ function getTextSelection() {
 
 function open_ld_maxhits(){
   let isChecked = document.getElementById('use_ld').checked; 
-  console.log(isChecked); 
   if (isChecked){
     document.getElementById('max_ld').classList.remove('hidden');
-
+    document.getElementById('max_ld_tip').classList.remove('hidden');
   }else{
     document.getElementById('max_ld').classList.add('hidden');
+    document.getElementById('max_ld_tip').classList.add('hidden');
   }
 }
 

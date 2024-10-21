@@ -33,7 +33,7 @@ class User{
     $this->myName = isset($_SESSION['username']) ? $_SESSION['username'] : False;
     $this->myId = isset($_SESSION['userid']) ? $_SESSION['userid'] : False;
     $this->neoId = isset($_SESSION['neoid']) ? $_SESSION['neoid'] : False;
-    $this->$application_roles = array('contributor', 'researcher', 'projectlead', 'admin'); 
+    $this->application_roles = array('contributor', 'researcher', 'projectlead', 'admin'); 
   }
 
 private function guidv4(){

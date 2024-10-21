@@ -238,6 +238,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
           <p class="pr-1 mr-1">Levenshtein Distance: </p>
           <input type="checkbox" name='allow_ld' id='use_ld' onclick="open_ld_maxhits()">
           </div>
+          <p id="max_ld_tip" class="text-xs hidden">Limits response the x-nearest Levenshtein matches.</p>
           <input class="hidden" type="number" min="1" name='max_ld_hits' id='max_ld' value='5'>
         </div>
         <?php

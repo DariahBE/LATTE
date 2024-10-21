@@ -37,6 +37,8 @@ class Validator{
     // BUG low priority: it is possible to enter alphabetic characters in a number field. 
     // this does not trigger a valid check though! non-numeric characters will always render
     // data to '' an empty string, which is not a problem.
+    // .value will return an empty string for 123A.
+    // .valueAsNumber returns NaN, but also for empty inputs.
     data = data.value; 
     if(data == ''){this.reset(); return[];}
     let shouldBe = parseInt(data)+0; 
@@ -92,7 +94,6 @@ class Validator{
     for(var n=0; n<elements.length; n++){
       var target = elements[n];
       if (target.classList.contains('monitored')){
-        console.warn('SKIP item. ')
         continue;
       }
       target.classList.add('monitored');
