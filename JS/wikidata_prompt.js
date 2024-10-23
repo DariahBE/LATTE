@@ -289,6 +289,7 @@ function showHit(id) {
       const properties = jsonResponse['props']; 
       const qid = chosenQID;
       alert('CASE3- showET CALL: //BUG 8/7/24');
+      //TODO add spellingvariants when available. (8/7/24)
       showET([etid, label, properties, qid]);
     } else {
       // Request failed

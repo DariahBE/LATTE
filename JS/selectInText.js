@@ -498,7 +498,7 @@ function deleteIfExistsById(id){
 }
 
 let wikidataID; 
-function showET(etdata, levscore = false, weightscore = false) {
+function showET(etdata, levscore = false, weightscore = false, variants = []) {
   //alert('labeltest required from all callers!')
   /**
    *      function will display WD, label and properties for any 
@@ -514,18 +514,35 @@ function showET(etdata, levscore = false, weightscore = false) {
    * 2) String matches 2 or more existing annotaations
    * 3) When called by showHit function. 
    */
-  //read the properties from the entity passed as an argument
+  //TODO add spellingvariants when available. (8/7/24)
+  //WARNING: variants are all labelvariants within a specific levenshtein range. 
+  //    you need to filter on labels that are related to the entity ID (etdataNeoId)!
+  //read the properties from the entity passed as a single argument (etdata) 
   let etdataNeoId = etdata[0];
   let etLabel = etdata[1]; 
   let properties = etdata[2];
   wikidataID = etdata[3];
   //Show the node label: 
+  let relevant_variants = []; 
+  let close_variants = document.createElement('ul'); 
+  variants.forEach(element => {
+    //TODO: improvement REQUIRED: you need to deduplicate elements in here!
+    if (element[2]['variantOfEntity'][0] == etdataNeoId){
+      relevant_variants.push(element);
+      var variant_spelling = document.createElement('li');
+      variant_spelling.appendChild(document.createTextNode(element[2]['variant']['value']));
+      close_variants.appendChild(variant_spelling);
+    }
+  });
+  console.log(etdataNeoId, relevant_variants.length); 
+  console.log(close_variants); 
+  //TODO for improvement related to the 8/7/24 //BUG: show variant labels in DOM!
   // let etLabelElem = document.createElement('h2'); 
   // etLabelElem.appendChild(document.createTextNode(etLabel)); 
   // etLabelElem.classList.add('text-lgss', 'font-bold');  
   //remove old elements by their ID.
   deleteIfExistsById('lev_weight_box');
-  let levbox = document.createElement('div')
+  let levbox = document.createElement('div'); 
   levbox.setAttribute('id', 'lev_weight_box'); 
   //levenshtein key + score elmement. 
   
@@ -575,6 +592,9 @@ function showET(etdata, levscore = false, weightscore = false) {
   }
   subtarget.innerHTML = '';
   subtarget.appendChild(levbox);
+  //TODO: cleanup! related to bug 7/8/24
+  //TODO: better structure for close_variants: you'll want to have a small header indicating the element's "function"
+  subtarget.appendChild(close_variants);
   let labelElement = document.createElement('h3'); 
   labelElement.appendChild(document.createTextNode('Entity: '+ etLabel)); 
   labelElement.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex', 'justify-center'); 
@@ -1232,7 +1252,8 @@ function triggerSidePanelAction(entityData) {
       lev = levscores[nodeId];
       wght = weightscores[nodeId];
     }
-    showET(firstNode, lev, wght);
+    const vardata = entityData['labelvariants']; 
+    showET(firstNode, lev, wght, vardata);
     alert('CASE1- showET CALL: //BUG 8/7/24');
     var datadictpage = 0;
     var pageLength = dataDictionary.length;
@@ -1271,7 +1292,7 @@ function triggerSidePanelAction(entityData) {
         wght = weightscores[nodeId];
       }
       alert('CASE2- showET CALL: //BUG 8/7/24');
-      showET(dataDictionary[datadictpage], lev, wght);
+      showET(dataDictionary[datadictpage], lev, wght, vardata);
     }
 
     if (Object.keys(dataDictionary).length > 1) {
