@@ -283,14 +283,13 @@ function showHit(id) {
     if (xhr.status >= 200 && xhr.status < 300) {
       // Request was successful
       var jsonResponse = JSON.parse(xhr.responseText);
-      console.log(jsonResponse);
       const etid = id; 
       const label = jsonResponse['extra']['label']; 
       const properties = jsonResponse['props']; 
       const qid = chosenQID;
+      let variant_data = jsonResponse['variantsReformat']; 
       alert('CASE3- showET CALL: //BUG 8/7/24');
-      //TODO add spellingvariants when available. (8/7/24)
-      showET([etid, label, properties, qid]);
+      showET([etid, label, properties, qid], false, false, variant_data);
     } else {
       // Request failed
       console.error('Request failed with status: ' + xhr.status);

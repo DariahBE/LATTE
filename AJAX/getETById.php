@@ -22,12 +22,29 @@ $relatedVariants = $graph->fetchAltSpellingsById($id);
 
 $stableLink = $graph->generateURI($id); 
 
+$reformattedVariants = array(); 
+foreach ($relatedVariants as $variant) {
+    $varid = $variant['neoid']; 
+    $internalObject = array(
+        "variant" => array(
+            "value" => $variant['label'], 
+            "DOMString" => "Label",
+            "vartype" => "string"
+        ),
+        "remark"=>array(),
+        "variantOfEntity" => array($id)
+    ); 
+    $one_variant = array($varid, "Variant", $internalObject, null); 
+    $reformattedVariants[] = $one_variant;
+}
+
 
 $replData = array(
     //'props'=> $embeddedProps[0], 
     'preprocessed_props'=> $embeddedProps, 
     'props'=> $extendedProps,
     'variantSpellings' => $relatedVariants, 
+    'variantsReformat' => $reformattedVariants, 
     'stable' => $stableLink
 );
 

@@ -514,7 +514,6 @@ function showET(etdata, levscore = false, weightscore = false, variants = []) {
    * 2) String matches 2 or more existing annotaations
    * 3) When called by showHit function. 
    */
-  //TODO add spellingvariants when available. (8/7/24)
   //WARNING: variants are all labelvariants within a specific levenshtein range. 
   //    you need to filter on labels that are related to the entity ID (etdataNeoId)!
   //read the properties from the entity passed as a single argument (etdata) 
@@ -523,21 +522,22 @@ function showET(etdata, levscore = false, weightscore = false, variants = []) {
   let properties = etdata[2];
   wikidataID = etdata[3];
   //Show the node label: 
-  let relevant_variants = []; 
-  let close_variants = document.createElement('ul'); 
-  variants.forEach(element => {
-    //TODO: improvement REQUIRED: you need to deduplicate elements in here!
-    if (element[2]['variantOfEntity'][0] == etdataNeoId){
-      relevant_variants.push(element);
-      var variant_spelling = document.createElement('li');
-      variant_spelling.appendChild(document.createTextNode(element[2]['variant']['value']));
-      close_variants.appendChild(variant_spelling);
-    }
-  });
-  console.log(etdataNeoId, relevant_variants.length); 
-  console.log(close_variants); 
-  //TODO for improvement related to the 8/7/24 //BUG: show variant labels in DOM!
-  // let etLabelElem = document.createElement('h2'); 
+  let close_variants = document.createElement('ul');
+  let seen_values = new Set(); 
+  if(variants){
+    variants.forEach(element => {
+      if (element[2]['variantOfEntity'][0] == etdataNeoId){
+        let new_value = element[2]['variant']['value'];
+        if (!seen_values.has(new_value)) {
+          seen_values.add(new_value); 
+          var variant_spelling = document.createElement('li');
+          variant_spelling.appendChild(document.createTextNode(new_value));
+          close_variants.appendChild(variant_spelling);
+        }
+      }
+    });
+  }
+    // let etLabelElem = document.createElement('h2'); 
   // etLabelElem.appendChild(document.createTextNode(etLabel)); 
   // etLabelElem.classList.add('text-lgss', 'font-bold');  
   //remove old elements by their ID.
@@ -592,9 +592,15 @@ function showET(etdata, levscore = false, weightscore = false, variants = []) {
   }
   subtarget.innerHTML = '';
   subtarget.appendChild(levbox);
-  //TODO: cleanup! related to bug 7/8/24
-  //TODO: better structure for close_variants: you'll want to have a small header indicating the element's "function"
-  subtarget.appendChild(close_variants);
+  if (variants.length > 0){
+    let variants_text_only = document.createElement('div');
+    let variants_text_only_header = document.createElement('p'); 
+    variants_text_only_header.classList.add('font-bold', 'text-lg');
+    variants_text_only_header.appendChild(document.createTextNode('Spelling variants: '))
+    variants_text_only.appendChild(variants_text_only_header);
+    variants_text_only.appendChild(close_variants)
+    subtarget.appendChild(variants_text_only);
+  }
   let labelElement = document.createElement('h3'); 
   labelElement.appendChild(document.createTextNode('Entity: '+ etLabel)); 
   labelElement.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex', 'justify-center'); 
@@ -610,7 +616,7 @@ function showET(etdata, levscore = false, weightscore = false, variants = []) {
     if (valueType == 'uri') {
       show = generateHyperlink(valueDOM, datavalue, ['externalURILogo']);
     } else if (valueType == 'wikidata' && datavalue !== null) {
-      show = document.createElement('p')
+      show = document.createElement('p');
       var wdprefix = document.createElement('span');
       wdprefix.appendChild(document.createTextNode(valueDOM + ': '));
       wdprefix.classList.add('font-bold');
@@ -638,6 +644,8 @@ function showET(etdata, levscore = false, weightscore = false, variants = []) {
     created_etnav.setAttribute('id', 'etnav'); 
     entityContentElement = document.createElement('div'); 
     entityContentElement.setAttribute('id', 'entitycontent'); 
+    //showHit(2908) from the console triggers a fatal error because etmain is missing from the DOM
+    //does not cause any issue when triggered using the UI - not considered to be an issue. 
     document.getElementById('etmain').appendChild(created_etnav);
     document.getElementById('etmain').appendChild(entityContentElement);
   }
