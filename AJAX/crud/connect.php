@@ -64,6 +64,7 @@ if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['fastconnec
     $entityLabel = $entityNode['labels'][0];
     $user = $data['user'][0]['u'];
     $mergeToDict['annotation'] = $annotationNode['properties'][$annotationprimary];
+    $mergeToDict['annotation'] = $annotationNode['properties']['uid'];
     $mergeToDict['creator'] = $user['properties']['user_sqlid'];
     $mergeToDict['private'] = false;
     $mergeToDict['start'] = $annotationNode['properties'][ANNOSTART];

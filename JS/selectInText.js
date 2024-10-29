@@ -381,7 +381,6 @@ function buildPropertyInputFieldsFor(label) {
       .then((data) => {
         if (data['msg'] == 'success') {
           var nodedata = data['data'];
-          //console.log(nodedata); 
           Object.entries(nodedata).forEach(entry => {
             const [key, value] = entry;
             var humanLabel = value[0];
@@ -391,14 +390,11 @@ function buildPropertyInputFieldsFor(label) {
             newFieldContainer.classList.add('property'); 
             let newFieldLabel = document.createElement('label');
             let newFieldInput;
-            // if (datatype === 'longtext') {
-            //   //longtext not used any longer. 
-            //   newFieldInput = document.createElement('textarea');
-            // } else {
-            //   newFieldInput = document.createElement('input');
-            // }
             newFieldInput = document.createElement('input');
-
+            //needs the override attribute set to the input element when annotationform is being made. 
+            if(label === annocoreNode){
+              newFieldInput.setAttribute('data-nodetype_override', label);
+            }
             newFieldInput.classList.add('inputelement');
             newFieldLabel.appendChild(document.createTextNode(humanLabel + ': '));
             if (datatype === 'wikidata' && chosenQID !== null) {
@@ -408,6 +404,7 @@ function buildPropertyInputFieldsFor(label) {
             //let nameVar = key; 
             newFieldLabel.setAttribute('for', key);
             newFieldInput.setAttribute('name', key);
+            newFieldInput.setAttribute('data-name', key);
             let htmlType = typeToHtml(datatype);
             if (htmlType !== false) {
               newFieldInput.setAttribute('type', htmlType);
@@ -498,7 +495,7 @@ function deleteIfExistsById(id){
 }
 
 let wikidataID; 
-function showET(etdata, levscore = false, weightscore = false, variants = []) {
+function showET(etdata, levscore = false, weightscore = false, variants = [], show_wikidata_disambiguation_panel = true) {
   //alert('labeltest required from all callers!')
   /**
    *      function will display WD, label and properties for any 
@@ -509,10 +506,6 @@ function showET(etdata, levscore = false, weightscore = false, variants = []) {
    *  1) (OK)When the database holds a single string that matches the selection (datadictionary contains 1 item) (call comes from triggerSidePanelAction() with the first loaded node)
    *  2) (OK)When a string matches 2 or more existing annotations in the database (datadictionary contains more than 1 item)  (call comes from triggerSidePanelAction()>navET)
    *  3) (OK) showHit bugpatch confirmed!
-   * ________________ TEST FOR //BUG: (8/7/24) in this function: 
-   * 1) DB holds a single match
-   * 2) String matches 2 or more existing annotaations
-   * 3) When called by showHit function. 
    */
   //WARNING: variants are all labelvariants within a specific levenshtein range. 
   //    you need to filter on labels that are related to the entity ID (etdataNeoId)!
@@ -576,9 +569,6 @@ function showET(etdata, levscore = false, weightscore = false, variants = []) {
   levbox.appendChild(levdist);
   levbox.appendChild(weight);
   deleteIfExistsById('assignEtToSelectionParent');
-  //TODO  //BUG: (8/7/24) this call had to be removed to enable annotations of existings nodes matching Q-ids. 
-  //What's the impact?
-  alert('call to delete the annotationcreationdiv has been removed. Impact??'); 
   //deleteIfExistsById('annotationCreationDiv');
   let wd = null;
   let wdboxToDrop = document.getElementById('WDResponseTarget');
@@ -706,7 +696,7 @@ function showET(etdata, levscore = false, weightscore = false, variants = []) {
         //according to their type. All elements are then added to
         //start with creating the annotation box: use a single function for this
         //which is responsible for the annobox throughout the entire code!
-        buildAnnotationCreationBox(); 
+        buildAnnotationCreationBox(show_wikidata_disambiguation_panel); 
         //swap DOM layout
         var embeddedETRef = document.getElementById('embeddedET');
         if (embeddedETRef) {
@@ -843,8 +833,8 @@ function createWDPromptBox(createNodeDiv, positionDiv){
   return createNodeDiv; 
 }
 
-function buildAnnotationCreationBox() {
-  //console.warn('call into buildAnnotationCreationBox'); 
+
+function buildAnnotationCreationBox(include_promptbox = true) {
   if (document.getElementById('etcreate') !== null){
     return; 
   }
@@ -889,7 +879,6 @@ function buildAnnotationCreationBox() {
             //   newFieldInput = document.createElement('input');
             // }
             newFieldInput = document.createElement('input');
-
             newFieldInput.classList.add('inputelement');
             newFieldLabel.appendChild(document.createTextNode(humanLabel + ': '));
             newFieldLabel.setAttribute('for', key);
@@ -1031,7 +1020,9 @@ function buildAnnotationCreationBox() {
   })
   .finally(()=>{
     //code to create the WIKIDATA suggestion box has it's own function!!!!
-    return createWDPromptBox(createNodeDiv, positionDiv);
+    if(include_promptbox){
+      return createWDPromptBox(createNodeDiv, positionDiv);
+    }
     // document.getElementById('embeddedSpellingVariants').classList.add('hidden');
     // //let spellingVariantDOMReturn = displayET_variant(null, null);
     // //variantbox has to be invisible in this phase: entity still needs to be created!!
@@ -1261,8 +1252,7 @@ function triggerSidePanelAction(entityData) {
       wght = weightscores[nodeId];
     }
     const vardata = entityData['labelvariants']; 
-    showET(firstNode, lev, wght, vardata);
-    alert('CASE1- showET CALL: //BUG 8/7/24');
+    showET(firstNode, lev, wght, vardata, false);
     var datadictpage = 0;
     var pageLength = dataDictionary.length;
 
@@ -1299,7 +1289,6 @@ function triggerSidePanelAction(entityData) {
         lev = levscores[nodeId];
         wght = weightscores[nodeId];
       }
-      alert('CASE2- showET CALL: //BUG 8/7/24');
       showET(dataDictionary[datadictpage], lev, wght, vardata);
     }
 

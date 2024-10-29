@@ -471,14 +471,18 @@ class CUDNode extends Node {
       ";
 
       // Execute the query
-      $result = $this->client->run($query);
-
+      $result = $this->tsx->run($query);
+      foreach ($result as $row){
+        // var_dump('row result is = '); 
+        // var_dump($row); 
+      }
+      //BUG 29/10/24: getRecords isnot an allowed method on the $result variable! error triggered by removing annotation of entities that aren't annotated elsewhere. 
+      //BUG cause!! $result is not what it should be, unclear why. 
       // Collect the results
       $connectedNodeIds = [];
-      foreach ($result->getRecords() as $record) {
+      /*foreach ($result->getRecords() as $record) {
           $connectedNodeIds[] = $record->get('connectedNodeId');
-      }
-
+      }*/
       return $connectedNodeIds;
     }
 

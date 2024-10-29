@@ -288,7 +288,6 @@ function showHit(id) {
       const properties = jsonResponse['props']; 
       const qid = chosenQID;
       let variant_data = jsonResponse['variantsReformat']; 
-      alert('CASE3- showET CALL: //BUG 8/7/24');
       showET([etid, label, properties, qid], false, false, variant_data);
     } else {
       // Request failed
