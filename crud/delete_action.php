@@ -11,7 +11,7 @@ include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
 
 //gets the ID of the node to be deleted. 
 if(!isset($_POST['ID'])){
-    die(); 
+    die();
 }else{
     $id = (int)$_POST['ID'];
 }
@@ -45,9 +45,9 @@ if(!($validToken)){
 //Check if deleterights are granted: 
 $user = new User($client); 
 $user->checkSession();
-//implement: // TODO   !!!!! 
 $allowedDelete = $user->hasEditRights($user->myRole);
 if($allowedDelete < 3){
+    echo json_encode(array('error'=> 'This account does not have delete-rights.')); 
     die(); 
 }
 
@@ -65,10 +65,6 @@ $egoLabel = $crudNode->fetchLabelById($id);
 
 $delete = []; 
 
-//TODO: linked see_also items are not part of the delete dictionary! Add them
-//      BUG confirmed: see_also nodes are not deleted upon deletion of parent node!
-//      FIX: ==> started by implementing method in CUDNode class. (find_floats_over_connection)
-//      TEST still ongoing of FIX implementation (FAILED: return not uniform) see: //BUG 29/10/24
 //if egolabel is an entitynode! ==> Look for connected annotations
 if($egoLabel == TEXNODE ){
     //deleting a text:
@@ -79,7 +75,7 @@ if($egoLabel == TEXNODE ){
     $delete['annotations'] = $annos;
     $delete['entities'] = $ets; 
     $floating_ets = $crudNode->find_floating_entity_connections($ets);
-    $delete['et_floaters'] = $floating_ets;  //TODO
+    $delete['et_floaters'] = $floating_ets;  
     $delete['see_alsos'] = $crudNode->find_floats_over_connection($floating_ets, 'see_also');
 }elseif (($egoLabel == ANNONODE ) || ($egoLabel == 'Annotation_auto') ) {
     //deleting an annotation
@@ -89,7 +85,7 @@ if($egoLabel == TEXNODE ){
     $delete['annotations'] = array($id); 
     $delete['entities'] = $ets;
     $floating_ets = $crudNode->find_floating_entity_connections($ets);
-    $delete['et_floaters'] = $floating_ets;  //TODO    
+    $delete['et_floaters'] = $floating_ets;     
     $delete['see_alsos'] = $crudNode->find_floats_over_connection($floating_ets, 'see_also');
 }elseif(array_key_exists($egoLabel, CORENODES)){
     //deleting an entity
@@ -99,9 +95,9 @@ if($egoLabel == TEXNODE ){
     $delete['annotations'] = $crudNode->annotationsWithThisEntity($id); 
     //corenodes includes text and annonodes, but these cases are captured already
     $delete['entities'] = array($id); 
-    //$delete['et_floaters'] = $crudNode->find_floating_entity_connections(array($id)); //TODO
+    //$delete['et_floaters'] = $crudNode->find_floating_entity_connections(array($id)); 
     $floating_ets = $crudNode->find_floating_entity_connections(array($id));
-    $delete['et_floaters'] = $floating_ets;  //TODO    
+    $delete['et_floaters'] = $floating_ets;     
     $delete['see_alsos'] = $crudNode->find_floats_over_connection($floating_ets, 'see_also');
 }else{
     //not allowed 
@@ -116,7 +112,7 @@ try{
         $crudNode->bulk_delete_by_ids($delete[$deletePart]);
     }
 }catch(\Throwable $th){
-    //throw $th;
+    throw $th;
     $crudNode->rollbackTransaction();
     die('Error, delete could not be committed');
 }
