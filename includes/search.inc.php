@@ -9,11 +9,16 @@ class Search{
     $this->whereParameterCounter = 1; 
   }
 
+  //BUG 30-10-24-3: When searching for a PLACE based on WORDmatch ONLY *word* == e (PARTIAL PATCH APPLIED)
+    //>WARNING: patch might break when truthy statement is required for a real boolean operator coming from the searchform
+  //    then te interface still takes the EMPTY value for wikidata as a part of the search constraint!
+
   function convertOperatorToCypher($operator, $valuetype, $propertyname, $value){
+    // var_dump($operator, $valuetype, $propertyname, $value);
     $phname = 'temp_'.$this->whereParameterCounter;
     $phnamevar = 'vtemp_'.$this->whereParameterCounter;
     $this->whereParameterCounter+=1;
-    if($valuetype === 'int'){
+    if($valuetype === 'int' || $valuetype === 'float'){
       // numerical operations: cast to float, works for integers too!
       // float numbers can be processed in this block too.
       switch($operator){
@@ -39,7 +44,8 @@ class Search{
           return array('constraint'=> '(n.'.$propertyname.' >= $'.$phname.'a AND n.'.$propertyname.' <= $'.$phname.'b  )', 'placeholders'=>array($phname.'a'=>floatval($value[0]), $phname.'b'=>floatval($value[1])));
           break;
       }
-    }else if($valuetype === 'string' ){
+    }else if($valuetype === 'string' || $valuetype == 'uri' ){
+      //string and URI can be processed in the same way. 
       switch($operator){
         case '': // '', '!=', '^', 'word*', '*word', '*word*')
           return array(
@@ -74,7 +80,17 @@ class Search{
           )
         );
           break;
-        case 'word*':
+
+          case 'link*':
+            return array(
+              'type' => $valuetype,
+              'constraint'=>'toLower(n.'.$propertyname.') STARTS WITH toLower($'.$phname.')', 
+              'placeholders'=>array(
+                $phname=>$value[0],
+              )
+            );
+            break;
+          case 'word*':
           return array(
             'type' => $valuetype,
             'constraint'=>'toLower(n.'.$propertyname.') STARTS WITH toLower($'.$phname.')', 
@@ -85,7 +101,17 @@ class Search{
             )
           );
           break;
-        case '*word':
+
+          case '*link':
+            return array(
+              'type' => $valuetype,
+              'constraint'=>'toLower(n.'.$propertyname.') ENDS WITH toLower($'.$phname.')', 
+              'placeholders'=>array(
+                $phname=>$value[0],
+              )
+            );
+            break;
+          case '*word':
           return array(
             'type' => $valuetype,
             'constraint'=>'toLower(n.'.$propertyname.') ENDS WITH toLower($'.$phname.')', 
@@ -93,6 +119,15 @@ class Search{
             'placeholders'=>array(
               $phname=>$value[0],
               $phnamevar=>$value[0]
+            )
+          );
+          break;
+        case '*link*':
+          return array(
+            'type' => $valuetype,
+            'constraint'=>'toLower(n.'.$propertyname.') CONTAINS toLower($'.$phname.')', 
+            'placeholders'=>array(
+              $phname=>$value[0],
             )
           );
           break;
@@ -108,9 +143,27 @@ class Search{
           );
           break;
       }
-    }
+    } else if ($valuetype === 'wikidata'){
+      //Wikidata is an exact match and requires a precheck (Q....)
+      // cases: null
+      if(empty($value[0]) || !preg_match('/^Q\d+$/', $value[0])){
+        return Null;
+      }
+      return array(
+        'type' => $valuetype,
+        'constraint'=>'n.'.$propertyname.' = $'.$phname, 
+        'varconstraint' =>'v.variant = $'.$phnamevar, 
+        'placeholders'=>array(
+          $phname=>$value[0],
+          $phnamevar=>$value[0]
+        )
+      );
+    } else if ($valuetype === 'bool'){
+      var_dump($operator, $valuetype, $propertyname, $value);
+      // cases: null
+      //TODO implement bool. Part of //BUG 30/10/24-2
+    } 
   }
-
 
   function directNodeSearch($searchdict, $label, $offset = 0, $limit = 20){
     $constraints = array(); 
@@ -118,8 +171,15 @@ class Search{
     $optconstraints = array(); 
 
     foreach($searchdict as $key => $opt){ 
-      if(array_key_exists($key, NODEMODEL[$label])){      
+      // PATCH in place for //BUG 30-10-24-3 ==> using boolval()-constraint to only perform a constraint build when a value is truthy. 
+      // var_dump($key); 
+      // var_dump($opt['values'][0]); 
+      // var_dump(boolval($opt['values'][0])); 
+      if(array_key_exists($key, NODEMODEL[$label]) && boolval($opt['values'][0]) ){      
         $singleParameter= $this->convertOperatorToCypher($opt['operator'], $opt['type'], $key, $opt['values']);
+        if ($singleParameter == Null){
+          continue;
+        }
         $constraints[]=$singleParameter['constraint']; 
         if(isset($singleParameter['varconstraint'])){
           $optconstraints[]= $singleParameter['varconstraint'];
@@ -148,7 +208,6 @@ class Search{
     }
     $query.=" SKIP $offset LIMIT $limit "; 
     $data = $this->client->run($query, $conditions);
-    //var_dump($data); 
     return $data;
   }
 

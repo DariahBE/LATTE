@@ -379,7 +379,7 @@ let checkIfConnectionExists = async (qid) => {
             let connectButton = document.createElement('button'); 
             connectButton.appendChild(document.createTextNode('Connect')); 
             connectButton.classList.add('bg-green-500', 'font-bold'); 
-            console.log(hits[j])
+            console.log(hits[j]); 
             console.log(globalSelectionStart, globalSelectionEnd, globalSelectionText); 
             connectButton.addEventListener('click', function(){
               alert('extratest! 10/4/24: Remove pending TODO if test passes!'); 
@@ -393,6 +393,7 @@ let checkIfConnectionExists = async (qid) => {
                 .then((token) => {
                   if(token.valid){
                     //TODO: confirm this is working!
+                    //TODO: add check on uniqueness contraints and validation outcome! (see other connectAnnoToEntity implementation. )
                     connectAnnoToEntity(hits[j], languageOptions.nodeid, globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox, token.csrf);
                   }
                 })

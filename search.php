@@ -34,7 +34,7 @@ $limit = 20;
         crossorigin="anonymous">
     </script>
 
-    <script type="text/javascript" src="/JS/validation.js"> </script>
+    <!-- <script type="text/javascript" src="/JS/validation.js"> </script> -->
     <script type="text/javascript" src="/JS/search.js"> </script>
   </head>
     <body class="bg-neutral-200 w-full">

@@ -17,8 +17,11 @@ if (!array_key_exists($labelname, NODEMODEL)){
   die(json_encode(array('searchparameters invalid'))); 
 }
 //pagination
-$page = 0;
-if(isset($_GET['p'])){$page = (int)$_GET['p'];}
+$offset = 0;
+if(isset($_GET['offset'])){$offset = (int)$_GET['offset'];}
+
+//BUG 30/10/24-2 in query builder ==> search > test > minvalue > 1 or higher >> fatal error!
+
 
 function merge($datarow){
   //set shorten to true if it's the textproperty in the Text node!
@@ -47,7 +50,7 @@ function merge($datarow){
 
 $search = new Search($client); 
 $graph = new Node($client); 
-$data = $search->directNodeSearch($labeloptions, $labelname, $page); 
+$data = $search->directNodeSearch($labeloptions, $labelname, $offset); 
 $controlledResponse = array(); 
 foreach ($data->getresults() as $rowkey=> $row){
   $rowKeys = $row->keys(); 

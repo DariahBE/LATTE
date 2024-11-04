@@ -56,7 +56,7 @@ $nodesDatamodel = array(
     "geoid" => ["Trismegistos Place ID", "int", false, false, true],
     "label" => ["Label", "string", false, true, true],
     "region" => ["Regionname", "string", false, false, true], 
-    "wikidata" => ["Wikidata Label", "wikidata", false, false, false]
+    "wikidata" => ["Wikidata Label", "wikidata", false, false, true]
   ],
   'Variant' => [                                                //'Variant' label is a required nodelabel in the current model! IS not allowed to change. 
     "variant" => ["Label", "string", false, true, true],        //'variant' proprety is a required property in the current model! IS not allowed to change.

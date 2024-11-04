@@ -1,5 +1,7 @@
 //global
-validator = new Validator;
+
+//BUG30/10: Clearing a constraint and searching again does not clear the constraint from searchDict.options. 
+// validator = new Validator;   //NO point in validating search ==> e.g. URL with wildcard. 
 let labelname;
 let searchDict = {
   'node': null,
@@ -60,8 +62,19 @@ let searchSymbols = {
   }
 }
 
+function resetDict(){
+  console.log('called for reset');
+  searchDict = {
+    'node': null,
+    'options': {}
+  }; 
+}
+
 function updateDict(){
   clearResults();
+  console.log('running update of searchdict. ');
+  //BUG30/10: searchdict is not being reset, call happens!!
+  resetDict();
   let readObject = document.getElementsByClassName('form-block'); 
   for(var i = 0; i < readObject.length; i++){
     let currentObject = readObject[i];
@@ -79,6 +92,7 @@ function updateDict(){
       writtenvalues.push(fields[j].value); 
     }
     searchDict['node'] = labelname; 
+    console.warn(operator, writtenvalues[0]);
     if (!(operator == '' && writtenvalues[0]=='')){
       searchDict['options'].name = {};
       searchDict['options'][name] = {
@@ -148,7 +162,7 @@ function makeModForRange(){
     }
     activeInputFields[1].remove(); 
   }
-  validator.pickup(); 
+  // validator.pickup(); 
 }
 
 function searchInstruction(searchType){
@@ -206,8 +220,14 @@ function loadPropertyBox(on){
     if(rangeModifiers.includes(propvalidation)){
       searchMaskOptions.addEventListener('change', function(){makeModForRange()});
     }
-    let fieldDiv = document.createElement('div');
-    let fieldValue = document.createElement('input');
+    let fieldDiv;
+    let fieldValue;
+    fieldDiv = document.createElement('div');
+    fieldValue = document.createElement('input')
+    if(propvalidation === 'bool'){
+      //change input type from text to checkbox for boolean
+      fieldValue.type = 'checkbox'; 
+    }
     fieldValue.setAttribute('name', propname); 
     fieldValue.classList.add('attachValidator', 'w-full');
     fieldValue.classList.add('validateAs_'+propvalidation); 
@@ -225,7 +245,7 @@ function loadPropertyBox(on){
   }
   //attach validator here: Undo this constructor!
   //let validator = new Validator; 
-  validator.pickup();
+  // validator.pickup();
   //activate the search button: 
   let searchButton = document.getElementById('searchButtonTrigger'); 
   searchButton.removeAttribute('disabled'); 
