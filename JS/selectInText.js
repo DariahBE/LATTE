@@ -171,6 +171,7 @@ function saveNewDB() {
           let pairName = pair.name;
           let pairValue = pair.value;
           //let pairType = pair.type; 
+          //BUG: Boolean items are all casted to TRUE even when False!! 5/11/24-2
           properties[pairName] = pairValue;
         }
 
