@@ -89,7 +89,11 @@ function updateDict(){
     name = currentObject.getAttribute('data-name'); 
     let fields = currentObject.getElementsByTagName('input'); 
     for (var j = 0; j<fields.length; j++){
-      writtenvalues.push(fields[j].value); 
+      if (fields[j].type === 'checkbox'){
+        writtenvalues.push(fields[j].checked); 
+      }else{
+        writtenvalues.push(fields[j].value); 
+      }
     }
     searchDict['node'] = labelname; 
     console.warn(operator, writtenvalues[0]);

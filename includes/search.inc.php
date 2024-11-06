@@ -158,12 +158,11 @@ class Search{
           $phnamevar=>$value[0]
         )
       );
-    } else if ($valuetype === 'bool' && boolval($value)){
+    } else if ($valuetype === 'bool' && $value[0] === 'true'){
+      //value is passed as a string indicating either true or false; strict check for type and value!!!
       // if a truthy value was given, this should be taken into account.
       //  don't use the $value in the query, but instead use 'true'
-      //BUG: Truthy statement not working, still get's filtered. 5/11/24-1
       // BUG: even when a truthy statement is not selected during creation, it still goes into the DB as true! 5/11/24-2
-      var_dump($value);
       return array(
         'type' => $valuetype,
         'constraint'=>'n.'.$propertyname.' = $'.$phname, 
@@ -171,10 +170,6 @@ class Search{
           $phname=>True,
         )
       );
-      //HOW to properly implement this?
-      // var_dump($operator, $valuetype, $propertyname, $value);
-      // cases: null
-      //TODO implement bool. Part of //BUG 30/10/24-2
     } 
   }
 
