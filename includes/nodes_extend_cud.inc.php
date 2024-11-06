@@ -359,7 +359,10 @@ class CUDNode extends Node {
                         die();
                       }
                     }
-                    if($value !== ''){
+                    if($value === 'false' && NODEMODEL[$label][$key][1]==='bool'){
+                      //do not store false; false stays NULL
+                      continue;
+                    }else if($value !== ''){
                         if(array_key_exists($key, NODEMODEL[$label])){
                             $nodeAttributes[] = ' n.'.$key.' = $placeholder_'.$placeholder;
                             //enforce the correct type of the $value!

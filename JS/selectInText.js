@@ -168,10 +168,14 @@ function saveNewDB() {
         let propertyPairs = document.getElementById('propertyBox').getElementsByTagName('div');
         for (let pp = 0; pp < propertyPairs.length; pp++) {
           let pair = propertyPairs[pp].getElementsByTagName('input')[0];
+          //BUGpatch for misscasting off bools to always true! (OK)
+          let pairValue; 
+          if (pair.type === 'checkbox'){
+            pairValue = pair.checked;
+          }else{
+            pairValue = pair.value;
+          }
           let pairName = pair.name;
-          let pairValue = pair.value;
-          //let pairType = pair.type; 
-          //BUG: Boolean items are all casted to TRUE even when False!! 5/11/24-2
           properties[pairName] = pairValue;
         }
 
@@ -187,7 +191,7 @@ function saveNewDB() {
 
         dataObject['annotation'] = annotationCollectionBox;
         dataObject['variants'] = foundVariants;
-        dataObject['properties'] = properties;
+        dataObject['properties'] = properties;    // == entity
         //    datamode = controll OR automated
         dataObject['annotationmode'] = datamode;
         //if the datamode indicates it's an automated node: you need to pass the node UID so it can be updated. 

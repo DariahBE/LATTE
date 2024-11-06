@@ -162,7 +162,6 @@ class Search{
       //value is passed as a string indicating either true or false; strict check for type and value!!!
       // if a truthy value was given, this should be taken into account.
       //  don't use the $value in the query, but instead use 'true'
-      // BUG: even when a truthy statement is not selected during creation, it still goes into the DB as true! 5/11/24-2
       return array(
         'type' => $valuetype,
         'constraint'=>'n.'.$propertyname.' = $'.$phname, 

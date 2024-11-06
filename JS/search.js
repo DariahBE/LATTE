@@ -1,6 +1,7 @@
 //global
 
-//BUG30/10: Clearing a constraint and searching again does not clear the constraint from searchDict.options. 
+//BUG6/11: non-empty operator will automatically include the search. 
+  // to patch: clearing content of input field, resets the operator to ''
 // validator = new Validator;   //NO point in validating search ==> e.g. URL with wildcard. 
 let labelname;
 let searchDict = {
@@ -63,7 +64,6 @@ let searchSymbols = {
 }
 
 function resetDict(){
-  console.log('called for reset');
   searchDict = {
     'node': null,
     'options': {}
@@ -72,8 +72,6 @@ function resetDict(){
 
 function updateDict(){
   clearResults();
-  console.log('running update of searchdict. ');
-  //BUG30/10: searchdict is not being reset, call happens!!
   resetDict();
   let readObject = document.getElementsByClassName('form-block'); 
   for(var i = 0; i < readObject.length; i++){
@@ -96,8 +94,12 @@ function updateDict(){
       }
     }
     searchDict['node'] = labelname; 
-    console.warn(operator, writtenvalues[0]);
-    if (!(operator == '' && writtenvalues[0]=='')){
+    console.warn(currentObject, operator, writtenvalues[0]);
+    if(operator == null && writtenvalues[0] == ''){
+      //IGNORE wikidata search (has NULL as operator) when the search is empty. 
+      continue;
+    }else if (!(operator == '' && writtenvalues[0]=='')){
+      //TODO in stead of emptying, drop .name
       searchDict['options'].name = {};
       searchDict['options'][name] = {
         'operator': operator,
@@ -136,6 +138,9 @@ function shortToggler(e){
 }
 
 function makeModForRange(){
+  /**
+   * changes DOM to make range-based searches possible (from x to y)
+   */
   let src =  event.target || event.srcElement; 
   let srcvalue = src.value;
   //src holds the dropdown that was modified. 
@@ -153,7 +158,7 @@ function makeModForRange(){
     rangeTopLabel.appendChild(document.createTextNode('To:'));
     let rangeTop = document.createElement('input'); 
     let nextLine = document.createElement('br'); 
-    rangeTop.classList.add('attachValidator', 'validateAs_int'); 
+    // rangeTop.classList.add('attachValidator', 'validateAs_int'); 
     currentInput.parentNode.insertBefore(rangeBottomLabel, currentInput);
     currentInput.parentNode.insertBefore(rangeTop, currentInput.nextSibling);
     rangeTop.parentNode.insertBefore(rangeTopLabel, currentInput.nextSibling);
@@ -170,6 +175,9 @@ function makeModForRange(){
 }
 
 function searchInstruction(searchType){
+  /**
+   *  inserts explanation with all available search modifiers for the given key 
+   */
   target = document.getElementById('searchExplain');
   target.innerHTML = '';
   let options = searchSymbols[searchType]['options'];
@@ -190,6 +198,20 @@ function searchInstruction(searchType){
       promptBlock.appendChild(leftPartPrompt);
       promptBlock.appendChild(rightPartPrompt);
       target.appendChild(promptBlock);
+    }
+  }
+}
+
+function clearOperator(e){
+  /**
+   * Resets the operator above an input field when the content of the input field has been cleared and left empty!
+   */
+  if(e.value == ''){
+    //safe: can handle divs where there's no select present.
+    let selector = e.parentElement.parentElement.getElementsByTagName('select'); 
+    if(selector.length > 0){
+      //resets the operator to ''
+      selector[0].value = ''; 
     }
   }
 }
@@ -233,9 +255,11 @@ function loadPropertyBox(on){
       fieldValue.type = 'checkbox'; 
     }
     fieldValue.setAttribute('name', propname); 
-    fieldValue.classList.add('attachValidator', 'w-full');
+    // fieldValue.classList.add('attachValidator', 'w-full');
+    fieldValue.classList.add('w-full');
     fieldValue.classList.add('validateAs_'+propvalidation); 
     fieldValue.addEventListener('click', function(){searchInstruction(propvalidation)}); 
+    fieldValue.addEventListener('change', function(){clearOperator(this)}); 
     propDisplay.appendChild(propLabel);
     if (searchMasks){
       propDisplay.appendChild(searchMaskOptions); 
