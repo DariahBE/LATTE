@@ -195,11 +195,20 @@ if(REGISTRATIONPOLICY === 2){
                         </button>
                         <p class="text-gray-500">Already have an account? <a href='login.php'>Log in here</a></p>
                       </div>
+                      <?php if (REGISTRATIONPOLICY === 1) {?>
+                        <script>
+                          let invitecode = document.getElementById('invitecode').value;
+                        </script>
+                      <?php } ?>
+                      <?php if (REGISTRATIONPOLICY === 2) {?>
+                        <script>
+                          let invitecode = null;
+                        </script>
+                      <?php } ?>
                       <?php if (REGISTRATIONPOLICY !== 0) {?>
                       <script>
                         var elem = document.getElementById('signupbutton');
                         elem.addEventListener('click', function(){
-                          //alert('yes!');
                           var signupData = {
                             fullname: document.getElementById('fullnamefield').value,
                             email: document.getElementById('emailfield').value,
@@ -207,8 +216,9 @@ if(REGISTRATIONPOLICY === 2){
                             password_confirmation: document.getElementById('confirmPasswordfield').value, 
                             token: document.getElementById('csrfToken').value,
                             captcha: document.getElementById('captchaSolution').value,
-                            invitetoken: document.getElementById('invitecode').value
+                            invitetoken: invitecode
                           };
+                          //BUG even unused emails seem to be in use when testing on registrationpolicy === 2
                           console.log(signupData);
                           $.ajax({
                             type: 'POST',

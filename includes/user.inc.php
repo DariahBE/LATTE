@@ -286,8 +286,12 @@ public function getMailFromUUID($uuid){
 
   //Converted To SQLITE == FALSE
   public function checkUniqueness($mail){
+    //READ only (okay)
+    /**
+     * Prevents re-use of emailadress in the sqlite database. 
+     */
     if($mail){
-      $checkQuery = "SELECT count() AS count FROM userdata WHERE userdata.mail = ? "; 
+      $checkQuery = "SELECT mail FROM userdata WHERE userdata.mail = ? "; 
       $checkData = array($mail); 
       $stmt = $this->sqlite->prepare($checkQuery);
       $stmt->execute($checkData);

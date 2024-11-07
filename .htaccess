@@ -4,3 +4,6 @@ RewriteRule text/([^/]*)$ /text.php?texid=$1 [NC,L]
 RewriteRule URI/([^/]*)/([^/]*)$ /stable.php?type=$1&uuid=$2 [NC,L]
 RewriteRule explore/([^/]*)$ /browse/index.php?value=$1 [NC,L]                          #Graph explorer of nodes in the database. 
 RewriteRule edit/([^/]*)$ /crud/edit.php?id=$1 [NC,L]                          #Edit a node. 
+
+#hides directory listings
+Options -Indexes    

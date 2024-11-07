@@ -9,12 +9,7 @@ class Search{
     $this->whereParameterCounter = 1; 
   }
 
-  //BUG 30-10-24-3: When searching for a PLACE based on WORDmatch ONLY *word* == e (PARTIAL PATCH APPLIED)
-    //>WARNING: patch might break when truthy statement is required for a real boolean operator coming from the searchform
-  //    then te interface still takes the EMPTY value for wikidata as a part of the search constraint!
-
   function convertOperatorToCypher($operator, $valuetype, $propertyname, $value){
-    // var_dump($operator, $valuetype, $propertyname, $value);
     $phname = 'temp_'.$this->whereParameterCounter;
     $phnamevar = 'vtemp_'.$this->whereParameterCounter;
     $this->whereParameterCounter+=1;

@@ -1,7 +1,5 @@
 //global
 
-//BUG6/11: non-empty operator will automatically include the search. 
-  // to patch: clearing content of input field, resets the operator to ''
 // validator = new Validator;   //NO point in validating search ==> e.g. URL with wildcard. 
 let labelname;
 let searchDict = {
@@ -71,6 +69,8 @@ function resetDict(){
 }
 
 function updateDict(){
+  let pgTarget = document.getElementById('pgn');
+  pgTarget.innerHTML = ''; 
   clearResults();
   resetDict();
   let readObject = document.getElementsByClassName('form-block'); 
@@ -94,13 +94,13 @@ function updateDict(){
       }
     }
     searchDict['node'] = labelname; 
-    console.warn(currentObject, operator, writtenvalues[0]);
     if(operator == null && writtenvalues[0] == ''){
       //IGNORE wikidata search (has NULL as operator) when the search is empty. 
       continue;
     }else if (!(operator == '' && writtenvalues[0]=='')){
-      //TODO in stead of emptying, drop .name
-      searchDict['options'].name = {};
+      if (searchDict.options && searchDict.options.name) {
+        delete searchDict.options.name;
+      }
       searchDict['options'][name] = {
         'operator': operator,
         'type': asType, 
@@ -316,7 +316,7 @@ function simpleResponseTableGenerator(data){
     }
   }
   //if (Object.keys(data).length == limit){
-  var pgTarget = document.getElementById('pgn');
+  let pgTarget = document.getElementById('pgn');
   pgTarget.innerHTML = ''; 
   let backButton = document.createElement('button'); 
   let nextButton = document.createElement('button');

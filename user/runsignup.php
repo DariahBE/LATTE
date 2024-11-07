@@ -1,4 +1,5 @@
 <?php
+//TODO: debug the user registration process in combination with register.php
 //session_start(); //not needed to access captche, it's already included by the csrf call
 header('Content-Type: application/json; charset=utf-8');
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
@@ -23,8 +24,6 @@ $graph = new Node($client);
 $hashedPassword = password_hash('prevent', PASSWORD_DEFAULT);
 password_verify('timingattack', $hashedPassword); 
 
-//TODO make transactional!
-
 /**
  * CORRECT REGISTRATION PROCEDURE NEEDS TO CHECK A FEW THINGS
  * 
@@ -36,7 +35,7 @@ password_verify('timingattack', $hashedPassword);
  * 4: IS THE SESSION TOKEN LEGIT
  * 5: WHAT IS THE CAPTCHA RESULT
  */
-
+ 
 //1: check the registration policy > kill it if registrations aren't open: 
 if(REGISTRATIONPOLICY === 0){
     //Kill request: you're not allowed to continue!
@@ -107,7 +106,7 @@ if(!empty($missing)) {
     $passOne = $_POST['password'];
     $passTwo = $_POST['password_confirmation'];
     if($passOne !== $passTwo){
-        echo json_encode(array('msg' => 'Repeat password does\'t match the original password.'));
+        echo json_encode(array('msg' => 'Repeat password doesn\'t match the original password.'));
         die();
     }
 
@@ -132,9 +131,8 @@ if(!empty($missing)) {
         die();
     }
 
+    //What's the point of this, runsignup should be retested. 
     $result = $graph->executionOfParameterizedQuery($query, $data); 
-    //TODO var_dump cleanup. 
-    //var_dump($result); 
 
     
 

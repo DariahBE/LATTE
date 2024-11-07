@@ -61,24 +61,31 @@
     include_once('admin_tasks.php');
   ?>
 
-
+    <p class="container w-1/2 itemx-center m-auto">Attributes can be indexed to speed up often-recurring search operations. A green icon indicates the attribute has been indexed, a red icon implies there's no index on the given attribute. Clicking the icon acts as a toggle to add or remove database indexes. </p>
 
     <div class= '2xl:w-1/2 xl:w-2/3 items-center m-auto grid grid-cols-1 md:grid-cols-2 gap-4'>
-
-        
-        
-    <?php
+  <?php
     $indexed_columns = $node->getIndexes(); 
     foreach(NODEMODEL as $label => $properties){
       echo '<div class="align-top">
-          <h4>'.$label.'</h4>'; 
+          <h4 class= "font-bold size-lg">'.$label.'</h4>'; 
+          echo '<table>';
+          echo '<tr>';
+            echo '<th>Property</th>';
+            echo '<th>Index</th>';
+          echo '</tr>';
           foreach ($properties as $propName => $propparameters){
+            echo '<tr>';
             if( (is_array($indexed_columns[$label])) && (array_key_exists($propName, $indexed_columns[$label]))){
-              echo "<p class='m-2 p-2'><span>".$propparameters[0]."</span><span data_nodeLabel='".$label."' data_nodeProp='".$propName."' data_idxname = '".$indexed_columns[$label][$propName]."' class='idxBolt hasIndex m-1 p-1 bg-green-200'> &#9889;</span></p>";
+              echo '<td>'.$propName.'</td>';
+              echo '<td>'.'<span data_nodeLabel="'.$label.'" data_nodeProp="'.$propName.'" data_idxname = "'.$indexed_columns[$label][$propName].'" class="idxBolt hasIndex m-1 p-1 bg-green-200"> &#9889;</span>'.'</td>'; 
             }else{
-              echo "<p class='m-2 p-2'><span>".$propparameters[0]."</span><span data_nodeLabel='".$label."' data_nodeProp='".$propName."' class='idxBolt noIndex m-1 p-1 bg-red-200'> &#9889;</span></p>";
-            }              
+              echo '<td>'.$propName.'</td>';
+              echo '<td>'.'<span data_nodeLabel="'.$label.'" data_nodeProp="'.$propName.'" class="idxBolt noIndex m-1 p-1 bg-red-200"> &#9889;</span>'.'</td>'; 
+            }
+            echo '</tr>';
           }
+          echo '</table>';
       echo '</div>'; 
     }
     ?>
