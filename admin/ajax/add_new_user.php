@@ -37,7 +37,7 @@ if(in_array(REGISTRATIONPOLICY, array(1,2))){
     $mail = $_POST['email']; 
     $role = $_POST['role'];
     $name = $_POST['name'];
-    $backend_repl = $user->createUser($mail, $name, $role); 
+    $backend_repl = $user->createUser($mail, $name, $role, NULL, True, 0); 
     if($backend_repl[0] == 'ok'){
         echo json_encode(array('msg'=>'request completed.', 'success'=>true)); 
     }else{

@@ -1,5 +1,4 @@
 <?php
-//TODO: debug the user registration process in combination with register.php
 //session_start(); //not needed to access captche, it's already included by the csrf call
 header('Content-Type: application/json; charset=utf-8');
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
@@ -73,12 +72,7 @@ if(!empty($missing)) {
 
         //3: does the invitetoken belong to the provided e-mail.
         //check that inviteToken and e-mail addres are a valid pair: 
-        //TODO: test invite code, rewritten to use SQLITE now. . 
-        //$query = 'MATCH (n:priv_user) WHERE n.invitationcode = $token AND n.mail = $mail RETURN n'; 
-        $query = 'SELECT * FROM userdata WHERE userdata.mail  = ? AND userdata.token = ? AND userdata.token IS NOT NULL';
-        $stmt = $this->sqlite->prepare($query);
-        $stmt->execute(array($_POST['email'], $_POST['invitetoken']));
-        $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+        $result = $user->checkTokenRequest($_POST['email'], $_POST['invitetoken']); 
         if(count($result) === 0){
             echo json_encode(array('msg' => 'Invalid invitecode'));
             die();
@@ -131,13 +125,53 @@ if(!empty($missing)) {
         die();
     }
 
-    //What's the point of this, runsignup should be retested. 
-    $result = $graph->executionOfParameterizedQuery($query, $data); 
 
+    //6: all signup checks have passed, insert the user in the DB: 
+    //hash the password here!!
+    $hashedPassword = password_hash($_POST['password'], PASSWORD_DEFAULT);
+    if (REGISTRATIONPOLICY === 2){
+        //POLICY2: open registrations 
+        $createData = array(
+            $_POST['email'], 
+            $_POST['fullname'], 
+            'contributor',
+            $hashedPassword,
+            False, 
+            1,
+            False
+        );
+    }else if(REGISTRATIONPOLICY === 1){
+        //POLICY 1 (invite based registrations)
+        //      set the $confirmation_phase flag to skip usermail check.
+        $createData = array(
+            $_POST['email'], 
+            $_POST['fullname'], 
+            'contributor',
+            $hashedPassword,
+            False, 
+            1, 
+            True
+        );
+    }
+    $backend_repl = $user->createUser(...$createData); 
+    var_dump($backend_repl); 
+    if($backend_repl[0] == 'ok'){
+        echo json_encode(array('msg'=> 'user registration completed.'));
+    }else{
+
+    }
     
+   
 
 }
 
+
+//TODO: USER REGISTRATION TESTCASES: 
+// Policy   via_admin:      Effect        Passed ?
+//  1          1              new user      //TODO
+//  1          0              NO user       //TODO
+//  2          1              new user      //TODO
+//  2          0              new user      //TODO
 
 
 

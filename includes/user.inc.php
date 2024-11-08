@@ -210,42 +210,56 @@ public function getMailFromUUID($uuid){
     return 1; 
   }
 
-  public function createUser($mail, $name, $role){
+  public function createUser($mail, $name, $role, $pw=NULL, $make_token=False, $completed = 0, $confirmation_phase = False){
     //is $mail a valid adress: backend validation. 
     if ((!filter_var($mail, FILTER_VALIDATE_EMAIL))) {
       return (array('error', 'Invalid mail')); 
     }
-    //check if user with mail already exists:
-    //$checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email RETURN count(n) as count';
-    //$exists = $this->client->run($checkQuery, ['email'=>$mail]);
-    $checkQuery = 'SELECT COUNT(mail) AS count FROM userdata WHERE userdata.mail = ?';
-    $stmt = $this->sqlite->prepare($checkQuery);
-    $stmt->execute(array($mail));
-    $exists = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    if ($exists[0]['count'] > 0){
-      return array('error', 'user already exists.');
-    }else{
-      $uuid = $this->guidv4(); 
+    $token = NULL; 
+    if($make_token){
       $token = $this->getHash(64);
+    }
+    //check if user with mail already exists:
+    if (!($confirmation_phase)){
+      //SKIP check if POLICY 1 applies and the user is completing their invite. 
+      $checkQuery = 'SELECT COUNT(mail) AS count FROM userdata WHERE userdata.mail = ?';
+      $stmt = $this->sqlite->prepare($checkQuery);
+      $stmt->execute(array($mail));
+      $exists = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      if ($exists[0]['count'] > 0){
+        return array('error', 'user already exists.');
+      }
+      //INSERT QUERY FOR NON CONFIRMATION PHASE
+      $uuid = $this->guidv4();
       $query = "INSERT INTO userdata (uuid, logon_attempts, mail, username, password, role, token, completed) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?); ";
-      $insert_query_data = array($uuid, 0, $mail, $name, NULL, $role, $token, 0);
-
+      $query_data = array($uuid, 0, $mail, $name, NULL, $role, $token, $completed);
       $sql_id = 0; 
+    }else{
+      //TODO: TEST:  UPDATE QUERY for confirmation_phase == 1
+      //  warning: do not update uuid and userid
+      //  warning DO DROP token
+      $query = "UPDATE userdata set password = ?, token = NULL, completed = 1, blocked = 0 WHERE userdata.mail = ? ";
+      $query_data = array($pw, $mail);
+    }
+
       try {
         $stmt = $this->sqlite->prepare($query);
-        $stmt->execute($insert_query_data);
+        $stmt->execute($query_data);
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        $sql_id = (int)$this->sqlite->lastInsertId(); 
+        if(!($confirmation_phase)){
+          //OK: lastInsertId is an alies for the row where a primary key is used. 
+          $sql_id = (int)$this->sqlite->lastInsertId(); 
+          $this->createUserInNeo($uuid, $name ,$sql_id); 
+        }
         //duplicate node into NEO4J-database. Only store the essential data in there!!
-        $this->createUserInNeo($uuid, $name ,$sql_id); 
         //$query = 'CREATE (n:priv_user {userid: $uuid, name: $username, sqlite_id: $sqlite_id})';
         //$this->client->run($query, ['uuid'=>$uuid, 'username'=>$name, 'sqlite_id'=>$sql_id]);
         return array('ok', 'user created');
       } catch (\Throwable $th) {
         return (array('error', 'User could not be added.'));
       }
-    }
+    
   }
 
 
@@ -272,6 +286,14 @@ public function getMailFromUUID($uuid){
     return array(1, 'A reset token has been created for the associated mailaccount.'); 
   }
 
+  public function checkTokenRequest($mail, $token){
+    $query = "SELECT * FROM userdata WHERE mail = ? AND  token = ? AND userdata.token IS NOT NULL AND userdata.blocked = 0 AND userdata.completed = 0";  
+    $parameters = array($mail, $token);
+    $stmt = $this->sqlite->prepare($query);
+    $stmt->execute($parameters);
+    $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+    return $result; 
+  }
 
 
   public function checkSession(){

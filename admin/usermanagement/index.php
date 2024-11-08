@@ -54,7 +54,10 @@ if($user->myRole !== "Admin"){
   </div>
 
   <div id="addUserView" class="hidden">
-    <?php if(REGISTRATIONPOLICY == 1){ ?>
+    <?php
+    //allow the admin to register new users in policy 1 or 2 configurations.
+    if(REGISTRATIONPOLICY != 0){ 
+      ?>
     <h2>Add User Form</h2>
     <!-- Add User Form HTML goes here -->
     <form id="addUserForm" class="space-y-4">

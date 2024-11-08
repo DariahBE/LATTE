@@ -10,21 +10,23 @@ if (REGISTRATIONPOLICY === 0){
 }
 //initiatie the Node class when registrationpolicy <> 0; 
 $graph = new Node($client);
+$user = new User($client); 
 //make a new CSRF token manager: 
 $tokenManager = new CsrfTokenManager();
 $csrf_name = 'registrationtoken';
 $sessiontoken = $tokenManager->generateToken($csrf_name);
 
 if(REGISTRATIONPOLICY === 1){
+  $usermail = $_GET['mail'];
   if(isset($_GET['invitetoken']) && isset($_GET['mail'])){
-    $query = 'MATCH (n:priv_user) WHERE n.invitationcode = $token AND n.mail = $mail RETURN n'; 
-    $parameters = array(
-      'token' => $_GET['invitetoken'], 
-      'mail' => $_GET['mail']
-    ); 
-    $data = $graph->executionOfParameterizedQuery($query, $parameters); 
-    if ($data->count() === 1){
+    //$query = 'MATCH (n:priv_user) WHERE n.invitationcode = $token AND n.mail = $mail RETURN n'; 
+    // $query = "SELECT * FROM userdata WHERE token = ? AND mail = ? ";  
+    // $parameters = array($_GET['invitetoken'], $_GET['mail']);
+    $matchingTokens = $user->checkTokenRequest($_GET['mail'], $_GET['invitetoken']);
+    // $data = $graph->executionOfParameterizedQuery($query, $parameters); 
+    if (count($matchingTokens) === 1){
       //valid user found with correct token and mail combo!
+      $username = $matchingTokens[0]['username'];
       foreach($data as $row){
         $node = $row->get('n');
         $usermail = $node->getProperty('mail');
@@ -82,6 +84,7 @@ if(REGISTRATIONPOLICY === 2){
                       <div class="mb-4">
 
                         <?php 
+                          //MAIL (conditionally editable according to policy. )
                           if(REGISTRATIONPOLICY === 2){
                             echo '
                             <input
@@ -98,7 +101,6 @@ if(REGISTRATIONPOLICY === 2){
                               type="text"
                               value="'.$usermail.'"
                               class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-400 bg-white bg-clip-padding rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                              placeholder="Email"
                               name="email"
                               id="emailfield"
                             />
@@ -125,13 +127,30 @@ if(REGISTRATIONPOLICY === 2){
                           ?>
 
                       <div class="mb-4">
-                        <input
+                        <?php 
+                        //NAME should be conditionally editable. only open on policy == 2; non-editable on policy == 1
+                        if(REGISTRATIONPOLICY === 2){
+                          echo '
+                          <input
                           type="text"
                           class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
                           placeholder="Full Name"
                           name="fullname"
                           id="fullnamefield"
-                        />
+                          />';
+                        } else {
+                          echo '
+                           <input
+                           disabled
+                          type="text"
+                          class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-400 bg-white bg-clip-padding rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
+                          value= "'.$username.'"
+                          name="fullname"
+                          id="fullnamefield"
+                          />
+                          ';
+                        }
+                        ?>
                       </div>
 
                       <div class="mb-4">
@@ -218,8 +237,6 @@ if(REGISTRATIONPOLICY === 2){
                             captcha: document.getElementById('captchaSolution').value,
                             invitetoken: invitecode
                           };
-                          //BUG even unused emails seem to be in use when testing on registrationpolicy === 2
-                          console.log(signupData);
                           $.ajax({
                             type: 'POST',
                             url: 'runsignup.php',
@@ -236,7 +253,6 @@ if(REGISTRATIONPOLICY === 2){
                                   });
                                 }
                               } else { // if false, show some sort of message with errors
-                                console.log('nope');
                                 $("#status").text('Something went wrong.');
                               }
                             }
