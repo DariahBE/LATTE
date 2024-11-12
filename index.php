@@ -2,6 +2,8 @@
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/navbar.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
+include_once(ROOT_DIR.'/includes/client.inc.php');
+
 ?>
 
 <!DOCTYPE html>
@@ -16,8 +18,10 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
   <body class="bg-amber-200">
     <div>
       <?php
-        $navbar = new Navbar(); 
-        echo $navbar->getNav(); 
+        $user = new User($client);
+        $adminMode = $user->myRole == 'Admin'; 
+        $navbar = new Navbar($adminMode); 
+        echo $navbar->getNav();
       ?>
 
     </div>
@@ -64,7 +68,7 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
             <div class="flex flex-col">
               <div class="">
                 <ul>
-                  <li><a href="users/login.php">Log in</a></li>
+                  <li><a href="user/login.php">Log in</a></li>
                   <li><a href="search.php">search for a node</a></li>
                 </ul>
               </div>

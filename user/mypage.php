@@ -5,6 +5,7 @@ include_once(ROOT_DIR."/includes/user.inc.php");
 include_once(ROOT_DIR."/includes/annotation.inc.php");
 include_once(ROOT_DIR."/includes/wikidata_user_prefs.inc.php");
 include_once(ROOT_DIR.'/includes/navbar.inc.php');
+include_once(ROOT_DIR.'/includes/user.inc.php');
 
 
 if(isset($_SESSION['userid'])){
@@ -36,7 +37,9 @@ $preferences->buildPreferences();
   </head>
   <body class="bg-neutral-200 w-full">
   <?php
-    $navbar = new Navbar(); 
+    $user = new User($client);
+    $adminMode = $user->myRole == 'Admin'; 
+    $navbar = new Navbar($adminMode); 
     echo $navbar->getNav();
   ?>
     <div class="top navbar">

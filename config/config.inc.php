@@ -285,7 +285,7 @@ define( 'ROOT_DIR', $_SERVER["DOCUMENT_ROOT"] );
   1 = invite only.
   2 = open: public frontend will allow users to regiser.
 */
-$registration_policy = 1;
+$registration_policy = 2;
 define('REGISTRATIONPOLICY', $registration_policy);
 
 ?>

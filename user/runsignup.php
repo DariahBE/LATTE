@@ -160,18 +160,19 @@ if(!empty($missing)) {
     }else{
 
     }
-    
-   
-
 }
 
 
 //TODO: USER REGISTRATION TESTCASES: 
 // Policy   via_admin:      Effect        Passed ?
-//  1          1              new user      //TODO
-//  1          0              NO user       //TODO
-//  2          1              new user      //TODO
-//  2          0              new user      //TODO
+//  1          1              new user      //OK
+//  1          0              NO user       //OK
+//  2          1              new user      //OK
+//  2          0              new user      //BUG: FAILS: user/register.php endpoint does not store the hashed password properly. 
+
+// For debugging: callback cases: https://www.sqlite.org/c3ref/update_hook.html
+
+// Alle users moeten door register.php raken voor elk van de use cases om de test te doen werken!
 
 
 

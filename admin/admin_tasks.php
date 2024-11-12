@@ -7,8 +7,9 @@
                 </button>
                 <div class="subgroup absolute hidden bg-white border border-gray-300  w-32 rounded-lg shadow-lg group-hover:block">
                     <!-- Submenu items -->
-                    <a href="invite.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Overview</a>
-                    <a href="remove.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">User tasks</a>
+                    <a href="/admin/usermanagement#overview" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Overview</a>
+                    <a href="/admin/usermanagement#block" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Block user</a>
+                    <a href="/admin/usermanagement#add" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Add user</a>
                 </div>
             </div>
             <div class="group relative">

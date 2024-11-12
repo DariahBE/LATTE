@@ -35,6 +35,7 @@ if($user->myRole !== "Admin"){
 <body>
   <div>
   <?php
+    $adminMode = $user->myRole == 'Admin'; 
     $navbar = new Navbar($adminMode); 
     echo $navbar->getNav();
   ?>
@@ -188,7 +189,6 @@ if($user->myRole !== "Admin"){
   </div>
 
   <script>
-
     function runblock(){
       const trigger = event.srcElement || event.target;
       const user_row = trigger.closest('tr');
@@ -370,6 +370,26 @@ if($user->myRole !== "Admin"){
 
 
     });
+
+
+    let type = window.location.hash.substr(1);
+    if (type === 'overview'){
+      addUserView.classList.add('hidden');
+      promoteUserView.classList.remove('hidden');
+      resetUserView.classList.add('hidden');
+    }else if (type === 'block'){
+      addUserView.classList.add('hidden');
+      promoteUserView.classList.add('hidden');
+      resetUserView.classList.remove('hidden');
+    }else if(type === 'add'){
+      addUserView.classList.remove('hidden');
+      promoteUserView.classList.add('hidden');
+      resetUserView.classList.add('hidden');
+    }
+
+
+
+
   </script>
 </body>
 </html>
