@@ -16,7 +16,14 @@ $tokenManager = new CsrfTokenManager();
 $csrf_name = 'registrationtoken';
 $sessiontoken = $tokenManager->generateToken($csrf_name);
 
-if(REGISTRATIONPOLICY === 1){
+//KILL if regpolicy === 1 and mail/invitetoken are missing: 
+if(!(isset($_GET['invitetoken']) && isset($_GET['mail'])) && REGISTRATIONPOLICY === 1){
+  header('Location: /');          
+  die('Policy violation: invalid token');
+}
+
+
+if(REGISTRATIONPOLICY === 1 || (REGISTRATIONPOLICY === 2 && (isset($_GET['invitetoken']) && isset($_GET['mail']))) ){
   $usermail = $_GET['mail'];
   if(isset($_GET['invitetoken']) && isset($_GET['mail'])){
     //$query = 'MATCH (n:priv_user) WHERE n.invitationcode = $token AND n.mail = $mail RETURN n'; 
@@ -45,9 +52,10 @@ if(REGISTRATIONPOLICY === 1){
 
 }
 
-if(REGISTRATIONPOLICY === 2){
+if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mail']))){
   $usermail = NULL;
 }
+
 
 ?>
 
@@ -85,7 +93,7 @@ if(REGISTRATIONPOLICY === 2){
 
                         <?php 
                           //MAIL (conditionally editable according to policy. )
-                          if(REGISTRATIONPOLICY === 2){
+                          if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mail']))){
                             echo '
                             <input
                               type="text"
@@ -129,7 +137,7 @@ if(REGISTRATIONPOLICY === 2){
                       <div class="mb-4">
                         <?php 
                         //NAME should be conditionally editable. only open on policy == 2; non-editable on policy == 1
-                        if(REGISTRATIONPOLICY === 2){
+                        if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mail']))){
                           echo '
                           <input
                           type="text"

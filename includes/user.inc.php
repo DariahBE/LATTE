@@ -233,12 +233,9 @@ public function getMailFromUUID($uuid){
       $uuid = $this->guidv4();
       $query = "INSERT INTO userdata (uuid, logon_attempts, mail, username, password, role, token, completed) 
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?); ";
-      $query_data = array($uuid, 0, $mail, $name, NULL, $role, $token, $completed);
+      $query_data = array($uuid, 0, $mail, $name, $pw, $role, $token, $completed);
       $sql_id = 0; 
     }else{
-      //TODO: TEST:  UPDATE QUERY for confirmation_phase == 1
-      //  warning: do not update uuid and userid
-      //  warning DO DROP token
       $query = "UPDATE userdata set password = ?, token = NULL, completed = 1, blocked = 0 WHERE userdata.mail = ? ";
       $query_data = array($pw, $mail);
     }
