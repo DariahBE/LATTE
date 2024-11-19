@@ -50,7 +50,8 @@ $nodesDatamodel = array(
     "text" => ["Text", "string", false, false, true],
     "language" => ["Document language", "string", false, false, true],
     "publication" => ["Publisher", "string", false, false, true],
-    "place" => ["Publishing Place", "string", false, false, true]
+    "place" => ["Publishing Place", "string", false, false, true],
+    
   ],
   'Place' => [
     "geoid" => ["Trismegistos Place ID", "int", false, false, true],
@@ -249,7 +250,7 @@ define("SMTPPORT", $smtpPort);
 define("SERVERORIGMAIL", $originEmail);
 define("SMTPUSER", $smtpUser);
 define("SMTPPASSWORD", $smtpPassword);
-define("SMPTPPATCH", $selfSignedCertificates);
+define("SMTPPATCH", $selfSignedCertificates);
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL
 define("ENTITYEXTRACTOR", $extractor);

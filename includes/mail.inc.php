@@ -76,7 +76,7 @@ class Mail{
                                                 // 2 = messages only
         //$mail->SMTPAuth   = SMTPREQUIRESAUTH;                  // enable SMTP authentication
         //$mail->SMTPSecure = "ssl";                      // sets the prefix to the server
-        if(SMPTPPATCH){
+        if(SMTPPATCH){
             $mail->SMTPOptions = array(
                 'ssl' => array(
                     'verify_peer' => false,

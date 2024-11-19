@@ -213,7 +213,7 @@ define("SMTPPORT", $smtpPort);
 define("SERVERORIGMAIL", $originEmail);
 define("SMTPUSER", $smtpUser);
 define("SMTPPASSWORD", $smtpPassword);
-define("SMPTPPATCH", $selfSignedCertificates);
+define("SMTPPATCH", $selfSignedCertificates);
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL
 define("ENTITYEXTRACTOR", $extractor);

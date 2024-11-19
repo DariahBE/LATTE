@@ -98,6 +98,8 @@ class Exporter {
         if ($e[1]=='annotation'){
           $elem = $dom->createElement('annotation', htmlspecialchars($e[2]));
           $elemAtr = new DOMAttr('id', $e[3]); 
+          $elem->setAttribute('start', $this->annotations['relations'][$e[3]]['start']);
+          $elem->setAttribute('stop', $this->annotations['relations'][$e[3]]['stop']);
           $elem->setAttributeNode($elemAtr); 
         }else{
           $elem = $dom->createElement('unmarkedText', htmlspecialchars($e[2]));
@@ -174,7 +176,10 @@ class Exporter {
       foreach($this->annotationToEt as $key => $value){
         $annotationLinks[] = array(
           'annotationId' => $key,
-          'referencesLabel' => $value[1]
+          'referencesLabel' => $value[1], 
+          'start' => $this->annotations['relations'][$value[1]]['start'],
+          'stop' => $this->annotations['relations'][$value[1]]['stop']
+
         );
       }
       $entityLinks = array(); 

@@ -241,6 +241,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
           <p id="max_ld_tip" class="text-xs hidden">Limits response the x-nearest Levenshtein matches.</p>
           <input class="hidden" type="number" min="1" name='max_ld_hits' id='max_ld' value='5'>
         </div>
+        <div><br></div>
         <?php
           if(LATTECONNECTOR){
             ?>

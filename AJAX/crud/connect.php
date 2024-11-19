@@ -88,5 +88,5 @@ if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['fastconnec
   die(json_encode('Insecure or expired request.')); 
 }
 #cyper query that creates a new node with label Annotation and connects it to two other nodes by passing the internal ID
-
+// TODO: auto_annotation node has to be deleted when ET's are connected to a text over an automatic annotation!!!! 
 ?>
