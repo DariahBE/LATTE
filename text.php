@@ -80,7 +80,6 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
     <!-- <script src="/JS/initiate.js"></script>  autoload of language and extractor, don't do this -->
     <script src="/JS/getLang.js"></script>
     <script src="/JS/getEntities.js"></script>
-    <!-- <script src="/JS/setPositions.js"></script> -->
     <script src="/JS/getEntityInfo.js"></script>
     <script src="/JS/showSingleEntityInfo.js"></script>
     <script src="/JS/rangy/rangy-core.js"></script>

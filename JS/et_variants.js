@@ -126,7 +126,7 @@ displayET_variant(data, relatedET) {
         let spellingVariantTitle = createDivider('Naming variants: ');
         spellingVariantMainBox.appendChild(spellingVariantTitle);
         spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
-
+        //TODO: if there's no value set for relatedET, then add should be disabled!
         if (classScope.userstate) {
             var spellingVariantCreation = document.createElement('input');
             spellingVariantCreation.setAttribute('id', 'variantInputBox');
@@ -160,6 +160,12 @@ displayET_variant(data, relatedET) {
                         });
                 }
             });
+            if (relatedET == null){
+                console.warn('HIDING VARBOX - missing entity.'); 
+                //do not yet make a variantbox if there's no entity to link the variant to!
+                addToStorageBox.disabled = true;
+                spellingVariantMainBox.classList.add('hidden');
+            }
             spellingVariantMainBox.appendChild(spellingVariantCreation);
             spellingVariantMainBox.appendChild(addToStorageBox);
         }

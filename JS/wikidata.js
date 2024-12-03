@@ -281,7 +281,17 @@ class wikibaseEntry {
     if(this.searchMode === 'qid'){
       this.OutputFormattedDataBlocks[qid]= baseBlock; 
       this.originalData = JSON.parse(JSON.stringify(this.rawData));     //deepcopy! otherwise wdk.parse.wd.entities overrides this
-      this.parsedData = wdk.parse.wd.entities(this.rawData); 
+      try{
+        this.parsedData = wdk.parse.wd.entities(this.rawData); 
+      } catch {
+        //skip linking to WD if entities are unparsable.
+        console.error('WDK could not parse entity.');
+        deleteIfExistsById("wdsearchpromptbox"); 
+        deleteIfExistsById("embeddedWDConfirmationGroup"); 
+        deleteIfExistsById("wdsearchpromptbox"); 
+        acceptQID(-1);
+        return;
+      }
       Object.keys(this.parsedData[qid].claims).forEach(e => {
         if (Object.keys(this.usersettings['shownProperties']).includes(e)){
           madeAtLeastOneMatch = true;

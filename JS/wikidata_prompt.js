@@ -187,6 +187,7 @@ function acceptQID(qid = -1) {
   // a new ET and annotation.
   if (baseElem === null){
     buildAnnotationCreationBox();
+    alert('calling into bac');
     //baseElem = createEmbbeddedETDiv();
     document.getElementById('etmain').innerHTML = ''; 
   }
@@ -362,7 +363,7 @@ let checkIfConnectionExists = async (qid) => {
                 paginationIndicator(j);
                 showHit(hits[j]);
               }
-            })
+            }); 
             navigateBack.addEventListener('click', function () {
               if (j > 0) {
                 j--;
@@ -401,8 +402,6 @@ let checkIfConnectionExists = async (qid) => {
             let navelem = document.getElementById('navigateETs');
             navelem.appendChild(navigateHits);
             navelem.appendChild(connectButton); 
-
-
           }
           console.log(data['hits'], ' hits found; ');
           resolve(data['hits']);

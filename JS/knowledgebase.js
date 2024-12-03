@@ -22,6 +22,9 @@ class KnowledgeBase {
                 this.addNewButton.style.display = ''; 
 
             }
+        }else{
+            console.warn('HIDING KBRELATIONS due to missing value for ET!'); 
+            this.mainKBElement.classList.add('hidden');
         }
         this.addNewButton.addEventListener('click', () => {
             this.buildCreationDisplay(); 
