@@ -151,7 +151,6 @@ function acceptQID(qid = -1) {
    document.getElementById('embeddedWDConfirmationGroup').remove();
     checkIfConnectionExists(qid)
       .then((data) => {
-        //console.log('dataresult', data); 
         if (data == 0) {
           updateState('State', 'There\'s currently no matching Q-id in the database.'); 
         } else {
@@ -165,7 +164,6 @@ function acceptQID(qid = -1) {
               let field = content[i];
               let fieldAtr = field.getElementsByTagName('label')[0].getAttribute('for');
               if (fieldAtr != startcode && fieldAtr != stopcode) {
-                //console.log(field); 
                 annoSubContent.appendChild(field);
               }
             }
@@ -311,7 +309,6 @@ let checkIfConnectionExists = async (qid) => {
    */
   var existingConnection = new Promise((resolve, reject) => {
     //make a .fetch call in javascript
-    console.warn('checking if QID exists.');
     fetch("/AJAX/checkWDExists.php?qid=" + qid)
       .then((response) => response.json())
       .then((data) => {
@@ -380,21 +377,14 @@ let checkIfConnectionExists = async (qid) => {
             let connectButton = document.createElement('button'); 
             connectButton.appendChild(document.createTextNode('Connect')); 
             connectButton.classList.add('bg-green-500', 'font-bold'); 
-            console.log(hits[j]); 
-            console.log(globalSelectionStart, globalSelectionEnd, globalSelectionText); 
             connectButton.addEventListener('click', function(){
-              alert('extratest! 10/4/24: Remove pending TODO if test passes!'); 
-              //TODO: extra properties need to be tested (OKAY IF implementationtest passes. ). 
               let annotationProperties = document.getElementById('embeddedAnnotation').getElementsByClassName('property');
               let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
-              console.log(annotationCollectionBox);      
               //fetch a fresh CSRF token
               fetch('/user/AJAX/profilestate.php?fastconnect=1')
                 .then((response) => response.json())
                 .then((token) => {
                   if(token.valid){
-                    //TODO: confirm this is working!
-                    //TODO: add check on uniqueness contraints and validation outcome! (see other connectAnnoToEntity implementation. )
                     connectAnnoToEntity(hits[j], languageOptions.nodeid, globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox, token.csrf);
                   }
                 })
@@ -403,7 +393,6 @@ let checkIfConnectionExists = async (qid) => {
             navelem.appendChild(navigateHits);
             navelem.appendChild(connectButton); 
           }
-          console.log(data['hits'], ' hits found; ');
           resolve(data['hits']);
         } else {
           //let the user fill out the entity type and go from there

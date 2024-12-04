@@ -35,7 +35,9 @@ class Mail{
     function setMessageContent($message, $isHtml=false){
         $this->messageIsHtml = $isHtml;
         $this->message = $message;
-        if($isHtml){
+        //TODO implement HTML markup here, 
+        // TODO how to implement HTML with phpMailer. 
+        if(boolval($isHtml)){
             
         }
         return true;
@@ -67,7 +69,7 @@ class Mail{
     function send(){
         //TODO test on server
         //include("class.smtp.php"); // optional, gets called from within class.phpmailer.php if not already loaded
-        $mail             = new PHPMailer();
+        $mail = new PHPMailer();
         if($this->smtp === 'SMTP'){
             $mail->IsSMTP(); // telling the class to use SMTP
         }
@@ -87,7 +89,7 @@ class Mail{
         }
         $mail->Host       = SMTPSERVERADR;              // sets SMTPSERVERADR as the SMTP server
         $mail->Port       = SMTPPORT;                   // set the SMTP port for the SMTPSERVERADR server
-        if(SMTPUSER && SMTPPASSWORD){
+        if(boolval(SMTPUSER) && boolval(SMTPPASSWORD)){
             $mail->SMTPAuth   = true;
             $mail->Username   = SMTPUSER;
             $mail->Password   = SMTPPASSWORD;

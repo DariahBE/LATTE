@@ -11,6 +11,8 @@
  */
 
 function helper_setWDLanguages(ddopttarget){
+  //TODO: not implemented yet - weird code //BUG
+  // Argument in function is not properly implemented
   const ddtarget = document.getElementById('wdlookuplanguage'); 
   //traverse over language options: use en as default: 
   let languages = {

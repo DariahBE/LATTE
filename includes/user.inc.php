@@ -23,6 +23,7 @@ class User{
   public $myRole;
   public $myName;
   public $myId;
+  public $setToken; 
   protected $application_roles; 
   function __construct($client)  {
     $this->path_to_sqlite = ROOT_DIR."/user/protected/users.sqlite";
@@ -34,6 +35,7 @@ class User{
     $this->myId = isset($_SESSION['userid']) ? $_SESSION['userid'] : False;
     $this->neoId = isset($_SESSION['neoid']) ? $_SESSION['neoid'] : False;
     $this->application_roles = array('contributor', 'researcher', 'projectlead', 'admin'); 
+    $this->setToken = False;
   }
 
 private function guidv4(){
@@ -210,6 +212,8 @@ public function getMailFromUUID($uuid){
     return 1; 
   }
 
+
+
   public function createUser($mail, $name, $role, $pw=NULL, $make_token=False, $completed = 0, $confirmation_phase = False){
     //is $mail a valid adress: backend validation. 
     if ((!filter_var($mail, FILTER_VALIDATE_EMAIL))) {
@@ -218,7 +222,9 @@ public function getMailFromUUID($uuid){
     $token = NULL; 
     if($make_token){
       $token = $this->getHash(64);
+      $this->setToken = $token; 
     }
+    
     //check if user with mail already exists:
     if (!($confirmation_phase)){
       //SKIP check if POLICY 1 applies and the user is completing their invite. 
@@ -263,6 +269,7 @@ public function getMailFromUUID($uuid){
   //Converted To SQLITE == TRUE
   public function requestPasswordReset($mail){
     $hash = $this->getHash(32); 
+    $this->setToken = $hash; 
     //$checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email SET n.resethash = $resetcode';
     $checkQuery = "UPDATE userdata SET token = ? WHERE userdata.mail = ? AND userdata.blocked = 0"; 
     $checkData = array($hash, $mail); 
@@ -413,7 +420,7 @@ public function getMailFromUUID($uuid){
   }
 
   public function promoteUser($user_uuid, $newRole){
-    if(in_array(strtolower($newRole), $this->$application_roles)){
+    if(in_array(strtolower($newRole), $this->application_roles)){
       $sql_query = 'UPDATE userdata SET `role` = ? WHERE userdata.uuid = ?; '; 
       $stmt = $this->sqlite->prepare($sql_query);
       $stmt->execute(array($newRole, $user_uuid));

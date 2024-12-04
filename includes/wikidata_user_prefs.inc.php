@@ -367,6 +367,5 @@
     }
     return $indicator;
   }
-
 }
 ?>

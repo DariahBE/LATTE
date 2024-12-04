@@ -1070,7 +1070,7 @@ function createSideSkelleton() {
   const statsTarget = document.createElement('div');
   statsTarget.setAttribute('id', 'relatedTextStats');
   statsTarget.classList.add('text-gray-600', 'w-full', 'm-2', 'p-2', 'left-0');
-  statsTarget.innerHTML = '<p>HAS STATS??</p>';
+  statsTarget.innerHTML = '';
   middleblock.appendChild(statsTarget);
   //    2.2:    variants: creates a div where the variants interaction is held. 
   const variantsTarget = document.createElement('div');
@@ -1087,7 +1087,7 @@ function createSideSkelleton() {
   triggerAddActionButton.setAttribute('id', 'add_kb_relation'); 
   triggerAddActionButton.classList.add('btn', 'bg-green-100', 'hover:bg-green-300', 'font-bold', 'py-2', 'px-4', 'rounded-full');
   const relationsTargetSub = document.createElement('div'); 
-  //TODO: urlrelations should be hidden when in nodecreationsmode
+  //urlrelations should be hidden when in nodecreationsmode
   relationsTargetSub.setAttribute('id', 'urlrelationscontainer'); 
   relationsTargetSub.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex-wrap'); 
   relationsTarget.appendChild(relationsTargetTitle); 
