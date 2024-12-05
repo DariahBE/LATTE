@@ -88,6 +88,37 @@ class Validator{
       return [false, 'Enter a valid Q-identifier: (e.g.: Q1234).'];
     }
   }
+
+  async autofetcher(for_item){
+    console.log('reached autofetcher.'); 
+    console.log(for_item);
+    //get the node type
+    let node = ''; //TODO 
+    //check if node type has an override set to it
+    let overridenode = for_item.getAttribute('data-nodetype_override');
+    //get the name of the field attribute.
+    let attribute_name = for_item.getAttribute('data-name'); 
+    //send it using XHR to get next value in line. 
+    console.warn(node, overridenode, attribute_name);
+    let nodename = ''; 
+    let nextval = await fetch("/AJAX/getNext.php?node="+nodename+"&label="+attribute_name)
+    .then((response) => response.json())
+    .then((data) =>{
+
+      }
+    )
+  }
+
+  attach_autofetch(item){
+    var mainclass = this;
+    let fetch_button = document.createElement('button'); 
+    fetch_button.textContent = 'fill';
+    fetch_button.onclick = function(){
+      mainclass.autofetcher(item);
+    }
+    item.parentElement.appendChild(fetch_button);
+  }
+
   pickup(){
     var elements = document.getElementsByClassName('attachValidator'); 
     var mainclass = this;
@@ -95,6 +126,9 @@ class Validator{
       var target = elements[n];
       if (target.classList.contains('monitored')){
         continue;
+      }
+      if(target.classList.contains('validateAs_int') && target.classList.contains('validateAs_unique')){
+        mainclass.attach_autofetch(target);
       }
       target.classList.add('monitored');
       target.addEventListener('change', async function(){
@@ -125,6 +159,7 @@ class Validator{
         if(this.classList.contains('validateAs_uri')){
           var correct = mainclass.linkValidator(this);
         }
+
         if (correct.length != 0){
           if(this.classList.contains('validateAs_unique')){
           var selectedNode; 

@@ -107,6 +107,13 @@ class Mail{
 
         $mail->AddAddress($this->contactAddress);
 
+        //is html: 
+        if(boolval($this->messageIsHtml())){
+            $mail->IsHTML(true);
+        }else{
+            $mail->IsHTML(false);
+        }
+
         if(!$mail->Send()) {
             echo "Mailer Error: " . $mail->ErrorInfo;
         } else {
