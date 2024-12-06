@@ -171,6 +171,7 @@ function acceptQID(qid = -1) {
             document.getElementById('embeddedAnnotation').appendChild(annotationProperties);
             //attach validator after content is in the DOM:  
             validator = new Validator;
+            validator.set_id_of_dropdown_element_for_entity(false);
             validator.pickup();
 
           });

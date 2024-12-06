@@ -319,6 +319,7 @@ function loadPropertiesOfSelectedType(selected) {
         selector.parentElement.appendChild(formBox);
         //attach validator: 
         validator = new Validator;
+        validator.set_id_of_dropdown_element_for_entity("entityTypeSelector");
         validator.pickup();
         //make a save button to commit the data: 
         let saveNewEntry = document.createElement('button');
@@ -915,6 +916,7 @@ function buildAnnotationCreationBox(include_promptbox = true) {
     })
     .then(()=> {
       validator = new Validator; 
+      validator.set_id_of_dropdown_element_for_entity("entityTypeSelector");
       validator.pickup(); 
     });
 

@@ -197,6 +197,9 @@ class nodeCreator{
         form.appendChild(submit);
         formTarget.appendChild(form);
         validator = new Validator;
+        validator.set_id_of_dropdown_element_for_entity('select_dd_element');
+        //explicitly allow the use of autofetching incremental IDs in creation mode. 
+        validator.set_autofetch_to(true);
         validator.pickup();
       });
   }

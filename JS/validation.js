@@ -1,5 +1,23 @@
 
 class Validator{
+  //autofetching is allowed by default
+  use_autofetch = true;
+  etnode_dd_id;
+
+  set_id_of_dropdown_element_for_entity(element){
+    this.etnode_dd_id = element; 
+  }
+
+
+  set_autofetch_to(to_bool){
+    /*method to override the use of autofetching */
+    this.use_autofetch = to_bool;
+  }
+
+  get_autofetch_as_bool(){
+    /*method to get the state of autofetching(allowed or not) */
+    return this.use_autofetch; 
+  }
 
   checkRequired(){
     //required is set to all elements which have the unique attribute
@@ -90,33 +108,48 @@ class Validator{
   }
 
   async autofetcher(for_item){
-    console.log('reached autofetcher.'); 
-    console.log(for_item);
     //get the node type
-    let node = ''; //TODO 
+    let node = null; 
+    if(this.etnode_dd_id){
+      node = document.getElementById(this.etnode_dd_id).value; 
+    }
     //check if node type has an override set to it
     let overridenode = for_item.getAttribute('data-nodetype_override');
     //get the name of the field attribute.
     let attribute_name = for_item.getAttribute('data-name'); 
+    let nodename;
+    if (overridenode){
+      nodename = overridenode; 
+    }else{
+      nodename = node;
+    }
     //send it using XHR to get next value in line. 
-    console.warn(node, overridenode, attribute_name);
-    let nodename = ''; 
-    let nextval = await fetch("/AJAX/getNext.php?node="+nodename+"&label="+attribute_name)
+    await fetch("/AJAX/getNext.php?node="+nodename+"&prop="+attribute_name)
     .then((response) => response.json())
     .then((data) =>{
+        //set the value of the field to the next value in line.
+        for_item.value = data[0];
+        // force a new change event
+        var event = new Event('change', {
+          'bubbles': true,
+          'cancelable': true
+        });
+        for_item.dispatchEvent(event);
 
       }
     )
   }
 
   attach_autofetch(item){
-    var mainclass = this;
-    let fetch_button = document.createElement('button'); 
-    fetch_button.textContent = 'fill';
-    fetch_button.onclick = function(){
-      mainclass.autofetcher(item);
+    if(this.get_autofetch_as_bool()){
+      var mainclass = this;
+      let fetch_button = document.createElement('button'); 
+      fetch_button.textContent = 'fill';
+      fetch_button.onclick = function(){
+        mainclass.autofetcher(item);
+      }
+      item.parentElement.appendChild(fetch_button);
     }
-    item.parentElement.appendChild(fetch_button);
   }
 
   pickup(){
@@ -127,7 +160,7 @@ class Validator{
       if (target.classList.contains('monitored')){
         continue;
       }
-      if(target.classList.contains('validateAs_int') && target.classList.contains('validateAs_unique')){
+      if(target.classList.contains('validateAs_int') && target.classList.contains('validateAs_unique') && this.use_autofetch){
         mainclass.attach_autofetch(target);
       }
       target.classList.add('monitored');

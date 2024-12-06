@@ -1197,6 +1197,30 @@ function executePremadeParameterizedQuery($query, $parameters){
     return $repl; 
   }
 
+  public function extractMaxAttributeValue($label, $property){
+    /*extracts the highest value for $label.$property
+    the intended use of this method is limit to integers.
+    This method should only be allowed to be called on integer fiels.
+
+    WE DO NOT WANT TO FILL GAPS IN INTEGER VALUES AS THESE GAPS COULD
+    INCIDUCTATE OLD RECORDS BEING DELETED/MERGED. 
+    */
+    //integer check: 
+    //check request does the config file specifiy this node/attribute combo as INT + UNIQUE?
+    $go = False;
+    $nodedefinition = NODEMODEL[$label];
+    if (isset($nodedefinition[$property])) {
+      $attribute_definition = $nodedefinition[$property];
+      if ($attribute_definition[1] == 'int' && $attribute_definition[2]) {
+        $go = True;
+      }
+    }else{echo"issue";}
+    if(!($go)){return false;}
+    $query  = "MATCH (n:$label) RETURN COALESCE(max(n.$property), 0) AS maxval";
+    $data = $this->client->run($query)->getResults();
+    return $data;
+  }
+
   public function executionOfParameterizedQuery($query, $parameters){
     /**     READ OPERATIONS
      *  Executes a given query with parameter placeholders, then assigns the $parameters during execution.

@@ -131,6 +131,7 @@ if($requestedNodeLabel === ANNONODE){
   <script>
   //validation of input fields!
   let validator = new Validator;
+  validator.set_autofetch_to(false); 
   validator.pickup();
 
   const ref = "<?php echo htmlspecialchars($ref) ?>";

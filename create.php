@@ -73,8 +73,12 @@ if(!(isset($_SESSION) && boolval($_SESSION['userid']))){
       const texnode = '<?php echo TEXNODE ?>'; 
       const texnodetext = '<?php echo TEXNODETEXT ?>' ;
       const creator = new nodeCreator(core); 
-      let validator = new Validator; 
-      validator.pickup(); 
+      //declare in window scope
+      let validator;    
+      //let creation.js handle the rest: 
+      // let validator = new Validator; 
+      // validator.set_autofetch_to(true); 
+      // validator.pickup(); 
   </script>
   </body>
 </html>
