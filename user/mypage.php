@@ -60,16 +60,6 @@ $preferences->buildPreferences();
         </div>
         
 
-        <div class="coll">
-          <h2 class='text-2xl'>empty</h2>
-
-        </div>
-
-        <div class="coll">
-          <h2 class='text-2xl'>empty</h2>
-
-        </div>
-
       </div>
       <div class="container">
         <div>
@@ -87,7 +77,7 @@ $preferences->buildPreferences();
             </div>
             <br>
             <p><span class='font-bold'>Links: </span> If present, a link to the following wikipedia portals are shown: </p>
-            <p class='text-sm'>When a matching wikipedia article is found, which languages should be shown?</p>
+            <p class='text-sm'>When a matching wiki article is found, which languages should be shown?</p>
             <div id="chosenWDLinks">
               <?php 
                 echo $preferences->generateForm('links');

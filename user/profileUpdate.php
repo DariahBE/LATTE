@@ -17,6 +17,9 @@ $preferences = new Wikidata_user($client);
 
 $key_to_tell_which_form = 'form_type_setting_application_value';
 
+//invalidate the cookie: 
+//setcookie('wd_'.$formname, NULL, time()-10, "/");
+
 $postdata = $_POST; 
 $formname = $postdata[$key_to_tell_which_form]; 
 $data = array_keys($postdata); 

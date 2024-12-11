@@ -11,11 +11,11 @@
       //      ISDEFAULT?: A Boolean indicating if the language is shown by default. 
       //
       'enwiki' => array('https://en.wikipedia.org/wiki/', 'English', True), 
+      'enwikivoyage' => array('https://en.wikivoyage.org/wiki/', 'wikivoyage (EN)', True), 
       'frwiki' => array('https://fr.wikipedia.org/wiki/', 'Français', True), 
       'nlwiki' => array('https://nl.wikipedia.org/wiki/', 'Nederlands', False), 
-      'dewiki' => array('https://de.wikipedia.org/wiki/', 'Deutsch', True), 
+      'dewiki' => array('https://de.wikipedia.org/wiki/', 'Deutsch', False), 
       'plwiki' => array('https://pl.wikipedia.org/wiki/', 'Polski', False), 
-      'ruwiki' => array('https://ru.wikipedia.org/wiki/', 'русский язык', False), 
       'ptwiki' => array('https://pt.wikipedia.org/wiki/', 'Português', False), 
       'eswiki' => array('https://es.wikipedia.org/wiki/', 'Español', False), 
       'itwiki' => array('https://it.wikipedia.org/wiki/', 'Italiano', False), 
@@ -58,7 +58,6 @@
       'de' => 'Deutsch', 
       'nl' => 'Nederlands', 
       'pl' => 'Polski',
-      'ru' => 'русский язык', 
       'pt' => 'Português', 
       'es' => 'Español', 
       'it' => 'Italiano', 
@@ -112,7 +111,7 @@
       $cookies = array(
         'wd_properties' => array('shownProperties', $this->wikidataProperties),
         'wd_pref_lang' => array('preferredLanguage', $this->wikidataPreferedLanguages),
-        'wd_wikilinks' => array('showWikipediaLinksTo', $this->wikidataPrefixToWikipediaLinks), 
+        'wd_links' => array('showWikipediaLinksTo', $this->wikidataPrefixToWikipediaLinks), 
         'wd_wikipedia_titles' =>array('stringmatchWikipediaTitles', $this->wikidataPrefixToWikipediaLinks)
       ); 
 
@@ -144,7 +143,7 @@
           $query = "SELECT 
             userdata.wd_property_preferences as wd_properties,
             userdata.wd_language_preferences as wd_pref_lang,
-            userdata.wd_wikilink_preferences as wd_wikilinks, 
+            userdata.wd_wikilink_preferences as wd_links, 
             userdata.wd_titlestring_preferences as wd_wikipedia_titles
             FROM userdata 
             WHERE 
@@ -162,7 +161,7 @@
               $this->read_validate_and_store_settings($row['wd_pref_lang'], $cookies['wd_pref_lang']);
             }
             if(!$this->customPreferences['showWikipediaLinksTo']){
-              $this->read_validate_and_store_settings($row['wd_wikilinks'], $cookies['wd_wikilinks']);
+              $this->read_validate_and_store_settings($row['wd_links'], $cookies['wd_links']);
             }
             if(!$this->customPreferences['stringmatchWikipediaTitles']){
               $this->read_validate_and_store_settings($row['wd_wikipedia_titles'], $cookies['wd_wikipedia_titles']);
@@ -222,7 +221,7 @@
         'samesite' => 'Strict'
       ); 
       setcookie('wd_properties', $cleanedCookieString_properties, $cookieOptions);
-      setcookie('wd_wikilinks', $cleanedCookieString_links, $cookieOptions);
+      setcookie('wd_links', $cleanedCookieString_links, $cookieOptions);
       setcookie('wd_pref_lang', $cleanedCookieString_language, $cookieOptions);
       setcookie('wd_wikipedia_titles', $cleanedCookieString_language, $cookieOptions);
       }
@@ -284,7 +283,7 @@
             <label for="'.$saltedKey.'">'.$value[$position].'</label>
           </div>'; 
         }
-        $output .= '</div><div class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4 mb-3"><input class="hidden" name="form_type_setting_application_value" value="'.$formname.'"><input type="submit" value = "Submit"></form></div></div>';
+        $output .= '</div><div class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4 mb-3"><input class="hidden" name="form_type_setting_application_value" value="'.$formname.'"><input class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit" value = "Submit"></form></div></div>';
         return $output; 
       }
 
