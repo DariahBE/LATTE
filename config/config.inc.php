@@ -10,6 +10,7 @@ $userName = 'neo4j';
 $userPaswrd = 'password';
 $databaseName = 'hipe.db'; //database hosted on the graph DB instance.
 $URI = 'neo4j://localhost:7687';
+$URI = 'neo4j://neo4j-neo4j-1:7687';  ##TODO test if dockerized flask based entity extractor data can be accessed like this!
 
 /**
  *     CONFIGURATION OF THE EMAIL CONNECTION
