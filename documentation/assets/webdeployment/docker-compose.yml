@@ -5,12 +5,9 @@ services:
     build: .
     ports:
       - "80:80"
+      - "443:443"
     volumes:
       - ./html:/var/www/html
-    networks:
-      - webnet
-    extra_hosts:
-      - "demo.test:127.0.0.1"
-
-networks:
-  webnet:
+      - ./certs:/etc/ssl/certs
+    environment:
+      APACHE_LOG_DIR: /var/log/apache2

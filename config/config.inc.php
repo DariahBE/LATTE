@@ -9,9 +9,8 @@ $hostport = 7687;           //Port used by the DB
 $userName = 'neo4j';
 $userPaswrd = 'password';
 $databaseName = 'hipe.db'; //database hosted on the graph DB instance.
-$URI = 'neo4j://localhost:7687';
-$URI = 'neo4j://neo4j-neo4j-1:7687';  ##TODO test if dockerized flask based entity extractor data can be accessed like this!
-
+$URI = "neo4j://$hostname:$hostport";
+$latteConnector = 'localhost:8000';
 /**
  *     CONFIGURATION OF THE EMAIL CONNECTION
  */
@@ -264,16 +263,11 @@ define("NERCOLOR", $ner_color);
 # Use Latte Connector (accepted values are: True or False)
 $use_connector = True;
 /*SECTION: LATTE WEB APP: PYTHON ENVIRONMENT:*/
-//  Your virtual environment used for the LATTE_connector
-$pyenv = "C:/Workdir/MyApps/Python_VENV/LATTE_connector_demo/Scripts/python.exe";
-//  The folder where the scripts are located in LATTE_connector
-$scripts = "C:/Workdir/MyApps/Python_VENV/LATTE_connector_demo/hostfiles/";
 #which language detection model to use; currenly only langid supported. 
 $languageDetectionEngine =    'langid';
 define("LATTECONNECTOR", $use_connector); 
 define("LANGEXTRACTOR", $languageDetectionEngine);
-define("PYTHON", $pyenv);
-define("SCRIPTROOT", $scripts);
+define("CONNECTORENDPOINT", $latteConnector);
 ######################################################
 
 
