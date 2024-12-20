@@ -33,13 +33,11 @@ if($propId == -1){
   //load the first text OR error out
   // if we get a returned value from our method ==> load it. 
   $firstText = $node->getFirstText();
-  //var_dump($firstText); 
-  //die(); 
   if($firstText !== false){
       header("Location: /text/$firstText");
   }else{
     //else: DB holds no texts ==> error out: 
-      header('Location: /error.php?type=textmissing');
+      header('Location: /error.php?type=notexts');
     }
     die();
   }

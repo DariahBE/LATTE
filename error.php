@@ -17,7 +17,7 @@ if (isset($_GET['type'])){
       break;
     case 'node':
       $title = 'Invalid nodetype.';
-      $fullErrMsg = 'Your request does not contain a valid node identifier. This nodetype probably never existed. The link you followed may bave been broken..';
+      $fullErrMsg = 'Your request does not contain a valid node identifier. This nodetype probably never existed. The link you followed may bave been broken.';
       break;
     case 'id':
       $title = 'Invalid identifier.';
@@ -26,6 +26,9 @@ if (isset($_GET['type'])){
     case 'conn': 
       $title = 'Database unreachable.'; 
       $fullErrMsg = 'The desired database could not be reached. Either the configured details are wrong, or the database is down.'; 
+    case 'notexts': 
+      $title = 'No texts in database.';
+      $fullErrMsg = 'The database is reachable but there are no texts in it. The database is probably empty or the config file is not set up correctly.';
     default:
       break;
   }

@@ -9,7 +9,7 @@ $hostport = 7687;           //Port used by the DB
 $userName = 'neo4j';
 $userPaswrd = 'password';
 $databaseName = 'hipe.db'; //database hosted on the graph DB instance.
-$URI = "neo4j://$hostname:$hostport";
+$URI = "neo4j://neo4j-neo4j-1:$hostport";
 $latteConnector = 'localhost:8000';
 /**
  *     CONFIGURATION OF THE EMAIL CONNECTION
@@ -262,9 +262,9 @@ define("NERCOLOR", $ner_color);
 ########### LATTE CONNECTOR INTEGRATION: ###########
 # Use Latte Connector (accepted values are: True or False)
 $use_connector = True;
-/*SECTION: LATTE WEB APP: PYTHON ENVIRONMENT:*/
 #which language detection model to use; currenly only langid supported. 
 $languageDetectionEngine =    'langid';
+#Leave constant definitions untouched!
 define("LATTECONNECTOR", $use_connector); 
 define("LANGEXTRACTOR", $languageDetectionEngine);
 define("CONNECTORENDPOINT", $latteConnector);

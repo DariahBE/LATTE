@@ -3,15 +3,10 @@ include_once("../config/config.inc.php");
 
 header('Content-Type: application/json; charset=utf-8');
 
-#TODO: GREAT, it works in FLASK, not so great the content does not get read by JS. 
-#Same issue for getLang_async.php
-#probably needs some way to parse the content. 
-
 $x = $_GET;
 if (isset($x['node']) && isset($x['lang'])){
   $nodeid = (int)$x['node'];
   $lang = $x['lang'];
-  $lang = escapeshellarg($lang);
 
   $json_body = array(
     "lang"=> $lang, 
@@ -34,7 +29,6 @@ if (isset($x['node']) && isset($x['lang'])){
 
   // Initialize cURL
   $ch = curl_init($url);
-
   // Set cURL options
   curl_setopt($ch, CURLOPT_POST, true); // Specify this is a POST request
   curl_setopt($ch, CURLOPT_POSTFIELDS, $json_data); // Attach the JSON data
@@ -59,8 +53,9 @@ if (isset($x['node']) && isset($x['lang'])){
   curl_close($ch);
   /////////////////
 
-  $parsedResult = json_decode($response);
-  echo json_encode($parsedResult);
+  // $parsedResult = json_decode($response);
+  // echo json_encode($parsedResult);
+  echo $response;
 }else{
   die(json_encode("invalid request."));
 }

@@ -68,6 +68,14 @@ The LATTE connector can be downloaded from GitHub, once downloaded, extract it t
     as a name for the latte image we'll use: *latte_conn_img* so the command becomes: 
     ```docker build -t latte_conn_img .```
 
+4) Deploy the image as a container using the following command: If you kept your port numbers of the LATTE Connector unchanged in the dockerfile, you can keep the portnumbers as they are in the example.
+    docker run -d -p 8000:8000 --name \<containername\> \<choose an imagename\>
+    ```docker run -d -p 8000:8000 --name latte_connector latte_conn_img```
+
+remember the name of the container as you'll it later. 
+
+
+
 The image is built, but will still need to be integrated with the database backend. This procedure is described step by step in section 4. For now remember the name of the image you created. 
 
 ### 3.3. LATTE web:
@@ -117,11 +125,11 @@ The three components are now installed in separate, unconnected containers. By c
 
     as example:
     ```docker network connect latte_connector_flask_network neo4j-neo4j-1```
-3) Connect your earlier created instance of LATTE connector to this network, you can recover the name in a similar fashion as in step 2. 
+3) Connect your earlier created container of the LATTE connector to this network, you can recover the name in a similar fashion as in step 2. 
     docker network connect \<your chosen network name\> \<name of LATTE connector container (created in step 3.2).\>
 
     as example: 
-    ```docker network connect latte_connector_flask_network latte_networked_flask_connector```
+    ```docker network connect latte_connector_flask_network latte_connector```
 
 4) Connect the web instance of LATTE to this network, recover the name of it as described in step 2: 
     docker network connect \<your chosen network name\> \<name of LATTE web container (created in step 3.3.)\>
