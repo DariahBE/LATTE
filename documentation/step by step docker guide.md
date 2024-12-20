@@ -64,8 +64,8 @@ The LATTE connector can be downloaded from GitHub, once downloaded, extract it t
 1) Extract the downloaded zip file to your docker folder. 
 2) Open a PowerShell instance in your unzipped folder. You can check if you're in the right folder by using the ```ls``` command. You should see the content of your extracted folder listed. 
 3) Build the docker image using the following command:
-    docker build -t <name of the latte image> .
-    as a name for the latte image we'll use: *latte_conn_img* so the command becomes: 
+    docker build -t \<name of the latte image\> .
+    As a name for the latte image we'll use: *latte_conn_img* so the command becomes: 
     ```docker build -t latte_conn_img .```
 
 4) Deploy the image as a container using the following command: If you kept your port numbers of the LATTE Connector unchanged in the dockerfile, you can keep the portnumbers as they are in the example.
@@ -137,7 +137,7 @@ The three components are now installed in separate, unconnected containers. By c
     as example:
     ```docker network connect latte_connector_flask_network latte_final_writeup_doc-web-1```
 3) Inspect the result of the network attachment: 
-    use the command: docker network inspect <name of the network made in step4>
+    use the command: docker network inspect \<name of the network made in step4\>
     ```docker network inspect latte_connector_flask_network```
     you should see the name of your three container printed out into the terminal. 
 
@@ -150,32 +150,32 @@ The LATTE web app needs to know the names of the other two containers to be able
 You need to provide a username, password and database name to the config file. The procedure to set these values were discussed in section 3.1.3 and 3.1.4 (subsection Folders). If you don't remember them, you can recover them from the relevant files created by you. The relevant sections to update are bundled together at the top of the file. 
 
 To set the **username**, modify the following section of the config.inc.php file. 
-$userName = '<username here>';
+$userName = '\<username here\>';
 
 example: 
     ```$userName = 'neo4j';```
 
 To set the **password** modify the following section of the config.inc.php file. 
-$userPaswrd = '<password here>';
+$userPaswrd = '\<password here\>';
 
 example:
     ```$userPaswrd = 'J9jd6b!Ax8*yVZ?m';```
 
 To set the **database name** modify the following section of the config.inc.php file. 
-$databaseName = '<dbname.db here>';
+$databaseName = '\<dbname.db here\>';
 example: 
     ```$databaseName = 'latte.db';```
 
 ### 5.2 NEO4J connection: 
 You'll also need to set the hostname, hostport and URI values to be able to connect to the actual container. 
 Modify the **hostname** to match the name of the Docker container that holds the NEO4J datase. If you don't know the name of the container any more you can recover it by using the ```docker ps``` command or by inspecting the network: ```docker inspect network <networkname>``` (with \<networkname\> being the actual name of the Docker network.)
-$hostname = '`<name of the neo4J container>`';
+$hostname = '\<name of the neo4J container\>';
 example: 
     ```$hostname = 'neo4j_backend-neo4j-1';```
 
 **hostport**: 
 Unless you modified the host port in the neo4j.conf file there's no need to modify this value. You can keep it at 7687. Should you have changed the port it can be updated like this: 
-$hostport = <portnumber here>; 
+$hostport = \<portnumber here\>; 
 example: 
 ```$hostport = 7687; ```
 
@@ -183,7 +183,7 @@ example:
 By default the port latteConnector exposes to is 8000; so if you didn't change the value for this in the Dockerfile, you can trust on it it'll be 8000. 
 You'll need to provide two values separeted by `:`: 
 Here you pass the name of the Latte connector container - the container created and set up in step *3.2*. The name of this container can be recoverred using the inspect command described above. To pass the correct value update the following section. 
-$latteConnector = '<containername>:<exposedport>'; 
+$latteConnector = '\<containername\>:\<exposedport\>'; 
 *Tip: * the container name is also required when you connect it to your network. 
 example:
     ```$latteConnector = 'latte_networked_flask_connector:8000';```

@@ -1,25 +1,25 @@
 <?php
 /*GIVE THE PROJECT A NAME: */
-$projectName = 'MOVIE data';
+$projectName = <insert project name>
 
 /*Connect to the NEO4Jdatabase:*/
 //$defaultdriver = 'neo4j';   //neo4j or bolt  // disabled!
-$hostname = 'localhost';    //where's the DB hosted
-$hostport = 7688;           //Port used by the DB
-$userName = 'neo4j';
-$userPaswrd = 'password';
-$databaseName = 'dataset2.db'; //database hosted on the graph DB instance.
-$URI = 'neo4j://localhost:'.$hostport;
-
+$hostname =  '<name of the neo4J container>';    //where's the DB hosted
+$hostport = <portnumber here>;           //Port used by the DB
+$userName = '<username here>';
+$userPaswrd = '<password here>';
+$databaseName = '<dbname.db here>'; //database hosted on the graph DB instance.
+$URI = "neo4j://$hostname:$hostport";
+$latteConnector = '<containername>:<exposedport>';
 /**
  *     CONFIGURATION OF THE EMAIL CONNECTION
  */
-$mailprotocol = 'SMTP';          // 'SMTP' or ''.
-$originEmail = 'donotreply@trismegistos.org';     //emailadress used to sent the message.
-$smtpUser = false;     //account use on the server to send the mail. set to false if there is no authentication method
-$smtpPassword = false;     //password associated to the email adress. set to false if there is no authentication method
-$smtpServer = 'smtp.kuleuven.be';
-$smtpPort = 25;     //port of the SMTP server
+$mailprotocol = '<PROTOCOL>';          // 'SMTP' or ''.
+$originEmail = '<sent-from email to be shown to recipients.>';     //emailadress used to sent the message.
+$smtpUser = '<username of the smtp server>';     //account use on the server to send the mail. set to false if there is no authentication method
+$smtpPassword = '<password of the smtp server>';     //password associated to the email adress. set to false if there is no authentication method
+$smtpServer = '<SMTP server address>';
+$smtpPort = <SMTP Port number>;     //port of the SMTP server  //default = 25
 $selfSignedCertificates = true;           //set to true for servers where a self-signed SSL-certificate is being used (see Bug info described here: https://github.com/PHPMailer/PHPMailer/issues/718 )
 
 
@@ -31,7 +31,7 @@ $selfSignedCertificates = true;           //set to true for servers where a self
   Nodes are capitalized, properties aren't!
   Every label is followed by an array of properties: 
     - Human readable string: this string is used in the frontend.
-    - Type of variable: string, uri, float, int, bool OR wikidata.
+    - Type of variable: string, float, int, bool, uri OR wikidata.
         - the wikidata datatype expects a Q-identifier and returns live data from an API call. 
     - Boolean: Unique Key: is the value unique for this type of nodes? 
     - Boolean: Visual Distinguishing: Is the value used in the dom to label the nodes. If the node does not have a visually distinguishable component, the nodelabel is used.
@@ -40,66 +40,25 @@ $selfSignedCertificates = true;           //set to true for servers where a self
 */
 
 $nodesDatamodel = array(
-  'Actor' => [
-    "name" => ["Name", "string", false, true, true],
-    "gender" =>["Gender", "string", false, false, true], 
-    "wiki_id" => ["Wikidata Label", 'wikidata', false, false, false],
-    "nationality" => ["Nationality", 'nationality', false, false, true],
-  ],
-  'Movie' => [
-    "imdb_id" => ["IMDB ID", "int", true, true, true],
-    "language" => ["Language", "string", false, false, true],
-    "director" => ["Director", "string", false, false, true]
-  ],
-  'Variant' => [                                                //'Variant' label is a required nodelabel in the current model! IS not allowed to change. 
-    "variant" => ["Label", "string", false, true, true],        //'variant' proprety is a required property in the current model! IS not allowed to change.
-    "remark" => ["Remark", "string", false, false, true]
-  ],
-  'See_Also' => [
-    "partner" => ["Projectname", "string", false, false, true],
-    "partner_uri" => ["Link", "uri", false, false, true]
-  ],
-  'Reference' => [
-    "selstart" => ["Annotation Start", "int", false, false, false],
-    "selstop" => ["Annotation End", "int", false, false, false],
-    "private" => ["Private Annotation", "bool", false, false, false],
-    "note" => ["Note", "string", false, false, true],
-    "extra" => ["Extra", "string", false, false, true], 
-    "url" => ["Link", 'uri', false, false, false],
-    "cid" => ["comment identifier", 'string', true, false, false]
-  ],
-  'Full' =>[      //testing all datatypes:
-    "nr" => ['ID', 'int', true, false, true], 
-    "minrating" => ['Lowest score', 'float', false, false, true], 
-    "maxrating" => ['Highest score', 'float', false, false, true], 
-    "validated" => ['Validated', 'bool', false, false, true], 
-    "wiki_id" => ['Wikdata ID', 'wikidata', true, false, true], 
-    "name" => ['Name', 'string', true, false, true], 
-    "link" => ['Link', 'uri', false, false, true]
+  '<Nodelabel>' => [
+    '<propertyname>' => ['<Human readable string>', '<Type of variable>', '<Unique Key>', '<Visual Distinguishing>', '<Searchable>'],
+    '<propertyname_2>' => ['<Human readable string>', '<Type of variable>', '<Unique Key>', '<Visual Distinguishing>', '<Searchable>'],
   ], 
-  'Article' => [
-    "article_id" => ['ID', 'int', true, true, true], 
-    "title" => ['Title', 'string', true, false, false], 
-    "article" => ['Article', 'string', false, false, false], 
-    "source" => ['Source', 'string', false, false, false]
-  ], 
-  'Character' => [
-    "name" => ['Full Name', 'string', true, true, true], 
-    "dies" => ['Dies', 'bool', false, false, true]
+  'Nodelabel_2' => [
+    'propertyname' => ['Human readable string', 'Type of variable', 'Unique Key', 'Visual Distinguishing', 'Searchable'],
+    'propertyname_2' => ['Human readable string', 'Type of variable', 'Unique Key', 'Visual Distinguishing', 'Searchable'],
   ]
 );
 
 //what is the node used for Annotations: Should match a key used in your Nodesmodel:
-$nodeAsAnnotation = 'Reference'; 
+$nodeAsAnnotation = '<Nodelabel used for annotations>'; 
 //what is the property that indicates the startposition of an Annotation:
-$annotationStart = 'selstart';
+$annotationStart = '<propertyname of annotation start points.>';
 //what is the property that indicates the endposition of an Annotation:
-$annotationEnd = 'selstop';
+$annotationEnd = '<propertyname of annotation end points.>';
 //What is the node label used for Text objects. Should match a Key used in your Nodesmodel.
-$nodeAsText = 'Article';
-$propertyContainingText = 'article';   //Which property holds the text to show on the screen and to annotate into?
-
-
+$nodeAsText = '<Nodelabel used for texts>';
+$propertyContainingText = '<Property used for text in the Text node.>';   //Which property holds the text to show on the screen and to annotate into?
 
 //node properties that are protected by the application and automatically generated. 
 $privateProperties = array('uid');
@@ -110,12 +69,8 @@ $privateProperties = array('uid');
 // config object above; Asign the color value to them you want to use in the DOM. The keys used in this 
 //dictionary should match the names of entitytypes which are part of the researchproject!
 $matchOnNodes = array(
-  'Actor' => 'rgba(39, 123, 245, 0.6)',
-  'Movie' => 'rgba(245, 178, 39, 0.6)',
-  'Article' => 'rgba(28, 200, 28, 0.6)',
-  'Reference' => 'rgba(200, 28, 28, 0.6)', 
-  'Full' => 'rgba(200,200,20,0.6)', 
-  'Character' => 'rgba(250, 0, 250, 0.6)'
+  '<Nodelabel>'=> '<rgba value for this node type: e.g. rbga(39,125,245,0.6)>',
+  '<Nodelabel_2>'=> '<rgba value for this node type: e.g. rbga(125,39,245,0.6)>',
 );
 
 //automatically fill out below config based on nodesDatamodel:
@@ -127,7 +82,6 @@ foreach(array_keys($nodesDatamodel) as $node){
 
 /*set the primary keys for your nodes. If No primary key is set, the database will revert to using UUID.*/
 /*The UUID key is shortened as 'uid' */
-// // BUG: HOW to get to defaulted uid key!!!?
 $primaryKeys = array_map(function ($ar){
   /*
     You should have all the keys of nodesDatamodel here and default them to uid.
@@ -138,28 +92,28 @@ $primaryKeys = array_map(function ($ar){
       return $key;
     }
   }
+  //TODO Consider returning UID in stead of false. 
   //return 'uid';
   return false;
 }, $nodesDatamodel);
 
 /*Provide an optional translation for edges.
 Edgelabels may use another name in the database than in the tool's GUI.
-This allows for more intuitive names. 
-// TODO: edge information should not be editable by user anyway,
-//        Is it then really needed in the config file? 
+This allows for more intuitive names.  
 */
 $edges_translate = array(
   'same_as' => 'Variant',
   'see_also' => 'Knowledgebase relations',
 );
 $nodes_translate = array(
-  'Actor' => 'Actor',
+  'Person' => 'People',
   'See_Also' => 'External Links',
   'Variant' => 'Spelling variants',
-  'Movie' => 'Movie',
-  'Article' => 'Articles',
-  'Reference' => 'Annotations',
-  // 'priv_user' => 'Users'
+  'Place' => 'Places',
+  'Text' => 'Texts',
+  'Annotation' => 'Annotations',
+  'Dog' => 'Dogs',
+  'priv_user' => 'Users'
 );
 
 ########## HOW TO DISPLAY PICKUP BY NER-TOOL: ############
@@ -197,7 +151,7 @@ define("URI", $URI);
 define("WEBURL", $baseURI);
 define("PRIMARIES", $primaryKeys);
 define("PRIVATEPROPERTIES", $privateProperties);
-//define("EDGEMODEL", $edgesDatamodel);
+// define("EDGEMODEL", $edgesDatamodel);
 define("ANNOSTART", $annotationStart);
 define("ANNOSTOP", $annotationEnd);
 define("TEXNODE", $nodeAsText);
@@ -225,17 +179,12 @@ define("NERCOLOR", $ner_color);
 ########### LATTE CONNECTOR INTEGRATION: ###########
 # Use Latte Connector (accepted values are: True or False)
 $use_connector = True;
-/*SECTION: LATTE WEB APP: PYTHON ENVIRONMENT:*/
-//  Your virtual environment used for the LATTE_connector
-$pyenv = "C:/Workdir/MyApps/Python_VENV/LATTE_connector/Scripts/python.exe";
-//  The folder where the scripts are located in LATTE_connector
-$scripts = "C:/Workdir/MyApps/Python_VENV/LATTE_connector/hostfiles/";
 #which language detection model to use; currenly only langid supported. 
 $languageDetectionEngine =    'langid';
+#Leave constant definitions untouched!
 define("LATTECONNECTOR", $use_connector); 
 define("LANGEXTRACTOR", $languageDetectionEngine);
-define("PYTHON", $pyenv);
-define("SCRIPTROOT", $scripts);
+define("CONNECTORENDPOINT", $latteConnector);
 ######################################################
 
 
