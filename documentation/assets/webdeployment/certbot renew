@@ -1,0 +1,9 @@
+#TODO implement certbot!
+
+Step 1: Certbot Configuration
+After deploying the container, run Certbot inside the container to generate SSL certificates:
+    docker exec -it <container_name> certbot --apache -d latte.org -d www.latte.org
+
+Step 2: Renew SSL Certificates
+Automate certificate renewal by adding a cron job inside the container or by running Certbot renew regularly:
+    docker exec <container_name> certbot renew

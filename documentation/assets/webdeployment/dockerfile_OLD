@@ -1,0 +1,38 @@
+# Use the official PHP image with Apache
+FROM php:8.2-apache
+
+# Enable Apache mod_rewrite
+RUN a2enmod rewrite
+RUN a2enmod headers
+RUN a2enmod include
+RUN a2enmod ssl
+
+# Install necessary PHP extensions
+RUN apt-get update && apt-get install -y \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install gd
+
+# Install additional PHP modules
+# You can add more extensions here if needed
+RUN docker-php-ext-install pdo pdo_mysql
+#RUN docker-php-ext-install sqlite3
+#RUN docker-php-ext-install pdo_sqlite
+#RUN docker-php-ext-install intl
+#RUN docker-php-ext-install mbstring
+RUN docker-php-ext-install exif
+RUN docker-php-ext-install mysqli
+
+# Copy the custom Apache configuration
+COPY apache-config.conf /etc/apache2/sites-available/000-default.conf
+
+# Set the working directory to /var/www/html
+WORKDIR /var/www/html
+
+# Expose port 80
+EXPOSE 80
+
+# Start Apache in the foreground
+CMD ["apache2-foreground"]

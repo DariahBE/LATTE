@@ -1,17 +1,9 @@
 <?php
-ini_set('display_errors', 1);
-ini_set('display_startup_errors', 1);
-error_reporting(E_ALL);
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 header('Content-Type: application/json; charset=utf-8');
 $x = $_GET;
-#TODO: GREAT, it works in FLASK, not so great the content does not get read by JS. 
-#Same issue for getEntities_async.php
 if (isset($x['node'])){
   $nodeid = (int)$x['node'];
-  #$pathOverride = SCRIPTROOT;
-  #$command = PYTHON.' "'.$pathOverride.'detect_language.py" --nodeid='.$nodeid. ' --extractor="'.LANGEXTRACTOR.'" --uri="'.URI.'" --username="'.USERNAME.'" --password="'.PASSWORD.'" --database="'.DBNAME.'" --textlabel="'.TEXNODE.'"  --textproperty="'.TEXNODETEXT.'"';
-  #$scriptResult = shell_exec($command);
 
   $json_body = array(
     "nodeid"=> $nodeid,
