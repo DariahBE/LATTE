@@ -44,6 +44,7 @@ if($propId == -1){
 
 $user = new User($client);
 $user->checkAccess(TEXTSAREPUBLIC);
+$adminMode = $user->myRole == 'Admin'; 
 $annotation = new Annotation($client);
 $annotation->startTransaction(); 
 $wikidata = new Wikidata_user($client);
@@ -105,7 +106,7 @@ $unlinkedAnnotations = $annotation->getUnlinkedAnnotationsInText($neoId);
   </head>
   <body class="bg-neutral-200 w-full">
   <?php
-    $navbar = new Navbar(); 
+    $navbar = new Navbar($adminMode); 
     echo $navbar->getNav();
   ?>
 

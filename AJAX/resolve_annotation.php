@@ -55,7 +55,10 @@ if ($annotation_type === ANNONODE){
   $formattedResponse['entityFields'] = NODEMODEL[$connectedEntityLabel];
   foreach ($annotationInformation['properties'] as $key => $value) {
     $allowedToEdit = $user->hasEditRights($user->myRole);
-    $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key), $allowedToEdit);
+    //filter out keys that are in the NEO4J database; but not in the configured model any more. 
+    if(array_key_exists($key, NODEMODEL[ANNONODE])){
+      $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key), $allowedToEdit);
+    }
   }
   //Find the connecting entity that is linked to the annotation and labelvariants associated with this entity: 
   $etData = $graph->findEntity($annotationId);
@@ -65,18 +68,12 @@ if ($annotation_type === ANNONODE){
 }else if($annotation_type === 'Annotation_auto'){
   $mode = 'automated'; 
   $annot_key  = 'Automatic_annotation'; 
-  //$autodata = $annotation->fetchAutomaticAnnotationById($egoId);    // not required any longer
-  //var_dump($autodata); 
   //structure of Annotation_auto is pulled from the annotation.inc.php class as private property. 
   // it is structured the same way as the nodesmodel in config.inc.php; 
   $formattedResponse['annotationFields']= $annotation->auto_model[$annot_key]; 
   $formattedResponse['neo_id_of_auto_anno']  = $egoId;       //pass the internal NEOID to js; needed at later stage for update. 
 
-  //$formattedResponse['annotation']['properties'] = ['starts' => ['starts', 'vl', true, 0], 'stops' => ['stops', 'vl', true, 0]];
-  //var_dump($egodata['data'][0][0]);
-  //var_dump($egodata['data'][0][0]->get('node')->getProperty('uid')); 
   $node = $egodata['data'][0][0]->get('node'); 
-  //var_dump($node); 
   foreach ($annotation->auto_model[$annot_key] as $key => $value) {
     $allowedToEdit = False;   //non-editable by default!
     $protected = True;        //always protect autogen values!
@@ -84,13 +81,6 @@ if ($annotation_type === ANNONODE){
     
     $formattedResponse['annotation']['properties'][$key]= array($key, $value, $protected, $allowedToEdit);
   }
-  /**
-  *foreach ($annotationInformation['properties'] as $key => $value) {
-  *  $allowedToEdit = $user->hasEditRights($user->myRole, $user->myName === $owner);
-  *  $formattedResponse['annotation']['properties'][$key] = array($key, $value, $annotation->isProtectedKey($key), $allowedToEdit);
-  *}
-  * 
-  */
 
 }else{
   die(); 
