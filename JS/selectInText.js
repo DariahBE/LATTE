@@ -1152,7 +1152,11 @@ function triggerSidePanelAction(entityData) {
     //detect if levenshtein is enabled: DO NOT rely on DOM; use the data itself
     let levscores = entityData['levenshtein_dist'];
     let weightscores = entityData['weights'];
-    let hasLevenshtein = Object.keys(levscores).length > 0 
+    let hasLevenshtein = Object.keys(levscores).length > 0; 
+
+    console.log('SCORINGSTUFF'); 
+    console.log(levscores); 
+    console.log(hasLevenshtein); 
   if (entityData['nodes'].length) {
     //create a title that show the information about the matching entities: 
     let topTex = document.createElement('h3');
@@ -1164,14 +1168,28 @@ function triggerSidePanelAction(entityData) {
     for (let k of Object.keys(dataDictionary)) {
       dataDictionary[k]['weight'] = entityData['weights'][dataDictionary[k][0]];
     }
-    //BUG sort is not working! Disabled for now. 
-    /*
-    //sort the entities according to their score coming from the backend: 
-    Object.keys(dataDictionary).sort(score);
-    function score(a, b) {
-      return dataDictionary[a]['weight'] + dataDictionary[b]['weight'];
-    }*/
-    //node with the heighest weight is presented first: >> load the first node: 
+    if (hasLevenshtein){
+        //APPLY sort only based on levenshtein distance if levenshtein values are known: 
+        //Lowest LD is the node matching closest to what's asked; sort LD ASC. 
+        // Function to sort the datadictionary based on ldist
+        function sortDataDictionary(ldist, datadictionary) {
+          return datadictionary.sort((a, b) => {
+            const aId = a[0]; // Get the ID from the first element of the sub-array
+            const bId = b[0]; // Get the ID from the first element of the sub-array
+
+            const aValue = ldist[aId]; // Get the corresponding value from ldist
+            const bValue = ldist[bId]; // Get the corresponding value from ldist
+
+            // If aValue or bValue is undefined, treat it as a high value (for sorting)
+            return (aValue || Infinity) - (bValue || Infinity);
+          });
+        }
+        // store the result back to dataDictionary: Is now sorted
+        // with ascending LD (lowest LD is closest match)
+        dataDictionary = sortDataDictionary(levscores, dataDictionary);
+    }
+
+
     var firstNode = dataDictionary[0];
     targetOfInfo.appendChild(createMainBox());
     let lev = false;
