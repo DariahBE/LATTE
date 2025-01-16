@@ -57,15 +57,6 @@ class Mail{
         }
     }
 
-    /*
-    function generateSalt($length=64){
-        //TODO: required?
-        $hash = ''; 
-        $codes = 'abcdefghijklmnopqrstuvwxyz0123456789';
-        
-        return $hash
-    }*/
-
     function send(){
         //TODO test on server
         //include("class.smtp.php"); // optional, gets called from within class.phpmailer.php if not already loaded

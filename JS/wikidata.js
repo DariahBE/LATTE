@@ -428,6 +428,8 @@ class wikibaseEntry {
     //commemorative plaque => https://www.wikidata.org/wiki/Property_talk:P1801 
     //    P1801: formatter: https://commons.wikimedia.org/wiki/File:$1   
     //////LET'S assume that all mediafiles have the same formatter; as long as P-content in xhr call is universal, this will work; 
+    //Only run when image.length > 0:
+    if (image.length == 0){return}
     var into = this.OutputFormattedDataBlocks[q]['img'];
     //let's assume that the image variable can hold 2 or more images, we need a for loop and caroussel to display this. 
     var carousselDiv = document.createElement('div'); 

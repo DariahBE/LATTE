@@ -43,7 +43,8 @@ if($_POST['action'] == 'block'){
   $userID = $_POST['userId']; 
   //you need to retrieve the usermail by passing the userid to the backend.
   $usermail = $user->getMailFromUUID($userID);
-  $updateResult = $user->requestPasswordReset($usermail)[0];
+  //add the true flag: text will reflect the reset was performed by the admin. 
+  $updateResult = $user->requestPasswordReset($usermail, True)[0];
   $good = $updateResult === 1 ? True : False;
   echo json_encode(array('success'=>$good)); 
 }else{

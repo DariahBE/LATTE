@@ -39,6 +39,10 @@ class User{
   }
 
 private function guidv4(){
+  /**
+   *  creates a UUIDV4 id. Either by a built in function or
+   * openssl fallback if needed.  
+   */
   if (function_exists('com_create_guid') === true){
       return trim(com_create_guid(), '{}');
   }
@@ -49,6 +53,10 @@ private function guidv4(){
 }
 
 private function getHash($l){
+  /**
+   *  Generates a random hash a-z + 0-9
+   *  of $l (int) length.
+   */
   $hashSymbols = 'abcdefghijklmnopqrstuvwxyz0123456789'; 
   $hash = '';
   for ($i = 0; $i < $l; $i++){
@@ -59,6 +67,12 @@ private function getHash($l){
 }
 
 public function checkForSession($redir="/user/mypage.php"){
+  /**
+   * CHecks if a request is part of a SESSION object, 
+   * if not redirect the user to $redir (str). If $redir
+   * is not supplied, the user will be redirected to 
+   * a loginpage. 
+   */
   if(boolval($this->myName)){
     header("Location: $redir");
     die(); 
@@ -66,6 +80,12 @@ public function checkForSession($redir="/user/mypage.php"){
 }
 
 public function getMailFromUUID($uuid){
+  /**
+   * Takes a users $UUID and returns the mail adress of the user. 
+   * If no matching UUID is found, a die() statement is triggered. 
+   * 
+   * ==> Required in the admin portal when updates to userdata are performed. 
+   */
   $stmt = $this->sqlite->prepare("SELECT mail FROM userdata WHERE uuid = :uuid LIMIT 1");
   $stmt->bindParam(':uuid', $uuid);
   $stmt->execute(); 
@@ -78,15 +98,24 @@ public function getMailFromUUID($uuid){
 }
 
   public function logout(){
+    /**
+     * Destroys a session: logs a user out. 
+     */
     session_destroy();
     if (filter_var(WEBURL, FILTER_VALIDATE_URL) !== FALSE) {
       header('Location: '.WEBURL);
       die(); 
     }
-    //die("Log out completed.");
   } 
 
   public function checkAccess($ispublic){
+    /*
+      Checks if a request grants access to a specific type of data by checking the 
+      global settings and the existence of a user session. 
+
+      When data is set to 'not-public viewable', any logged in user can still access 
+      the data. They need to be logged in. 
+    */
     if($ispublic){return $ispublic;}
     if(boolval($this->checkSession())){
       return True;
@@ -96,14 +125,21 @@ public function getMailFromUUID($uuid){
     }
   }
 
-  //Converted To SQLITE == OK
-  //tested == OK
+
   public function login($email, $password){
-    //perform a cypher statement: user data is stored in the same database as the researchdata.
-    //protected userdata is prepended with priv_
-    //$query = 'MATCH (u:priv_user {mail:$email}) return u.password as pw, u.logon_attempts as att, id(u) as nodeid, u.userid as uid, u.role as role, u.name as name limit 1';
-    //$result = $this->client->run($query, array('email'=>$email));
-    $query = "SELECT * FROM userdata WHERE userdata.mail = ? AND userdata.logon_attempts <= 5 AND userdata.token IS NULL AND userdata.completed = 1 AND userdata.blocked = 0";
+    /**
+     * Performs a login of a user by checking $email and $password hash;
+     * If the user exists and the password is correct, a session is created.-
+     * 
+     * A user can only log in IF:
+     *  1) a maximum of 5 wrong attempts were made
+     *  2) A usr is not blocked
+     *  3) A user has completed the registration procedure.
+     * 
+     * Every wrong logon attempt increments the counter by 1. When the user logs in 
+     * with the correct password, the counter is reset. 
+     */
+    $query = "SELECT * FROM userdata WHERE userdata.mail = ? AND userdata.logon_attempts <= 5 AND userdata.completed = 1 AND userdata.blocked = 0";
     $stmt = $this->sqlite->prepare($query);
     $stmt->execute(array($email));
     $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -205,6 +241,7 @@ public function getMailFromUUID($uuid){
     /*
     *    -  (SQL: id      =   NEO4J: user_sqlid )
     *    -  (SQL: uuid    =   NEO4J: user_uuid )
+    * create a priv_user in neo4J for a given user that's in SQLITE.
    */
 
     $query = 'CREATE (n:priv_user {user_uuid: $uuid, name: $username, user_sqlid: $sqlite_id})';
@@ -215,7 +252,10 @@ public function getMailFromUUID($uuid){
 
 
   public function createUser($mail, $name, $role, $pw=NULL, $make_token=False, $completed = 0, $confirmation_phase = False){
-    //is $mail a valid adress: backend validation. 
+    //is $mail a valid adress: backend validation.
+    /**
+     * Creates a user in SQLITE if it passes all checks. 
+     *  */ 
     if ((!filter_var($mail, FILTER_VALIDATE_EMAIL))) {
       return (array('error', 'Invalid mail')); 
     }
@@ -244,9 +284,7 @@ public function getMailFromUUID($uuid){
     }else{
       $query = "UPDATE userdata set password = ?, token = NULL, completed = 1, blocked = 0 WHERE userdata.mail = ? ";
       $query_data = array($pw, $mail);
-    }
-
-      try {
+    } try {
         $stmt = $this->sqlite->prepare($query);
         $stmt->execute($query_data);
         $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
@@ -262,23 +300,36 @@ public function getMailFromUUID($uuid){
       } catch (\Throwable $th) {
         return (array('error', 'User could not be added.'));
       }
-    
   }
 
 
   //Converted To SQLITE == TRUE
-  public function requestPasswordReset($mail){
+  public function requestPasswordReset($mail, $by_admin = False){
+    /**
+     * Takes $mail (mailadress of account to reset)
+     * Bool (flag that says the action was triggered by an Admin user)
+     * 
+     * Checks if the user exists, generates a hash, resets the accestoken to the hash
+     * and contacts the end user 
+     */
     $hash = $this->getHash(32); 
     $this->setToken = $hash; 
     //$checkQuery = 'MATCH (n:priv_user) WHERE n.mail = $email SET n.resethash = $resetcode';
-    $checkQuery = "UPDATE userdata SET token = ? WHERE userdata.mail = ? AND userdata.blocked = 0"; 
+    $checkQuery = "UPDATE userdata SET token = ? WHERE userdata.mail = ? AND userdata.blocked = 0 AND userdata.completed = 1"; 
     $checkData = array($hash, $mail); 
     //$usr = $this->client->run($checkQuery, ['email'=>$mail, 'resetcode'=>$hash]);
     $stmt = $this->sqlite->prepare($checkQuery);
     $stmt->execute($checkData);
     $result = $stmt->rowCount();
-
-    if(boolval($result)){
+    //TODO
+    var_dump($result);
+    die('reached result processing');
+    if(boolval($result))
+      $reset_link = ""; 
+      $msg = "Hello $username.<br> A password reset for your account on ".PROJECTNAME." was asked. Click the link below to set a new password for you account. If you did not ask for this, you can ignore this mail and keep logging in with your current password."; 
+      $msg .= "<br><br><a href= '".$reset_link."'>Reset</a>"; 
+      $msg .= "<br> If the above link does not work; copy-past the following: <br> $reset_link"; 
+      $mail_interface->setMessageContent($msg, True); 
       //if there is one user affected by the query: you need to initiate the mail option!
       //TODO > make a mailer class
       //TODO > connect userclass to mailhash-method
@@ -286,7 +337,7 @@ public function getMailFromUUID($uuid){
       //          needs to be deleted upon every login
       //          AND 
       //          Upon actual reset of a new password!
-    }
+    
     return array(1, 'A reset token has been created for the associated mailaccount.'); 
   }
 
@@ -310,7 +361,6 @@ public function getMailFromUUID($uuid){
   }
 
 
-  //Converted To SQLITE == FALSE
   public function checkUniqueness($mail){
     //READ only (okay)
     /**
@@ -333,31 +383,7 @@ public function getMailFromUUID($uuid){
   }
 
 
-  // //Converted To SQLITE == FALSE
-  // public function autoIncrementControllableUserId(){
-  //   // not required for SQLITE (PK == AI anyway!)
-  //   /**                     OK
-  //    *  looks for all priv_user nodes that already have an exisint
-  //    *  userid property, it finds the highest and returns that +1
-  //    *  if no users in the database exist: the query return NULL.
-  //    *  In this case the method will return 1 as next to be used 
-  //    *  userid
-  //    */
-  //   $query = "MATCH (n:priv_user)
-  //         WHERE exists(n.sqlid) 
-  //         WITH n ORDER BY n.sqlid DESC LIMIT 1
-  //         RETURN n.sqlid AS user_sqlid";
-  //   $result = $this->client->run($query);
-
-  //   if (boolval(count($result))){
-  //     $highestExistingId = $result[0]['user_sqlid']; 
-  //   }else{
-  //     $highestExistingId = 0; 
-  //   }  
-  //   return $highestExistingId +=1; 
-  // }
-
-  public function checkAlignment(){
+   public function checkAlignment(){
     /*  Checks if the SQLITE database required for the user management is in sync
     * with the nodes present in NEO4J. If there are users in the SQLITE system
     * which are missing in the NEO4J database, the method will flag it as a 

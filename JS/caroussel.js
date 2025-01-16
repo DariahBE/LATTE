@@ -20,6 +20,7 @@ function buildCaroussel(){
         function showImageAtIndex(i = 0){
             if (i < 0){showIndex = 0; i = 0; }
             if (i > allImagesInList.length-1){showIndex = allImagesInList.length-1; i = showIndex; }
+            if (i == -1){return}//no images; 
             var outerCarousselDiv = document.createElement('div'); 
             outerCarousselDiv.classList.add('board');
             var innerCarousselDiv = document.createElement('div'); 
