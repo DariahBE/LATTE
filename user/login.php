@@ -29,11 +29,11 @@
     <section class="h-full gradient-form bg-gray-200 md:h-screen">
       <div class="container py-12 px-6 h-full">
         <div class="flex justify-center items-center flex-wrap h-full g-6 text-gray-800">
-          <div class="xl:w-10/12">
-            <div class="block bg-white shadow-lg rounded-lg">
-              <div class="lg:flex lg:flex-wrap g-0">
-                <div class="md:w-6/12 px-4 md:px-0 sm:w-full">
-                  <div id='loginsquare' class="md:p-12 md:mx-6 sm:w-full sm:mx-0">
+          <div class="xl:w-10/12 min-w-[300px]">
+            <div class="block bg-white shadow-lg rounded-lg min-w-[300px]">
+              <div class="lg:flex lg:flex-wrap g-0 min-w-[300px]">
+                <div class="md:w-6/12 px-4 md:px-0 sm:w-full min-w-[300px]">
+                  <div id='loginsquare' class="md:p-12 md:mx-6 sm:w-full sm:mx-0 min-w-[300px]">
                     <div class="" id='status'>
 
                     </div>
@@ -79,7 +79,7 @@
                         >
                           Log in
                         </button>
-                        <a class="text-gray-500" href="#!">Forgot password? <a href="pwreset.php">Perform a reset.</a>
+                        <p class="text-gray-500" href="#!">Forgot password? <a href="pwreset.php">Perform a reset.</a></p>
                       </div>
                       <div class="flex items-center justify-between pb-6">
                         <?php if (REGISTRATIONPOLICY === 2) {?>

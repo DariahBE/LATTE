@@ -806,6 +806,9 @@ Ensure the default browser behavior of the `hidden` attribute.
   min-width: -moz-fit-content;
   min-width: fit-content;
 }
+.min-w-\[300px\] {
+  min-width: 300px;
+}
 .min-w-full {
   min-width: 100%;
 }
@@ -2052,13 +2055,13 @@ Ensure the default browser behavior of the `hidden` attribute.
   font-size: 1.5rem;
   line-height: 2rem;
 }
-.text-sm {
-  font-size: 0.875rem;
-  line-height: 1.25rem;
-}
 .text-xs {
   font-size: 0.75rem;
   line-height: 1rem;
+}
+.text-sm {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
 }
 .font-bold {
   font-weight: 700;

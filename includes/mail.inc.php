@@ -35,11 +35,6 @@ class Mail{
     function setMessageContent($message, $isHtml=false){
         $this->messageIsHtml = $isHtml;
         $this->message = $message;
-        //TODO implement HTML markup here, 
-        // TODO how to implement HTML with phpMailer. 
-        if(boolval($isHtml)){
-            
-        }
         return true;
     }
 
@@ -99,7 +94,7 @@ class Mail{
         $mail->AddAddress($this->contactAddress);
 
         //is html: 
-        if(boolval($this->messageIsHtml())){
+        if(boolval($this->messageIsHtml)){
             $mail->IsHTML(true);
         }else{
             $mail->IsHTML(false);

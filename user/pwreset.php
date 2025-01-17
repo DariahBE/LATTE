@@ -1,23 +1,22 @@
 <?php
 
 
-//TODO: Actual password reset procedure not implemented yet. (Pending test required. )
-//TODO: implement captcha (OK)
     if(
         isset($_POST['captchaSolution']) &&
         isset($_POST['email']) &&
         filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)
     ){
         session_start(); 
-        var_dump($_SESSION['captcha_token']);
-        var_dump($_POST['captchaSolution']);
+
         if ($_SESSION['captcha_token'] == $_POST['captchaSolution']){
             //die('start this block');
             include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
             include_once(ROOT_DIR.'/includes/client.inc.php'); 
             include_once(ROOT_DIR.'/includes/user.inc.php');
+            include_once(ROOT_DIR."/includes/mail.inc.php");
             $user = new User($client);
             $user->requestPasswordReset($_POST['email'], False);
+            header('location: /index.php'); //redir
         }
     }
 ?>
@@ -50,13 +49,21 @@
         <input
             type="input"
             class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-            placeholder="Type captcha solution of six characters"
+            placeholder="Type captcha solution"
             name="captchaSolution"
             id="captchaSolution"
         />
         </div>
 
-        <button type="submit" class="bg-blue-500 text-white p-2 rounded w-full hover:bg-blue-600">Reset Password</button>
+        <button type="submit" class="p-2 rounded w-full text-white" style="
+                            background: linear-gradient(
+                              to right,
+                              #ee7724,
+                              #d8363a,
+                              #dd3675,
+                              #b44593
+                            );
+                          ">Reset Password</button>
     </form>
 </div>
 

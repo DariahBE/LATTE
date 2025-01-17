@@ -138,6 +138,7 @@ public function getMailFromUUID($uuid){
      * 
      * Every wrong logon attempt increments the counter by 1. When the user logs in 
      * with the correct password, the counter is reset. 
+     * When a login is successful, reset a pending token to NULL - 
      */
     $query = "SELECT * FROM userdata WHERE userdata.mail = ? AND userdata.logon_attempts <= 5 AND userdata.completed = 1 AND userdata.blocked = 0";
     $stmt = $this->sqlite->prepare($query);
@@ -169,7 +170,8 @@ public function getMailFromUUID($uuid){
             $result_from_neo = $this->client->run('MATCH (u:priv_user) WHERE u.user_sqlid = $sqlreference return id(u) as user_neo_id; ', ['sqlreference'=> $user_nodeId]);
           }
           $user_neo_id = $result_from_neo[0]['user_neo_id']; 
-          $update_query = "UPDATE userdata SET logon_attempts = 0 WHERE id = ? ";
+          //Good login: set attempt counter back to 0 and revoke any token that was still active (a user might remember their password)
+          $update_query = "UPDATE userdata SET token = NULL, logon_attempts = 0 WHERE id = ? ";
           $update_data = array($user_nodeId); 
           $stmt = $this->sqlite->prepare($update_query); 
           $stmt->execute($update_data); 
@@ -320,25 +322,35 @@ public function getMailFromUUID($uuid){
     //$usr = $this->client->run($checkQuery, ['email'=>$mail, 'resetcode'=>$hash]);
     $stmt = $this->sqlite->prepare($checkQuery);
     $stmt->execute($checkData);
-    $result = $stmt->rowCount();
-    //TODO
-    var_dump($result);
-    die('reached result processing');
-    if(boolval($result))
-      $reset_link = ""; 
+    $result = $stmt->rowCount();    
+    if(boolval($result)){
+      //get username from the updated row: 
+      $userQuery = "SELECT username, uuid, mail, token FROM userdata WHERE mail = ? AND blocked = 0 AND completed = 1 LIMIT 1";
+      $userStmt = $this->sqlite->prepare($userQuery);
+      $userStmt->execute(array($mail));
+      $row = $userStmt->fetchAll(PDO::FETCH_ASSOC)[0];
+      // Fetch the row fields. 
+      $username = $row['username'];
+      $uuid = $row['uuid'];
+      $mail = $row['mail'];
+      $token = $row['token'];
+      //TODO pending tests
+      var_dump($username, $uuid, $mail, $token); 
+      var_dump(WEBURL); 
+      $reset_link = WEBURL."/user/pwresetform.php?uid=$uuid&token=$token&mail=$mail";
+      var_dump($reset_link);
       $msg = "Hello $username.<br> A password reset for your account on ".PROJECTNAME." was asked. Click the link below to set a new password for you account. If you did not ask for this, you can ignore this mail and keep logging in with your current password."; 
       $msg .= "<br><br><a href= '".$reset_link."'>Reset</a>"; 
-      $msg .= "<br> If the above link does not work; copy-past the following: <br> $reset_link"; 
+      $msg .= "<br>If the above link does not work; copy-paste the following: <br> $reset_link"; 
+      $mail_interface = new Mail(); 
+      $mail_interface->setSubjectOfMail('Your '.PROJECTNAME.' password resetcode.'); 
+      $mail_interface->setRecipient($mail);
       $mail_interface->setMessageContent($msg, True); 
+      var_dump($mail_interface);     //BUG: mail_interface can't ve reached. 
+      $mail_interface->send(); 
       //if there is one user affected by the query: you need to initiate the mail option!
-      //TODO > make a mailer class
-      //TODO > connect userclass to mailhash-method
-      //TODO > hash is single-use only: 
-      //          needs to be deleted upon every login
-      //          AND 
-      //          Upon actual reset of a new password!
-    
-    return array(1, 'A reset token has been created for the associated mailaccount.'); 
+      return array(1, 'A reset token has been created for the associated mailaccount.'); 
+    }
   }
 
   public function checkTokenRequest($mail, $token){
@@ -457,6 +469,14 @@ public function getMailFromUUID($uuid){
     }
   }
 
+  public function prereset_checks($mail, $uuid, $token){
+    $sql_query = "SELECT * FROM userdata WHERE `blocked` = 0, `token` = ?, `uuid` = ? AND `mail` = ?; ";
+    $sql_data = [$token, $uuid, $mail]; 
+    $stmt = $this->sqlite->prepare($sql_query);
+    $stmt->execute($sql_data);
+    $result = $stmt->fetch();
+    return $result;
+  }
 
   
   public function setBlockTo($user, $toval){

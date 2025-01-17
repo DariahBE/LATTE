@@ -15,7 +15,7 @@ $latteConnector = 'localhost:8000';
  *     CONFIGURATION OF THE EMAIL CONNECTION
  */
 $mailprotocol = 'SMTP';          // 'SMTP' or ''.
-$originEmail = '';     //emailadress used to sent the message.
+$originEmail = 'siteadmin@example.org';     //emailadress used to sent the message.
 $smtpUser = false;     //account use on the server to send the mail. set to false if there is no authentication method
 $smtpPassword = false;     //password associated to the email adress. set to false if there is no authentication method
 $smtpServer = '';
