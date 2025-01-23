@@ -6,6 +6,11 @@
 var foundEntities = false;
 function entity_extraction_launcher(){
   //triggered by DOM element in text.php!!!!
+  /*
+    this is the main function for interacting with the LATTE connector. It will
+    trigger all necessary AJAX-functions to get the backend to fetch the text,
+    predict the language and extract all relevant Entities.
+  */
   //remove the trigger button
   document.getElementById('connectorExpand').classList.remove('hidden'); 
   deleteIfExistsById('extractorTrigger'); 
@@ -22,6 +27,12 @@ function entity_extraction_launcher(){
   //use the determined language to extract entities using the correct model. 
 }
 function getEntities(options){
+  /*
+    Part of the LATTE extraction pipeline: this function is triggered 
+    after sucessful language detection. It will trigger the backend to
+    extract entities from the text. Once extracted, entities will be displayed
+    using the displayEntities function.
+  */
   var language = options['ISO_code'];
   var nodeid = options['nodeid'];
   const param = {
@@ -174,7 +185,7 @@ function updateSegmentedAnnotation(segment, uuid){
    * - Removes the unstored class from the annotation
    * - Removes unneeded attributes from all segment elements. 
    * - simulates the click event for further disambiguation. (by calling the function!)
-   */
+  */
       //REMOVE FROM ELEMENT: 
     //                    data-entitytype AND data-segment_id attributes
     
@@ -279,28 +290,25 @@ function generateRandomIdAttribute(l = 12){
 }
 function displayEntities(entities){
   /**
-   *  generates the sidebar in the DOM with the individual entity 
-   * 
-   *  Generates the highlight in the text as an automated annotation with all 
-   *  required interactivity!
    * 
    * WILL NOT UPDATE THE DOM WITH PICKED UP ENTITIES THAT HAVE MATCHING BORDERS
-   * ALREADY IN THE TEXT!
+   * (start - stop)ALREADY IN THE TEXT!
+   * 
+   * Triggered after successfull entity extraction of the text. Will visualize
+   * the entities in the text by adding a class to the elements that fall within
+   * the start stop range. 
    */
   // Function to check if any element has start and stop
   function checkRange(obj, start, stop) {
     return Object.keys(obj).some(key => obj[key].start === start && obj[key].stop === stop);
   }
   
-
   $counterTarget = $('#amountOfEntities');
   $modelTarget = $('#usedEntityModel');
   $entitiesTarget = $('#entitycontainer');
   $counterTarget.text(entities['meta']['found_entities_number']);
   $modelTarget.text(entities['meta']['used_model']);
   $foundEntities = entities['data'];
-  // $entitiesDisplay = document.createElement('div');
-  // $($entitiesDisplay).attr('id', 'showEntitiesHere');
   let allAnnotations = {...automatic_annotations, ...storedAnnotations.relations};
 
   for (var i = 0; i < $foundEntities.length; i++) {
@@ -311,37 +319,6 @@ function displayEntities(entities){
     if (checkRange(allAnnotations, et_start, et_stop)){
       continue; 
     }
-    //adding the annotations to the side: not required any longer. 
-    // code disabled
-    /*
-      //adding entity element to the side: 
-      // $singleEntity = document.createElement('p');
-      // $primaryTextSpan = document.createElement('span');
-      // $secondaryTextSpan = document.createElement('span');
-      // $singleEntityText = document.createTextNode($foundEntities[i]['text']);
-      // $($singleEntity).attr('data-start', et_start);
-      // $($singleEntity).attr('data-end', et_stop);
-      // if (et_type !== '#$#undefined#$#'){
-      //   //et_type = 'person';
-      //   $($singleEntity).attr('data-type', et_type);
-      // }
-      // $($singleEntity).attr('data-stringExact', $foundEntities[i]['text']);
-      //$($singleEntity).attr('data-stringNormalized');
-      // $primaryTextSpan.appendChild($singleEntityText);
-      // $singleEntity.appendChild($primaryTextSpan);
-      // $singleEntity.appendChild($secondaryTextSpan);
-      // $($primaryTextSpan).addClass('firstSpanElementOfEntity');
-      // $($primaryTextSpan).addClass('ignoreElementDepth');
-      // $($secondaryTextSpan).addClass('secondSpanElementOfEntity');
-      // $($singleEntity).addClass(et_type);
-      // $($singleEntity).addClass('anEntity');
-      // var clickForInfo = function(e){
-      //   getInfoByClick(e);
-      // }
-      // $($singleEntity).click(clickForInfo);
-      // $entitiesDisplay.appendChild($singleEntity);
-    */
-
     //adding entity element to text as annotation_auto
     const ltrElements = document.querySelectorAll('.ltr');
 
@@ -350,19 +327,15 @@ function displayEntities(entities){
   ltrElements.forEach((element) => {
     const itercounter = parseInt(element.getAttribute('data-itercounter'), 10);
     if (itercounter >= et_start && itercounter <= et_stop) {
-      // Add the 'highlighted' class
+      // Add the 'highlighted' class: default color from config file for automatic annotations
       element.classList.add('app_automatic', 'automatic_unstored');
       $(element).attr('data-entitytype', et_type);
       $(element).attr('data-segment_id', segment_id); 
       // Add a click event listener
-      // element.addEventListener('click', () => {
-      //   makeSuggestionBox();
-      // });
       element.addEventListener('click', clickHandler);
     }
   });
   }
-
 
   //$entitiesTarget.append($entitiesDisplay);
 }

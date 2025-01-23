@@ -360,8 +360,9 @@ function showdata(data) {
       })*/
     //displayET_variant(data['variants'], neoid);
     //With the type known: look up if there's a wikidata attribute: 
-    let wdLabelAccordingToModel = Object.keys(entityStructure).filter(ar => entityStructure[ar][1] == 'wikidata')[0] || false;
-    if (wdLabelAccordingToModel !==  false) {
+    let wdLabelAccordingToModel = Object.keys(entityStructure).filter(ar => entityStructure[ar][1] == 'wikidata')[0] || false;  
+    if (wdLabelAccordingToModel !==  false && data['entity'][0].properties[wdLabelAccordingToModel] !== undefined ) {
+      /*It's not always possible to assign Q-ids to an entity; so it could be undefined. Only run this block if there's a link to WD */
       let qid = data['entity'][0].properties[wdLabelAccordingToModel][1]; 
       var wd = new wikibaseEntry(qid, wdProperties, 'slideover', 'qid');
       wd.getWikidata()

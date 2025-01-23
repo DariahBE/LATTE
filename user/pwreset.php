@@ -15,7 +15,9 @@
             include_once(ROOT_DIR.'/includes/user.inc.php');
             include_once(ROOT_DIR."/includes/mail.inc.php");
             $user = new User($client);
-            $user->requestPasswordReset($_POST['email'], False);
+            $r = $user->requestPasswordReset($_POST['email'], False);
+            var_dump($r); 
+            die('temporary die - need link for testsample'); 
             header('location: /index.php'); //redir
         }
     }
