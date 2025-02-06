@@ -267,7 +267,7 @@ function showdata(data) {
   var gateWay = document.getElementById('neobox') || (function() {
     var newGateWay = document.createElement('div');
     newGateWay.setAttribute('id', 'neobox');
-    exists = false
+    exists = false; 
     return newGateWay;
   })();
   var statsTarget = document.createElement('div');
@@ -280,8 +280,8 @@ function showdata(data) {
   if (datamode === 'controll') {
     findRelatedTexts(data['entity'][0]['neoID']);
   } else if (datamode === 'automated'){
-    console.warn('extract start and stop from automated ets. '); 
-    console.log(data.annotation.properties[startcode][1])
+    // console.warn('extract start and stop from automated ets. '); 
+    // console.log(data.annotation.properties[startcode][1])
     globalSelectionEnd = data.annotation.properties[stopcode][1];
     globalSelectionStart = data.annotation.properties[startcode][1];
     auto_annotation_internal_id = data['neo_id_of_auto_anno']; 
