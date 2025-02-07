@@ -49,7 +49,7 @@ if(in_array(REGISTRATIONPOLICY, array(1,2))){
         //TODO test this!. 
         $url = WEBURL."/user/register.php?invitetoken=$usertoken&mail=$mail";  
         $url = str_replace($url, '//', '/'); 
-        $msg = "<p>An account has been made for you for the <a href='"+WEBURL+"' target='_blank'>".PROJECTNAME."</a> project. The last step in this proces is to verify your account using following link: </p>"; 
+        $msg = "<p>An account has been made for you for the <a href='".WEBURL."' target='_blank'>".PROJECTNAME."</a> project. The last step in this proces is to verify your account using following link: </p>"; 
         $msg .= "<br><a href= '$url' target='_blank'>$url</a>"; 
         $mail_interface->setMessageContent($msg, True); 
         $mail_interface->send(); 

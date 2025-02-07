@@ -337,6 +337,7 @@ public function getMailFromUUID($uuid){
       //TODO pending tests
       var_dump($username, $uuid, $mail, $token); 
       var_dump(WEBURL); 
+      die(); 
       $reset_link = WEBURL."/user/pwresetform.php?uid=$uuid&token=$token&mail=$mail";
       var_dump($reset_link);
       $msg = "Hello $username.<br> A password reset for your account on ".PROJECTNAME." was asked. Click the link below to set a new password for you account. If you did not ask for this, you can ignore this mail and keep logging in with your current password."; 

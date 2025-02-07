@@ -6,9 +6,8 @@
         isset($_POST['email']) &&
         filter_var($_POST['email'], FILTER_VALIDATE_EMAIL)
     ){
-        session_start(); 
-
-        if ($_SESSION['captcha_token'] == $_POST['captchaSolution']){
+        session_start();        
+        if (strtolower($_SESSION['captcha_token']) == strtolower($_POST['captchaSolution'])){
             //die('start this block');
             include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
             include_once(ROOT_DIR.'/includes/client.inc.php'); 
@@ -17,7 +16,7 @@
             $user = new User($client);
             $r = $user->requestPasswordReset($_POST['email'], False);
             //TODO; needs to be finished.
-            // var_dump($r); 
+            var_dump($r); 
             die('temporary die - need link for testsample'); 
             header('location: /index.php'); //redir
         }
