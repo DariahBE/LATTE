@@ -38,8 +38,11 @@ if($user->myRole !== "Admin"){
     $adminMode = $user->myRole == 'Admin'; 
     $navbar = new Navbar($adminMode); 
     echo $navbar->getNav();
+    include_once('../admin_tasks.php');
+
   ?>
   </div>
+  <!--
   <div class="flex justify-center py-4">
     <div class="space-y-4">
       <button id="addUserBtn" class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">
@@ -52,14 +55,14 @@ if($user->myRole !== "Admin"){
         Reset User Access
       </button>
     </div>
-  </div>
+  </div>-->
 
   <div id="addUserView" class="hidden">
     <?php
     //allow the admin to register new users in policy 1 or 2 configurations.
     if(REGISTRATIONPOLICY != 0){ 
       ?>
-    <h2>Add User Form</h2>
+    <h2 class="ml-4 pl-4 font-bold text-lg">Add User Form</h2>
     <!-- Add User Form HTML goes here -->
     <form id="addUserForm" class="space-y-4">
       <!-- Name Field -->
@@ -106,7 +109,7 @@ if($user->myRole !== "Admin"){
   </div>
 
   <div id="promoteUserView" class="hidden">
-    <h2>Promote User Form</h2>
+    <h2 class="ml-4 pl-4 font-bold text-lg">Promote User Form</h2>
     <!-- Promote User Form HTML goes here --> 
     <table class="min-w-full bg-white border border-gray-300">
     <thead>
@@ -150,7 +153,7 @@ if($user->myRole !== "Admin"){
   </div>
 
   <div id="resetUserView" class="hidden">
-    <h2>Reset User Access Form</h2>
+    <h2 class="ml-4 pl-4 font-bold text-lg">Reset User Access Form</h2>
     <table class="min-w-full bg-white border border-gray-300">
     <thead>
       <tr class="bg-gray-200 text-gray-600 uppercase text-sm">
@@ -258,7 +261,7 @@ if($user->myRole !== "Admin"){
           });
       });
     }
-
+    /*
     const addUserBtn = document.getElementById('addUserBtn');
     const promoteUserBtn = document.getElementById('promoteUserBtn');
     const resetUserBtn = document.getElementById('resetUserBtn');
@@ -282,7 +285,7 @@ if($user->myRole !== "Admin"){
       addUserView.classList.add('hidden');
       promoteUserView.classList.add('hidden');
       resetUserView.classList.remove('hidden');
-    });
+    });*/
 
     document.querySelectorAll('.role-dropdown').forEach(dropdown => {
       dropdown.addEventListener('change', function() {

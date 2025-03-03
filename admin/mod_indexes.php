@@ -78,10 +78,10 @@
             echo '<tr>';
             if( (is_array($indexed_columns[$label])) && (array_key_exists($propName, $indexed_columns[$label]))){
               echo '<td>'.$propName.'</td>';
-              echo '<td>'.'<span data_nodeLabel="'.$label.'" data_nodeProp="'.$propName.'" data_idxname = "'.$indexed_columns[$label][$propName].'" class="idxBolt hasIndex m-1 p-1 bg-green-200"> &#9889;</span>'.'</td>'; 
+              echo '<td>'.'<span data_nodeLabel="'.$label.'" data_nodeProp="'.$propName.'" data_idxname = "'.$indexed_columns[$label][$propName].'" class="idxBolt hasIndex m-1 p-1 bg-green-200 cursor-pointer"> &#9889;</span>'.'</td>'; 
             }else{
               echo '<td>'.$propName.'</td>';
-              echo '<td>'.'<span data_nodeLabel="'.$label.'" data_nodeProp="'.$propName.'" class="idxBolt noIndex m-1 p-1 bg-red-200"> &#9889;</span>'.'</td>'; 
+              echo '<td>'.'<span data_nodeLabel="'.$label.'" data_nodeProp="'.$propName.'" class="idxBolt noIndex m-1 p-1 bg-red-200 cursor-pointer"> &#9889;</span>'.'</td>'; 
             }
             echo '</tr>';
           }
