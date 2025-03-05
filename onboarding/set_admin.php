@@ -43,6 +43,10 @@
             $token = $_POST['token']; 
 
             //validate request: inspect the token. 
+
+            //check if $admin_pw adheres to policy: 
+            //TODO: $user class is not available here.
+            // $user->passwordPolicyCheck($admin_pw);
             
 
 

@@ -115,6 +115,7 @@ public function getMailFromUUID($uuid){
 
       When data is set to 'not-public viewable', any logged in user can still access 
       the data. They need to be logged in. 
+
     */
     if($ispublic){return $ispublic;}
     if(boolval($this->checkSession())){
@@ -336,10 +337,9 @@ public function getMailFromUUID($uuid){
       $token = $row['token'];
       //TODO pending tests
       var_dump($username, $uuid, $mail, $token); 
-      var_dump(WEBURL); 
-      die(); 
       $reset_link = WEBURL."/user/pwresetform.php?uid=$uuid&token=$token&mail=$mail";
       var_dump($reset_link);
+      die(); //TODO: remove
       $msg = "Hello $username.<br> A password reset for your account on ".PROJECTNAME." was asked. Click the link below to set a new password for you account. If you did not ask for this, you can ignore this mail and keep logging in with your current password."; 
       $msg .= "<br><br><a href= '".$reset_link."'>Reset</a>"; 
       $msg .= "<br>If the above link does not work; copy-paste the following: <br> $reset_link"; 
@@ -365,6 +365,17 @@ public function getMailFromUUID($uuid){
 
 
   public function checkSession(){
+    //destroy the session if the user has been blocked. 
+    if(isset($_SESSION['user_uuid'])){
+      $checkQuery = "SELECT blocked FROM userdata WHERE userdata.uuid = ? "; 
+      $checkData = array($_SESSION['user_uuid']); 
+      $stmt = $this->sqlite->prepare($checkQuery);
+      $stmt->execute($checkData);
+      $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
+      if($result[0]['blocked'] === 1){
+        $this->logout(); 
+      }
+    }
     return $this->myId; /*
     if(isset($_SESSION['user_uuid'])){
       return $_SESSION['user_uuid'];
@@ -471,12 +482,12 @@ public function getMailFromUUID($uuid){
   }
 
   public function prereset_checks($mail, $uuid, $token){
-    $sql_query = "SELECT * FROM userdata WHERE `blocked` = 0, `token` = ?, `uuid` = ? AND `mail` = ?; ";
-    $sql_data = [$token, $uuid, $mail]; 
+    $sql_query = "SELECT * FROM userdata WHERE blocked = 0 AND token = ? AND uuid = ? AND mail = ?; ";
+    $sql_data = array($token, $uuid, $mail); 
     $stmt = $this->sqlite->prepare($sql_query);
     $stmt->execute($sql_data);
-    $result = $stmt->fetch();
-    return $result;
+    $result = $stmt->fetchAll();
+    return count($result);
   }
 
   
@@ -488,6 +499,41 @@ public function getMailFromUUID($uuid){
     $result = $stmt->rowCount();
     return $result;
   }
+
+
+  public function resetPassword($uuid, $password) {
+    $hashedPassword = password_hash($password, PASSWORD_DEFUALT);
+    
+    $stmt = $this->db->prepare("UPDATE userdata SET password = ?, token = '' WHERE uuid = ?");
+    $stmt->bind_param("ss", $hashedPassword, $uuid);
+    
+    if ($stmt->execute()) {
+        return true;
+    } else {
+        return "Error: " . $stmt->error;
+    }
+  }
+
+  public function passwordPolicyCheck($password) {
+    // Checks the password and see if it follows the password policy. 
+    //TODO implement everywhere the POST is read. 
+    $minlength = 8;
+    $minCriteria = 2;
+    // Check password length
+    if (strlen($password) < $minlength) {
+      //8 is a hard requirement.
+        return false;
+    }
+    // Define criteria
+    $hasLowercase = preg_match('/[a-z]/', $password);
+    $hasUppercase = preg_match('/[A-Z]/', $password);
+    $hasNumber = preg_match('/[0-9]/', $password);
+    $hasSpecial = preg_match('/[^a-zA-Z0-9]/', $password);
+    // Count how many criteria are met
+    $criteriaMet = $hasLowercase + $hasUppercase + $hasNumber + $hasSpecial;
+    return $criteriaMet >= $minCriteria;
+  }
+
 
 
 }

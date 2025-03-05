@@ -65,12 +65,14 @@ if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mai
     <meta charset="utf-8">
     <title>Sign Up</title>
     <script src="/JS/jquery-3.6.0.min.js"></script>
+    <script src="/JS/password_policy.js"></script>
     <link rel="stylesheet" href="/CSS/style_entities.css">
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
   </head>
   <body>
+
     <div class="">
   <div class="">
     <section class="h-full gradient-form bg-gray-200 md:h-screen">
@@ -179,6 +181,9 @@ if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mai
                           id="confirmPasswordfield"
                         />
                       </div>
+                      <div class="mb-4">
+                        <p class="text-xs text-gray-500">Password must be at least 8 characters long and contain at least two of the following: uppercase, lowercase, number, special character</p>
+                      </div>
                       <!-- captcha image -->
                       <img src='/captcha/image.php'>
 
@@ -203,6 +208,7 @@ if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mai
                       />
                       <div class="text-center pt-1 mb-12 pb-1">
                         <button
+                          disabled
                           class="inline-block px-6 py-2.5 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg transition duration-150 ease-in-out w-full mb-3"
                           type="button"
                           data-mdb-ripple="true"
@@ -255,8 +261,8 @@ if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mai
                                 if(data['status'] == 1){
                                   $("#signupsquare").fadeOut();
                                   $("#signupsquare").promise().done(function(){
-                                    //forces reload of login page or follow the redir parameter if provided
-                                    var url=window.location.href;   
+                                    //forces loading of the login page.
+                                    var url='/user/login.php'; 
                                     window.location.href=url;
                                   });
                                 }
@@ -279,5 +285,10 @@ if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mai
     </section>
   </div>
 </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+        setupPasswordValidation('passwordfield', 'confirmPasswordfield', 'signupbutton');
+    });
+</script>
   </body>
 </html>

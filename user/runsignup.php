@@ -38,7 +38,7 @@ password_verify('timingattack', $hashedPassword);
 //1: check the registration policy > kill it if registrations aren't open: 
 if(REGISTRATIONPOLICY === 0){
     //Kill request: you're not allowed to continue!
-    echo json_encode(array('msg' => 'Invalid request'));
+    echo json_encode(array('status'=>0, 'msg' => 'Invalid request'));
     die();
 }
 
@@ -103,6 +103,10 @@ if(!empty($missing)) {
         echo json_encode(array('msg' => 'Repeat password doesn\'t match the original password.'));
         die();
     }
+    //see if password policy is met: 
+    if (!($user->passwordPolicyCheck($passOne))){
+        die("Error: Password does not meet requirements. A minimum of 8 characters is needed and at least two of the following must be true: Uppercase, Lowercase, Special symbols, numbers");
+    }
 
 
     //4 Check the session token: 
@@ -111,7 +115,7 @@ if(!empty($missing)) {
     if(hash_equals($sessionTruth, $sessionAnswer)){
         $validSession = True;
     }else{
-        echo json_encode(array('msg' => 'Invalid request'));
+        echo json_encode(array('status'=>0, 'msg' => 'Invalid request'));
         die();
     }
 
@@ -121,7 +125,7 @@ if(!empty($missing)) {
     if(strtolower($captchaAnswer) === strtolower($captchaTruth)){
         $captchaCorrect = True;
     }else{
-        echo json_encode(array('msg' => 'Invalid Captcha'));
+        echo json_encode(array('status'=>0, 'msg' => 'Invalid Captcha'));
         die();
     }
 
@@ -155,7 +159,7 @@ if(!empty($missing)) {
     }
     $backend_repl = $user->createUser(...$createData); 
     if($backend_repl[0] == 'ok'){
-        echo json_encode(array('msg'=> 'user registration completed.'));
+        echo json_encode(array('status'=>1, 'msg'=> 'user registration completed.'));
     }else{
 
     }
