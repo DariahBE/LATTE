@@ -250,7 +250,7 @@ function pickThisQID(qid) {
   confirmationDiv.appendChild(acceptButton);
   confirmationDiv.appendChild(rejectButton);
   // call to /user/AJAX/profilestate.php  ==> logincheck
-  $.ajax({url: "../user/AJAX/profilestate.php", success: function(result){
+  $.ajax({url: "/user/AJAX/profilestate.php", success: function(result){
     if (result['valid']){
       //there's a logged in user: show buttons
       document.getElementById('slideoverDynamicContent').insertBefore(confirmationDiv, displayWDtarget);

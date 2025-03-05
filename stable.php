@@ -80,6 +80,7 @@ if(array_key_exists('coreID', $core)){
     <link rel="stylesheet" href="/CSS/stylePublic.css">
     <link rel="stylesheet" href="/CSS/overlaystyling.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <script src="/JS/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" src="/JS/clipboardcopy.js"> </script>
     <!-- wikidata SDK and custom code! SDK docs: https://github.com/maxlath/wikibase-sdk-->
     <script src="/JS/wikidata_SDK/wikibase-sdk.js"></script>

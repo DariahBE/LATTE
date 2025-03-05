@@ -5,7 +5,7 @@ let globalAnnoInteractId = false;
 function checklogin() {
   return new Promise((resolve, reject) => {
       $.ajax({
-          url: "../user/AJAX/profilestate.php",
+          url: "/user/AJAX/profilestate.php",
           success: function(result) {
               resolve(result['valid']);
           },

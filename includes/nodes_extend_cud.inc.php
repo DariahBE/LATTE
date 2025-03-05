@@ -345,12 +345,14 @@ class CUDNode extends Node {
                     //LOGIC: 
                     //do not store empty values in the database! drop them from data: 
                     //if the empty value is of type INT and a primary key, autogenerate it!
-                    //if it is empty and a primary key, but NO integer type, throw error: 
-                    if($value === '' && NODEMODEL[$label][$key][2]){
-                      if(NODEMODEL[$label][$key][1]== 'int'){
+                    //if it is empty and a primary key, but NO integer or Wikidata type, throw error: 
+                    if($value === '' && NODEMODEL[$label][$key][2] && strtolower(NODEMODEL[$label][$key][1]) != 'wikidata'){
+                      if(NODEMODEL[$label][$key][1] == 'int'){
                         $value = $this->generateUniqueKey($label, $key);
                         $data[$key] = $value;
                       }else{
+                        //TODO: bug high priority: when a node is created without wikidata ID; the uniqueness check prevents saving the item.
+
                         //return array('ERR'=> 'Empty value given for unique attribute ('.NODEMODEL[$label][$key][0].'). Request rejected.');
                         echo json_encode(array('ERR'=> 'Empty value given for unique attribute ('.NODEMODEL[$label][$key][0].'). Request rejected.'));
                         //throw new Exception();

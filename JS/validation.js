@@ -20,7 +20,9 @@ class Validator{
   }
 
   checkRequired(){
-    //required is set to all elements which have the unique attribute
+    //required is set to all elements which have the unique attribute with the exception 
+    // of wikidata elements - these are allowed to be empty or assigned to multiple 
+    // nodes.
     /**
      * Called before sumbit event: you need this because the change event
      * is never triggered when a user skips over required fields!.
@@ -28,6 +30,9 @@ class Validator{
     let unique_elements = document.getElementsByClassName('validateAs_unique'); 
     for (let i = 0; i < unique_elements.length; i++) {
       let elm = unique_elements[i];
+      if (elm.classList.contains('validateAs_wikidata')) {
+        continue;
+      }
       if (elm.value == '') {
         var msgHolder = document.createElement('p');
         msgHolder.classList.add('errorNotification');
