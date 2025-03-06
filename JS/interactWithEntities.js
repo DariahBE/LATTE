@@ -17,10 +17,12 @@ function checklogin() {
 }
 checklogin()
   .then(valid => {
-    console.log(valid); 
     globalLoginAvailable = valid;
+    console.log(valid); 
   })
   .catch(error => {
+    //TODO race condition: sometimes the globalLoginAvailable is set to false even if the session is available. 
+    alert(error); 
     globalLoginAvailable = false; 
   })
 

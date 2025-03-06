@@ -9,6 +9,7 @@ include_once(ROOT_DIR.'/includes/navbar.inc.php');
 
 //make the users return to the page they were on when clicking delete. 
 if(isset($_SERVER['HTTP_REFERER'])){
+    //BUG: when deleting a node from the stable page; the $orgigin triggers an error!
     $origin = $_SERVER['HTTP_REFERER']; 
     if (filter_var($origin, FILTER_VALIDATE_URL)) {
         $expires = time() + 86400;
@@ -107,7 +108,7 @@ function generateFirstBox(){
         $connectedAnnotations = $entityConnections[1]; 
         $texts = count($connectedTexts); 
         $annos = count($connectedAnnotations); 
-        $repl .= "<p>This entity is connected to {$texts} text". ($texts != 1 ? "s" : "").". All {$annos} annotation". ($annos != 1 ? "s" : "")." related to this entity will be deleted.</p>"; 
+        $repl .= "<p>This entity is connected to {$texts} text". ($texts != 1 ? "s" : "").". All {$annos} annotations related to this entity will be deleted.</p>"; 
     }   
     return $repl; 
 }

@@ -113,6 +113,12 @@ if(array_key_exists('coreID', $core)){
         ?>
 
       </div>
+      <div id='edrbox' class="md:grid md:grid-cols-2 grid-cols-1 w-7/8 m-4 mx-auto px-4">
+        <p>Actions:</p>
+      
+      </div>
+
+
       <div class="md:w-4/5 md:grid md:grid-cols-2 grid-cols-1 centerCustom">
         <?php
           //datasilo Knowledgebases:
@@ -220,12 +226,25 @@ if(array_key_exists('coreID', $core)){
         wd.getWikidata()
           .then(function(){wd.renderEntities(qid)}); 
       </script>
+
+
     </div>
 
     <?php
     } //end of conditional wikidata block on stable endpoint. 
       ?>
-    
+    <script>
+
+    checklogin()
+      .then(valid => {
+        let coreNeoID = <?php echo $coreNeoID; ?>;
+        let boxes = createEditRemoveBox(coreNeoID, false);
+        console.log('login', globalLoginAvailable); 
+        console.log(boxes); 
+        document.getElementById('edrbox').appendChild(boxes);
+      })
+ 
+</script>
 
   </body>
 </html>
