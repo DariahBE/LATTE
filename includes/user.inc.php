@@ -216,7 +216,7 @@ public function getMailFromUUID($uuid){
       return 3;
     }
     if($role === 'researcher'){
-      // you can edit nodes and edges.
+      // you can edit nodes. 
       //  ==> nodes that are created by this user can be edited by extra
       // check done in determinerightset method. 
       return 2;

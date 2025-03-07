@@ -114,72 +114,113 @@ function createStableLinkingBlock(nodeid, stableURI) {
 }
 
 
-function createEditRemoveBox(etnodeid, annonodeid){ 
-  /**
-   * Creates 2 blocks of two buttons: 
-   *    one edit and delete block for the entity node id.
-   *    one edit and delete block for the annotation node.
-   * 
-   * If one of both arguemtns is === false, the block
-   * for that specific ID is not generated.
-   * 
-   * The Given IDS should be the neo4J internal IDS.
-   */
+
+async function fetchDisplayOptions(url) {
+  try {
+      let response = await fetch(url, { method: 'GET' });
+
+      if (!response.ok) {
+          throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      let data = await response.json(); // Parse JSON 
+      return data;
+  } catch (error) {
+      console.error('Error fetching data:', error);
+  }
+}
+
+async function createEditRemoveBox(etnodeid, annonodeid){ 
+  /*
+    creates a box with edit and delete buttons for the entity and annotation.
+    depending on the user rights and ownership of the entity/annotation.
+    the buttons are shown or hidden.
+  */
+  let data = await fetchDisplayOptions('/AJAX/hasRights.php?id_e='+etnodeid+'&id_a='+annonodeid);
+
+  let etdelete = data['et']['delete'];
+  let etupdate = data['et']['update'];
+  let annodelete = data['anno']['delete'];
+  let annoupdate = data['anno']['update'];
+
   let subdivGateway = document.createElement('div');
-  if(!(globalLoginAvailable)){return subdivGateway;}
+  if(!(globalLoginAvailable)) { return subdivGateway; }
+
   let annotationPart = document.createElement('div'); 
-  if(annonodeid !== false){
-    let annoEditLink = '/crud/edit.php?id='+annonodeid;
-    let annoDeleteLink = '/crud/delete.php?id='+annonodeid;
+  if (annonodeid !== false) {
+    let annoEditLink = '/crud/edit.php?id=' + annonodeid;
+    let annoDeleteLink = '/crud/delete.php?id=' + annonodeid;
     let annoeditElement = document.createElement('a'); 
     annoeditElement.setAttribute('href', annoEditLink); 
     let annodeleteElement = document.createElement('a'); 
     annodeleteElement.setAttribute('href', annoDeleteLink);
+    
     annotationPart.classList.add('w-full');
     let annotationSectionHeader = document.createElement('H4'); 
     annotationSectionHeader.appendChild(document.createTextNode('Edit annotation: '));
     annotationPart.appendChild(annotationSectionHeader); 
     annotationSectionHeader.classList.add('font-bold', 'text-lg', 'w-full');
+
     let annotationDelete = document.createElement('button'); 
     annotationDelete.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-red-500', 'hover:bg-red-700');
     annotationDelete.appendChild(document.createTextNode('Delete'));
+
     let annotationEdit = document.createElement('button'); 
     annotationEdit.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-blue-500', 'hover:bg-blue-700');
     annotationEdit.appendChild(document.createTextNode('Edit'));
+
     annoeditElement.appendChild(annotationEdit); 
     annodeleteElement.appendChild(annotationDelete); 
-    annotationPart.appendChild(annodeleteElement); 
-    annotationPart.appendChild(annoeditElement);
+    if (annoupdate) {
+      annotationPart.appendChild(annoeditElement);
+    }
+    if (annodelete) {
+      annotationPart.appendChild(annodeleteElement); 
+    }
   }
-  let entityEditLink = '/crud/edit.php?id='+etnodeid;
-  let entityDeleteLink = '/crud/delete.php?id='+etnodeid;
+
+  let entityEditLink = '/crud/edit.php?id=' + etnodeid;
+  let entityDeleteLink = '/crud/delete.php?id=' + etnodeid;
   let etEditElement = document.createElement('a'); 
   etEditElement.setAttribute('href', entityEditLink); 
   let etDeleteElement = document.createElement('a'); 
   etDeleteElement.setAttribute('href', entityDeleteLink); 
   let entityPart = document.createElement('div'); 
   entityPart.classList.add('w-full');
+
   let entitySectionHeader = document.createElement('H4'); 
   entitySectionHeader.appendChild(document.createTextNode('Edit entity: '));
   entitySectionHeader.classList.add('font-bold', 'text-lg', 'w-full');
   entityPart.appendChild(entitySectionHeader);
+
   let entityDelete = document.createElement('button');
   entityDelete.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-red-500', 'hover:bg-red-700');
   entityDelete.appendChild(document.createTextNode('Delete'));
+
   let entityEdit = document.createElement('button'); 
   entityEdit.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-blue-500', 'hover:bg-blue-700');
   entityEdit.appendChild(document.createTextNode('Edit'));
+
   etDeleteElement.appendChild(entityDelete);
   etEditElement.appendChild(entityEdit);
-  entityPart.appendChild(etDeleteElement);
-  entityPart.appendChild(etEditElement);
+  if (etupdate) {
+    entityPart.appendChild(etEditElement);
+  }
+  if (etdelete) {
+    entityPart.appendChild(etDeleteElement);
+  }
 
   subdivGateway.setAttribute('id', 'editBox');
-  subdivGateway.appendChild(annotationPart);
-  subdivGateway.appendChild(entityPart);
+  if (annoupdate || annodelete){
+    subdivGateway.appendChild(annotationPart);
+  }
+  if(etupdate || etdelete){
+    subdivGateway.appendChild(entityPart);
+  }
   globalAnnoInteractId = false; 
   return subdivGateway;
 }
+
 
 function writeField(key, data, protected, structure) {
   //console.log('Method A', key, data, protected);
@@ -344,7 +385,12 @@ function showdata(data) {
       kb = new KnowledgeBase(false, false);
     })
     gateWay.appendChild(createStableLinkingBlock(neoid, etStable));
-    gateWay.appendChild(createEditRemoveBox(neoid, globalAnnoInteractId));
+    createEditRemoveBox(neoid, globalAnnoInteractId)
+    .then(divelement => {
+      console.log('divelement', divelement);
+      gateWay.appendChild(divelement);
+    })
+    .catch(error => console.error("Error creating element:", error));
     if(exists){
       //patch
       annotationTarget.appendChild(gateWay);

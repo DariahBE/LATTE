@@ -114,7 +114,6 @@ if(array_key_exists('coreID', $core)){
 
       </div>
       <div id='edrbox' class="md:grid md:grid-cols-2 grid-cols-1 w-7/8 m-4 mx-auto px-4">
-        <p>Actions:</p>
       
       </div>
 
@@ -234,14 +233,27 @@ if(array_key_exists('coreID', $core)){
     } //end of conditional wikidata block on stable endpoint. 
       ?>
     <script>
-
+        <?php
+          if ($type === ANNONODE || $type === 'Annotation_auto'){
+            $e = false;
+            $a = $coreNeoID;
+          }else{
+            $e = $coreNeoID;
+            $a = false;
+          }
+        
+        ?>
     checklogin()
       .then(valid => {
-        let coreNeoID = <?php echo $coreNeoID; ?>;
-        let boxes = createEditRemoveBox(coreNeoID, false);
-        console.log('login', globalLoginAvailable); 
-        console.log(boxes); 
-        document.getElementById('edrbox').appendChild(boxes);
+
+        let etid = <?php echo json_encode($e); ?>;
+        let annoid = <?php echo json_encode($a); ?>;
+        createEditRemoveBox(etid, annoid)
+        .then(divelement => {
+          console.log('divelement', divelement);
+          document.getElementById('edrbox').appendChild(divelement);
+        })
+
       })
  
 </script>
