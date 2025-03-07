@@ -67,7 +67,6 @@
         echo json_encode(array('msg' => 'Invalid session token')); 
         die();
     }
-    
     $node = new CUDNode($client);
     $node->startTransaction();
 

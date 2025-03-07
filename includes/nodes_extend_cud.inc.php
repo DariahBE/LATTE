@@ -39,7 +39,8 @@ class CUDNode extends Node {
             //use JSON!
             //$value = json_decode($inputvariable);
             //then cast to boolval!
-            return boolval($inputvariable === 'on'); 
+            // return boolval($inputvariable === 'on'); 
+            return $this->toBoolean($inputvariable);
         }elseif($type === 'uri'){
             $inputvariable = trim($inputvariable); 
             $parsed = parse_url($inputvariable); //returns the components. Should include a host!!!
@@ -318,6 +319,21 @@ class CUDNode extends Node {
       $querydata = array('neoleft'=> (int)$leftNeoId, 'neoright'=> (int)$rightNeoId); 
       $deletedEdges = $this->tsx->run($query, $querydata); 
       return $deletedEdges; 
+    }
+
+    function toBoolean($value) {
+      if (is_string($value)) {
+          $lowerValue = strtolower($value);
+          if($lowerValue === 'on'){
+            return true;
+          }elseif ($lowerValue === 'true') {
+              return true;
+          } elseif ($lowerValue === 'false') {
+              return false;
+          }
+      }
+      var_dump('returning', filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false); 
+      return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
     }
 
     /**Create a new blank node based on JS input!
