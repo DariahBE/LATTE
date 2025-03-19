@@ -140,7 +140,7 @@ $propertyContainingText = 'text';   //Which property holds the text to show on t
 //node properties that are protected by the application and automatically generated. 
 $privateProperties = array('uid');
 
-//////////////////////////////////////////////////////
+////////////////////////////////////////////////////// 
 
 //which nodes should the entitylinking tool look for in the database? Repeat the keys as they are in the
 // config object above; Asign the color value to them you want to use in the DOM. The keys used in this 

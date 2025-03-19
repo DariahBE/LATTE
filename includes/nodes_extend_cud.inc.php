@@ -367,9 +367,6 @@ class CUDNode extends Node {
                         $value = $this->generateUniqueKey($label, $key);
                         $data[$key] = $value;
                       }else{
-                        //TODO: bug high priority: when a node is created without wikidata ID; the uniqueness check prevents saving the item.
-
-                        //return array('ERR'=> 'Empty value given for unique attribute ('.NODEMODEL[$label][$key][0].'). Request rejected.');
                         echo json_encode(array('ERR'=> 'Empty value given for unique attribute ('.NODEMODEL[$label][$key][0].'). Request rejected.'));
                         //throw new Exception();
                         //rollback the transaction before calling DIE to revert all pending changes!

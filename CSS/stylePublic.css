@@ -641,6 +641,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .ml-1 {
   margin-left: 0.25rem;
 }
+.mt-4 {
+  margin-top: 1rem;
+}
 .box-border {
   box-sizing: border-box;
 }
@@ -752,6 +755,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .max-h-10 {
   max-height: 2.5rem;
 }
+.max-h-64 {
+  max-height: 16rem;
+}
 .min-h-fit {
   min-height: -moz-fit-content;
   min-height: fit-content;
@@ -813,6 +819,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 }
 .max-w-screen-xl {
   max-width: 1280px;
+}
+.max-w-xs {
+  max-width: 20rem;
 }
 .flex-none {
   flex: none;
@@ -1971,6 +1980,9 @@ Ensure the default browser behavior of the `hidden` attribute.
 .pl-1 {
   padding-left: 0.25rem;
 }
+.pl-4 {
+  padding-left: 1rem;
+}
 .text-left {
   text-align: left;
 }
@@ -2162,6 +2174,10 @@ Ensure the default browser behavior of the `hidden` attribute.
 .text-gray-400 {
   --tw-text-opacity: 1;
   color: rgb(156 163 175 / var(--tw-text-opacity));
+}
+.text-green-600 {
+  --tw-text-opacity: 1;
+  color: rgb(22 163 74 / var(--tw-text-opacity));
 }
 .underline {
   -webkit-text-decoration-line: underline;
@@ -2642,6 +2658,11 @@ hr.vertical{
   background-color: rgb(243 244 246 / var(--tw-bg-opacity));
 }
 
+.odd\:bg-gray-50:nth-child(odd) {
+  --tw-bg-opacity: 1;
+  background-color: rgb(249 250 251 / var(--tw-bg-opacity));
+}
+
 .even\:bg-slate-100:nth-child(even) {
   --tw-bg-opacity: 1;
   background-color: rgb(241 245 249 / var(--tw-bg-opacity));
@@ -2903,6 +2924,9 @@ hr.vertical{
       max-width: 1536px;
     }
   }
+  .sm\:m-1 {
+    margin: 0.25rem;
+  }
   .sm\:my-8 {
     margin-top: 2rem;
     margin-bottom: 2rem;
@@ -2932,6 +2956,9 @@ hr.vertical{
   .sm\:w-full {
     width: 100%;
   }
+  .sm\:w-1\/2 {
+    width: 50%;
+  }
   .sm\:max-w-lg {
     max-width: 32rem;
   }
@@ -2952,6 +2979,9 @@ hr.vertical{
   }
   .sm\:gap-3 {
     gap: 0.75rem;
+  }
+  .sm\:p-1 {
+    padding: 0.25rem;
   }
   .sm\:px-6 {
     padding-left: 1.5rem;
@@ -2981,6 +3011,9 @@ hr.vertical{
 }
 
 @media (min-width: 768px) {
+  .md\:m-2 {
+    margin: 0.5rem;
+  }
   .md\:mx-6 {
     margin-left: 1.5rem;
     margin-right: 1.5rem;
@@ -3000,6 +3033,9 @@ hr.vertical{
   .md\:w-6\/12 {
     width: 50%;
   }
+  .md\:w-1\/4 {
+    width: 25%;
+  }
   .md\:grid-cols-2 {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -3008,6 +3044,9 @@ hr.vertical{
   }
   .md\:p-12 {
     padding: 3rem;
+  }
+  .md\:p-2 {
+    padding: 0.5rem;
   }
   .md\:px-6 {
     padding-left: 1.5rem;

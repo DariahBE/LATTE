@@ -168,7 +168,6 @@ function saveNewDB() {
         let propertyPairs = document.getElementById('propertyBox').getElementsByTagName('div');
         for (let pp = 0; pp < propertyPairs.length; pp++) {
           let pair = propertyPairs[pp].getElementsByTagName('input')[0];
-          //BUGpatch for misscasting off bools to always true! (OK)
           let pairValue; 
           if (pair.type === 'checkbox'){
             pairValue = pair.checked;

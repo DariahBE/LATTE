@@ -20,6 +20,7 @@
                     <!-- Submenu items -->
                     <a href="/admin/validate_db.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Database Validation </a>
                     <a href="/admin/mod_indexes.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Indexes </a>
+                    <a href="/admin/bulk_text_loader.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Bulk text importer</a>
                 </div>
             </div>
         </nav>

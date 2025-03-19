@@ -232,31 +232,36 @@ if(array_key_exists('coreID', $core)){
     <?php
     } //end of conditional wikidata block on stable endpoint. 
       ?>
-    <script>
-        <?php
-          if ($type === ANNONODE || $type === 'Annotation_auto'){
-            $e = false;
-            $a = $coreNeoID;
-          }else{
-            $e = $coreNeoID;
-            $a = false;
-          }
-        
-        ?>
-    checklogin()
-      .then(valid => {
 
-        let etid = <?php echo json_encode($e); ?>;
-        let annoid = <?php echo json_encode($a); ?>;
-        createEditRemoveBox(etid, annoid)
-        .then(divelement => {
-          console.log('divelement', divelement);
-          document.getElementById('edrbox').appendChild(divelement);
-        })
 
-      })
- 
-</script>
+  <?php
+    //add edit/delete button only to corenodes: 
+    if(in_array($type,  CORENODES)){
+  ?>
+        <script>
+            <?php
+              if ($type === ANNONODE || $type === 'Annotation_auto'){
+                $e = false;
+                $a = $coreNeoID;
+              }else{
+                $e = $coreNeoID;
+                $a = false;
+              }
+            
+            ?>
+        checklogin()
+          .then(valid => {
 
+            let etid = <?php echo json_encode($e); ?>;
+            let annoid = <?php echo json_encode($a); ?>;
+            createEditRemoveBox(etid, annoid)
+            .then(divelement => {
+              console.log('divelement', divelement);
+              document.getElementById('edrbox').appendChild(divelement);
+            })
+
+          })
+        </script>
+  <?php }?>
   </body>
 </html>

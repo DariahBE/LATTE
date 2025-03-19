@@ -32,7 +32,7 @@ if($user->myRole !== "Admin"){
   <link rel="stylesheet" href="/CSS/stylePublic.css">
   <link rel="stylesheet" href="/CSS/overlaystyling.css">
 </head>
-<body>
+<body class='bg-gray-300'>
   <div>
   <?php
     $adminMode = $user->myRole == 'Admin'; 
@@ -128,7 +128,7 @@ if($user->myRole !== "Admin"){
         $userdata = $user->listAllUsers(); 
         foreach ($userdata as $row) {
         ?>
-          <tr data-uid="<?php echo htmlspecialchars($row['uuid']); ?>" class="hover:bg-gray-100">
+          <tr data-uid="<?php echo htmlspecialchars($row['uuid']); ?>" class="even:bg-gray-200 odd:bg-gray-50 hover:bg-gray-100">
             <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['id']); ?></td>
             <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['uuid']); ?></td>
             <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['mail']); ?></td>
@@ -171,7 +171,7 @@ if($user->myRole !== "Admin"){
         $blockPrompt = $isAllowed ? 'Block' : 'Unblock';
         $blockClass = $isAllowed ? 'bg-red-500' : 'bg-green-500';
         ?>
-        <tr data-uid="<?php echo htmlspecialchars($row['uuid']); ?>" class="hover:bg-gray-100">
+        <tr data-uid="<?php echo htmlspecialchars($row['uuid']); ?>" class="even:bg-gray-200 odd:bg-gray-50 hover:bg-gray-100">
           <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['id']); ?></td>
           <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['uuid']); ?></td>
           <td class="py-3 px-4 border-b"><?php echo htmlspecialchars($row['mail']); ?></td>
