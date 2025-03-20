@@ -1,8 +1,9 @@
 class CSVHandler {
-    constructor(containerId, uploadEndpoint = '') {
+    constructor(containerId, uploadEndpoint = 'ajax/bulk_text_insert.php') {
         this.container = document.getElementById(containerId);
         this.uploadEndpoint = uploadEndpoint;
         this.csvData = [];
+        this.batchSize = 40; 
         this.file_content = null; 
         this.delimiter = ',';
         this.enclosure = '"';
@@ -40,12 +41,20 @@ class CSVHandler {
                     Drop CSV file here
                 </div>
                 <div id="preview" class="mt-4 overflow-auto max-h-64"></div>
+                <div>
+                    <button id="mapTrigger" class="bg-green-400 disabled:green-200 disabled:cursor-not-allowed">Make mapping</button>
+                </div>
                 <div id="mapping" class="mt-4"></div>
-                <div id="progressContainer" class="mt-4 hidden"></div>
+                <div id="do_upload">
+                    <button id="upload" class="bg-green-400 disabled:green-200 disabled:cursor-not-allowed" disabled>Upload</button>
+                </div>
+                <div id="progressContainer" class="mt-4 hidden">
+                    <div id="message_upload_progress"><p><span id="messagecontent_progress">Upload in progress</span><span id="floatcontent_progress"></span</p></div>
+                    <div class='w-full  bg-gray-100 rounded-3xl h-2.5 '>
+                    <div id="progressBarAnimation" class='bg-indigo-600 h-2.5 rounded-3xl' style='width: 0%'></div>
+                </div>
             </div>
-            <div>
-                <button id="mapTrigger" class="bg-green-400">Make mapping</button>
-            </div>
+
         `;
 
         this.addEventListeners();
@@ -59,16 +68,18 @@ class CSVHandler {
         document.getElementById('hasheader').addEventListener('change', (e) => this.updateSettings(e));
         document.getElementById('previewRows').addEventListener('input', (e) => this.updateSettings(e));
         document.getElementById('mapTrigger').addEventListener('click', (e) => this.renderMappingUI(e)); 
+        document.getElementById('upload').addEventListener('click', (e) => this.uploadData(e));
+
     }
 
     updateSettings() {
         this.delimiter = document.getElementById('delimiter').value;
         this.enclosure = document.getElementById('enclosure').value;
         this.skipHeader = document.getElementById('hasheader').checked; 
-        console.log(this.skipHeader); 
+        // console.log(this.skipHeader); 
         this.previewRows = parseInt(document.getElementById('previewRows').value);
         if (this.csvData.length) {
-            this.csvData = this.parseCSV(this.file_content); 
+            this.csvData = this.parseCSV(this.file_content, false); //small slice = faster preview
             this.renderPreview();
         }
     }
@@ -93,15 +104,16 @@ class CSVHandler {
         reader.onload = (e) => {
             const content = e.target.result;
             this.file_content = content; 
-            this.csvData = this.parseCSV(content);
+            this.csvData = this.parseCSV(content, false); //small slice = faster preview
             this.renderPreview();
         };
         reader.readAsText(file);
     }
 
-    parseCSV(content) {
+    parseCSV(content, full = false) {
         const rows = content.split(this.lineEnding);
         const parsedRows = rows.map(row => this.parseRow(row));
+        if(full){return parsedRows;}
         return parsedRows.slice(0, this.previewRows);
     }
     parseRow(row) {
@@ -140,10 +152,13 @@ class CSVHandler {
             }
         }
         let tr = document.createElement('tr'); 
+        let j = 0; 
         this.headerNames.forEach((header) => { 
             const th = document.createElement('th'); 
             th.className = "border p-2 truncate max-w-xs overflow-hidden"; 
             th.textContent = header; 
+            th.setAttribute('data-col', j);
+            j++;
             tr.appendChild(th); 
         }); 
         table.appendChild(tr);
@@ -166,12 +181,11 @@ class CSVHandler {
 
     setDatamodel(datamodelObject) {
         this.datamodel = datamodelObject;
-        // if (this.csvData.length) {
-        //     this.renderMappingUI();
-        // }
     }
 
     renderMappingUI() {
+        //enable the upload button: 
+        document.getElementById('upload').removeAttribute('disabled'); 
         const mappingDiv = document.getElementById('mapping');
         mappingDiv.innerHTML = '<h3 class="font-bold mb-2">Map CSV Columns</h3>';
         if (!this.csvData.length) return;
@@ -180,10 +194,10 @@ class CSVHandler {
 
         Object.entries(this.datamodel).forEach(([key, value]) => {
             const div = document.createElement('div');
-            div.className = "mb-2";
+            div.className = "mb-2 row grid";
             // Create a label using the data model key
             const label = document.createElement('label');
-            label.textContent = `Column: ${value[0]}`; // Use the data model key as the label
+            label.innerHTML = `<span class="font-bold" >Column</span>: <span class='font-semibold'>${value[0]}</span> (${value[1]})`; // Use the data model key as the label
             div.appendChild(label);
             const select = document.createElement('select');
             select.setAttribute('data-for-neocol', key); 
@@ -196,38 +210,103 @@ class CSVHandler {
             defaultOption.selected = true; // Make it the selected option
             select.appendChild(defaultOption);
             // Use the CSV headers as options in the dropdown
+            let j = 0; 
             csvHeaders.forEach((header) => {
                 const option = document.createElement('option');
                 option.value = header; // Set the CSV header as the value
+                option.setAttribute('data-col', j);
+                j++;
                 option.textContent = header; // Set the CSV header as the display text
                 select.appendChild(option);
+                // console.log(option); 
             });
             div.appendChild(select);
             mappingDiv.appendChild(div);
         });
-
     }
+
+
 
     uploadData() {
         if (!this.uploadEndpoint) return;
+        this.csvData = this.parseCSV(this.file_content, true);
+        
+        const mapBox = document.getElementById('mapping'); 
+        let final_mapping = {}; 
+        
+        Array.from(mapBox.querySelectorAll('select')).forEach((select) => {
+            let neocol = select.getAttribute('data-for-neocol'); 
+            let selectedColumn = select.value;  
+            let selectedOption = select.options[select.selectedIndex];
+            let selectedIdx = selectedOption.getAttribute('data-col');
+            if (selectedIdx !== null) {
+                final_mapping[neocol] = [selectedColumn, parseInt(selectedIdx)];
+            }
+        }); 
+        
+        const csv_cols = Object.values(final_mapping).map(mapping => mapping[1]); 
+        const keys = Object.keys(final_mapping);
         
         document.getElementById('progressContainer').classList.remove('hidden');
+        document.getElementById('mapping').classList.add('hidden');
+        document.getElementById('preview').classList.add('hidden');
+        
         let progress = 0;
-
-        const uploadRow = (index) => {
-            if (index >= this.csvData.length) {
-                document.getElementById('progressContainer').innerHTML = '<p class="text-green-600">Upload completed</p>';
+        const totalRows = this.csvData.length;
+                
+        const uploadBatch = async (startIndex) => {
+            if (startIndex >= totalRows) {
+                // set container completed: 
+                document.getElementById('progressBarAnimation').style.width = '100%';
+                document.getElementById("progressBarAnimation").classList.add("bg-green-500", "h-6");
+                document.getElementById('messagecontent_progress').textContent = 'Upload completed';
+                document.getElementById('floatcontent_progress').textContent = '(100%)';
+                document.getElementById("progressBarAnimation").classList.remove("bg-indigo-600", "h-2.5");
                 return;
             }
-            fetch(this.uploadEndpoint, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify(this.csvData[index])
-            }).then(() => {
-                progress++;
-                uploadRow(progress);
-            });
+            
+            const endIndex = Math.min(startIndex + this.batchSize, totalRows);
+            const batch = this.csvData.slice(startIndex, endIndex);
+            
+            let uploadDataBatch = batch.map(row => 
+                csv_cols.filter(index => !isNaN(index) && index >= 0 && index < row.length)
+                        .map(index => row[index])
+            );
+            
+            const formData = new FormData();
+            formData.append('keys', JSON.stringify(keys));  // Convert array to JSON string
+            formData.append('data', JSON.stringify(uploadDataBatch));
+    
+            console.log(formData); 
+            try {
+                await fetch(this.uploadEndpoint, {
+                    method: 'POST',
+                    body: formData // No need for Content-Type header; browser sets it automatically
+                });
+                
+                progress += batch.length;
+                uploadBatch(endIndex);
+                this.update_progress_bar(progress, totalRows);
+            } catch (error) {
+                console.error('Error uploading batch:', error);
+                document.getElementById('progressContainer').innerHTML = '<p class="text-red-600">An error occurred during upload.</p>';
+            }
         };
-        uploadRow(0);
+        
+        let rowstart = this.skipHeader ? 1 : 0;
+        uploadBatch(rowstart);
     }
+
+    update_progress_bar(progress, total){
+        let completionrate = progress/total; 
+        let progressPercent = document.getElementById('floatcontent_progress');
+        progressPercent.textContent = `(${Math.floor(completionrate*100)}%)`;
+        let progressBar = document.getElementById('progressBarAnimation');
+        progressBar.style.width = `${completionrate*100}%`;
+    }
+    
+
+
+
+
 }
