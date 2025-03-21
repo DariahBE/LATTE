@@ -19,7 +19,7 @@ class CSVHandler {
     initUI() {
         this.container.innerHTML = `
             <div class="p-4 border rounded-lg shadow-md">
-                <div class="flex items-stretch ">
+                <div id="csv_settings" class="flex items-stretch ">
                     <div class="mb-4  sm:w-1/2 md:w-1/4  sm:m-1 md:m-2 sm:p-1 md:p-2">
                         <label class="block mb-2">Delimiter:</label>
                         <input id="delimiter" type="text" value="," class="border p-2 rounded w-full">
@@ -186,6 +186,9 @@ class CSVHandler {
     renderMappingUI() {
         //enable the upload button: 
         document.getElementById('upload').removeAttribute('disabled'); 
+        //disable CSV dropzone and change elements: 
+        document.getElementById('dropzone').classList.add('hidden');
+        document.getElementById('csv_settings').classList.add('hidden');
         const mappingDiv = document.getElementById('mapping');
         mappingDiv.innerHTML = '<h3 class="font-bold mb-2">Map CSV Columns</h3>';
         if (!this.csvData.length) return;
@@ -250,6 +253,8 @@ class CSVHandler {
         document.getElementById('progressContainer').classList.remove('hidden');
         document.getElementById('mapping').classList.add('hidden');
         document.getElementById('preview').classList.add('hidden');
+        document.getElementById('mapTrigger').classList.add('hidden');
+        document.getElementById('upload').classList.add('hidden');
         
         let progress = 0;
         const totalRows = this.csvData.length;
@@ -260,7 +265,7 @@ class CSVHandler {
                 document.getElementById('progressBarAnimation').style.width = '100%';
                 document.getElementById("progressBarAnimation").classList.add("bg-green-500", "h-6");
                 document.getElementById('messagecontent_progress').textContent = 'Upload completed';
-                document.getElementById('floatcontent_progress').textContent = '(100%)';
+                document.getElementById('floatcontent_progress').classList.add('hidden');
                 document.getElementById("progressBarAnimation").classList.remove("bg-indigo-600", "h-2.5");
                 return;
             }
@@ -277,12 +282,16 @@ class CSVHandler {
             formData.append('keys', JSON.stringify(keys));  // Convert array to JSON string
             formData.append('data', JSON.stringify(uploadDataBatch));
     
-            console.log(formData); 
             try {
-                await fetch(this.uploadEndpoint, {
+                const response = await fetch(this.uploadEndpoint, {
                     method: 'POST',
                     body: formData // No need for Content-Type header; browser sets it automatically
                 });
+                const jsonResponse = await response.json();
+                console.log(jsonResponse);
+                if ('error' in jsonResponse) {
+                    progress = totalRows;  //skip all rows. no point in continuing.
+                }
                 
                 progress += batch.length;
                 uploadBatch(endIndex);

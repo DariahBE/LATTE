@@ -19,6 +19,8 @@ if($_SESSION['userrole'] !== "Admin"){
 }
 //required for reading the model: 
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+include_once(ROOT_DIR.'/includes/getnode.inc.php');
+
 
 //get POST data when it is sent.
 $keys = json_decode($_POST['keys'], false);
@@ -26,25 +28,30 @@ $data = json_decode($_POST['data'], false);
 
 //check if postdata matches the model: 
 $nodetype = TEXNODE;
+$primary = helper_extractPrimary($nodeType);
+if (in_array($primary, $keys) === false){
+    die(json_encode(array('error'=>'Invalid request.', "msg"=>"Primary key is undefined.")));
+}
 foreach ($keys as $key) {
     if(!(array_key_exists($key, NODEMODEL[$nodetype]))){
-        die(json_encode(array('error'=>'Invalid request.')));
+        die(json_encode(array('error'=>'Invalid request.', "msg"=> "Invalid keys in request.")));
     }
 }
 
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
+include_once(ROOT_DIR.'/includes/user.inc.php');
 
 
 
 
+$user = new User($client);
 $node = new CUDNode($client);
 $node->startTransaction();
 foreach ($data as $new_text) {
     $formdata = array_combine($keys, $new_text);
-    //TODO: enforce datatypes!! (NEO4J will type according to the given data-object. So typing should be done here.)
-    var_dump($formdata);
-    // $node->createNewNode($nodetype, $formdata, true);
+    $graphResult = $node->createNewNode($nodetype, $formdata, true);
+    $connection = $node->connectCreatorToNode($_SESSION['neoid'], $graphResult); 
 }
 
 
