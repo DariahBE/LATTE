@@ -20,29 +20,25 @@ if($_SESSION['userrole'] !== "Admin"){
 //required for reading the model: 
 include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
-
-
 //get POST data when it is sent.
 $keys = json_decode($_POST['keys'], false);
 $data = json_decode($_POST['data'], false);
-
+if ($data === null){die();}
+if ($keys === null){die();}
 //check if postdata matches the model: 
 $nodetype = TEXNODE;
-$primary = helper_extractPrimary($nodeType);
+$primary = helper_extractPrimary($nodetype);
 if (in_array($primary, $keys) === false){
-    die(json_encode(array('error'=>'Invalid request.', "msg"=>"Primary key is undefined.")));
+    die(json_encode(array('error'=>'Invalid request.', "msg"=>"Primary key ($primary) is undefined.")));
 }
 foreach ($keys as $key) {
     if(!(array_key_exists($key, NODEMODEL[$nodetype]))){
         die(json_encode(array('error'=>'Invalid request.', "msg"=> "Invalid keys in request.")));
     }
 }
-
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
 include_once(ROOT_DIR.'/includes/user.inc.php');
-
-
 
 
 $user = new User($client);
@@ -50,11 +46,11 @@ $node = new CUDNode($client);
 $node->startTransaction();
 foreach ($data as $new_text) {
     $formdata = array_combine($keys, $new_text);
+    // var_dump($formdata); 
     $graphResult = $node->createNewNode($nodetype, $formdata, true);
     $connection = $node->connectCreatorToNode($_SESSION['neoid'], $graphResult); 
 }
 
-
 $node->commitTransaction(); 
-die(); 
+die(json_encode(array(1))); 
 ?>

@@ -18,11 +18,8 @@ function checklogin() {
 checklogin()
   .then(valid => {
     globalLoginAvailable = valid;
-    console.log(valid); 
   })
   .catch(error => {
-    //TODO race condition: sometimes the globalLoginAvailable is set to false even if the session is available. 
-    alert(error); 
     globalLoginAvailable = false; 
   })
 
@@ -436,26 +433,6 @@ function showdata(data) {
     .then((data) => {
         loadIntoSuggestionBox(data, globalSelectionStart, globalSelectionEnd);
       })
-
-    // TODO: TESTPROCEDURES you need a good test procedure to finish the JS components: 
-    /**     TAKE TEXT 10004 for this:
-     * 1) Create a new entity ==>
-     *    - Q-id is not used yet
-     *    - Does not match any known variant.
-     * 2) Connect annotation to entity ==>
-     *    - Via Q-id 
-     *    - Without known variant
-     * 3) Connect annotation to entity ==>
-     *    - Via Q-id
-     *    - Witch matching variant which you wish to ignore!
-     * 4) Connect annotation to entity ==> 
-     *    - No known Q-id:
-     *    - With matching variant to use
-     * 5) Connection annotation to entity ==>
-     *    - Known Q-id, you wish to ignore
-     *    - With matchin variant to use!
-     * 
-     */
   }
 }
 

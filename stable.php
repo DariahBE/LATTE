@@ -137,11 +137,11 @@ if(array_key_exists('coreID', $core)){
               $related_count++;
             }
           }
-          echo "<div class='p-2 m-2'>";
+          echo "<div class='pr-2 mr-2 max-h-[500px] overflow-y-auto w-9/10'>";
           echo "<h3 class='text-lg'>".(int)$related_count." connection(s) </h3>";
           if($related_count > 0){
-            echo "<table>"; 
-            echo "<thead class='font-bold bg-slate-300'><tr><td>relation</td><td>node</td><td>nodeproperties</td></tr></thead>"; 
+            echo "<table class= 'table-auto w-full border-0'>"; 
+            echo "<thead class='border-0 sticky top-0 font-bold py-2 my-2 bg-slate-300'><tr><td>Relation</td><td>Node</td><td>Properties</td></tr></thead>"; 
             foreach($neighbours as $row){
               $relation = $row['r'];
               $relatedNode = $row['t']; 
@@ -236,7 +236,7 @@ if(array_key_exists('coreID', $core)){
 
   <?php
     //add edit/delete button only to corenodes: 
-    if(in_array($type,  CORENODES)){
+    if(array_key_exists($type,  CORENODES)){
   ?>
         <script>
             <?php
@@ -246,7 +246,7 @@ if(array_key_exists('coreID', $core)){
               }else{
                 $e = $coreNeoID;
                 $a = false;
-              }
+              } 
             
             ?>
         checklogin()

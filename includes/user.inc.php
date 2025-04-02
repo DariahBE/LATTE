@@ -335,18 +335,16 @@ public function getMailFromUUID($uuid){
       $uuid = $row['uuid'];
       $mail = $row['mail'];
       $token = $row['token'];
-      //TODO pending tests
-      var_dump($username, $uuid, $mail, $token); 
       $reset_link = WEBURL."/user/pwresetform.php?uid=$uuid&token=$token&mail=$mail";
-      var_dump($reset_link);
-      die(); //TODO: remove
       $msg = "Hello $username.<br> A password reset for your account on ".PROJECTNAME." was asked. Click the link below to set a new password for you account. If you did not ask for this, you can ignore this mail and keep logging in with your current password."; 
       $msg .= "<br><br><a href= '".$reset_link."'>Reset</a>"; 
       $msg .= "<br>If the above link does not work; copy-paste the following: <br> $reset_link"; 
+      // good until here. 
       $mail_interface = new Mail(); 
       $mail_interface->setSubjectOfMail('Your '.PROJECTNAME.' password resetcode.'); 
       $mail_interface->setRecipient($mail);
       $mail_interface->setMessageContent($msg, True); 
+      //TODO find a solution for mail interface!!
       var_dump($mail_interface);     //BUG: mail_interface can't ve reached. 
       $mail_interface->send(); 
       //if there is one user affected by the query: you need to initiate the mail option!
@@ -502,12 +500,12 @@ public function getMailFromUUID($uuid){
 
 
   public function resetPassword($uuid, $password) {
-    $hashedPassword = password_hash($password, PASSWORD_DEFUALT);
+    $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     
-    $stmt = $this->db->prepare("UPDATE userdata SET password = ?, token = '' WHERE uuid = ?");
-    $stmt->bind_param("ss", $hashedPassword, $uuid);
-    
-    if ($stmt->execute()) {
+    $stmt = $this->sqlite->prepare("UPDATE userdata SET password = ?, token = '' WHERE uuid = ?");
+    $stmt->execute(array($hashedPassword, $uuid));
+   
+    if (boolval($stmt->rowCount())) {
         return true;
     } else {
         return "Error: " . $stmt->error;

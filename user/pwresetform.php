@@ -32,7 +32,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     
     $update_result = $user->resetPassword($uuid, $password);
     if ($update_result === true) {
-        echo "<script>alert('Password successfully updated!'); window.location.href='/login.php';</script>";
+        echo "<script>window.location.href='/user/login.php';</script>";
     } else {
         die("Error: ".$update_result);
     }
