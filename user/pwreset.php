@@ -16,8 +16,8 @@
             $user = new User($client);
             $r = $user->requestPasswordReset($_POST['email'], False);
             //TODO; needs to be finished.
-            var_dump($r); 
-            die('temporary die - need link for testsample'); 
+            // var_dump($r);
+            // die('temporary die - need link for testsample');
             header('location: /index.php'); //redir
         }
     }

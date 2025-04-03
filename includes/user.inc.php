@@ -345,7 +345,7 @@ public function getMailFromUUID($uuid){
       $mail_interface->setRecipient($mail);
       $mail_interface->setMessageContent($msg, True); 
       //TODO find a solution for mail interface!!
-      var_dump($mail_interface);     //BUG: mail_interface can't ve reached. 
+      //var_dump($mail_interface);     //BUG: mail_interface can't ve reached. 
       $mail_interface->send(); 
       //if there is one user affected by the query: you need to initiate the mail option!
       return array(1, 'A reset token has been created for the associated mailaccount.'); 

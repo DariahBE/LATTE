@@ -59,7 +59,7 @@ class Mail{
         if($this->smtp === 'SMTP'){
             $mail->IsSMTP(); // telling the class to use SMTP
         }
-        $mail->SMTPDebug  = 0;                     // Disables SMTP debug information (for testing)
+        $mail->SMTPDebug  = 1;                     // Disables SMTP debug information (for testing)
                                                 // 1 = errors and messages
                                                 // 2 = messages only
         //$mail->SMTPAuth   = SMTPREQUIRESAUTH;                  // enable SMTP authentication
