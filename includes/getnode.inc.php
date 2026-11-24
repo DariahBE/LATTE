@@ -11,7 +11,11 @@ function helper_extractPrimary($keyName){
   //return PRIMARIES[$keyName] ? PRIMARIES[$keyName] : 'uid';   //ternary operator not working as it should
   if(array_key_exists($keyName, PRIMARIES)){
     if(boolval(PRIMARIES[$keyName])){
-      return PRIMARIES[$keyName];
+      $pk = PRIMARIES[$keyName];
+      $pkType = isset(NODEMODEL[$keyName][$pk][1]) ? strtolower((string)NODEMODEL[$keyName][$pk][1]) : '';
+      if($pkType !== 'wikidata'){
+        return $pk;
+      }
     }
   }
     return 'uid';
@@ -429,7 +433,8 @@ function executePremadeParameterizedQuery($query, $parameters){
      * ANNONODE is config dependent, Annotation_auto is based on application logic. So can be coded in. 
     */
     $allowed_labels = array(ANNONODE, 'Annotation_auto');
-    $query = 'MATCH (n) WHERE n.uid = $uuid RETURN labels(n) as label';
+    $annoLabel = preg_replace('/[^a-zA-Z0-9_]/', '', (string)ANNONODE);
+    $query = 'MATCH (n:'.$annoLabel.' {uid: $uuid}) RETURN labels(n) as label LIMIT 1 UNION MATCH (n:Annotation_auto {uid: $uuid}) RETURN labels(n) as label LIMIT 1';
     $data = $this->client->run($query, array('uuid' => $uuid));
     if(count($data)===0){
       return False;
@@ -810,11 +815,11 @@ function executePremadeParameterizedQuery($query, $parameters){
       if(!in_array($label, array_keys(NODEMODEL))){return array();}
       $model = NODEMODEL[$label];
       //look for access to the primary key data. What key in the returned NODE type is the Primary Key. (unique field)
-      $found_key = array_search(true, array_column($model, 2), true);
+      $found_key = false; // Never use wikidata Q-identifiers as stable primary keys.
       //var_dump($found_key); // can be 0, but 0 does not equal false. Do a type sensitive comparison: 
       if ($found_key === false){
         //there's no primary key defined: so fallback to the default uid property: 
-        $primaryKeyName = 'uid';
+        $primaryKeyName = helper_extractPrimary($label);
       }else{
         $keys = array_keys($model);
         $primaryKeyName = $keys[$found_key];

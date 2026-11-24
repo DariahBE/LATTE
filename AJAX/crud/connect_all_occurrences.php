@@ -44,7 +44,6 @@ if ($texID <= 0 || $entityID <= 0 || $selection === '') {
 
 // fetch text string and entity details from neo4j
 $node = new CUDNode($client);
-$annotation = new Annotation(false, $node->gettsx());
 
 try {
     $textProp = defined('TEXNODETEXT') ? TEXNODETEXT : 'text';
@@ -150,6 +149,7 @@ try {
 
     // batch insert all candidates in a single transaction
     $node->startTransaction();
+    $annotation = new Annotation(false, $node->gettsx());
     $userNeoId = (int)$user->neoId;
     $createdAnnotations = [];
 

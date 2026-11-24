@@ -739,7 +739,7 @@ PHP;
                         $isSearch,
                     ];
 
-                    if ($isUnique && $primaryKeyFound === false) {
+                    if ($isUnique && $primaryKeyFound === false && strtolower((string)$prop['data_type']) !== 'wikidata') {
                         $primaryKeyFound = $pName;
                     }
                 }

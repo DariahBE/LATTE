@@ -184,68 +184,12 @@ function syncChosenQIDToPropertyInputs(qid) {
 }
 
 async function acceptQID(qid = -1) {
-  /* Start lookup if an entity in this database has the assigned QID.
-   * If a single existing entity matches this QID, resolve immediately to that entity
-   * (adding the selected string as a spelling variant) without intermediate UI repaints.
-   * Pass -1 to skip the check and go straight to the entity creation process.
-   */
-  let element = document.getElementById('wdsearchpromptbox');
-  if (element !== null) {
-    element.remove();
+  if (window.LinkingController && window.LinkingController.isActive()) {
+    await window.LinkingController.onWikidataAccepted(qid);
+    return;
   }
-  const confGroup = document.getElementById('embeddedWDConfirmationGroup');
-  if (confGroup) {
-    confGroup.remove();
-  }
-  const respTarget = document.getElementById('WDResponseTarget');
-  if (respTarget) {
-    respTarget.remove();
-  }
-
   chosenQID = (qid !== -1 && qid !== null) ? qid : null;
   syncChosenQIDToPropertyInputs(chosenQID);
-
-  if (qid !== -1 && qid !== null) {
-    try {
-      const res = await fetch('/AJAX/checkWDExists.php?qid=' + encodeURIComponent(qid));
-      const data = await res.json();
-      const hits = (data && Array.isArray(data.data)) ? data.data : [];
-
-      if (hits.length === 1 && typeof window.quickLinkSpanToEntity === 'function' && typeof globalSelectionText === 'string' && globalSelectionText.trim() !== '') {
-        await window.quickLinkSpanToEntity(hits[0], globalSelectionStart, globalSelectionEnd, globalSelectionText.trim(), false);
-        return;
-      }
-
-      if (hits.length > 0) {
-        // Multiple existing entities share this QID: render hit selector once.
-        await checkIfConnectionExists(qid);
-        return;
-      }
-    } catch (err) {
-      console.warn('Could not check existing Wikidata entity for ' + qid, err);
-    }
-  }
-
-  // No existing entity found (or skipped with -1): reveal entity creation form once.
-  let baseElem = document.getElementById('embeddedET') || document.getElementById('lattePromotionContainer');
-  if (baseElem === null) {
-    if (typeof buildAnnotationCreationBox === 'function') {
-      buildAnnotationCreationBox();
-    }
-    const etMainElem = document.getElementById('etmain');
-    if (etMainElem) {
-      etMainElem.innerHTML = '';
-    }
-    baseElem = document.getElementById('embeddedET') || document.getElementById('lattePromotionContainer');
-  }
-
-  if (baseElem) {
-    baseElem.classList.remove('hidden');
-  }
-  let creationElement = document.getElementById('etcreate') || document.getElementById('lattePromotionContainer');
-  if (creationElement) {
-    creationElement.classList.add('getAttention');
-  }
 }
 function pickThisQID(qid) {
   /*
@@ -256,6 +200,9 @@ function pickThisQID(qid) {
     the user does not want to commit this QID. 
   */
   chosenQID = qid;
+  if (window.LinkingController && window.LinkingController.isActive()) {
+    window.LinkingController.onWikidataPicked(qid);
+  }
   // Populate any visible wikidata property input immediately so promotion saves the picked QID.
   syncChosenQIDToPropertyInputs(chosenQID);
   //console.log(qid); 
@@ -326,157 +273,3 @@ function pickThisQID(qid) {
     });
 }
 
-function showHit(id) {
-  /**
-   * When a wikidata ID is shared among multiple entities. This 
-   * function will display each given entity in a DIV until the 
-   * user assigns the selected string to a given entity. 
-   * 
-  */
-  //delete the call tot updateState: it get overridden in showET anyway!
-  //updateState('State', 'There is one or more entity in the database with the same wikidata Q-identifier. You can connect it to one of these, or create a new entity.'); 
-  var xhr = new XMLHttpRequest();
-  xhr.open('GET', '/AJAX/getETById.php?id=' + id + '&extended=1', true);
-  // Set up a callback function, make it pass the responsedata to showET!
-  xhr.onload = function() {
-    if (xhr.status >= 200 && xhr.status < 300) {
-      // Request was successful
-      var jsonResponse = JSON.parse(xhr.responseText);
-      const etid = id; 
-      const label = jsonResponse['extra']['label']; 
-      const properties = jsonResponse['props']; 
-      const qid = chosenQID;
-      let variant_data = jsonResponse['variantsReformat']; 
-      showET([etid, label, properties, qid], false, false, variant_data);
-    } else {
-      // Request failed
-      console.error('Request failed with status: ' + xhr.status);
-    }
-  };
-  // Send the request
-  xhr.send();
-}
-
-let checkIfConnectionExists = async (qid) => {
-  /**
-   *  checks if the request QID (wikidata identifier) is already used by any
-   *  entity in the backend. If so it will return a JSON object with a list of
-   *  nodes that have this QID as wd identifier and a counter (int): hits for quick
-   *  assessment of connectectd entities. You need to keep in mind that a single
-   *  wikidata entity can be spread over multiple entities in the given project!
-   *  Though we don't want this to be done through the interface, situations like
-   *  this are not the norm!. 
-   */
-  var existingConnection = new Promise((resolve, reject) => {
-    //make a .fetch call in javascript
-    fetch("/AJAX/checkWDExists.php?qid=" + qid)
-      .then((response) => response.json())
-      .then((data) => {
-        let hits = data['data'];
-
-        let j = 0;
-        if (data['hits'] != 0) {
-          //load the first hit anyway: 
-          let maintarget = document.getElementById('embeddedET');
-          if (maintarget) {
-            maintarget.innerHTML = '';
-            maintarget.classList.remove('hidden');
-            let contentNav = document.createElement('div');
-            contentNav.setAttribute('id', 'navigateETs');
-            let hitNav = document.createElement('div');
-            hitNav.setAttribute('id', 'displayHitEt');
-            maintarget.appendChild(contentNav);   //navigates through the hits.
-            maintarget.appendChild(hitNav);       //prepares a box to display single hit info. 
-            showHit(hits[j]);
-          }
-          //add navigationmenu if there's more than one option: 
-          if (hits.length > 1) {
-            function paginationIndicator(p) {
-              if (p === 0) {
-                navigateBack.classList.add('invisible');
-              } else {
-                navigateBack.classList.remove('invisible');
-              }
-              if (p + 1 === hits.length) {
-                navigateNext.classList.add('invisible');
-              } else {
-                navigateNext.classList.remove('invisible');
-              }
-            }
-            let navigateHits = document.createElement('div');
-            navigateHits.className = 'flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs my-2';
-            navigateBack = document.createElement('button');
-            navigateBack.type = 'button';
-            navigateBack.innerHTML = '<i class="fas fa-chevron-left"></i>';
-            navigateNext = document.createElement('button');
-            navigateNext.type = 'button';
-            navigateNext.innerHTML = '<i class="fas fa-chevron-right"></i>';
-            navigateBack.className = 'inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 shadow-2xs transition cursor-pointer'; 
-            navigateNext.className = 'inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 shadow-2xs transition cursor-pointer'; 
-            navigateState = document.createElement('span');
-            navigateState.setAttribute('id', 'optionsIndicatorWD');
-            navigateState.className = 'font-semibold text-slate-700 px-1';
-            navigateState.appendChild(document.createTextNode((j + 1) + ' of ' + hits.length));
-            navigateNext.addEventListener('click', function () {
-              if (j + 1 < hits.length) {
-                j++;
-                navigateState.innerHTML = '';
-                navigateState.appendChild(document.createTextNode((j + 1) + ' of ' + hits.length));
-                paginationIndicator(j);
-                showHit(hits[j]);
-              }
-            }); 
-            navigateBack.addEventListener('click', function () {
-              if (j > 0) {
-                j--;
-                paginationIndicator(j);
-                showHit(hits[j]);
-                navigateState.innerHTML = '';
-                navigateState.appendChild(document.createTextNode(j + 1 + ' of ' + hits.length));
-              }
-            });
-            paginationIndicator(j);
-            navigateHits.appendChild(navigateBack);
-            navigateHits.appendChild(navigateState);
-            navigateHits.appendChild(navigateNext);
-            let connectButton = document.createElement('button'); 
-            connectButton.type = 'button';
-            connectButton.innerHTML = '<i class="fas fa-link mr-1"></i> Connect'; 
-            connectButton.className = 'inline-flex items-center px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-2xs transition ml-auto cursor-pointer'; 
-            connectButton.addEventListener('click', function(){
-              let annotationProperties = document.getElementById('embeddedAnnotation').getElementsByClassName('property');
-              let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
-              // Fetch a fresh CSRF token
-              fetch('/user/AJAX/profilestate.php?fastconnect=1')
-                .then((response) => response.json())
-                .then((token) => {
-                  if(token.valid){
-                    connectAnnoToEntity(hits[j], languageOptions.nodeid, globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox, token.csrf);
-                  }
-                });
-            });
-            let navelem = document.getElementById('navigateETs');
-            if (navelem) {
-              navelem.appendChild(navigateHits);
-              navelem.appendChild(connectButton);
-            }
-          }
-          resolve(data['hits']);
-        } else {
-          //let the user fill out the entity type and go from there
-          //create flash box to prompt attention: 
-          //OK
-          let creationElement = document.getElementById('etcreate') || document.getElementById('lattePromotionContainer');
-          if (creationElement) {
-            creationElement.classList.add('getAttention');
-          }
-          if (!document.getElementById('lattePromotionContainer')) {
-            loadPropertiesOfSelectedType(false);
-          }
-          resolve(0);
-        }
-      })
-  })
-  //return Promise; 
-  return existingConnection;
-}

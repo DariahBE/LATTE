@@ -21,6 +21,13 @@ function buildMaps(){
             continue;
         }
 
+        // Ensure the inner map container has an explicit non-zero pixel height for Leaflet
+        if (targetDivForMap !== thisMap) {
+            var mapHeight = thisMap.clientHeight > 0 ? thisMap.clientHeight : 280;
+            targetDivForMap.style.width = '100%';
+            targetDivForMap.style.height = mapHeight + 'px';
+        }
+
         var thisCoords = [];
         try {
             thisCoords = JSON.parse(thisMap.dataset.coordinates);
@@ -55,5 +62,8 @@ function buildMaps(){
             leafletMap.setView(featuregroup.getBounds().getCenter(), 12);
             leafletMap.setMaxBounds(leafletMap.getBounds().pad(1));
         }
+        setTimeout(function() {
+            leafletMap.invalidateSize();
+        }, 50);
     }
 }

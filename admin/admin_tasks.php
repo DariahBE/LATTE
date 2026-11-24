@@ -51,6 +51,12 @@ $navItems = [
         'href' => $adminBase . '/connector_queue.php',
         'active' => strpos($currentScript, 'connector_queue.php') !== false,
     ],
+    [
+        'label' => 'Merge entities',
+        'icon' => 'fas fa-compress-arrows-alt',
+        'href' => (defined('BASE_URL') ? BASE_URL : '') . '/merge_entities.php',
+        'active' => strpos($currentScript, 'merge_entities.php') !== false,
+    ],
 ];
 ?>
 <div class="bg-white border-b border-slate-200/80 shadow-xs mb-6">

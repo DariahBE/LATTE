@@ -247,94 +247,6 @@ function writeField(key, data, protected, structure) {
 }
 
 // Render promotion interface allowing an automated suggestion to be promoted to a custom entity type.
-function renderAutomaticPromotionBox(container, sugId, start, stop, detectedType, snippetText) {
-  const existing = document.getElementById('lattePromotionContainer');
-  if (existing) existing.remove();
-  const existingCreate = document.getElementById('etcreate');
-  if (existingCreate) existingCreate.remove();
-
-  // Reset chosen QID when opening promotion box
-  chosenQID = null;
-  globalSelectionText = snippetText || '';
-  globalSelectionStart = start;
-  globalSelectionEnd = stop;
-
-  const promotionDiv = document.createElement('div');
-  promotionDiv.id = 'lattePromotionContainer';
-  promotionDiv.className = 'mt-4 p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4';
-
-  const esc = (typeof window.escapeHtml === 'function')
-    ? window.escapeHtml
-    : (s => (s || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])));
-
-  promotionDiv.innerHTML = `
-    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
-      <div class="flex items-center gap-2.5">
-        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
-          <i class="fas fa-arrow-up"></i>
-        </div>
-        <div>
-          <h4 class="text-xs font-bold text-slate-900">Promote to custom entity</h4>
-          <p class="text-[11px] text-slate-500">Assign this mention to a custom entity type in the graph</p>
-        </div>
-      </div>
-      <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-[10px]">
-        Offsets: ${start} - ${stop}
-      </span>
-    </div>
-
-    <div class="space-y-1.5">
-      <label for="entityTypeSelector" class="block text-xs font-semibold text-slate-700">
-        1) Select entity type:
-      </label>
-      <div id="nodeTypeSelection" class="relative">
-        <select id="entityTypeSelector" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition cursor-pointer">
-          <option value="" disabled selected>Choose an entity type...</option>
-        </select>
-      </div>
-    </div>
-
-    <div id="annotationCreationDiv" class="hidden"></div>
-
-    <div id="variantStorageBox" class="hidden">
-      <span class="writtenvariantvalue">${esc(snippetText)}</span>
-    </div>
-  `;
-
-  container.appendChild(promotionDiv);
-
-  const selector = promotionDiv.querySelector('#entityTypeSelector');
-  const availableTypes = (typeof coreNodes !== 'undefined' && Array.isArray(coreNodes)) ? coreNodes : [];
-
-  let preselectType = null;
-  availableTypes.forEach(type => {
-    const opt = document.createElement('option');
-    opt.value = type;
-    opt.textContent = type;
-    selector.appendChild(opt);
-    if (detectedType && type.toLowerCase() === detectedType.toLowerCase()) {
-      preselectType = type;
-    }
-  });
-
-  selector.addEventListener('change', function() {
-    if (typeof loadPropertiesOfSelectedType === 'function') {
-      loadPropertiesOfSelectedType(this.value);
-    }
-  });
-
-  if (preselectType && typeof loadPropertiesOfSelectedType === 'function') {
-    selector.value = preselectType;
-    loadPropertiesOfSelectedType(preselectType);
-  }
-
-  // Initiate Wikidata ID lookup workflow using snippetText
-  if (typeof createWDPromptBox === 'function') {
-    createWDPromptBox(promotionDiv, false, snippetText);
-  }
-}
-window.renderAutomaticPromotionBox = renderAutomaticPromotionBox;
-
 let auto_annotation_internal_id = NaN; 
 function showdata(data) {
   /**       FUNCTION TRIGGERED BY INTERACTING WITH ENTITIES: 
@@ -415,8 +327,8 @@ function showdata(data) {
     //puts the annotation metadata in the annotationtarget element.
     var fieldFormatted = writeField(rowkey, rowdata, protected, annotationStructure);
     annotationTarget.appendChild(fieldFormatted);
-    console.log('annotation values: '); 
-    console.log(rowkey, rowdata, protected, annotationStructure); 
+    // console.log('annotation values: '); 
+    // console.log(rowkey, rowdata, protected, annotationStructure); 
   
   });
   //for all annotationExtraFields create a new editable field:
@@ -458,8 +370,10 @@ function showdata(data) {
       `;
       annotationTarget.appendChild(noticeCard);
     } else if (canEdit) {
-      // Custom entity types exist: render the promotion creation box so user can assign this mention to a custom entity type.
-      renderAutomaticPromotionBox(annotationTarget, sugId, sugStart, sugStop, detectedType, globalSelectionText || '');
+      if (typeof window.LinkingController !== 'undefined') {
+        window.LinkingController.openForAutomaticSuggestion(data, sugStart, sugStop, globalSelectionText, sugId, detectedType);
+        return;
+      }
     }
 
     if (canEdit && sugId) {
@@ -571,102 +485,6 @@ function showdata(data) {
           .then(function () { wd.renderEntities(qid.trim()); })
           .catch(function (err) { console.warn('Could not load Wikidata entry for ' + qid, err); });
       }
-    }
-  } else if (datamode === 'automated') {
-    // Automated suggestions: check if any existing entity in the graph matches this spelling.
-    const lookupVal = (typeof globalSelectionText === 'string') ? globalSelectionText.trim() : '';
-    const texNeoId = (typeof languageOptions !== 'undefined' && languageOptions && languageOptions.nodeid)
-      ? languageOptions.nodeid
-      : (window.currentTextNeoId || '');
-    if (lookupVal !== '') {
-      const matchContainer = document.createElement('div');
-      matchContainer.id = 'autoEntityMatchesCard';
-      matchContainer.className = 'mt-4 p-3 rounded-xl bg-indigo-50/70 border border-indigo-200 space-y-2';
-      matchContainer.innerHTML = '<div class="text-xs font-semibold text-indigo-800"><i class="fas fa-spinner fa-spin mr-1.5"></i>Checking existing entities matching "' + lookupVal.replace(/</g, '&lt;') + '"...</div>';
-      annotationTarget.appendChild(matchContainer);
-
-      const params = new URLSearchParams({
-        type: '',
-        value: lookupVal,
-        casesensitive: 'false',
-        allow_levenshtein: 'false',
-        texid: texNeoId
-      });
-      fetch('/AJAX/getEntitySuggestion.php?' + params.toString())
-        .then(r => r.json())
-        .then(resData => {
-          if (!resData || !Array.isArray(resData.nodes) || resData.nodes.length === 0) {
-            matchContainer.remove();
-            return;
-          }
-          matchContainer.innerHTML = '';
-          const header = document.createElement('div');
-          header.className = 'text-xs font-bold text-indigo-900 flex items-center gap-1.5';
-          header.innerHTML = '<i class="fas fa-link text-indigo-600"></i><span>Matching existing entities (' + resData.nodes.length + ')</span>';
-          matchContainer.appendChild(header);
-
-          const canEdit = (typeof window.userHasEditRights !== 'undefined' && window.userHasEditRights) || (typeof globalLoginAvailable !== 'undefined' && globalLoginAvailable);
-
-          resData.nodes.slice(0, 5).forEach(nodeItem => {
-            const eid = nodeItem[0];
-            const etype = nodeItem[1] || 'Entity';
-            const props = nodeItem[2] || {};
-            let displayLabel = '';
-            for (const [k, v] of Object.entries(props)) {
-              if (v && v.value && k !== 'uid') {
-                displayLabel = String(v.value);
-                break;
-              }
-            }
-            if (!displayLabel) displayLabel = '#' + eid;
-
-            const row = document.createElement('div');
-            row.className = 'flex items-center justify-between gap-2 p-2 rounded-lg bg-white border border-indigo-100 text-xs';
-            const info = document.createElement('div');
-            info.className = 'min-w-0 flex-1';
-            info.innerHTML = `<span class="font-semibold text-slate-900 truncate block">${displayLabel.replace(/</g, '&lt;')}</span><span class="text-[10px] text-slate-500">${etype}</span>`;
-            row.appendChild(info);
-
-            if (canEdit && typeof window.quickLinkSpanToEntity === 'function') {
-              const actions = document.createElement('div');
-              actions.className = 'flex items-center gap-1 flex-shrink-0';
-
-              const linkBtn = document.createElement('button');
-              linkBtn.type = 'button';
-              linkBtn.className = 'px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold cursor-pointer';
-              linkBtn.textContent = 'Link';
-              linkBtn.onclick = function () {
-                linkBtn.disabled = true;
-                window.quickLinkSpanToEntity(eid, globalSelectionStart, globalSelectionEnd, lookupVal, false)
-                  .catch(() => { linkBtn.disabled = false; });
-              };
-
-              const linkAllBtn = document.createElement('button');
-              linkAllBtn.type = 'button';
-              linkAllBtn.className = 'px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold cursor-pointer';
-              linkAllBtn.textContent = 'Link all';
-              linkAllBtn.title = 'Link this mention and all matching occurrences in document';
-              linkAllBtn.onclick = function () {
-                linkAllBtn.disabled = true;
-                window.quickLinkSpanToEntity(eid, globalSelectionStart, globalSelectionEnd, lookupVal, true)
-                  .catch(() => { linkAllBtn.disabled = false; });
-              };
-
-              actions.appendChild(linkBtn);
-              actions.appendChild(linkAllBtn);
-              row.appendChild(actions);
-            }
-            matchContainer.appendChild(row);
-          });
-
-          // Also populate the floating context popup under the cursor if present.
-          if (typeof window.renderMatchingEntitiesInSuggestionBox === 'function') {
-            window.renderMatchingEntitiesInSuggestionBox(resData, globalSelectionStart, globalSelectionEnd, lookupVal);
-          }
-        })
-        .catch(() => {
-          matchContainer.remove();
-        });
     }
   }
 
@@ -809,6 +627,10 @@ function createPropagateOccurrencesBlock(entityNeoId, selectionText) {
   statusEl.className = 'text-xs hidden';
 
   btn.addEventListener('click', async function () {
+    if (typeof window.LinkingController !== 'undefined' && typeof window.LinkingController.openPropagationForConfirmed === 'function') {
+      window.LinkingController.openPropagationForConfirmed(entityNeoId, 'this entity', selectionText);
+      return;
+    }
     const texNeoId = (typeof languageOptions !== 'undefined' && languageOptions && languageOptions.nodeid)
       ? languageOptions.nodeid
       : (window.currentTextNeoId || 0);
@@ -903,15 +725,71 @@ function loadAnnotationData(annotationID = false) {
     // Immediately open slider drawer with subtle noticeable loading spinner
     showSlideoverLoadingState();
 
-    getInfoFromBackend("/AJAX/resolve_annotation.php?annotation=" + annotationID)
+    const texNeoId = (typeof languageOptions !== 'undefined' && languageOptions && languageOptions.nodeid)
+      ? languageOptions.nodeid
+      : (window.currentTextNeoId || '');
+    const resolveUrl = "/AJAX/resolve_annotation.php?annotation=" + encodeURIComponent(annotationID)
+      + (texNeoId ? "&texid=" + encodeURIComponent(texNeoId) : "");
+
+    getInfoFromBackend(resolveUrl)
     .then((data) => {
       if (data['code']==-1){
+        // Fallback for client-side or unpersisted LATTE suggestions (latte_sug_*).
+        if (typeof annotationID === 'string' && annotationID.startsWith('latte_sug_') && typeof window.LinkingController !== 'undefined') {
+          let sugStart = -1;
+          let sugStop = -1;
+          let detectedType = 'Entity';
+          let snippet = '';
+
+          if (Array.isArray(window.automatic_annotations)) {
+            const matchSug = window.automatic_annotations.find(a => (a.annotation || a.id) === annotationID);
+            if (matchSug) {
+              sugStart = parseInt(matchSug.start !== undefined ? matchSug.start : matchSug.startPos, 10);
+              sugStop = parseInt(matchSug.stop !== undefined ? matchSug.stop : matchSug.endPos, 10);
+              detectedType = matchSug.label || matchSug.labelTex || 'Entity';
+              snippet = matchSug.text || '';
+            }
+          }
+
+          if (sugStart < 0 || sugStop < sugStart) {
+            const matchingSpans = Array.from(document.querySelectorAll('#textcontent .ltr[data-annotation]'))
+              .filter(sp => (sp.getAttribute('data-annotation') || '').split(',').includes(annotationID));
+            if (matchingSpans.length > 0) {
+              const iters = matchingSpans.map(sp => parseInt(sp.dataset.itercounter, 10)).filter(n => !isNaN(n));
+              sugStart = Math.min(...iters);
+              sugStop = Math.max(...iters);
+              detectedType = matchingSpans[0].getAttribute('data-entitytype') || 'Entity';
+              snippet = matchingSpans.map(sp => sp.textContent).join('');
+            }
+          }
+
+          if (!snippet && sugStart >= 0 && sugStop >= sugStart) {
+            if (typeof getSelectedTextSnippet === 'function') {
+              snippet = getSelectedTextSnippet(sugStart, sugStop);
+            } else {
+              const parts = [];
+              for (let idx = sugStart; idx <= sugStop; idx++) {
+                const s = document.querySelector(`.ltr[data-itercounter="${idx}"]`);
+                if (s) parts.push(s.textContent);
+              }
+              snippet = parts.join('');
+            }
+          }
+
+          if (sugStart >= 0 && sugStop >= sugStart && snippet.trim() !== '') {
+            window.LinkingController.openForAutomaticSuggestion({}, sugStart, sugStop, snippet, annotationID, detectedType);
+            return;
+          }
+        }
+
         showSlideoverErrorState(data['error'] || 'Could not resolve annotation data.');
         handleError(''); 
       }else{
         globalAnnoInteractId = data['annotation']['neoid']; 
         showdata(data);
-        updateState('State', 'An annotated entity was selected, you can now see the data held in the database.'); 
+        if (!(window.LinkingController && window.LinkingController.isActive())) {
+          updateState('State', 'An annotated entity was selected, you can now see the data held in the database.');
+        }
       }
     })
     .catch(err => {

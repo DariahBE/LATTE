@@ -106,6 +106,14 @@ if (array_key_exists('coreID', $core)){
   }
 
 }else{
+  include_once(ROOT_DIR . '/includes/entity_merge.inc.php');
+  $merger = new EntityMerger($client);
+  $redirect = $merger->resolveMergedRedirect($type, (string)$uuid);
+  if ($redirect !== null) {
+    $baseUrl = defined('BASE_URL') ? BASE_URL : '';
+    header('Location: ' . $baseUrl . '/API/' . rawurlencode($redirect['target_type']) . '/' . rawurlencode($redirect['target_id']), true, 301);
+    exit;
+  }
   echo json_encode(array('error' => 'The provided ID does not have matching record. The related node may be deleted, or it never existed.'));
   die();
 }

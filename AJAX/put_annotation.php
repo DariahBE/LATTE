@@ -104,9 +104,9 @@
         $properties = array();
     }
     $splitWikidataEntity = !empty($data['split_wikidata_entity']) && filter_var($data['split_wikidata_entity'], FILTER_VALIDATE_BOOLEAN);
+    $hasSchemaWikidataProp = false;
     $chosenQid = trim((string)($data['wikidata_qid'] ?? ''));
     if ($chosenQid !== '' && preg_match('/^Q[0-9]+$/', $chosenQid)) {
-        $hasSchemaWikidataProp = false;
         foreach ($model as $propKey => $propMeta) {
             if (strtolower($propMeta[1] ?? '') === 'wikidata') {
                 $hasSchemaWikidataProp = true;
@@ -116,8 +116,12 @@
                 break;
             }
         }
-        if (!$hasSchemaWikidataProp && empty($properties['wikidata_id'])) {
-            $properties['wikidata_id'] = $chosenQid;
+    } else {
+        foreach ($model as $propKey => $propMeta) {
+            if (strtolower($propMeta[1] ?? '') === 'wikidata') {
+                $hasSchemaWikidataProp = true;
+                break;
+            }
         }
     }
 
@@ -215,6 +219,13 @@
             //createNewNode needs to automatically generate a primary key for entities where the model uses an integer key as unique value. 
             $createdEntity = $node->createNewNode($nodelabel, $properties, true); 
 
+            if (!$hasSchemaWikidataProp && $effectiveQid !== '') {
+                $node->gettsx()->run(
+                    'MATCH (e) WHERE id(e) = $eid SET e.wikidata_id = $qid',
+                    ['eid' => (int)$createdEntity, 'qid' => $effectiveQid]
+                );
+            }
+
             //connect the user ID to $createdEnditity!
             $node->connectNodes($userNeoId, $createdEntity, 'priv_created');
         }
@@ -256,18 +267,92 @@
         }
 
         // Promote any automatic suggestion covering this span by removing it from latte_suggestions on the text node.
-        try {
-            include_once(ROOT_DIR . '/includes/latte_queue_manager.inc.php');
-            $startPos = (int)($annotationNode[ANNOSTART] ?? ($startAutomated ?? 0));
-            $stopPos = (int)($annotationNode[ANNOSTOP] ?? ($stopAutomated ?? 0));
-            if (!empty($texid)) {
-                LatteQueueManager::promoteSuggestion($client, (int)$texid, $startPos, $stopPos);
+        include_once(ROOT_DIR . '/includes/latte_queue_manager.inc.php');
+        $startPos = (int)($annotationNode[ANNOSTART] ?? ($startAutomated ?? 0));
+        $stopPos = (int)($annotationNode[ANNOSTOP] ?? ($stopAutomated ?? 0));
+        $propagatedList = array();
+
+        $propagate = !empty($data['propagate']) && filter_var($data['propagate'], FILTER_VALIDATE_BOOLEAN);
+        if ($propagate && !empty($texid) && !empty($variants[0])) {
+            $needle = trim((string)$variants[0]);
+            $matchCase = !isset($data['case_sensitive']) || filter_var($data['case_sensitive'], FILTER_VALIDATE_BOOLEAN);
+            $wholeWord = !isset($data['whole_word']) || filter_var($data['whole_word'], FILTER_VALIDATE_BOOLEAN);
+            if ($needle !== '') {
+                $textProp = defined('TEXNODETEXT') ? TEXNODETEXT : 'text';
+                $tRes = $client->run('MATCH (t) WHERE id(t) = $tid RETURN t.' . $textProp . ' AS txt LIMIT 1', ['tid' => (int)$texid]);
+                $textBody = ($tRes->count() > 0) ? (string)($tRes->first()->get('txt') ?? '') : '';
+                if ($textBody !== '') {
+                    $exRes = $client->run(
+                        'MATCH (t)-[:contains]->(a) WHERE id(t) = $tid AND (a:Annotation OR a:Annotation_rejected)
+                         RETURN a.' . $startProperty . ' AS s, a.' . $endProperty . ' AS e',
+                        ['tid' => (int)$texid]
+                    );
+                    $occupied = [['s' => $startPos, 'e' => $stopPos]];
+                    foreach ($exRes as $rec) {
+                        $occupied[] = ['s' => (int)$rec->get('s'), 'e' => (int)$rec->get('e')];
+                    }
+                    $chars = mb_str_split($textBody, 1, 'UTF-8');
+                    $totalChars = count($chars);
+                    $sChars = mb_str_split($needle, 1, 'UTF-8');
+                    $sLen = count($sChars);
+                    $needleLower = mb_strtolower($needle, 'UTF-8');
+
+                    for ($idx = 0; $idx <= $totalChars - $sLen; $idx++) {
+                        $sliceStr = implode('', array_slice($chars, $idx, $sLen));
+                        $isMatch = $matchCase ? ($sliceStr === $needle) : (mb_strtolower($sliceStr, 'UTF-8') === $needleLower);
+                        if (!$isMatch) continue;
+                        $cStart = $idx;
+                        $cStop = $idx + $sLen - 1;
+                        if ($wholeWord) {
+                            if ($cStart > 0 && !preg_match('/[\s\p{P}]/u', $chars[$cStart - 1])) continue;
+                            if ($cStop < $totalChars - 1 && !preg_match('/[\s\p{P}]/u', $chars[$cStop + 1])) continue;
+                        }
+                        $overlaps = false;
+                        foreach ($occupied as $rng) {
+                            if ($cStart <= $rng['e'] && $cStop >= $rng['s']) {
+                                $overlaps = true;
+                                break;
+                            }
+                        }
+                        if ($overlaps) continue;
+                        $occupied[] = ['s' => $cStart, 'e' => $cStop];
+
+                        $propAnnoId = $node->createNewNode(ANNONODE, [$startProperty => $cStart, $endProperty => $cStop], true);
+                        $propAnnoUid = $annotation->fetchAnnotationUUID($propAnnoId);
+                        $node->connectNodes($userNeoId, $propAnnoId, 'priv_created');
+                        $node->connectNodes($propAnnoId, $createdEntity, 'references');
+                        $node->connectNodes($texid, $propAnnoId, 'contains');
+                        $propagatedList[] = [
+                            'uuid' => $propAnnoUid,
+                            'neoid' => $propAnnoId,
+                            'start' => $cStart,
+                            'stop' => $cStop,
+                            'type' => $nodelabel,
+                        ];
+                    }
+                }
             }
-        } catch (\Throwable $e) {
-            error_log('Failed to promote automatic suggestion on text node ' . $texid . ': ' . $e->getMessage());
         }
 
         $node->commitTransaction();
+
+        // Clean up overlapping latte_suggestions and legacy Annotation_auto nodes after commit.
+        $rangesToClean = array_merge([['start' => $startPos, 'stop' => $stopPos]], $propagatedList);
+        foreach ($rangesToClean as $rng) {
+            try {
+                if (!empty($texid)) {
+                    LatteQueueManager::promoteSuggestion($client, (int)$texid, (int)$rng['start'], (int)$rng['stop']);
+                    $client->run(
+                        'MATCH (t)-[:contains]->(aa:Annotation_auto)
+                         WHERE id(t) = $tid AND aa.' . $startProperty . ' <= $stop AND aa.' . $endProperty . ' >= $start
+                         DETACH DELETE aa',
+                        ['tid' => (int)$texid, 'start' => (int)$rng['start'], 'stop' => (int)$rng['stop']]
+                    );
+                }
+            } catch (\Throwable $e) {
+                error_log('Failed to clean automatic suggestion on text node ' . $texid . ': ' . $e->getMessage());
+            }
+        }
     } catch (\Throwable $th) {
         $node->rollbackTransaction();
         http_response_code(500);
@@ -282,6 +367,7 @@
         'type' => $nodelabel, 
         'start' => $annotationNode[ANNOSTART] ?? $startAutomated, 
         'stop' => $annotationNode[ANNOSTOP] ?? $stopAutomated,
+        'propagated' => $propagatedList,
     );
     //PATCH TSX is not used, so we do not pass it to the client. 
     //$node_reply['tsx'] = $node;

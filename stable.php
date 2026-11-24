@@ -63,14 +63,20 @@ if ($type == ANNONODE && !(array_key_exists('coreID', $core))){
 if(array_key_exists('coreID', $core)){
   $coreNeoID = $core["neoID"]; 
   $coreId = $core['coreID'];
-  $neighbours = $graph->getNeighbours($coreNeoID, false, 'see_also');
-  //$textSharingEt = $graph->getTextsSharingEntity($coreId, true);
   $silo->getNeighboursConnectedBy($coreNeoID); 
   $siloArray = $silo->makeURIs('html'); 
   $block = new Blockfactory($type); 
   $textConnections = $graph->listTextsConnectedToEntityWithID((int)$coreNeoID);
   $wdqid = $graph->getwikidataValue($core["neoID"]);
 }else{
+  include_once(ROOT_DIR . '/includes/entity_merge.inc.php');
+  $merger = new EntityMerger($client);
+  $redirect = $merger->resolveMergedRedirect($type, (string)$uuid);
+  if ($redirect !== null) {
+    $baseUrl = defined('BASE_URL') ? BASE_URL : '';
+    header('Location: ' . $baseUrl . '/URI/' . rawurlencode($redirect['target_type']) . '/' . rawurlencode($redirect['target_id']), true, 301);
+    exit;
+  }
   header('Location: ' . (defined('BASE_URL') ? BASE_URL : '') . '/error.php?type=id');
   exit;
 }
@@ -130,56 +136,291 @@ if(array_key_exists('coreID', $core)){
               echo "</ul>";
             echo "</div>";
           }
-          $related_count = 0; 
-          foreach($neighbours as $row){
-            if($row['t'] !== Null){
-              $related_count++;
-            }
-          }
-          echo "<div class='bg-white border border-slate-200 rounded-xl shadow-sm p-6 lg:col-span-2'>";
-          echo "<h3 class='text-base font-semibold text-slate-900 mb-3'>Relationships <span class='text-xs font-normal text-slate-500'>(".(int)$related_count." found)</span></h3>";
-          if($related_count > 0){
-            echo "<div class='overflow-x-auto max-h-[400px] overflow-y-auto rounded-lg border border-slate-200'>";
-            echo "<table class='w-full border-collapse text-sm divide-y divide-slate-200'>"; 
-            echo "<thead class='bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wider sticky top-0'><tr><th class='py-2.5 px-3 text-left'>Relation</th><th class='py-2.5 px-3 text-left'>Node</th><th class='py-2.5 px-3 text-left'>Properties</th></tr></thead>"; 
-            echo "<tbody class='divide-y divide-slate-100'>";
-            foreach($neighbours as $row){
-              $relation = $row['r'];
-              $relatedNode = $row['t']; 
-              $nodeProps = $relatedNode['properties']; 
-              $nodePropsList = '<ul class="space-y-1">'; 
-              foreach ($nodeProps as $propkey => $propValue){
-                if(($propkey !== 'priv_user') && (array_key_exists($propkey, NODEMODEL[$relatedNode['labels'][0]]))){
-                  $value = NODEMODEL[$relatedNode['labels'][0]][$propkey];
-                  $propCleanName = $value[0];
-                  $propType = $value[1]; 
-                  if($propType === 'uri'){
-                    $rawUri = trim((string)$propValue);
-                    if (preg_match('/^https?:\/\//i', $rawUri)) {
-                      $safeUri = htmlspecialchars($rawUri, ENT_QUOTES, 'UTF-8');
-                      $nodePropsList .= "<li class='text-xs'><span class='font-semibold text-slate-700'>".htmlspecialchars($propCleanName, ENT_QUOTES, 'UTF-8').":</span> <a href='$safeUri' target='_blank' rel='noopener noreferrer' class='text-indigo-600 hover:underline break-all'>".$safeUri."</a></li>";
-                    } else {
-                      $nodePropsList .= "<li class='text-xs'><span class='font-semibold text-slate-700'>".htmlspecialchars($propCleanName, ENT_QUOTES, 'UTF-8').":</span> <span class='text-slate-600 break-all'>".htmlspecialchars($rawUri, ENT_QUOTES, 'UTF-8')."</span></li>";
-                    }
-                  }else{
-                    $nodePropsList .= "<li class='text-xs'><span class='font-semibold text-slate-700'>".htmlspecialchars($propCleanName).":</span> <span class='text-slate-600'>".htmlspecialchars($propValue)."</span></li>";
-                  }
-                }
-              }
-              $nodePropsList .= '</ul>';
-              echo "<tr class='odd:bg-white even:bg-slate-50/50 hover:bg-slate-100/60 transition-colors'>"; 
-              echo "<td class='py-2.5 px-3 font-medium text-slate-800 text-xs whitespace-nowrap'>".htmlspecialchars($relation['type'])."</td>"; 
-              echo "<td class='py-2.5 px-3 text-slate-600 text-xs whitespace-nowrap'><span class='inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[11px]'>".htmlspecialchars($relatedNode['labels'][0])."</span></td>";
-              echo "<td class='py-2.5 px-3'>".$nodePropsList."</td>";
-              echo "</tr>"; 
-            }
-            echo "</tbody></table>"; 
-            echo "</div>";
-          } else {
-            echo "<p class='text-xs text-slate-500'>No relationship links recorded for this entity.</p>";
-          }
-          echo "</div>";
+          ?>
+          <div class="bg-white border border-slate-200 rounded-xl shadow-sm p-6 lg:col-span-2" id="relationshipsCard">
+            <div class="flex flex-wrap items-center justify-between gap-2 mb-3">
+              <h3 class="text-base font-semibold text-slate-900">
+                Relationships <span id="relTotalBadge" class="text-xs font-normal text-slate-500">(loading...)</span>
+              </h3>
+            </div>
 
+            <!-- Filter controls -->
+            <div class="flex flex-wrap items-center gap-2 mb-3">
+              <select id="relFilterRelation" aria-label="Filter by relation" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:ring-1 focus:ring-indigo-500">
+                <option value="">All relations</option>
+              </select>
+              <select id="relFilterNode" aria-label="Filter by node type" class="bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:ring-1 focus:ring-indigo-500">
+                <option value="">All nodes</option>
+              </select>
+              <input id="relFilterQuery" type="text" placeholder="Filter properties..." class="flex-1 min-w-[140px] bg-white border border-slate-300 rounded-lg px-2.5 py-1.5 text-xs text-slate-700 focus:ring-1 focus:ring-indigo-500" />
+              <button id="relFilterReset" type="button" class="px-2.5 py-1.5 rounded-lg bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-medium cursor-pointer transition-colors">
+                Reset
+              </button>
+            </div>
+
+            <div class="overflow-x-auto max-h-[420px] overflow-y-auto rounded-lg border border-slate-200">
+              <table class="w-full border-collapse text-sm divide-y divide-slate-200">
+                <thead class="bg-slate-50 text-slate-700 font-semibold text-xs uppercase tracking-wider sticky top-0">
+                  <tr>
+                    <th id="relSortRelation" class="py-2.5 px-3 text-left cursor-pointer select-none hover:bg-slate-100 transition-colors" title="Sort by Relation">
+                      <span class="inline-flex items-center gap-1">Relation <span id="relSortIconRelation" class="text-indigo-600">▲</span></span>
+                    </th>
+                    <th id="relSortNode" class="py-2.5 px-3 text-left cursor-pointer select-none hover:bg-slate-100 transition-colors" title="Sort by Node">
+                      <span class="inline-flex items-center gap-1">Node <span id="relSortIconNode" class="text-slate-400">⇅</span></span>
+                    </th>
+                    <th class="py-2.5 px-3 text-left">Properties</th>
+                  </tr>
+                </thead>
+                <tbody id="relTableBody" class="divide-y divide-slate-100">
+                  <tr><td colspan="3" class="py-6 text-center text-xs text-slate-400">Loading relationships...</td></tr>
+                </tbody>
+              </table>
+            </div>
+
+            <!-- Pagination controls -->
+            <div id="relPaginationBar" class="mt-3 flex flex-wrap items-center justify-between gap-2 text-xs text-slate-600">
+              <span id="relRangeInfo"></span>
+              <div class="flex items-center gap-2">
+                <button id="relPrevBtn" type="button" disabled class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  ← Previous
+                </button>
+                <span id="relPageInfo" class="font-medium text-slate-700"></span>
+                <button id="relNextBtn" type="button" disabled class="px-3 py-1.5 rounded-lg bg-white border border-slate-300 text-slate-700 font-medium hover:bg-slate-50 disabled:opacity-40 disabled:cursor-not-allowed cursor-pointer">
+                  Next →
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <script>
+            (function () {
+              const state = {
+                neoid: <?php echo (int)$coreNeoID; ?>,
+                page: 1,
+                limit: 25,
+                sort: 'relation',
+                dir: 'asc',
+                relation: '',
+                node: '',
+                q: '',
+                facetsLoaded: false
+              };
+
+              const badgeEl = document.getElementById('relTotalBadge');
+              const relSelect = document.getElementById('relFilterRelation');
+              const nodeSelect = document.getElementById('relFilterNode');
+              const queryInput = document.getElementById('relFilterQuery');
+              const resetBtn = document.getElementById('relFilterReset');
+              const tbodyEl = document.getElementById('relTableBody');
+              const rangeEl = document.getElementById('relRangeInfo');
+              const pageEl = document.getElementById('relPageInfo');
+              const prevBtn = document.getElementById('relPrevBtn');
+              const nextBtn = document.getElementById('relNextBtn');
+              const sortRelTh = document.getElementById('relSortRelation');
+              const sortNodeTh = document.getElementById('relSortNode');
+              const iconRel = document.getElementById('relSortIconRelation');
+              const iconNode = document.getElementById('relSortIconNode');
+
+              function updateSortIcons() {
+                iconRel.textContent = state.sort === 'relation' ? (state.dir === 'asc' ? '▲' : '▼') : '⇅';
+                iconRel.className = state.sort === 'relation' ? 'text-indigo-600' : 'text-slate-400';
+                iconNode.textContent = state.sort === 'node' ? (state.dir === 'asc' ? '▲' : '▼') : '⇅';
+                iconNode.className = state.sort === 'node' ? 'text-indigo-600' : 'text-slate-400';
+              }
+
+              function populateSelect(selectEl, items, defaultLabel, currentValue) {
+                selectEl.innerHTML = '';
+                const defOpt = document.createElement('option');
+                defOpt.value = '';
+                defOpt.textContent = defaultLabel;
+                selectEl.appendChild(defOpt);
+                items.forEach(item => {
+                  const opt = document.createElement('option');
+                  opt.value = item;
+                  opt.textContent = item;
+                  if (item === currentValue) opt.selected = true;
+                  selectEl.appendChild(opt);
+                });
+              }
+
+              function renderRows(rows) {
+                tbodyEl.innerHTML = '';
+                if (!rows || rows.length === 0) {
+                  const tr = document.createElement('tr');
+                  const td = document.createElement('td');
+                  td.colSpan = 3;
+                  td.className = 'py-6 text-center text-xs text-slate-500';
+                  td.textContent = 'No relationship links match the current criteria.';
+                  tr.appendChild(td);
+                  tbodyEl.appendChild(tr);
+                  return;
+                }
+
+                rows.forEach(row => {
+                  const tr = document.createElement('tr');
+                  tr.className = 'odd:bg-white even:bg-slate-50/50 hover:bg-slate-100/60 transition-colors';
+
+                  const tdRel = document.createElement('td');
+                  tdRel.className = 'py-2.5 px-3 font-medium text-slate-800 text-xs whitespace-nowrap';
+                  tdRel.textContent = row.relation || '';
+
+                  const tdNode = document.createElement('td');
+                  tdNode.className = 'py-2.5 px-3 text-slate-600 text-xs whitespace-nowrap';
+                  const badge = document.createElement('span');
+                  badge.className = 'inline-block px-2 py-0.5 rounded bg-slate-100 text-slate-700 font-mono text-[11px]';
+                  badge.textContent = row.node_label || '';
+                  tdNode.appendChild(badge);
+
+                  const tdProps = document.createElement('td');
+                  tdProps.className = 'py-2.5 px-3';
+                  const ul = document.createElement('ul');
+                  ul.className = 'space-y-1';
+                  (row.properties || []).forEach(p => {
+                    const li = document.createElement('li');
+                    li.className = 'text-xs';
+                    const keySpan = document.createElement('span');
+                    keySpan.className = 'font-semibold text-slate-700';
+                    keySpan.textContent = p.name + ': ';
+                    li.appendChild(keySpan);
+
+                    const rawVal = String(p.value || '').trim();
+                    if (p.type === 'uri' && /^https?:\/\//i.test(rawVal)) {
+                      const a = document.createElement('a');
+                      a.href = rawVal;
+                      a.target = '_blank';
+                      a.rel = 'noopener noreferrer';
+                      a.className = 'text-indigo-600 hover:underline break-all';
+                      a.textContent = rawVal;
+                      li.appendChild(a);
+                    } else {
+                      const valSpan = document.createElement('span');
+                      valSpan.className = 'text-slate-600 break-all';
+                      valSpan.textContent = rawVal;
+                      li.appendChild(valSpan);
+                    }
+                    ul.appendChild(li);
+                  });
+                  tdProps.appendChild(ul);
+
+                  tr.appendChild(tdRel);
+                  tr.appendChild(tdNode);
+                  tr.appendChild(tdProps);
+                  tbodyEl.appendChild(tr);
+                });
+              }
+
+              async function loadRelationships() {
+                const params = new URLSearchParams({
+                  neoid: String(state.neoid),
+                  page: String(state.page),
+                  limit: String(state.limit),
+                  sort: state.sort,
+                  dir: state.dir,
+                  relation: state.relation,
+                  node: state.node,
+                  q: state.q
+                });
+                const res = await fetch('/AJAX/get_relationships.php?' + params.toString());
+                const data = await res.json();
+                if (!res.ok || data.error) {
+                  badgeEl.textContent = '(error)';
+                  return;
+                }
+
+                if (!state.facetsLoaded) {
+                  populateSelect(relSelect, data.available_relations || [], 'All relations', state.relation);
+                  populateSelect(nodeSelect, data.available_nodes || [], 'All nodes', state.node);
+                  state.facetsLoaded = true;
+                }
+
+                badgeEl.textContent = '(' + data.total + ' found)';
+                renderRows(data.rows);
+
+                if (data.total === 0) {
+                  rangeEl.textContent = 'Showing 0 results';
+                  pageEl.textContent = 'Page 1 of 1';
+                } else {
+                  const startIdx = ((data.page - 1) * data.limit) + 1;
+                  const endIdx = Math.min(data.total, startIdx + data.rows.length - 1);
+                  rangeEl.textContent = 'Showing ' + startIdx + '–' + endIdx + ' of ' + data.total;
+                  pageEl.textContent = 'Page ' + data.page + ' of ' + data.total_pages;
+                }
+                prevBtn.disabled = data.page <= 1;
+                nextBtn.disabled = data.page >= data.total_pages;
+                updateSortIcons();
+              }
+
+              sortRelTh.addEventListener('click', () => {
+                if (state.sort === 'relation') {
+                  state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+                } else {
+                  state.sort = 'relation';
+                  state.dir = 'asc';
+                }
+                state.page = 1;
+                loadRelationships();
+              });
+
+              sortNodeTh.addEventListener('click', () => {
+                if (state.sort === 'node') {
+                  state.dir = state.dir === 'asc' ? 'desc' : 'asc';
+                } else {
+                  state.sort = 'node';
+                  state.dir = 'asc';
+                }
+                state.page = 1;
+                loadRelationships();
+              });
+
+              relSelect.addEventListener('change', () => {
+                state.relation = relSelect.value;
+                state.page = 1;
+                loadRelationships();
+              });
+
+              nodeSelect.addEventListener('change', () => {
+                state.node = nodeSelect.value;
+                state.page = 1;
+                loadRelationships();
+              });
+
+              let searchTimer = null;
+              queryInput.addEventListener('input', () => {
+                clearTimeout(searchTimer);
+                searchTimer = setTimeout(() => {
+                  state.q = queryInput.value.trim();
+                  state.page = 1;
+                  loadRelationships();
+                }, 250);
+              });
+
+              resetBtn.addEventListener('click', () => {
+                state.relation = '';
+                state.node = '';
+                state.q = '';
+                state.page = 1;
+                relSelect.value = '';
+                nodeSelect.value = '';
+                queryInput.value = '';
+                loadRelationships();
+              });
+
+              prevBtn.addEventListener('click', () => {
+                if (state.page > 1) {
+                  state.page -= 1;
+                  loadRelationships();
+                }
+              });
+
+              nextBtn.addEventListener('click', () => {
+                state.page += 1;
+                loadRelationships();
+              });
+
+              loadRelationships();
+            })();
+          </script>
+          <?php
           if(count($textConnections['annotations'])){
             $annos = $textConnections['annotations']; 
             $texts = $textConnections['texts']; 
@@ -270,7 +511,6 @@ if(array_key_exists('coreID', $core)){
             let annoid = <?php echo json_encode($a); ?>;
             createEditRemoveBox(etid, annoid)
             .then(divelement => {
-              console.log('divelement', divelement);
               document.getElementById('edrbox').appendChild(divelement);
             })
 

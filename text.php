@@ -102,6 +102,9 @@ if (!empty($textProperties['latte_suggestions'])) {
     <script src="/JS/getLang.js"></script>
     <script src="/JS/getEntities.js?v=<?php echo filemtime(__DIR__ . '/JS/getEntities.js'); ?>"></script>
     <script src="/JS/getEntityInfo.js"></script>
+    <script src="/JS/linking/dom.js?v=<?php echo filemtime(__DIR__ . '/JS/linking/dom.js'); ?>"></script>
+    <script src="/JS/linking/api.js?v=<?php echo filemtime(__DIR__ . '/JS/linking/api.js'); ?>"></script>
+    <script src="/JS/linking/LinkingController.js?v=<?php echo filemtime(__DIR__ . '/JS/linking/LinkingController.js'); ?>"></script>
     <script src="/JS/selectInText.js?v=<?php echo filemtime(__DIR__ . '/JS/selectInText.js'); ?>"></script>
     <script src="/JS/showStoredAnnotations.js"></script>
     <script src="/JS/interactWithEntities.js?v=<?php echo filemtime(__DIR__ . '/JS/interactWithEntities.js'); ?>"></script>

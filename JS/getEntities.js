@@ -213,10 +213,24 @@ function displayEntities(entities){
       continue; 
     }
 
-    const persistedSug = (entities['persisted_suggestions'] && entities['persisted_suggestions'][i])
-      ? entities['persisted_suggestions'][i]
-      : null;
+    const persistedList = Array.isArray(entities['persisted_suggestions']) ? entities['persisted_suggestions'] : [];
+    const persistedSug = persistedList.find(s =>
+      parseInt(s.start !== undefined ? s.start : s.startPos, 10) === parseInt(et_start, 10) &&
+      parseInt(s.stop !== undefined ? s.stop : s.endPos, 10) === parseInt(et_stop, 10)
+    ) || persistedList[i] || null;
     let annoKey = persistedSug ? persistedSug['id'] : ('latte_sug_' + generateRandomIdAttribute());
+
+    if (typeof window.automatic_annotations !== 'undefined' && Array.isArray(window.automatic_annotations)) {
+      const existsInClient = window.automatic_annotations.some(a => (a.annotation || a.id) === annoKey);
+      if (!existsInClient) {
+        window.automatic_annotations.push({
+          annotation: annoKey,
+          start: et_start,
+          stop: et_stop,
+          label: et_type
+        });
+      }
+    }
 
     for (let itercounter = et_start; itercounter <= et_stop; itercounter++) {
       const element = (typeof getSpanByIter === 'function')
