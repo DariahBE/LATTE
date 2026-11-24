@@ -17,18 +17,24 @@ class Exporter {
   private $autoAnnotations; 
   private $breakpoints; 
   private $XMLTaggedText;
+  private $collections = array();
   function __construct($client, $mode){
-    $this->allowedModes = array('json', 'xml'); 
+    $this->allowedModes = array('json', 'xml', 'tei', 'webannotation'); 
     $this->client = $client; 
     if(in_array($mode, $this->allowedModes)){
       $this->mode = $mode; 
     }else{
-      die(); //reject the request. 
+      http_response_code(400);
+      die(json_encode(['error' => 'Invalid export mode']));
     }
   }
   
   public function setText($text){
     $this->rawtext = $text; 
+  }
+
+  public function setCollections(array $collections){
+    $this->collections = $collections;
   }
 
   public function setIdentifiedText($text){
@@ -63,17 +69,35 @@ class Exporter {
     }
   }
 
-  public function outputHeaders(){
+  public function outputHeaders($identifier = null){
+    $suffix = ($identifier !== null && $identifier !== '') ? ('_' . preg_replace('/[^a-zA-Z0-9_-]/', '', (string)$identifier)) : '';
     if ($this->mode == 'xml'){
-      return header('Content-Type: text/xml');
+      header('Content-Type: text/xml; charset=utf-8');
+      header('Content-Disposition: attachment; filename="export' . $suffix . '.xml"');
     }else if($this->mode == 'json'){
-      return header('Content-Type: application/json; charset=utf-8');
+      header('Content-Type: application/json; charset=utf-8');
+      header('Content-Disposition: attachment; filename="export' . $suffix . '.json"');
+    }else if($this->mode == 'tei'){
+      header('Content-Type: application/tei+xml; charset=utf-8');
+      header('Content-Disposition: attachment; filename="export' . $suffix . '.tei.xml"');
+    }else if($this->mode == 'webannotation'){
+      header('Content-Type: application/ld+json; charset=utf-8');
+      header('Content-Disposition: attachment; filename="export' . $suffix . '.webannotation.jsonld"');
     }
+  }
+
+  private function getBaseOrigin(): string {
+    $host = $_SERVER['HTTP_HOST'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
+    $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https://' : 'http://';
+    $basePath = defined('BASE_URL') ? BASE_URL : '';
+    return $scheme . $host . $basePath;
   }
 
   public function outputContent(){
     $date = date("d-m-Y H:i:s");
-    $exportURL = $_SERVER['SERVER_NAME'].$_SERVER['REQUEST_URI']; 
+    $host = $_SERVER['HTTP_HOST'] ?? ($_SERVER['SERVER_NAME'] ?? 'localhost');
+    $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https://' : 'http://';
+    $exportURL = $scheme . $host . ($_SERVER['REQUEST_URI'] ?? '');
     if($this->mode == 'xml'){
       $dom = new DOMDocument();
       $dom->encoding = 'utf-8';
@@ -90,6 +114,19 @@ class Exporter {
       $metaSourceStamp = $dom->createElement( 'requestURI', htmlspecialchars($exportURL, ENT_XML1, 'UTF-8'));
       $metaNode->appendChild($metaTimeStamp); 
       $metaNode->appendChild($metaSourceStamp); 
+      if (!empty($this->collections)) {
+        $collectionsNode = $dom->createElement('collections');
+        foreach ($this->collections as $col) {
+          $colElem = $dom->createElement('collection');
+          $colElem->setAttribute('id', (string)($col['collection_id'] ?? ''));
+          $colElem->setAttribute('uid', (string)($col['uid'] ?? ''));
+          $colElem->setAttribute('scope', (string)($col['scope'] ?? ''));
+          $colElem->appendChild($dom->createElement('name', htmlspecialchars((string)($col['name'] ?? ''), ENT_XML1, 'UTF-8')));
+          $colElem->appendChild($dom->createElement('description', htmlspecialchars((string)($col['description'] ?? ''), ENT_XML1, 'UTF-8')));
+          $collectionsNode->appendChild($colElem);
+        }
+        $metaNode->appendChild($collectionsNode);
+      }
       // assign data to text: 
       $rawText = $dom->createElement('rawText', htmlspecialchars($this->rawtext)); 
       $texNode->appendChild($rawText);
@@ -174,11 +211,12 @@ class Exporter {
       }
       $annotationLinks = array();
       foreach($this->annotationToEt as $key => $value){
+        $relData = $this->annotations['relations'][$key] ?? null;
         $annotationLinks[] = array(
           'annotationId' => $key,
           'referencesLabel' => $value[1], 
-          'start' => $this->annotations['relations'][$value[1]]['start'],
-          'stop' => $this->annotations['relations'][$value[1]]['stop']
+          'start' => $relData ? $relData['start'] : null,
+          'stop' => $relData ? $relData['stop'] : null
 
         );
       }
@@ -212,10 +250,21 @@ class Exporter {
       }
         
       
+      $exportCollections = array_map(function ($col) {
+        return array(
+          'id' => (int)($col['collection_id'] ?? 0),
+          'uid' => (string)($col['uid'] ?? ''),
+          'name' => (string)($col['name'] ?? ''),
+          'description' => (string)($col['description'] ?? ''),
+          'scope' => (string)($col['scope'] ?? ''),
+        );
+      }, $this->collections);
+
       $root = array(
         'metadata' => array(
           'requestTime' => $date,
-          'requestURI' => $exportURL
+          'requestURI' => $exportURL,
+          'collections' => $exportCollections
         ), 
         'text' => array(
           'rawText' => $this->rawtext
@@ -224,7 +273,11 @@ class Exporter {
         'annotations' => $annotationLinks, 
         'entities' => $entityLinks
       ); 
-      echo json_encode($root); 
+      return json_encode($root, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE); 
+    } else if ($this->mode === 'tei') {
+      return $this->generateTeiXml();
+    } else if ($this->mode === 'webannotation') {
+      return $this->generateWebAnnotation();
     }
   }
 
@@ -281,10 +334,43 @@ class Exporter {
       $entityPrimaryKey = helper_extractPrimary($entityLabel);
       $entityNeoId = $data['entity_neo_id']; 
       $variants = $db->fetchVariants($entityNeoId); 
-      $primaryKeyValue = $data['entity']['properties'][$entityPrimaryKey];
+      $entityProps = $data['entity']['properties'];
+      $primaryKeyValue = null;
+      $hasProp = function ($props, string $propKey): bool {
+        if ($props instanceof \Laudis\Neo4j\Types\CypherMap) {
+          return $props->hasKey($propKey);
+        }
+        return is_array($props) && array_key_exists($propKey, $props);
+      };
+      $getProp = function ($props, string $propKey) {
+        if ($props instanceof \Laudis\Neo4j\Types\CypherMap) {
+          return $props->get($propKey);
+        }
+        return $props[$propKey] ?? null;
+      };
+      if ($entityPrimaryKey && $hasProp($entityProps, $entityPrimaryKey)) {
+        $candidate = $getProp($entityProps, $entityPrimaryKey);
+        if ($candidate !== null && $candidate !== '') {
+          $primaryKeyValue = $candidate;
+        }
+      }
+      if ($primaryKeyValue === null) {
+        foreach (['uid', 'name', 'label', 'title'] as $fallbackKey) {
+          if ($hasProp($entityProps, $fallbackKey)) {
+            $candidate = $getProp($entityProps, $fallbackKey);
+            if ($candidate !== null && $candidate !== '') {
+              $primaryKeyValue = $candidate;
+              break;
+            }
+          }
+        }
+      }
+      if ($primaryKeyValue === null) {
+        $primaryKeyValue = (string)$entityNeoId;
+      }
       $this->annotationToEt[$keyUID] = array($entityLabel, $primaryKeyValue);
       if (!(in_array($entityLabel.$primaryKeyValue, $doneEts))){
-        $stableLink = $_SERVER['SERVER_NAME'].'/URI/'.$entityLabel.'/'.$primaryKeyValue;
+        $stableLink = $this->getBaseOrigin() . '/URI/' . rawurlencode($entityLabel) . '/' . rawurlencode((string)$primaryKeyValue);
         //store in array: 
         $entities[$neoID] = array();
         $entities[$neoID]['label'] = $entityLabel;
@@ -303,6 +389,15 @@ class Exporter {
             $entities[$neoID]['properties'][$key]['value'] = $value; 
           }
         }
+        if (!array_key_exists('wikidata_id', $entities[$neoID]['properties']) && $hasProp($entityProps, 'wikidata_id')) {
+          $wdVal = trim((string)$getProp($entityProps, 'wikidata_id'));
+          if ($wdVal !== '' && preg_match('/^Q[0-9]+$/', $wdVal)) {
+            $entities[$neoID]['properties']['wikidata_id'] = array(
+              'name' => 'Wikidata ID',
+              'value' => $wdVal
+            );
+          }
+        }
         $entities[$neoID]['et_neo'] = $entityNeoId;
         $this->varspellings[$entityNeoId] = $variants; 
         $doneEts[]=$entityLabel.$primaryKeyValue;
@@ -310,6 +405,262 @@ class Exporter {
 
     }
     $this->entityDict = $entities; 
+  }
+
+  public function generateTeiXml() {
+    $date = date("c");
+    $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : ($_SERVER['SERVER_NAME'] ?? 'localhost');
+    $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https://' : 'http://';
+    $exportURL = $scheme . $host . ($_SERVER['REQUEST_URI'] ?? '');
+
+    $dom = new DOMDocument('1.0', 'utf-8');
+    $dom->formatOutput = true;
+
+    $tei = $dom->createElementNS('http://www.tei-c.org/ns/1.0', 'TEI');
+    $dom->appendChild($tei);
+
+    // TeiHeader.
+    $teiHeader = $dom->createElement('teiHeader');
+    $fileDesc = $dom->createElement('fileDesc');
+    $titleStmt = $dom->createElement('titleStmt');
+    $title = $dom->createElement('title', 'LATTE text export');
+    $titleStmt->appendChild($title);
+    $fileDesc->appendChild($titleStmt);
+
+    $publicationStmt = $dom->createElement('publicationStmt');
+    $publisher = $dom->createElement('publisher', 'LATTE annotation platform');
+    $pubDate = $dom->createElement('date', $date);
+    $publicationStmt->appendChild($publisher);
+    $publicationStmt->appendChild($pubDate);
+    $fileDesc->appendChild($publicationStmt);
+
+    $sourceDesc = $dom->createElement('sourceDesc');
+    $pSource = $dom->createElement('p', 'Generated from ' . htmlspecialchars($exportURL, ENT_XML1, 'UTF-8'));
+    $sourceDesc->appendChild($pSource);
+    $fileDesc->appendChild($sourceDesc);
+
+    if (!empty($this->collections)) {
+      $notesStmt = $dom->createElement('notesStmt');
+      foreach ($this->collections as $col) {
+        $colNote = $dom->createElement('note', htmlspecialchars((string)($col['name'] ?? ''), ENT_XML1, 'UTF-8'));
+        $colNote->setAttribute('type', 'collection');
+        $colNote->setAttribute('subtype', (string)($col['scope'] ?? ''));
+        $colNote->setAttribute('n', (string)($col['collection_id'] ?? ''));
+        $colNote->setAttribute('corresp', $this->getBaseOrigin() . '/collection/' . rawurlencode((string)($col['collection_id'] ?? '')));
+        $notesStmt->appendChild($colNote);
+      }
+      $fileDesc->appendChild($notesStmt);
+    }
+
+    $teiHeader->appendChild($fileDesc);
+    $tei->appendChild($teiHeader);
+
+    // Text body with inline referenced strings.
+    $textElem = $dom->createElement('text');
+    $body = $dom->createElement('body');
+    $pBody = $dom->createElement('p');
+
+    if (!empty($this->XMLTaggedText)) {
+      foreach ($this->XMLTaggedText as $segment) {
+        $segType = $segment[1] ?? 'text';
+        $segContent = $segment[2] ?? '';
+        $segAnnoKey = $segment[3] ?? '';
+
+        if ($segType === 'annotation') {
+          $rs = $dom->createElement('rs');
+          $annoIds = explode(',', $segAnnoKey);
+          $firstId = $annoIds[0];
+
+          if (isset($this->annotationToEt[$firstId])) {
+            $etType = $this->annotationToEt[$firstId][0];
+            $etPk = $this->annotationToEt[$firstId][1];
+            $rs->setAttribute('type', $etType);
+            $rs->setAttribute('key', $etPk);
+            $rs->setAttribute('ref', $this->getBaseOrigin() . '/URI/' . rawurlencode($etType) . '/' . rawurlencode($etPk));
+          } else {
+            $rs->setAttribute('type', 'unlinked');
+          }
+          $rs->setAttribute('xml:id', 'anno-' . $firstId);
+          $rs->appendChild($dom->createTextNode($segContent));
+          $pBody->appendChild($rs);
+        } else {
+          $pBody->appendChild($dom->createTextNode($segContent));
+        }
+      }
+    } else {
+      $pBody->appendChild($dom->createTextNode($this->rawtext ?? ''));
+    }
+
+    $body->appendChild($pBody);
+    $textElem->appendChild($body);
+    $tei->appendChild($textElem);
+
+    // Stand-off entity registry.
+    if (!empty($this->entityDict)) {
+      $standOff = $dom->createElement('standOff');
+      $listPerson = $dom->createElement('listPerson');
+      $listPlace = $dom->createElement('listPlace');
+      $listOrg = $dom->createElement('listOrg');
+      $listGeneric = $dom->createElement('list');
+
+      foreach ($this->entityDict as $ent) {
+        $label = $ent['label'] ?? 'Entity';
+        $pkVal = $ent['primaryKey']['value'] ?? '';
+        $uriVal = $ent['primaryKey']['URI'] ?? '';
+
+        $itemElem = $dom->createElement('item');
+        $itemElem->setAttribute('xml:id', 'ent-' . preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $pkVal));
+        $itemElem->setAttribute('corresp', $uriVal);
+
+        $nameElem = $dom->createElement('name', htmlspecialchars($pkVal, ENT_XML1, 'UTF-8'));
+        $nameElem->setAttribute('type', $label);
+        $itemElem->appendChild($nameElem);
+
+        if (!empty($ent['properties'])) {
+          foreach ($ent['properties'] as $prop) {
+            $note = $dom->createElement('note', htmlspecialchars((string)$prop['value'], ENT_XML1, 'UTF-8'));
+            $note->setAttribute('type', $prop['name']);
+            $itemElem->appendChild($note);
+          }
+        }
+
+        $lowerLabel = strtolower($label);
+        if ($lowerLabel === 'person' || strpos($lowerLabel, 'pers') !== false) {
+          $personElem = $dom->createElement('person');
+          $personElem->setAttribute('xml:id', 'ent-' . preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $pkVal));
+          $persName = $dom->createElement('persName', htmlspecialchars($pkVal, ENT_XML1, 'UTF-8'));
+          $personElem->appendChild($persName);
+          $listPerson->appendChild($personElem);
+        } else if ($lowerLabel === 'place' || $lowerLabel === 'location' || strpos($lowerLabel, 'loc') !== false) {
+          $placeElem = $dom->createElement('place');
+          $placeElem->setAttribute('xml:id', 'ent-' . preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $pkVal));
+          $placeName = $dom->createElement('placeName', htmlspecialchars($pkVal, ENT_XML1, 'UTF-8'));
+          $placeElem->appendChild($placeName);
+          $listPlace->appendChild($placeElem);
+        } else if ($lowerLabel === 'organization' || $lowerLabel === 'org') {
+          $orgElem = $dom->createElement('org');
+          $orgElem->setAttribute('xml:id', 'ent-' . preg_replace('/[^a-zA-Z0-9_\-\.]/', '_', $pkVal));
+          $orgName = $dom->createElement('orgName', htmlspecialchars($pkVal, ENT_XML1, 'UTF-8'));
+          $orgElem->appendChild($orgName);
+          $listOrg->appendChild($orgElem);
+        } else {
+          $listGeneric->appendChild($itemElem);
+        }
+      }
+
+      if ($listPerson->hasChildNodes()) {
+        $standOff->appendChild($listPerson);
+      }
+      if ($listPlace->hasChildNodes()) {
+        $standOff->appendChild($listPlace);
+      }
+      if ($listOrg->hasChildNodes()) {
+        $standOff->appendChild($listOrg);
+      }
+      if ($listGeneric->hasChildNodes()) {
+        $standOff->appendChild($listGeneric);
+      }
+      if ($standOff->hasChildNodes()) {
+        $tei->appendChild($standOff);
+      }
+    }
+
+    return $dom->saveXML();
+  }
+
+  public function generateWebAnnotation() {
+    $date = date("c");
+    $host = isset($_SERVER['HTTP_HOST']) ? $_SERVER['HTTP_HOST'] : ($_SERVER['SERVER_NAME'] ?? 'localhost');
+    $scheme = (isset($_SERVER['HTTPS']) && $_SERVER['HTTPS'] === 'on') ? 'https://' : 'http://';
+    $exportURL = $scheme . $host . ($_SERVER['REQUEST_URI'] ?? '');
+
+    $items = [];
+    $rawChars = mb_str_split($this->rawtext ?? '', 1, 'UTF-8');
+    $rawLen = count($rawChars);
+
+    if (!empty($this->annotations['relations'])) {
+      foreach ($this->annotations['relations'] as $annoId => $rel) {
+        $start = (int)$rel['start'];
+        $stop = (int)$rel['stop'];
+
+        $exact = '';
+        if ($start >= 0 && $start < $rawLen && $stop >= $start) {
+          $exactSlice = array_slice($rawChars, $start, $stop - $start + 1);
+          $exact = implode('', $exactSlice);
+        }
+
+        $body = null;
+        if (isset($this->annotationToEt[$annoId])) {
+          $etType = $this->annotationToEt[$annoId][0];
+          $etPk = $this->annotationToEt[$annoId][1];
+          $bodyUri = $this->getBaseOrigin() . '/URI/' . rawurlencode($etType) . '/' . rawurlencode($etPk);
+
+          $bodyProps = [];
+          if (!empty($this->entityDict)) {
+            foreach ($this->entityDict as $ent) {
+              if (($ent['label'] ?? '') === $etType && ($ent['primaryKey']['value'] ?? '') === $etPk) {
+                $bodyProps = $ent['properties'] ?? [];
+                break;
+              }
+            }
+          }
+
+          $body = [
+            'id' => $bodyUri,
+            'type' => $etType,
+            'label' => $etPk,
+            'value' => $etPk,
+            'properties' => $bodyProps
+          ];
+        }
+
+        $annoType = defined('ANNONODE') ? ANNONODE : 'Annotation';
+        $item = [
+          'id' => $this->getBaseOrigin() . '/URI/' . rawurlencode($annoType) . '/' . rawurlencode((string)$annoId),
+          'type' => 'Annotation',
+          'motivation' => 'identifying',
+          'created' => $date,
+          'body' => $body,
+          'target' => [
+            'source' => $exportURL,
+            'selector' => [
+              [
+                'type' => 'TextPositionSelector',
+                'start' => $start,
+                'end' => $stop + 1
+              ],
+              [
+                'type' => 'TextQuoteSelector',
+                'exact' => $exact
+              ]
+            ]
+          ]
+        ];
+
+        $items[] = $item;
+      }
+    }
+
+    $collection = [
+      '@context' => 'http://www.w3.org/ns/anno.jsonld',
+      'id' => $exportURL,
+      'type' => 'AnnotationCollection',
+      'label' => 'LATTE web annotations',
+      'generated' => $date,
+      'collections' => array_map(function ($col) use ($scheme, $host) {
+        return [
+          'id' => $this->getBaseOrigin() . '/collection/' . rawurlencode((string)($col['collection_id'] ?? '')),
+          'collection_id' => (int)($col['collection_id'] ?? 0),
+          'uid' => (string)($col['uid'] ?? ''),
+          'name' => (string)($col['name'] ?? ''),
+          'scope' => (string)($col['scope'] ?? ''),
+        ];
+      }, $this->collections),
+      'total' => count($items),
+      'items' => $items
+    ];
+
+    return json_encode($collection, JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE);
   }
 
 }

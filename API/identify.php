@@ -6,9 +6,12 @@
  */
 
 
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/datasilo.inc.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/datasilo.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
 
+$user = new User($client);
+$user->checkAccess(ENTITIESAREPUBLIC);
 
 header('Content-Type: application/json; charset=utf-8');
 
@@ -22,7 +25,7 @@ if(isset($_GET['type'])){
   }
 }
 if(!($typeOK)){
-  header('Location: /error.php?type=node');
+  header('Location: ' . BASE_URL . '/error.php?type=node');
   die();
 }
 
@@ -32,7 +35,7 @@ if(isset($_GET['uuid'])){
 
 //NOTE: if the nodetype is configured to have another PK than the UUID; it should accept that too!
 if(!($uuid)){
-  header('Location: /error.php?type=id');
+  header('Location: ' . BASE_URL . '/error.php?type=id');
   die();
 }
 
@@ -47,6 +50,9 @@ if (array_key_exists($type, PRIMARIES) && boolval(PRIMARIES[$type])){
 
 //getting the data from the backend:
 $core = $graph->matchSingleNode($type, $propertyWithPK, $uuid);
+if ($propertyWithPK !== 'uid' && !array_key_exists('coreID', $core)) {
+  $core = $graph->matchSingleNode($type, 'uid', $uuid);
+}
 if (array_key_exists('coreID', $core)){
   $coreNeoID = $core["neoID"]; 
   $coreId = $core['coreID'];
@@ -80,8 +86,9 @@ if (array_key_exists('coreID', $core)){
     $annos = $textConnections['annotations']; 
     $texts = $textConnections ['texts']; 
     //display text: 
+    $baseUrl = defined('BASE_URL') ? BASE_URL : '';
     foreach($texts as $tex){
-      $texuri = $baseURI.'/text/'.$tex;
+      $texuri = $baseUrl.'/text/'.$tex;
       $relatedTexts[] = array('id'=> $tex, 'uri'=> $texuri); 
     }
   }

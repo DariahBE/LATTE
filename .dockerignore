@@ -1,0 +1,9 @@
+.git
+.gitignore
+.vscode
+.cache
+node_modules
+scratch
+dockerfiles/neo4j_data
+storage/*.sqlite-wal
+storage/*.sqlite-shm

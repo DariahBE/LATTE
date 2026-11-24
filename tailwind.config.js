@@ -1,9 +1,16 @@
 module.exports = {
-  content: {
-      enabled: true,
-      content: ['**.html', '**.js', '**.php']
-    },
-  darkMode: 'media', // or 'media' or 'class'
+  content: [
+    './*.php',
+    './*.html',
+    './admin/**/*.php',
+    './browse/**/*.php',
+    './crud/**/*.php',
+    './user/**/*.php',
+    './includes/**/*.php',
+    './JS/**/*.js',
+    './admin/JS/**/*.js'
+  ],
+  darkMode: 'media',
   theme: {
     extend: {
       colors: {}

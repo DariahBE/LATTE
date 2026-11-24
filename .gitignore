@@ -1,3 +1,13 @@
 /test/
 import_data/utils/__pycache__/
 crud/debugger.php
+storage/*.sqlite
+storage/*.sqlite-wal
+storage/*.sqlite-shm
+storage/cache/
+storage/*.log
+storage/*.bak
+dockerfiles/.env
+*.md
+!README.md
+users.db

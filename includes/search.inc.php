@@ -10,33 +10,42 @@ class Search{
   }
 
   function convertOperatorToCypher($operator, $valuetype, $propertyname, $value){
+    $cleanProperty = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$propertyname);
+    if ($cleanProperty === '') {
+      return null;
+    }
     $phname = 'temp_'.$this->whereParameterCounter;
     $phnamevar = 'vtemp_'.$this->whereParameterCounter;
     $this->whereParameterCounter+=1;
+    $firstVal = (is_array($value) && isset($value[0])) ? $value[0] : (is_string($value) ? $value : '');
+
     if($valuetype === 'int' || $valuetype === 'float'){
       // numerical operations: cast to float, works for integers too!
       // float numbers can be processed in this block too.
+      $floatVal = floatval($firstVal);
       switch($operator){
         case '':   //'', '!=', '>', '<', '<=', '>=', 'x|y' 
-          return array('constraint'=>'n.'.$propertyname.' = $'.$phname, 'placeholders'=>array($phname=>floatval($value[0])));
+          return array('constraint'=>'n.'.$cleanProperty.' = $'.$phname, 'placeholders'=>array($phname=>$floatVal));
           break;
         case '!=':
-          return array('constraint'=>'(n.'.$propertyname.' <> $'.$phname .' OR n.'.$propertyname.' IS NULL )', 'placeholders'=>array($phname=>floatval($value[0])));
+          return array('constraint'=>'(n.'.$cleanProperty.' <> $'.$phname .' OR n.'.$cleanProperty.' IS NULL )', 'placeholders'=>array($phname=>$floatVal));
           break;
         case'>':
-          return array('constraint'=>'n.'.$propertyname.' > $'.$phname, 'placeholders'=>array($phname=>floatval($value[0])));
+          return array('constraint'=>'n.'.$cleanProperty.' > $'.$phname, 'placeholders'=>array($phname=>$floatVal));
           break;
         case '<':
-          return array('constraint'=>'n.'.$propertyname.' < $'.$phname, 'placeholders'=>array($phname=>floatval($value[0])));
+          return array('constraint'=>'n.'.$cleanProperty.' < $'.$phname, 'placeholders'=>array($phname=>$floatVal));
           break;
         case '>=':
-          return array('constraint'=>'n.'.$propertyname.' >= $'.$phname, 'placeholders'=>array($phname=>floatval($value[0])));
+          return array('constraint'=>'n.'.$cleanProperty.' >= $'.$phname, 'placeholders'=>array($phname=>$floatVal));
           break;
         case '<=':
-          return array('constraint'=>'n.'.$propertyname.' <= $'.$phname, 'placeholders'=>array($phname=>floatval($value[0])));
+          return array('constraint'=>'n.'.$cleanProperty.' <= $'.$phname, 'placeholders'=>array($phname=>$floatVal));
           break;
         case 'x|y':
-          return array('constraint'=> '(n.'.$propertyname.' >= $'.$phname.'a AND n.'.$propertyname.' <= $'.$phname.'b  )', 'placeholders'=>array($phname.'a'=>floatval($value[0]), $phname.'b'=>floatval($value[1])));
+          $valA = (is_array($value) && isset($value[0])) ? floatval($value[0]) : 0.0;
+          $valB = (is_array($value) && isset($value[1])) ? floatval($value[1]) : 0.0;
+          return array('constraint'=> '(n.'.$cleanProperty.' >= $'.$phname.'a AND n.'.$cleanProperty.' <= $'.$phname.'b )', 'placeholders'=>array($phname.'a'=>$valA, $phname.'b'=>$valB));
           break;
       }
     }else if($valuetype === 'string' || $valuetype == 'uri' ){
@@ -45,33 +54,33 @@ class Search{
         case '': // '', '!=', '^', 'word*', '*word', '*word*')
           return array(
             'type' => $valuetype,
-            'constraint'=>'n.'.$propertyname.' = $'.$phname, 
+            'constraint'=>'n.'.$cleanProperty.' = $'.$phname, 
             'varconstraint' =>'v.variant = $'.$phnamevar, 
             'placeholders'=>array(
-              $phname=>$value[0],
-              $phnamevar=>$value[0]
+              $phname=>$firstVal,
+              $phnamevar=>$firstVal
             )
           );
           break; 
         case'!=':
           return array(
             'type' => $valuetype,
-            'constraint'=>'(n.'.$propertyname.' <> $'.$phname .' OR n.'.$propertyname.' IS NULL )', 
+            'constraint'=>'(n.'.$cleanProperty.' <> $'.$phname .' OR n.'.$cleanProperty.' IS NULL )', 
             'varconstraint'=>'(v.variant <> $'.$phnamevar .' OR v.variant IS NULL )',
             'placeholders'=>array(
-              $phname=>$value[0], 
-              $phnamevar=>$value[0]
+              $phname=>$firstVal, 
+              $phnamevar=>$firstVal
             )
           );
           break;
         case '^':
           return array(
             'type' => $valuetype,
-            'constraint'=>'toLower(n.'.$propertyname.') = toLower($'.$phname.')', 
+            'constraint'=>'toLower(n.'.$cleanProperty.') = toLower($'.$phname.')', 
             'varconstraint'=>'toLower(v.variant) = toLower($'.$phnamevar.')', 
             'placeholders'=>array(
-              $phname=>$value[0],
-              $phnamevar=>$value[0]
+              $phname=>$firstVal,
+              $phnamevar=>$firstVal
           )
         );
           break;
@@ -79,20 +88,20 @@ class Search{
           case 'link*':
             return array(
               'type' => $valuetype,
-              'constraint'=>'toLower(n.'.$propertyname.') STARTS WITH toLower($'.$phname.')', 
+              'constraint'=>'toLower(n.'.$cleanProperty.') STARTS WITH toLower($'.$phname.')', 
               'placeholders'=>array(
-                $phname=>$value[0],
+                $phname=>$firstVal,
               )
             );
             break;
           case 'word*':
           return array(
             'type' => $valuetype,
-            'constraint'=>'toLower(n.'.$propertyname.') STARTS WITH toLower($'.$phname.')', 
+            'constraint'=>'toLower(n.'.$cleanProperty.') STARTS WITH toLower($'.$phname.')', 
             'varconstraint'=>'toLower(v.variant) STARTS WITH toLower($'.$phnamevar.')', 
             'placeholders'=>array(
-              $phname=>$value[0],
-              $phnamevar=>$value[0]
+              $phname=>$firstVal,
+              $phnamevar=>$firstVal
             )
           );
           break;
@@ -100,40 +109,40 @@ class Search{
           case '*link':
             return array(
               'type' => $valuetype,
-              'constraint'=>'toLower(n.'.$propertyname.') ENDS WITH toLower($'.$phname.')', 
+              'constraint'=>'toLower(n.'.$cleanProperty.') ENDS WITH toLower($'.$phname.')', 
               'placeholders'=>array(
-                $phname=>$value[0],
+                $phname=>$firstVal,
               )
             );
             break;
           case '*word':
           return array(
             'type' => $valuetype,
-            'constraint'=>'toLower(n.'.$propertyname.') ENDS WITH toLower($'.$phname.')', 
+            'constraint'=>'toLower(n.'.$cleanProperty.') ENDS WITH toLower($'.$phname.')', 
             'varconstraint'=>'toLower(v.variant) ENDS WITH toLower($'.$phnamevar.')', 
             'placeholders'=>array(
-              $phname=>$value[0],
-              $phnamevar=>$value[0]
+              $phname=>$firstVal,
+              $phnamevar=>$firstVal
             )
           );
           break;
         case '*link*':
           return array(
             'type' => $valuetype,
-            'constraint'=>'toLower(n.'.$propertyname.') CONTAINS toLower($'.$phname.')', 
+            'constraint'=>'toLower(n.'.$cleanProperty.') CONTAINS toLower($'.$phname.')', 
             'placeholders'=>array(
-              $phname=>$value[0],
+              $phname=>$firstVal,
             )
           );
           break;
         case '*word*':
           return array(
             'type' => $valuetype,
-            'constraint'=>'toLower(n.'.$propertyname.') CONTAINS toLower($'.$phname.')', 
+            'constraint'=>'toLower(n.'.$cleanProperty.') CONTAINS toLower($'.$phname.')', 
             'varconstraint'=>'toLower(v.variant) CONTAINS toLower($'.$phnamevar.')', 
             'placeholders'=>array(
-              $phname=>$value[0],
-              $phnamevar=>$value[0]
+              $phname=>$firstVal,
+              $phnamevar=>$firstVal
             )
           );
           break;
@@ -141,25 +150,25 @@ class Search{
     } else if ($valuetype === 'wikidata'){
       //Wikidata is an exact match and requires a precheck (Q....)
       // cases: null
-      if(empty($value[0]) || !preg_match('/^Q\d+$/', $value[0])){
+      if(empty($firstVal) || !preg_match('/^Q\d+$/', (string)$firstVal)){
         return Null;
       }
       return array(
         'type' => $valuetype,
-        'constraint'=>'n.'.$propertyname.' = $'.$phname, 
+        'constraint'=>'n.'.$cleanProperty.' = $'.$phname, 
         'varconstraint' =>'v.variant = $'.$phnamevar, 
         'placeholders'=>array(
-          $phname=>$value[0],
-          $phnamevar=>$value[0]
+          $phname=>$firstVal,
+          $phnamevar=>$firstVal
         )
       );
-    } else if ($valuetype === 'bool' && $value[0] === 'true'){
+    } else if ($valuetype === 'bool' && $firstVal === 'true'){
       //value is passed as a string indicating either true or false; strict check for type and value!!!
       // if a truthy value was given, this should be taken into account.
       //  don't use the $value in the query, but instead use 'true'
       return array(
         'type' => $valuetype,
-        'constraint'=>'n.'.$propertyname.' = $'.$phname, 
+        'constraint'=>'n.'.$cleanProperty.' = $'.$phname, 
         'placeholders'=>array(
           $phname=>True,
         )
@@ -168,12 +177,22 @@ class Search{
   }
 
   function directNodeSearch($searchdict, $label, $offset = 0, $limit = 20){
+    if (!is_string($label) || !defined('NODEMODEL') || !isset(NODEMODEL[$label]) || !is_array($searchdict)) {
+      return array();
+    }
+    $cleanLabel = preg_replace('/[^a-zA-Z0-9_]/', '', $label);
+    if ($cleanLabel === '') {
+      return array();
+    }
+    $offset = max(0, (int)$offset);
+    $limit = max(1, min(1000, (int)$limit));
+
     $constraints = array(); 
     $conditions = array(); 
     $optconstraints = array(); 
 
     foreach($searchdict as $key => $opt){ 
-      if(array_key_exists($key, NODEMODEL[$label]) && boolval($opt['values'][0]) ){      
+      if(is_array($opt) && isset($opt['operator'], $opt['type'], $opt['values']) && array_key_exists($key, NODEMODEL[$label]) && isset($opt['values'][0]) && $opt['values'][0] !== '' ){      
         $singleParameter= $this->convertOperatorToCypher($opt['operator'], $opt['type'], $key, $opt['values']);
         if ($singleParameter == Null){
           continue;
@@ -188,17 +207,15 @@ class Search{
       }
     }
 
-    $query = " OPTIONAL MATCH (n:$label) "; 
+    $query = " OPTIONAL MATCH (n:$cleanLabel) "; 
     if (boolval($constraints)){
       $query.=" WHERE ".implode(' AND ', $constraints); 
     }
     //add constraint on type!
     if(boolval(count($optconstraints))){
-      $constraints = implode(' AND ', $optconstraints);
-      $query.= " OPTIONAL MATCH (q:$label)--(v:Variant) ". ' ';
-      if (boolval($optconstraints)){
-        $query .= ' WHERE '. $constraints; 
-      }
+      $constraintsStr = implode(' AND ', $optconstraints);
+      $query.= " OPTIONAL MATCH (q:$cleanLabel)--(v:Variant) ";
+      $query .= ' WHERE '. $constraintsStr; 
     }
     $query.=" RETURN distinct(n)";
     if(boolval(count($optconstraints))){

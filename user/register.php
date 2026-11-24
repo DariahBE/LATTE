@@ -1,294 +1,300 @@
 <?php
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/user.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/csrf.inc.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
+include_once(ROOT_DIR . '/includes/csrf.inc.php');
 
-if (REGISTRATIONPOLICY === 0){
-  header('Location: /index.html');
-  die('Policy violation: no registrations allowed');
+$baseUrl = defined('BASE_URL') ? BASE_URL : '';
+
+if (REGISTRATIONPOLICY === 0) {
+  header('Location: ' . $baseUrl . '/index.php');
+  exit('Policy violation: no registrations allowed');
 }
-//initiatie the Node class when registrationpolicy <> 0; 
+
 $graph = new Node($client);
 $user = new User($client); 
-//make a new CSRF token manager: 
 $tokenManager = new CsrfTokenManager();
 $csrf_name = 'registrationtoken';
 $sessiontoken = $tokenManager->generateToken($csrf_name);
 
-//KILL if regpolicy === 1 and mail/invitetoken are missing: 
-if(!(isset($_GET['invitetoken']) && isset($_GET['mail'])) && REGISTRATIONPOLICY === 1){
-  header('Location: /');          
-  die('Policy violation: invalid token');
+// Reject if policy 1 and parameters are missing.
+if (!(isset($_GET['invitetoken']) && isset($_GET['mail'])) && REGISTRATIONPOLICY === 1) {
+  header('Location: ' . $baseUrl . '/index.php');          
+  exit('Policy violation: invalid token');
 }
 
+$usermail = null;
+$username = '';
+$isInviteFlow = false;
 
-if(REGISTRATIONPOLICY === 1 || (REGISTRATIONPOLICY === 2 && (isset($_GET['invitetoken']) && isset($_GET['mail']))) ){
-  $usermail = $_GET['mail'];
-  if(isset($_GET['invitetoken']) && isset($_GET['mail'])){
-    //$query = 'MATCH (n:priv_user) WHERE n.invitationcode = $token AND n.mail = $mail RETURN n'; 
-    // $query = "SELECT * FROM userdata WHERE token = ? AND mail = ? ";  
-    // $parameters = array($_GET['invitetoken'], $_GET['mail']);
+if (REGISTRATIONPOLICY === 1 || (REGISTRATIONPOLICY === 2 && isset($_GET['invitetoken']) && isset($_GET['mail']))) {
+  if (isset($_GET['invitetoken']) && isset($_GET['mail'])) {
     $matchingTokens = $user->checkTokenRequest($_GET['mail'], $_GET['invitetoken']);
-    // $data = $graph->executionOfParameterizedQuery($query, $parameters); 
-    if (count($matchingTokens) === 1){
-      //valid user found with correct token and mail combo!
-      $username = $matchingTokens[0]['username'];
-      foreach($data as $row){
-        $node = $row->get('n');
-        $usermail = $node->getProperty('mail');
-      }
-
-    }else{
-      //if one of the two parameters is missing: enforce redirect to the homeage!
-      header('Location: /');          
+    if (count($matchingTokens) === 1) {
+      // Valid user found with correct token and mail combination.
+      $username = $matchingTokens[0]['username'] ?? '';
+      $usermail = $matchingTokens[0]['mail'] ?? $_GET['mail'];
+      $isInviteFlow = true;
+    } else {
+      header('Location: ' . $baseUrl . '/index.php');          
       die('Policy violation: invalid token');
     }
-  }else{ 
-    //if one of the two parameters is missing: enforce redirect to the homeage!
-    header('Location: /');          
+  } else { 
+    header('Location: ' . $baseUrl . '/index.php');          
     die('Policy violation: invalid token');
   }
-
 }
-
-if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mail']))){
-  $usermail = NULL;
-}
-
-
 ?>
-
 <!DOCTYPE html>
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title>Sign Up</title>
-    <script src="/JS/jquery-3.6.0.min.js"></script>
-    <script src="/JS/password_policy.js"></script>
-    <link rel="stylesheet" href="/CSS/style_entities.css">
-    <link rel="stylesheet" href="/CSS/stylePublic.css">
-    <link rel="stylesheet" href="/CSS/overlaystyling.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sign up - <?php echo htmlspecialchars(PROJECTNAME, ENT_QUOTES, 'UTF-8'); ?></title>
+    <script src="<?php echo $baseUrl; ?>/JS/jquery-3.6.0.min.js"></script>
+    <script src="<?php echo $baseUrl; ?>/JS/password_policy.js"></script>
+    <link rel="stylesheet" href="<?php echo $baseUrl; ?>/CSS/stylePublic.css">
+    <link rel="stylesheet" href="<?php echo $baseUrl; ?>/CSS/overlaystyling.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+    <?php
+      include_once(ROOT_DIR . '/includes/matomo.inc.php');
+      echo renderMatomoTracking();
+    ?>
   </head>
-  <body>
+  <body class="bg-slate-100 text-slate-800 antialiased min-h-screen flex items-center justify-center p-4">
+    <div class="w-full max-w-md">
+      <!-- Brand header -->
+      <div class="text-center mb-6">
+        <a href="<?php echo $baseUrl; ?>/" class="inline-flex items-center gap-2 mb-3">
+          <span class="inline-flex items-center justify-center w-10 h-10 rounded-xl bg-indigo-600 text-white shadow-sm font-bold text-lg">
+            <?php echo htmlspecialchars(substr(PROJECTNAME, 0, 1), ENT_QUOTES, 'UTF-8'); ?>
+          </span>
+          <span class="text-xl font-bold tracking-tight text-slate-900"><?php echo htmlspecialchars(PROJECTNAME, ENT_QUOTES, 'UTF-8'); ?></span>
+        </a>
+        <h1 class="text-xl font-semibold text-slate-900">Create your account</h1>
+        <p class="text-xs text-slate-500 mt-1">
+          <?php echo $isInviteFlow ? 'Complete your invitation to activate your access.' : 'Fill in the registration form to get started.'; ?>
+        </p>
+      </div>
 
-    <div class="">
-  <div class="">
-    <section class="h-full gradient-form bg-gray-200 md:h-screen">
-      <div class="container py-12 px-6 h-full">
-        <div class="flex justify-center items-center flex-wrap h-full g-6 text-gray-800">
-          <div class="xl:w-10/12">
-            <div class="block bg-white shadow-lg rounded-lg">
-              <div class="lg:flex lg:flex-wrap g-0">
-                <div class="lg:w-6/12 px-4 md:px-0">
-                  <div id='signupsquare' class="md:p-12 md:mx-6">
-                    <div class="" id='status'>
+      <!-- Registration card -->
+      <div id="signupsquare" class="bg-white rounded-2xl border border-slate-200/80 shadow-md p-6 sm:p-8">
+        <!-- Status alert box -->
+        <div id="status" class="hidden mb-4 p-3 rounded-xl text-xs font-medium border" role="alert"></div>
 
-                    </div>
-                    <div class="text-center">
-                      <h4 class="text-xl font-semibold mt-1 mb-12 pb-1">Sign Up for <?php echo PROJECTNAME; ?></h4>
-                    </div>
-                    <form>
-                      <p class="mb-4">Please fill out the registration form</p>
-                      <div class="mb-4">
-
-                        <?php 
-                          //MAIL (conditionally editable according to policy. )
-                          if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mail']))){
-                            echo '
-                            <input
-                              type="text"
-                              class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                              placeholder="Email"
-                              name="email"
-                              id="emailfield"
-                            />';
-                          }else{
-                            echo '
-                            <input
-                              disabled
-                              type="text"
-                              value="'.$usermail.'"
-                              class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-400 bg-white bg-clip-padding rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                              name="email"
-                              id="emailfield"
-                            />
-                            ';
-                          }
-                        ?>
-
-                      </div>
-                          <?php
-                          //invitetoken is safe cause it passed a check against the database. 
-                          //just to be sure ==> escape it. 
-                            if(REGISTRATIONPOLICY === 1){
-                              echo '
-                              <input
-                                disabled
-                                type="hidden"
-                                value="'.htmlspecialchars($_GET['invitetoken'], ENT_QUOTES, 'UTF-8').'"
-                                class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-400 bg-white bg-clip-padding rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                                name="invite"
-                                id="invitecode"
-                              />
-                              ';
-                            }
-                          ?>
-
-                      <div class="mb-4">
-                        <?php 
-                        //NAME should be conditionally editable. only open on policy == 2; non-editable on policy == 1
-                        if(REGISTRATIONPOLICY === 2 && !(isset($_GET['invitetoken']) && isset($_GET['mail']))){
-                          echo '
-                          <input
-                          type="text"
-                          class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                          placeholder="Full Name"
-                          name="fullname"
-                          id="fullnamefield"
-                          />';
-                        } else {
-                          echo '
-                           <input
-                           disabled
-                          type="text"
-                          class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-400 bg-white bg-clip-padding rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                          value= "'.$username.'"
-                          name="fullname"
-                          id="fullnamefield"
-                          />
-                          ';
-                        }
-                        ?>
-                      </div>
-
-                      <div class="mb-4">
-                        <input
-                          type="password"
-                          class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                          placeholder="Password"
-                          name="password"
-                          id="passwordfield"
-                        />
-                      </div>
-                      <div class="mb-4">
-                        <input
-                          type="password"
-                          class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                          placeholder="Confirm Password"
-                          name="password_confirmation"
-                          id="confirmPasswordfield"
-                        />
-                      </div>
-                      <div class="mb-4">
-                        <p class="text-xs text-gray-500">Password must be at least 8 characters long and contain at least two of the following: uppercase, lowercase, number, special character</p>
-                      </div>
-                      <!-- captcha image -->
-                      <img src='/captcha/image.php'>
-
-
-                      <!-- captcha solution --> 
-                      <div class="mb-4">
-                        <input
-                          type="input"
-                          class="form-control block w-full px-3 py-1.5 text-base font-normal text-gray-700 bg-white bg-clip-padding border border-solid border-gray-300 rounded transition ease-in-out m-0 focus:text-gray-700 focus:bg-white focus:border-blue-600 focus:outline-none"
-                          placeholder="Type captcha solution of six characters"
-                          name="captchaSolution"
-                          id="captchaSolution"
-                        />
-                      </div>
-
-                      <input
-                        type="hidden"
-                        disabled
-                        value="<?php echo $sessiontoken;  ?>"
-                        name="token"
-                        id="csrfToken"
-                      />
-                      <div class="text-center pt-1 mb-12 pb-1">
-                        <button
-                          disabled
-                          class="inline-block px-6 py-2.5 text-white font-medium text-xs leading-tight uppercase rounded shadow-md hover:bg-blue-700 hover:shadow-lg focus:shadow-lg focus:outline-none focus:ring-0 active:shadow-lg transition duration-150 ease-in-out w-full mb-3"
-                          type="button"
-                          data-mdb-ripple="true"
-                          data-mdb-ripple-color="light"
-                          id='signupbutton'
-                          style="
-                            background: linear-gradient(
-                              to right,
-                              #ee7724,
-                              #d8363a,
-                              #dd3675,
-                              #b44593
-                            );
-                          "
-                        >
-                          Sign Up
-                        </button>
-                        <p class="text-gray-500">Already have an account? <a href='login.php'>Log in here</a></p>
-                      </div>
-                      <?php if (REGISTRATIONPOLICY === 1) {?>
-                        <script>
-                          let invitecode = document.getElementById('invitecode').value;
-                        </script>
-                      <?php } ?>
-                      <?php if (REGISTRATIONPOLICY === 2) {?>
-                        <script>
-                          let invitecode = null;
-                        </script>
-                      <?php } ?>
-                      <?php if (REGISTRATIONPOLICY !== 0) {?>
-                      <script>
-                        var elem = document.getElementById('signupbutton');
-                        elem.addEventListener('click', function(){
-                          var signupData = {
-                            fullname: document.getElementById('fullnamefield').value,
-                            email: document.getElementById('emailfield').value,
-                            password: document.getElementById('passwordfield').value,
-                            password_confirmation: document.getElementById('confirmPasswordfield').value, 
-                            token: document.getElementById('csrfToken').value,
-                            captcha: document.getElementById('captchaSolution').value,
-                            invitetoken: invitecode
-                          };
-                          $.ajax({
-                            type: 'POST',
-                            url: 'runsignup.php',
-                            data: signupData,
-                            success: function(data, status, xhttp){
-                              if ( data ){
-                                $("#status").text(data['msg']);
-                                if(data['status'] == 1){
-                                  $("#signupsquare").fadeOut();
-                                  $("#signupsquare").promise().done(function(){
-                                    //forces loading of the login page.
-                                    var url='/user/login.php'; 
-                                    window.location.href=url;
-                                  });
-                                }
-                              } else { // if false, show some sort of message with errors
-                                $("#status").text('Something went wrong.');
-                              }
-                            }
-                          });
-                        });
-                      </script>
-                      <?php }?>
-                    </form>
-                  </div>
-                </div>
-              </div>
+        <form id="signupForm" class="space-y-4" onsubmit="return false;">
+          <!-- Email field -->
+          <div>
+            <label for="emailfield" class="block text-xs font-semibold text-slate-700 mb-1.5">Email address</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                <i class="fas fa-envelope"></i>
+              </span>
+              <?php if ($isInviteFlow): ?>
+                <input
+                  type="email"
+                  id="emailfield"
+                  name="email"
+                  value="<?php echo htmlspecialchars($usermail, ENT_QUOTES, 'UTF-8'); ?>"
+                  disabled
+                  class="w-full rounded-xl border border-slate-200 pl-9 pr-3 py-2.5 text-xs text-slate-500 bg-slate-50 cursor-not-allowed"
+                />
+              <?php else: ?>
+                <input
+                  type="email"
+                  id="emailfield"
+                  name="email"
+                  required
+                  placeholder="name@example.com"
+                  class="w-full rounded-xl border border-slate-200 pl-9 pr-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                />
+              <?php endif; ?>
             </div>
           </div>
+
+          <!-- Full name field -->
+          <div>
+            <label for="fullnamefield" class="block text-xs font-semibold text-slate-700 mb-1.5">Full name</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                <i class="fas fa-user"></i>
+              </span>
+              <?php if ($isInviteFlow && !empty($username)): ?>
+                <input
+                  type="text"
+                  id="fullnamefield"
+                  name="fullname"
+                  value="<?php echo htmlspecialchars($username, ENT_QUOTES, 'UTF-8'); ?>"
+                  disabled
+                  class="w-full rounded-xl border border-slate-200 pl-9 pr-3 py-2.5 text-xs text-slate-500 bg-slate-50 cursor-not-allowed"
+                />
+              <?php else: ?>
+                <input
+                  type="text"
+                  id="fullnamefield"
+                  name="fullname"
+                  required
+                  placeholder="Your full name"
+                  class="w-full rounded-xl border border-slate-200 pl-9 pr-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+                />
+              <?php endif; ?>
+            </div>
+          </div>
+
+          <!-- Password field -->
+          <div>
+            <label for="passwordfield" class="block text-xs font-semibold text-slate-700 mb-1.5">Password</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                <i class="fas fa-lock"></i>
+              </span>
+              <input
+                type="password"
+                id="passwordfield"
+                name="password"
+                required
+                autocomplete="new-password"
+                placeholder="At least 8 characters"
+                class="w-full rounded-xl border border-slate-200 pl-9 pr-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+              />
+            </div>
+          </div>
+
+          <!-- Confirm password field -->
+          <div>
+            <label for="confirmPasswordfield" class="block text-xs font-semibold text-slate-700 mb-1.5">Confirm password</label>
+            <div class="relative">
+              <span class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none text-slate-400 text-xs">
+                <i class="fas fa-check-circle"></i>
+              </span>
+              <input
+                type="password"
+                id="confirmPasswordfield"
+                name="password_confirmation"
+                required
+                autocomplete="new-password"
+                placeholder="Repeat your password"
+                class="w-full rounded-xl border border-slate-200 pl-9 pr-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400"
+              />
+            </div>
+            <p class="text-[11px] text-slate-500 mt-1.5 leading-relaxed">
+              Minimum 8 characters with at least two of: uppercase, lowercase, numbers, or symbols.
+            </p>
+          </div>
+
+          <!-- Captcha verification -->
+          <div>
+            <label for="captchaSolution" class="block text-xs font-semibold text-slate-700 mb-1.5">Security verification</label>
+            <div class="flex items-center gap-3 mb-2">
+              <img src="<?php echo $baseUrl; ?>/captcha/image.php" alt="Security captcha" class="rounded-xl border border-slate-200 shadow-2xs h-10">
+              <span class="text-[11px] text-slate-500">Type the characters shown in the image</span>
+            </div>
+            <input
+              type="text"
+              id="captchaSolution"
+              name="captchaSolution"
+              required
+              placeholder="Enter captcha text"
+              class="w-full rounded-xl border border-slate-200 px-3 py-2.5 text-xs text-slate-800 focus:outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all placeholder:text-slate-400 uppercase tracking-wider"
+            />
+          </div>
+
+          <input type="hidden" id="csrfToken" value="<?php echo htmlspecialchars($sessiontoken, ENT_QUOTES, 'UTF-8'); ?>">
+          <?php if ($isInviteFlow): ?>
+            <input type="hidden" id="invitecode" value="<?php echo htmlspecialchars($_GET['invitetoken'], ENT_QUOTES, 'UTF-8'); ?>">
+          <?php endif; ?>
+
+          <!-- Submit button -->
+          <div class="pt-2">
+            <button
+              type="button"
+              disabled
+              id="signupbutton"
+              class="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 text-xs font-semibold rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white shadow-sm transition-all focus:outline-none focus:ring-2 focus:ring-indigo-500/30 disabled:bg-slate-300 disabled:cursor-not-allowed disabled:text-slate-500"
+            >
+              <i class="fas fa-user-plus"></i>
+              <span>Create account</span>
+            </button>
+          </div>
+        </form>
+
+        <div class="mt-6 pt-5 border-t border-slate-100 text-center">
+          <p class="text-xs text-slate-500">
+            Already have an account?
+            <a href="login.php" class="font-semibold text-indigo-600 hover:text-indigo-700 transition-colors">
+              Sign in here
+            </a>
+          </p>
         </div>
       </div>
-    </section>
-  </div>
-</div>
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-        setupPasswordValidation('passwordfield', 'confirmPasswordfield', 'signupbutton');
-    });
-</script>
+    </div>
+
+    <script>
+      // Setup password policy validator.
+      document.addEventListener('DOMContentLoaded', function() {
+        if (typeof setupPasswordValidation === 'function') {
+          setupPasswordValidation('passwordfield', 'confirmPasswordfield', 'signupbutton');
+        }
+      });
+
+      // Submit signup handler.
+      const signupBtn = document.getElementById('signupbutton');
+      if (signupBtn) {
+        signupBtn.addEventListener('click', function() {
+          const inviteInput = document.getElementById('invitecode');
+          const inviteVal = inviteInput ? inviteInput.value : null;
+          const statusBox = document.getElementById('status');
+
+          signupBtn.disabled = true;
+          signupBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i><span>Registering...</span>';
+
+          const signupData = {
+            fullname: document.getElementById('fullnamefield').value.trim(),
+            email: document.getElementById('emailfield').value.trim(),
+            password: document.getElementById('passwordfield').value,
+            password_confirmation: document.getElementById('confirmPasswordfield').value,
+            token: document.getElementById('csrfToken').value,
+            captcha: document.getElementById('captchaSolution').value.trim(),
+            invitetoken: inviteVal
+          };
+
+          $.ajax({
+            type: 'POST',
+            url: 'runsignup.php',
+            data: signupData,
+            dataType: 'json',
+            success: function(data) {
+              signupBtn.disabled = false;
+              signupBtn.innerHTML = '<i class="fas fa-user-plus mr-1"></i><span>Create account</span>';
+
+              if (data) {
+                statusBox.classList.remove('hidden');
+                if (data.status == 1) {
+                  statusBox.className = 'mb-4 p-3 rounded-xl text-xs font-medium border bg-emerald-50 text-emerald-800 border-emerald-200';
+                  statusBox.textContent = data.msg || 'Registration completed. Redirecting to login...';
+                  $('#signupsquare').fadeOut(400, function() {
+                    window.location.href = '<?php echo $baseUrl; ?>/user/login.php';
+                  });
+                } else {
+                  statusBox.className = 'mb-4 p-3 rounded-xl text-xs font-medium border bg-rose-50 text-rose-800 border-rose-200';
+                  statusBox.textContent = data.msg || 'Registration failed.';
+                }
+              } else {
+                statusBox.classList.remove('hidden');
+                statusBox.className = 'mb-4 p-3 rounded-xl text-xs font-medium border bg-rose-50 text-rose-800 border-rose-200';
+                statusBox.textContent = 'Something went wrong.';
+              }
+            },
+            error: function() {
+              signupBtn.disabled = false;
+              signupBtn.innerHTML = '<i class="fas fa-user-plus mr-1"></i><span>Create account</span>';
+              statusBox.classList.remove('hidden');
+              statusBox.className = 'mb-4 p-3 rounded-xl text-xs font-medium border bg-rose-50 text-rose-800 border-rose-200';
+              statusBox.textContent = 'Network communication error. Please try again.';
+            }
+          });
+        });
+      }
+    </script>
   </body>
 </html>

@@ -14,19 +14,20 @@ $local_permissionLevel = 1;
 //header:
 header('Content-Type: application/json; charset=utf-8');
 //includes: 
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/user.inc.php');
-include_once(ROOT_DIR.'/includes/csrf.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
-include_once(ROOT_DIR.'/includes/annotation.inc.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
+include_once(ROOT_DIR . '/includes/csrf.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
+include_once(ROOT_DIR . '/includes/nodes_extend_cud.inc.php');
+include_once(ROOT_DIR . '/includes/annotation.inc.php');
 
-//reading gets:
-if(isset($_GET['starts']) && isset($_GET['stops']) && isset($_GET['texid']) && isset($_GET['token'])){
-    $starts = (int)$_GET['starts'];     //character where the annotation starts
-    $stops = (int)$_GET['stops'];       //character where the annotation stops
-    $texid = (int)$_GET['texid'];       //NEO4J id of the texnode
-    $token = $_GET['token']; 
+$input = array_merge($_GET, $_POST);
+//reading input:
+if(isset($input['starts']) && isset($input['stops']) && isset($input['texid']) && isset($input['token'])){
+    $starts = (int)$input['starts'];     //character where the annotation starts
+    $stops = (int)$input['stops'];       //character where the annotation stops
+    $texid = (int)$input['texid'];       //NEO4J id of the texnode
+    $token = $input['token']; 
 }else{
     die(); 
 }
@@ -42,11 +43,11 @@ $tokenManager->revokeToken();   //kill the token.
 
 //USERSTUFF
 //do a new permissioncheck!!
-//(the token could be stored from elsewhere and be used here to bypass the check in the tokenmanager)
 $user = new User($client);
+$user->checkSession();
 if($user->hasEditRights($user->myRole) < $local_permissionLevel){
     die();
-};
+}
 
 
 

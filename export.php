@@ -1,34 +1,33 @@
 <?php
 
 
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/user.inc.php');
-include_once(ROOT_DIR.'/includes/multibyte_iter.inc.php');
-include_once(ROOT_DIR.'/includes/annotation.inc.php');
-include_once(ROOT_DIR.'/includes/export.inc.php');
+include_once(__DIR__ . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
+include_once(ROOT_DIR . '/includes/multibyte_iter.inc.php');
+include_once(ROOT_DIR . '/includes/annotation.inc.php');
+include_once(ROOT_DIR . '/includes/collection.inc.php');
+include_once(ROOT_DIR . '/includes/export.inc.php');
 
-//mode and neoID as input ==> logic in export.inc.php
+// Mode and neoID as input ==> logic in export.inc.php.
 
-//variants still not showing in export!
+// Variants still not showing in export!
 
-$mode = $_GET['mode']; 
-$neoId = (int)$_GET['neoid'];
+$mode = isset($_GET['mode']) ? $_GET['mode'] : ''; 
+$neoId = isset($_GET['neoid']) ? (int)$_GET['neoid'] : 0;
 
 $export = new Exporter($client, $mode);
 $node = new Node($client);
 $annotation = new Annotation($client);
-$annotation->startTransaction(); 
 $user = new User($client);
-//check user
-//checkSession returns: the session['userid'] value
-// which is the SQL id!!!
+// Check user.
+// Check session returns the SQL user id.
 $user_id = $user->checkSession();
-//get text: set it to the exporter together with identified text.
+// Get text and pass it to the exporter together with identified text.
 $text = $node->matchTextByNeo($neoId);
 if (!boolval($text)){
-    header('Location: /error.php');
-    die('rejected node');
+    header('Location: ' . BASE_URL . '/error.php');
+    exit('Rejected node');
 }
 $textString = $text[TEXNODETEXT];
 //set raw text: 
@@ -50,9 +49,12 @@ $export->setAnnotations($existingAnnotation);
 //get automatic annotations: the ones recognized by NER-tools: 
 $autoAnnotation = $annotation->getUnlinkedAnnotationsInText($neoId); 
 $export->setAutoAnnotations($autoAnnotation); 
+$collectionManager = new CollectionManager($client);
+$textCollections = $collectionManager->getMemberCollectionsForText($neoId, $user->neoId ? (int)$user->neoId : null, TEXTSAREPUBLIC);
+$export->setCollections($textCollections);
 //var_dump($autoAnnotation); 
 //set document header depending on requested content. 
-$export->outputHeaders(); 
+$export->outputHeaders($neoId); 
 $export->generateAnnotatedText();
 $export->outputAnnotations($annotation);
 echo $export->outputContent(); 

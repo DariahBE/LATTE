@@ -1,12 +1,13 @@
 function dropnodefromdb(nodeName){
     getDisposableToken()
     .then(token => {
-        console.log(token);
-        let url = 'ajax/patch.php?operation=noderemoval&nodename='+nodeName;
-        $.ajax({
-            type: "POST",
-            url: url,
-            data: {token: token}
+        let formData = new FormData();
+        formData.append('token', token);
+        formData.append('operation', 'noderemoval');
+        formData.append('nodename', nodeName);
+        return fetch('ajax/patch.php', {
+            method: 'POST',
+            body: formData
         });
     })
     .catch(error => {
@@ -18,17 +19,16 @@ function dropnodefromdb(nodeName){
     function patchUUID() {
         getDisposableToken()
             .then(token => {
-                let url = 'ajax/patch.php?operation=fixuuid';
-                $.ajax({
-                    type: "POST",
-                    url: url,
-                    data: { token: token },
-                    success: function(response) {
-                        console.log('UUID patched successfully:', response);
-                    },
-                    error: function(xhr, status, error) {
-                        console.error('Error patching UUID:', status, error);
-                    }
+                let formData = new FormData();
+                formData.append('token', token);
+                formData.append('operation', 'fixuuid');
+                return fetch('ajax/patch.php', {
+                    method: 'POST',
+                    body: formData
+                })
+                .then(response => response.text())
+                .then(response => {
+                    console.log('UUID patched successfully:', response);
                 });
             })
             .catch(error => {
@@ -38,19 +38,11 @@ function dropnodefromdb(nodeName){
     
 
 function getDisposableToken() {
-    return new Promise((resolve, reject) => {
-        var xhr = new XMLHttpRequest();
-        xhr.open('GET', '/AJAX/getdisposabletoken.php', true);
-        
-        xhr.onreadystatechange = function () {
-            if (xhr.readyState === 4) {
-                if (xhr.status === 200) {
-                    resolve(xhr.responseText);
-                } else {
-                    reject('Error fetching token: ' + xhr.statusText); // Reject the promise
-                }
+    return fetch('/AJAX/getdisposabletoken.php')
+        .then(response => {
+            if (!response.ok) {
+                throw new Error('Error fetching token: ' + response.statusText);
             }
-        };
-        xhr.send(); // Send the request
-    });
+            return response.json();
+        });
 }

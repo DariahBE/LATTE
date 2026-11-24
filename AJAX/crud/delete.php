@@ -5,28 +5,43 @@
  */
 
 header('Content-Type: application/json; charset=utf-8');
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+if (!defined('ROOT_DIR')) {
+  include_once(dirname(dirname(__DIR__)).'/config/config.inc.php');
+}
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/csrf.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
 
+$isCheckRights = isset($_GET['checkrights']) || isset($_POST['checkrights']);
 
-if(!isset($_GET['id'])){
+if (!$isCheckRights && $_SERVER['REQUEST_METHOD'] !== 'POST') {
+    header("HTTP/1.0 405 Method Not Allowed");
+    echo json_encode(array('msg' => 'Method not allowed. Node deletion requires POST.'));
+    die();
+}
+
+$id = isset($_POST['id']) ? (int)$_POST['id'] : (isset($_GET['id']) ? (int)$_GET['id'] : null);
+if ($id === null) {
     die(); 
 }
 
-
-if(!isset($_GET['token'])){
+$token = $_POST['token'] ?? $_GET['token'] ?? null;
+if (!$token) {
     die();
-}else{
-    $token = $_GET['token']; 
 }
+
 $tokenManager = new CsrfTokenManager(); 
 $validToken = $tokenManager->checkToken($token); 
 if(!($validToken)){
     echo json_encode(array('msg' => 'Invalid session token')); 
     die();
+}
+
+$user = new User($client);
+if ($user->checkSession() === false) {
+    header("HTTP/1.0 401 Unauthorized");
+    die(json_encode(array('msg' => 'Authentication required')));
 }
 
 
@@ -40,19 +55,20 @@ $crudNode = new CUDNode($client);
  * 
 */
 $crudNode->startTransaction(); 
-$IsTheUserAllowedToDelete = $crudNode->determineRightsSet(3, (int)$_GET['id']); 
-if(isset($_GET['checkrights'])){
+$IsTheUserAllowedToDelete = $crudNode->determineRightsSet(3, $id); 
+if($isCheckRights){
+    $crudNode->rollbackTransaction();
     die(json_encode(array('actionAllowed'=>$IsTheUserAllowedToDelete)));//if the application only has to check for the delete rights
 }
 if(!($IsTheUserAllowedToDelete)){
+    $crudNode->rollbackTransaction();
     die(json_encode(array('msg'=>'You have no permission to delete this node.')));
 }else{
     //add a switch here for dryrun method. 
-    $dryrun = isset($_GET['dryrun']); 
+    $dryrun = isset($_POST['dryrun']) || isset($_GET['dryrun']); 
     try {
-        $data = $crudNode->delete((int)$_GET['id'], $dryrun);
+        $data = $crudNode->delete($id, $dryrun);
     } catch (\Throwable $th) {
-        //throw $th;
         $crudNode->rollbackTransaction(); 
         die('Error deleting data'); 
     }

@@ -26,16 +26,25 @@ class User{
   public $setToken; 
   protected $application_roles; 
   function __construct($client)  {
-    $this->path_to_sqlite = ROOT_DIR."/user/protected/users.sqlite";
+    $storageDb = ROOT_DIR."/storage/users.sqlite";
+    if (file_exists($storageDb)) {
+      $this->path_to_sqlite = $storageDb;
+    } else {
+      $this->path_to_sqlite = ROOT_DIR."/user/protected/users.sqlite";
+    }
     $this->sqlite = new PDO('sqlite:' . $this->path_to_sqlite);
     $this->sqlite->setAttribute(PDO::ATTR_ERRMODE, PDO::ERRMODE_EXCEPTION);
     $this->client = $client;    //delete (keep until SQLITE migration is completed.)
-    $this->myRole = isset($_SESSION['userrole']) ? $_SESSION['userrole'] : False;
+    $this->myRole = isset($_SESSION['userrole']) && is_string($_SESSION['userrole']) ? strtolower($_SESSION['userrole']) : False;
     $this->myName = isset($_SESSION['username']) ? $_SESSION['username'] : False;
     $this->myId = isset($_SESSION['userid']) ? $_SESSION['userid'] : False;
     $this->neoId = isset($_SESSION['neoid']) ? $_SESSION['neoid'] : False;
     $this->application_roles = array('contributor', 'researcher', 'projectlead', 'admin'); 
     $this->setToken = False;
+  }
+
+  public function isAdmin(): bool {
+    return $this->myRole === 'admin';
   }
 
 private function guidv4(){
@@ -177,9 +186,9 @@ public function getMailFromUUID($uuid){
           $stmt = $this->sqlite->prepare($update_query); 
           $stmt->execute($update_data); 
           $this->myName = $name;
-          $this->myRole = $role;
+          $this->myRole = is_string($role) ? strtolower($role) : $role;
           $_SESSION['username'] = $name;
-          $_SESSION['userrole'] = $role;
+          $_SESSION['userrole'] = $this->myRole;
           $_SESSION['userid'] = $user_nodeId;   //priv_user. ==> SQL ID
           $_SESSION['user_uuid'] = $user_uuid;  //V4 uuuid
           $_SESSION['neoid'] = $user_neo_id;    //NEO ID of the user node!
@@ -417,20 +426,23 @@ public function getMailFromUUID($uuid){
         $stmt = $this->sqlite->prepare($sqlQuery);
         $stmt->execute();
         $users = $stmt->fetchAll(PDO::FETCH_ASSOC);
-    
-        // Initialize array to store users with matching 'priv_user' in Neo4j
+
+        if (empty($users)) {
+            return [];
+        }
+
+        // Fetch all existing user_sqlids in a single Neo4j query
+        $neo4jResult = $this->client->run("MATCH (n:priv_user) WHERE n.user_sqlid IS NOT NULL RETURN n.user_sqlid AS sqlid");
+        $existingNeo4jIds = [];
+        foreach ($neo4jResult as $row) {
+            $existingNeo4jIds[(int)$row->get('sqlid')] = true;
+        }
+
+        // Filter users that do not have a matching node in Neo4j
         $usersWithoutNeo4j = [];
-    
-        // Iterate through each user
         foreach ($users as $user) {
             $userId = (int)$user['id'];
-    
-            // Check if there is a 'priv_user' node with the same 'user_id' in Neo4j
-            $neo4jQuery = "MATCH (n:priv_user {user_sqlid: $userId}) RETURN n";
-            $neo4jResult = $this->client->run($neo4jQuery, ['userId' => $userId]);
-    
-            // If there is a matching node, add the user to the result array
-            if (!($neo4jResult->count())) {
+            if (!isset($existingNeo4jIds[$userId])) {
                 $usersWithoutNeo4j[] = $user;
             }
         }
@@ -468,10 +480,11 @@ public function getMailFromUUID($uuid){
   }
 
   public function promoteUser($user_uuid, $newRole){
-    if(in_array(strtolower($newRole), $this->application_roles)){
+    $normalizedRole = strtolower($newRole);
+    if(in_array($normalizedRole, $this->application_roles)){
       $sql_query = 'UPDATE userdata SET `role` = ? WHERE userdata.uuid = ?; '; 
       $stmt = $this->sqlite->prepare($sql_query);
-      $stmt->execute(array($newRole, $user_uuid));
+      $stmt->execute(array($normalizedRole, $user_uuid));
       $result = $stmt->rowCount();
       return $result;
     }else{
@@ -502,13 +515,14 @@ public function getMailFromUUID($uuid){
   public function resetPassword($uuid, $password) {
     $hashedPassword = password_hash($password, PASSWORD_DEFAULT);
     
-    $stmt = $this->sqlite->prepare("UPDATE userdata SET password = ?, token = '' WHERE uuid = ?");
+    $stmt = $this->sqlite->prepare("UPDATE userdata SET password = ?, token = NULL WHERE uuid = ?");
     $stmt->execute(array($hashedPassword, $uuid));
    
     if (boolval($stmt->rowCount())) {
         return true;
     } else {
-        return "Error: " . $stmt->error;
+        $err = $stmt->errorInfo();
+        return "Error: " . ($err[2] ?? 'Failed to update password');
     }
   }
 

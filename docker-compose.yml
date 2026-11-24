@@ -1,0 +1,5 @@
+# Root Docker Compose file.
+# Delegates all service orchestration to dockerfiles/docker-compose.yml.
+
+include:
+  - path: dockerfiles/docker-compose.yml

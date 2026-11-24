@@ -1,10 +1,20 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+if (!defined('ROOT_DIR')) {
+  include_once(dirname(__DIR__).'/config/config.inc.php');
+}
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/client.inc.php');
-$user = new User($client);
+include_once(ROOT_DIR.'/includes/csrf.inc.php');
 
+$tokenManager = new CsrfTokenManager();
+$submittedToken = $_POST['csrf_token'] ?? '';
+if (!$tokenManager->checkToken($submittedToken)) {
+  echo json_encode(array('msg' => 'Invalid session token. Please reload the page.', 'status' => 0));
+  die();
+}
+
+$user = new User($client);
 
 if (isset($_POST['mail']) AND isset($_POST['password'])){
     $repl = $user->login($_POST['mail'], $_POST['password']);
@@ -15,8 +25,8 @@ if (isset($_POST['mail']) AND isset($_POST['password'])){
         break;
       case 1:
         // code...  ==> allow the session to be set.
-        echo json_encode(array('msg'=>'Login succeeded.', 'status'=>1));
         session_regenerate_id();  //prevent session fixation!
+        echo json_encode(array('msg'=>'Login succeeded.', 'status'=>1));
         break;
       case 3:
         // code... ==> too many attempts have been made: reset required.

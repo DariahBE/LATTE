@@ -30,7 +30,11 @@ class Integrity{
 			// do not allow the deletion of labels marked with priv_
 			return;
 		}
-		$badLabels = 'MATCH (n:'.$label.') DETACH DELETE (n)';
+		$safeLabel = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$label);
+		if (empty($safeLabel)) {
+			return;
+		}
+		$badLabels = 'MATCH (n:'.$safeLabel.') DETACH DELETE (n)';
 		$data =  $this->client->run($badLabels);
 	}
 
@@ -38,14 +42,14 @@ class Integrity{
 		//Returns the amount of nodes that have no built in UID propert!
 		// UID is an app logic controlled property, should be there. 
 		// all labels should have a built in UID property. 
-		$find_nouid_nodes_query = "MATCH (n) WHERE (NOT EXISTS (n.uid) AND NOT n:priv_user) RETURN count(n) AS badnodes; ";
+		$find_nouid_nodes_query = "MATCH (n) WHERE (n.uid IS NULL AND NOT n:priv_user) RETURN count(n) AS badnodes; ";
 		$data =  $this->client->run($find_nouid_nodes_query);
 		return $data->first()['badnodes'];
 	}
 
 	function asignUUIDToNodes(){
 		//ASSIGNS a UUID to all nodes where the UUID is missing. 
-		$create_uuid_query = "MATCH (n) WHERE (NOT EXISTS (n.uid) AND NOT n:priv_user) SET n.uid = apoc.create.uuid() RETURN n; ";
+		$create_uuid_query = "MATCH (n) WHERE (n.uid IS NULL AND NOT n:priv_user) SET n.uid = apoc.create.uuid() RETURN n; ";
 		$data =  $this->client->run($create_uuid_query);
 		return $data;
 	}

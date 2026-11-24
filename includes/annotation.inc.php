@@ -29,6 +29,8 @@ class Annotation{
       $this->tsx = $hook; 
     }else{
       $this->client = $client;
+      // Initialize tsx to the client so non-transactional queries can run.
+      $this->tsx = $client;
     }
   }
 
@@ -38,10 +40,16 @@ class Annotation{
       $this->tsx = $this->client->beginTransaction();
     }
     public function rollbackTransaction(){
-      $this->tsx->rollback();
+      if ($this->tsx && method_exists($this->tsx, 'rollback')) {
+        $this->tsx->rollback();
+      }
+      $this->tsx = $this->client;
     }
     public function commitTransaction(){
-      $this->tsx->commit();
+      if ($this->tsx && method_exists($this->tsx, 'commit')) {
+        $this->tsx->commit();
+      }
+      $this->tsx = $this->client;
     }
 
     //describe the model used for Automatic_annotation nodes.
@@ -457,5 +465,49 @@ class Annotation{
     }
     $data['relations'] = $annotationData;
     return $data;
+  }
+
+  public function recordRejectedAnnotation(int $texid, int $start, int $stop, string $surfaceText, int $userId): array {
+    $db = $this->tsx ?: $this->client;
+    $startProp = ANNOSTART;
+    $stopProp = ANNOSTOP;
+    $query = 'MATCH (t:' . TEXNODE . ') WHERE id(t) = $texid
+              MERGE (t)-[:contains]->(a:Annotation_rejected {' . $startProp . ': $start, ' . $stopProp . ': $stop})
+              ON CREATE SET a.uid = apoc.create.uuid(), a.text = $text, a.rejected_by = $userId, a.rejected_at = datetime()
+              RETURN a.uid AS uid, id(a) AS neoid';
+    $result = $db->run($query, [
+      'texid' => $texid,
+      'start' => $start,
+      'stop' => $stop,
+      'text' => $surfaceText,
+      'userId' => $userId
+    ]);
+    if ($result->count() > 0) {
+      return [
+        'success' => true,
+        'uid' => $result->first()->get('uid'),
+        'neoid' => $result->first()->get('neoid')
+      ];
+    }
+    return ['success' => false];
+  }
+
+  public function getRejectedAnnotationsInText(int $texid): array {
+    $db = $this->tsx ?: $this->client;
+    $startProp = ANNOSTART;
+    $stopProp = ANNOSTOP;
+    $query = 'MATCH (t:' . TEXNODE . ')-[:contains]->(a:Annotation_rejected) WHERE id(t) = $texid
+              RETURN a.uid AS uid, a.' . $startProp . ' AS start, a.' . $stopProp . ' AS stop, a.text AS text';
+    $result = $db->run($query, ['texid' => $texid]);
+    $rejected = [];
+    foreach ($result as $record) {
+      $uid = (string)($record->get('uid') ?? '');
+      $rejected[$uid] = [
+        'start' => (int)$record->get('start'),
+        'stop' => (int)$record->get('stop'),
+        'text' => (string)($record->get('text') ?? '')
+      ];
+    }
+    return $rejected;
   }
 }

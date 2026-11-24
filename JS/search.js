@@ -108,19 +108,29 @@ function updateDict(){
       }; 
     }
   }
-  $.ajax({
-    type: "POST",
-    url: "/AJAX/runsearch.php?offset="+offset+"&limit="+limit,
-    data: searchDict
-})
-.done(function( msg ) {                        
-     simpleResponseTableGenerator(msg);
-})/*
-.fail(function(msg) {
-     sessionStorage.setItem("success","0");
-     window.location.reload();
-}); */
-  
+  const formData = new FormData();
+  formData.append('node', searchDict.node || '');
+  for (const [propName, opt] of Object.entries(searchDict.options || {})) {
+    formData.append(`options[${propName}][operator]`, opt.operator);
+    formData.append(`options[${propName}][type]`, opt.type);
+    if (Array.isArray(opt.values)) {
+      opt.values.forEach((val, idx) => {
+        formData.append(`options[${propName}][values][${idx}]`, val);
+      });
+    }
+  }
+
+  fetch("/AJAX/runsearch.php?offset=" + offset + "&limit=" + limit, {
+    method: "POST",
+    body: formData
+  })
+  .then(response => response.json())
+  .then(msg => {
+    simpleResponseTableGenerator(msg);
+  })
+  .catch(err => {
+    console.error("Search failed:", err);
+  });
 }
 
 function shortToggler(e){
@@ -137,11 +147,15 @@ function shortToggler(e){
   }
 }
 
-function makeModForRange(){
+function makeModForRange(e){
   /**
    * changes DOM to make range-based searches possible (from x to y)
    */
-  let src =  event.target || event.srcElement; 
+  const evt = e || window.event;
+  let src = evt ? (evt.target || evt.srcElement) : null;
+  if (!src) {
+    return;
+  }
   let srcvalue = src.value;
   //src holds the dropdown that was modified. 
   let activeInputFields = src.parentElement.getElementsByTagName('input');
@@ -178,27 +192,35 @@ function searchInstruction(searchType){
   /**
    *  inserts explanation with all available search modifiers for the given key 
    */
-  target = document.getElementById('searchExplain');
+  let target = document.getElementById('searchExplain');
   target.innerHTML = '';
   let options = searchSymbols[searchType]['options'];
   if(options){
-    let prompt = document.createElement('p');
-    prompt.appendChild(document.createTextNode('You can extend the search command by using designated symbols. For '+searchSymbols[searchType]['name']+' fields the following symbols can be used.'));
-    prompt.classList.add('py-2', 'my-2');
-    target.appendChild(prompt);
+    let promptBox = document.createElement('div');
+    promptBox.className = 'p-4 bg-indigo-50/50 border border-indigo-100 rounded-xl text-xs text-slate-600 mb-4';
+    
+    let promptTitle = document.createElement('p');
+    promptTitle.className = 'font-semibold text-slate-700 mb-2';
+    promptTitle.textContent = 'Pattern search modifiers for ' + searchSymbols[searchType]['name'] + ' fields:';
+    promptBox.appendChild(promptTitle);
+
+    let grid = document.createElement('div');
+    grid.className = 'grid grid-cols-1 sm:grid-cols-2 gap-2';
+
     for (const [key, value] of Object.entries(options)){
-      let promptBlock = document.createElement('p', 'align-middle');
-      promptBlock.classList.add('text-xs', 'w-full', 'h-5', 'align-middle');
-      let leftPartPrompt = document.createElement('span');
-      let rightPartPrompt = document.createElement('span');
-      leftPartPrompt.appendChild(document.createTextNode(key));
-      leftPartPrompt.classList.add('bg-gray-300', 'px-1', 'text-center', 'align-middle', 'rounded-md', 'mx-1', 'border', 'border-gray-600', 'min-w-fit' ,'w-7', 'inline-block', 'min-h-fit', 'h-full');
-      rightPartPrompt.innerHTML = value;
-      rightPartPrompt.classList.add('h-5');
-      promptBlock.appendChild(leftPartPrompt);
-      promptBlock.appendChild(rightPartPrompt);
-      target.appendChild(promptBlock);
+      let item = document.createElement('div');
+      item.className = 'flex items-center gap-2';
+      let badge = document.createElement('code');
+      badge.className = 'px-1.5 py-0.5 bg-white border border-slate-300 rounded font-mono text-indigo-700 text-xs min-w-[2.5rem] text-center font-bold';
+      badge.textContent = key === '' ? 'exact' : key;
+      let desc = document.createElement('span');
+      desc.innerHTML = value;
+      item.appendChild(badge);
+      item.appendChild(desc);
+      grid.appendChild(item);
     }
+    promptBox.appendChild(grid);
+    target.appendChild(promptBox);
   }
 }
 
@@ -207,15 +229,12 @@ function clearOperator(e){
    * Resets the operator above an input field when the content of the input field has been cleared and left empty!
    */
   if(e.value == ''){
-    //safe: can handle divs where there's no select present.
     let selector = e.parentElement.parentElement.getElementsByTagName('select'); 
     if(selector.length > 0){
-      //resets the operator to ''
       selector[0].value = ''; 
     }
   }
 }
-
 
 function loadPropertyBox(on){
   labelname = on.value;
@@ -229,52 +248,53 @@ function loadPropertyBox(on){
     let propvalidation = prop[1];
     let propPromptName = prop[2]; 
     let propDisplay = document.createElement('div'); 
+    propDisplay.className = 'form-group p-3.5 bg-slate-50 border border-slate-200 rounded-xl form-block flex flex-col justify-between';
+    propDisplay.setAttribute('data-type', propvalidation); 
+    propDisplay.setAttribute('data-name', propname); 
+
+    let headerRow = document.createElement('div');
+    headerRow.className = 'flex items-center justify-between mb-2 gap-2';
+
     let propLabel = document.createElement('label'); 
-    propLabel.appendChild(document.createTextNode(propPromptName));
+    propLabel.className = 'text-xs font-semibold uppercase tracking-wider text-slate-600 truncate';
+    propLabel.textContent = propPromptName;
+    headerRow.appendChild(propLabel);
+
     let searchMaskOptions = document.createElement('select');
-    searchMaskOptions.classList.add('maskOptions'); 
+    searchMaskOptions.className = 'maskOptions text-xs bg-white border border-slate-300 rounded-md px-2 py-1 text-slate-700 focus:ring-1 focus:ring-indigo-500 focus:border-indigo-500'; 
     let searchMasks = searchSymbols[propvalidation]['options'];
     if (searchMasks){
       for (const [key, value] of Object.entries(searchMasks)){
         let searchSelectMask = document.createElement('option');
         searchSelectMask.value = key;
-        searchSelectMask.text = key;
+        searchSelectMask.text = key === '' ? 'Exact' : key;
         searchMaskOptions.appendChild(searchSelectMask); 
       }
+      headerRow.appendChild(searchMaskOptions);
     }
 
     if(rangeModifiers.includes(propvalidation)){
-      searchMaskOptions.addEventListener('change', function(){makeModForRange()});
+      searchMaskOptions.addEventListener('change', function(e){makeModForRange(e);});
     }
-    let fieldDiv;
-    let fieldValue;
-    fieldDiv = document.createElement('div');
-    fieldValue = document.createElement('input')
+
+    propDisplay.appendChild(headerRow);
+
+    let fieldDiv = document.createElement('div');
+    let fieldValue = document.createElement('input');
     if(propvalidation === 'bool'){
-      //change input type from text to checkbox for boolean
       fieldValue.type = 'checkbox'; 
+      fieldValue.className = 'h-5 w-5 rounded border-slate-300 text-indigo-600 focus:ring-indigo-500';
+    }else{
+      fieldValue.className = 'w-full px-3 py-2 bg-white border border-slate-300 rounded-lg text-sm text-slate-800 placeholder-slate-400 focus:ring-2 focus:ring-indigo-500 focus:border-indigo-500 transition-colors';
     }
     fieldValue.setAttribute('name', propname); 
-    // fieldValue.classList.add('attachValidator', 'w-full');
-    fieldValue.classList.add('w-full');
     fieldValue.classList.add('validateAs_'+propvalidation); 
     fieldValue.addEventListener('click', function(){searchInstruction(propvalidation)}); 
     fieldValue.addEventListener('change', function(){clearOperator(this)}); 
-    propDisplay.appendChild(propLabel);
-    if (searchMasks){
-      propDisplay.appendChild(searchMaskOptions); 
-    }
     fieldDiv.appendChild(fieldValue);
-    propDisplay.classList.add('form-group', 'p-2', 'w-full', 'md:w-1/2', 'form-block');
-    propDisplay.setAttribute('data-type', propvalidation); 
-    propDisplay.setAttribute('data-name', propname); 
     propDisplay.appendChild(fieldDiv);
     target.appendChild(propDisplay);
   }
-  //attach validator here: Undo this constructor!
-  //let validator = new Validator; 
-  // validator.pickup();
-  //activate the search button: 
   let searchButton = document.getElementById('searchButtonTrigger'); 
   searchButton.removeAttribute('disabled'); 
 }
@@ -282,164 +302,195 @@ function loadPropertyBox(on){
 function createForm(formElements){
   let keys = Object.keys(formElements); 
   let target = document.getElementById('field1'); 
+  target.innerHTML = '';
   for (let i = 0; i < keys.length; i++){
     let k = keys[i];
-    let wrapper = document.createElement('div'); 
-    wrapper.classList.add('px-8', 'mx-8', 'py-2', 'my-2'); 
-    let elemLabel = document.createElement('label');
-    elemLabel.appendChild(document.createTextNode(k));
-    let elem = document.createElement('input');
-    elem.value = k;
-    elem.setAttribute('name', 'label');
-    elem.setAttribute('type', 'radio');
-    elem.addEventListener('click', function(){loadPropertyBox(this)});
-    wrapper.appendChild(elemLabel);
-    wrapper.appendChild(elem);
-    target.appendChild(wrapper);
+    let label = document.createElement('label');
+    label.className = 'cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-xl border border-slate-200 text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors shadow-sm has-[:checked]:bg-indigo-50 has-[:checked]:border-indigo-500 has-[:checked]:text-indigo-700'; 
+    let radio = document.createElement('input');
+    radio.value = k;
+    radio.setAttribute('name', 'label');
+    radio.setAttribute('type', 'radio');
+    radio.className = 'h-4 w-4 text-indigo-600 border-slate-300 focus:ring-indigo-500';
+    radio.addEventListener('change', function(){loadPropertyBox(this)});
+    label.appendChild(radio);
+    label.appendChild(document.createTextNode(k));
+    target.appendChild(label);
   }
 }
 
 function clearResults(){
-  //empties the container holding the results from a previous search after triggering
-  // an action that would load new results (pagination or new search command ); 
   let oldResultsContainer = document.getElementById('tableHere'); 
   oldResultsContainer.innerHTML = '';
 }
 
 function simpleResponseTableGenerator(data){
-  document.getElementById('tableHere').innerHTML = ''; 
+  let resultsCard = document.getElementById('resultsCard');
+  if (resultsCard) {
+    resultsCard.classList.remove('hidden');
+  }
+  let tableTarget = document.getElementById('tableHere');
+  tableTarget.innerHTML = ''; 
+
   if(Object.keys(data).length == 0){
     if(offset == 0){
-      document.getElementById('tableHere').innerHTML = '<p>This search returned no results.</p>'; 
+      tableTarget.innerHTML = '<div class="text-center py-8 text-slate-500 text-sm">No results match this search criteria.</div>'; 
     }else{
-      document.getElementById('tableHere').innerHTML = '<p>No additional results found.</p>'; 
+      tableTarget.innerHTML = '<div class="text-center py-8 text-slate-500 text-sm">No additional results found.</div>'; 
     }
   }
-  //if (Object.keys(data).length == limit){
+
   let pgTarget = document.getElementById('pgn');
   pgTarget.innerHTML = ''; 
+  pgTarget.className = 'flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-200';
+
   let backButton = document.createElement('button'); 
-  let nextButton = document.createElement('button');
+  backButton.className = 'px-4 py-2 text-sm font-medium bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer';
+  backButton.textContent = '← Previous';
   backButton.addEventListener('click', function(){
-    offset = offset-limit;
+    offset = offset - limit;
     updateDict();
   });
+
+  let nextButton = document.createElement('button');
+  nextButton.className = 'px-4 py-2 text-sm font-medium bg-white border border-slate-300 rounded-lg shadow-sm hover:bg-slate-50 text-slate-700 transition-colors cursor-pointer';
+  nextButton.textContent = 'Next →';
   nextButton.addEventListener('click', function(){
-    offset = offset+limit; 
+    offset = offset + limit; 
     updateDict();
   }); 
-  backButton.appendChild(document.createTextNode('<<'));
-  nextButton.appendChild(document.createTextNode('>>'));
-  let showingTex = document.createElement('p');
-  let fromRes = offset+1; 
-  let toRes = offset+Object.keys(data).length; 
-  let texToShow = document.createTextNode('Showing results '+fromRes+' to '+ toRes+'.'); 
-  showingTex.appendChild(texToShow);
+
+  let fromRes = offset + 1; 
+  let toRes = offset + Object.keys(data).length; 
+  let showingTex = document.createElement('div');
+  showingTex.className = 'text-xs font-medium text-slate-500';
+  if(Object.keys(data).length > 0){
+    showingTex.textContent = 'Showing ' + fromRes + ' to ' + toRes + ' results';
+  }
+
+  let navGroup = document.createElement('div');
+  navGroup.className = 'flex items-center gap-2';
   if(offset != 0){
-    pgTarget.appendChild(backButton);
+    navGroup.appendChild(backButton);
   }
-  pgTarget.appendChild(showingTex); 
   if(Object.keys(data).length == limit){
-    pgTarget.appendChild(nextButton);
+    navGroup.appendChild(nextButton);
   }
-  //}
-  let replTable = document.createElement('table'); 
-  //let replBody = document.createElement('tbody'); 
-  replTable.classList.add('table', 'w-full'); 
-  for (const [key, value] of Object.entries(data)) {
-    let row = value; 
-    let rowOut = document.createElement('tr'); 
-    rowOut.classList.add('bg-gray-50', 'odd:bg-gray-100', 'hover:bg-gray-200');
-    //generate Link to stable URI or TEXT portal
-    if(row['stable']){
-      var stableLink = document.createElement('i'); 
-      stableLink.classList.add('fas', 'fa-anchor');
-      var stableLinkURI = document.createElement('a'); 
-      stableLinkURI.setAttribute('href', row['stable']); 
-      stableLinkURI.setAttribute('target', '_blank');
-      stableLinkURI.appendChild(stableLink); 
-    }else{
-      var stableLinkURI = document.createElement('p'); 
-      stableLinkURI.appendChild(document.createTextNode('N/A')); 
-    }
-    //generate link to graph: 
-    let networkImg = document.createElement('img');
-    networkImg.src = '/images/graphExplore.png';
-    let networkLink = '/explore/'+row['neoid'];
-    let networkHref = document.createElement('a');
-    networkHref.setAttribute('href', networkLink);
-    networkHref.setAttribute('target', '_blank');
-    networkHref.appendChild(networkImg); 
-    //write links in single cell. 
-    let linktd = document.createElement('td'); 
-    linktd.appendChild(networkHref);
-    linktd.appendChild(stableLinkURI);
-    // handle properties: 
-    var proplist = document.createElement('ul'); 
-    for(var i = 0; i < row['properties'].length; i++){
-      var proprow = document.createElement('li'); 
-      var proprowleft = document.createElement('span'); 
-      proprowleft.classList.add('font-bold');
-      proprowleft.appendChild(document.createTextNode(row['properties'][i][0]+': ')); 
-      var proprowright = document.createElement('span'); 
-      if(row['properties'][i][1] == 'uri'){
-        var rightLink = document.createElement('a');
-        rightLink.setAttribute('href', row['properties'][i][2]);
-        rightLink.setAttribute('target', '_blank');
-        rightLink.classList.add('externalLink'); 
-        rightLink.appendChild(document.createTextNode(row['properties'][i][2])); 
-        proprowright.appendChild(rightLink);
-      }else if(row['properties'][i][1] == 'wikidata'){
-        var rightLink = document.createElement('a');
-        rightLink.setAttribute('href', 'https://www.wikidata.org/wiki/'+row['properties'][i][2]);
-        rightLink.setAttribute('target', '_blank');
-        rightLink.classList.add('externalLink'); 
-        rightLink.appendChild(document.createTextNode(row['properties'][i][2])); 
-        proprowright.appendChild(rightLink);
-      }else{
-        //check if the property has a 'shorten' bool on index 3
-        const maxDisplayLength = 200; 
-        if (row['properties'][i][3] && row['properties'][i][2].length > maxDisplayLength){
-          let shortString = row['properties'][i][2].substring(0,maxDisplayLength)+' ...'; 
-          let originalString = row['properties'][i][2]; 
-          let shortTextNode = document.createTextNode(shortString); 
-          proprowright.appendChild(shortTextNode);
-          proprowright.classList.add('short', 'toggleShortLong'); 
-          proprowright.setAttribute('data-short', shortString);
-          proprowright.setAttribute('data-long', originalString);
-          proprowright.addEventListener('click', function(){shortToggler(event);});
-        }else{
-          proprowright.appendChild(document.createTextNode(row['properties'][i][2]));
-        }
+
+  pgTarget.appendChild(showingTex); 
+  pgTarget.appendChild(navGroup);
+
+  if (Object.keys(data).length > 0) {
+    let replTable = document.createElement('table'); 
+    replTable.className = 'w-full divide-y divide-slate-200 text-sm'; 
+
+    for (const [key, value] of Object.entries(data)) {
+      let row = value; 
+      let rowOut = document.createElement('tr'); 
+      rowOut.className = 'hover:bg-slate-50/80 transition-colors';
+
+      let linktd = document.createElement('td'); 
+      linktd.className = 'py-4 pl-2 pr-4 align-top whitespace-nowrap w-28';
+      let btnGroup = document.createElement('div');
+      btnGroup.className = 'flex flex-col gap-2';
+
+      let networkLink = '/explore/' + row['neoid'];
+      let networkHref = document.createElement('a');
+      networkHref.setAttribute('href', networkLink);
+      networkHref.setAttribute('target', '_blank');
+      networkHref.className = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-indigo-700 bg-indigo-50 hover:bg-indigo-100 rounded-lg border border-indigo-200 transition-colors';
+      networkHref.innerHTML = '<span class="text-xs">☊</span> Explore'; 
+      btnGroup.appendChild(networkHref);
+
+      if(row['stable']){
+        let stableLinkURI = document.createElement('a'); 
+        stableLinkURI.setAttribute('href', row['stable']); 
+        stableLinkURI.setAttribute('target', '_blank');
+        stableLinkURI.className = 'inline-flex items-center gap-1.5 px-2.5 py-1.5 text-xs font-medium text-slate-700 bg-slate-50 hover:bg-slate-100 rounded-lg border border-slate-200 transition-colors';
+        stableLinkURI.innerHTML = '<span class="text-xs">⚓</span> Stable';
+        btnGroup.appendChild(stableLinkURI);
       }
-      proprow.appendChild(proprowleft); 
-      proprow.appendChild(proprowright); 
-      proplist.appendChild(proprow);
-    }
-    let variants = [];
-    for(var i = 0; i < row['variants'].length; i++){
-      let rowvariant = row['variants'][i];
-      let variantLabel = rowvariant['label'];
-      //let variantPKProp = rowvariant['primary'][0];
-      //let variantPKVal = rowvariant['primary'][1]; 
-      variants.push(variantLabel); 
-    }
-    var proprow = document.createElement('li'); 
-    var proprowleft = document.createElement('span'); 
-    var proprowright = document.createElement('span'); 
-    proprowleft.classList.add('font-bold');
-    proprowleft.appendChild(document.createTextNode('Spelling variants: ')); 
-    var proprowright = document.createElement('span'); 
-    proprowright.appendChild(document.createTextNode([...new Set(variants)].join(', '))); 
-    proprow.appendChild(proprowleft);
-    proprow.appendChild(proprowright);
-    proplist.appendChild(proprow);
 
+      linktd.appendChild(btnGroup);
 
-    rowOut.appendChild(linktd); 
-    rowOut.appendChild(proplist); 
-    replTable.appendChild(rowOut); 
+      let contenttd = document.createElement('td');
+      contenttd.className = 'py-4 px-4 align-top';
+      let proplist = document.createElement('ul'); 
+      proplist.className = 'space-y-1.5';
+
+      for(let i = 0; i < row['properties'].length; i++){
+        let proprow = document.createElement('li'); 
+        proprow.className = 'text-xs text-slate-700';
+        let proprowleft = document.createElement('span'); 
+        proprowleft.className = 'font-semibold text-slate-800 mr-1.5';
+        proprowleft.textContent = row['properties'][i][0] + ':'; 
+        let proprowright = document.createElement('span'); 
+
+        if(row['properties'][i][1] == 'uri'){
+          const rawUri = String(row['properties'][i][2] || '').trim();
+          if (/^https?:\/\//i.test(rawUri)) {
+            let rightLink = document.createElement('a');
+            rightLink.setAttribute('href', rawUri);
+            rightLink.setAttribute('target', '_blank');
+            rightLink.setAttribute('rel', 'noopener noreferrer');
+            rightLink.className = 'text-indigo-600 hover:underline break-all'; 
+            rightLink.textContent = rawUri; 
+            proprowright.appendChild(rightLink);
+          } else {
+            let rightText = document.createElement('span');
+            rightText.className = 'text-slate-600 break-all';
+            rightText.textContent = rawUri;
+            proprowright.appendChild(rightText);
+          }
+        }else if(row['properties'][i][1] == 'wikidata'){
+          let rightLink = document.createElement('a');
+          rightLink.setAttribute('href', 'https://www.wikidata.org/wiki/' + row['properties'][i][2]);
+          rightLink.setAttribute('target', '_blank');
+          rightLink.className = 'text-indigo-600 hover:underline inline-flex items-center gap-1 font-mono'; 
+          rightLink.textContent = row['properties'][i][2]; 
+          proprowright.appendChild(rightLink);
+        }else{
+          const maxDisplayLength = 200; 
+          if (row['properties'][i][3] && row['properties'][i][2].length > maxDisplayLength){
+            let shortString = row['properties'][i][2].substring(0, maxDisplayLength) + ' ...'; 
+            let originalString = row['properties'][i][2]; 
+            proprowright.textContent = shortString;
+            proprowright.className = 'short toggleShortLong cursor-pointer text-slate-600 hover:text-slate-900'; 
+            proprowright.setAttribute('data-short', shortString);
+            proprowright.setAttribute('data-long', originalString);
+            proprowright.addEventListener('click', function(e){ shortToggler(e); });
+          }else{
+            proprowright.textContent = row['properties'][i][2];
+          }
+        }
+        proprow.appendChild(proprowleft); 
+        proprow.appendChild(proprowright); 
+        proplist.appendChild(proprow);
+      }
+
+      let variants = [];
+      for(let i = 0; i < row['variants'].length; i++){
+        variants.push(row['variants'][i]['label']); 
+      }
+      if(variants.length > 0){
+        let proprow = document.createElement('li'); 
+        proprow.className = 'text-xs text-slate-500 pt-1';
+        let proprowleft = document.createElement('span'); 
+        proprowleft.className = 'font-semibold text-slate-700 mr-1.5';
+        proprowleft.textContent = 'Spelling variants:'; 
+        let proprowright = document.createElement('span'); 
+        proprowright.className = 'italic';
+        proprowright.textContent = [...new Set(variants)].join(', '); 
+        proprow.appendChild(proprowleft);
+        proprow.appendChild(proprowright);
+        proplist.appendChild(proprow);
+      }
+
+      contenttd.appendChild(proplist);
+      rowOut.appendChild(linktd); 
+      rowOut.appendChild(contenttd); 
+      replTable.appendChild(rowOut); 
+    }
+    tableTarget.appendChild(replTable); 
   }
-  document.getElementById('tableHere').appendChild(replTable); 
-
 }

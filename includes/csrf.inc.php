@@ -2,27 +2,38 @@
 class CsrfTokenManager {
     private $token;
 
+    public function __construct() {
+        if (session_status() === PHP_SESSION_NONE) {
+            session_start();
+        }
+    }
+
     public function generateToken($name = 'csrf_token') {
         $this->token = bin2hex(random_bytes(32));
         $_SESSION[$name] = $this->token;
         return $this->token;
     }
 
-    public function checkToken($submittedToken) {
-        // var_dump($this->getTokenFromSession()); 
-        // var_dump($submittedToken);
-        if(is_null($this->getTokenFromSession())){
-            return false;
+    public function getToken($name = 'csrf_token') {
+        $existing = $this->getTokenFromSession($name);
+        if ($existing !== null) {
+            return $existing;
         }
-        if (!$submittedToken){
-            return False;
-        }
-        $submittedToken = trim($submittedToken, '"');
-        return hash_equals($this->getTokenFromSession(), $submittedToken);
+        return $this->generateToken($name);
     }
 
-    public function outputToken() {
-        echo '<input type="hidden" name="csrf_token" value="' . $this->getTokenFromSession() . '">';
+    public function checkToken($submittedToken, $name = 'csrf_token') {
+        $sessionToken = $this->getTokenFromSession($name);
+        if (is_null($sessionToken) || !$submittedToken) {
+            return false;
+        }
+        $submittedToken = trim((string)$submittedToken, '"');
+        return hash_equals($sessionToken, $submittedToken);
+    }
+
+    public function outputToken($name = 'csrf_token') {
+        $val = htmlspecialchars($this->getToken($name), ENT_QUOTES, 'UTF-8');
+        echo '<input type="hidden" name="csrf_token" value="' . $val . '">';
     }
 
     public function revokeToken($name = 'csrf_token') {

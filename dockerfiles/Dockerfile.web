@@ -1,0 +1,51 @@
+# Dockerfile for LATTE web application (2026-LATTE_WEB2.0).
+FROM php:8.2-apache
+
+# Install operating system dependencies and build libraries.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    libpng-dev \
+    libjpeg-dev \
+    libfreetype6-dev \
+    libsqlite3-dev \
+    sqlite3 \
+    libzip-dev \
+    zip \
+    unzip \
+    ssl-cert \
+    && docker-php-ext-configure gd --with-freetype --with-jpeg \
+    && docker-php-ext-install -j$(nproc) \
+        gd \
+        bcmath \
+        sockets \
+        zip \
+        exif \
+        pdo_mysql \
+        mysqli \
+    && a2enmod rewrite ssl headers \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy Apache virtual host configuration.
+COPY dockerfiles/conf/apache.conf /etc/apache2/sites-available/000-default.conf
+
+# Copy entrypoint script and make it executable.
+COPY dockerfiles/entrypoint.sh /usr/local/bin/docker-entrypoint.sh
+RUN chmod +x /usr/local/bin/docker-entrypoint.sh
+
+# Set working directory.
+WORKDIR /var/www/html
+
+# Copy application source code into the web root.
+COPY . /var/www/html/
+
+# Ensure storage directory structure and permissions.
+RUN mkdir -p /var/www/html/storage/cache \
+    && chown -R www-data:www-data /var/www/html/storage \
+    && chmod -R 775 /var/www/html/storage
+
+# Expose web ports.
+EXPOSE 80 443
+
+# Set entrypoint and default command.
+ENTRYPOINT ["/usr/local/bin/docker-entrypoint.sh"]
+CMD ["apache2-foreground"]

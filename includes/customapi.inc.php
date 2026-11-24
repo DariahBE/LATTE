@@ -1,8 +1,7 @@
 <?php 
 
 // ALWAYS EXCLUDE NODES WITH PRIVATE == TRUE  FROM THE RESULT SET.
-//      NOTICE: make the code so that nodes without a private attribue
-//              are returned!
+//      NOTICE: nodes without a private attribue are returned!
 
 
 class API {

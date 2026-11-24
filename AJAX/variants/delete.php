@@ -3,32 +3,33 @@ header('Content-Type: application/json; charset=utf-8');
 
 // OKAY converted to transactional model!
 //only open for registered users
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+if (!defined('ROOT_DIR')) {
+  include_once(dirname(dirname(__DIR__)).'/config/config.inc.php');
+}
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php'); 
 include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/csrf.inc.php');
 
-//checks for user: Only a logged in user can DELETE
+if ($_SERVER['REQUEST_METHOD'] !== 'POST') {
+  header("HTTP/1.0 405 Method Not Allowed");
+  echo json_encode(array('msg' => 'Method not allowed. Use POST.'));
+  die();
+}
+
+//checks for user: Only a logged in user with rights can DELETE
 $user = new User($client);
 $user->checkAccess(TEXTSAREPUBLIC);
 $user_id = $user->checkSession();
-if($user_id === false){
+if($user_id === false || $user->hasEditRights($user->myRole) < 2){
+  header("HTTP/1.0 403 Forbidden");
+  echo json_encode(array('msg' => 'Insufficient permissions to delete variants.'));
   die();
 }
-//connect to graph database
-$graph = new CUDNode($client);
-$graph->startTransaction(); 
-//var_dump($graph); 
 
-//gets the neoID for both connected nodes.  //cast to integers!!
-$etNeoID = (int)$_GET['entityid'];
-$varuid = (int)$_GET['variantid'];
-$token = ''; 
-if(isset($_GET['token'])){
-  $token = $_GET['token']; 
-}
-
+$etNeoID = isset($_POST['entityid']) ? (int)$_POST['entityid'] : (isset($_GET['entityid']) ? (int)$_GET['entityid'] : 0);
+$varuid = isset($_POST['variantid']) ? (int)$_POST['variantid'] : (isset($_GET['variantid']) ? (int)$_GET['variantid'] : 0);
+$token = $_POST['token'] ?? $_GET['token'] ?? ''; 
 
 $tokenManager = new CsrfTokenManager(); 
 $validToken = $tokenManager->checkToken($token); 
@@ -36,6 +37,10 @@ if(!($validToken)){
     echo json_encode(array('msg' => 'Invalid session token')); 
     die();
 }
+
+//connect to graph database
+$graph = new CUDNode($client);
+$graph->startTransaction();
 
 
 try {

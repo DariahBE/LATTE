@@ -2,7 +2,9 @@
 
 session_start(); 
 header('Content-Type: application/json; charset=utf-8');
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
+if (!defined('ROOT_DIR')) {
+  include_once(dirname(__DIR__).'/config/config.inc.php');
+}
 include_once(ROOT_DIR."/includes/client.inc.php");
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
@@ -10,11 +12,12 @@ include_once(ROOT_DIR.'/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/csrf.inc.php');
 
 $postdata = $_POST;
-$token = $postdata['csrf_token']; 
+$token = $postdata['csrf_token'] ?? ''; 
 $tokenManager = new CsrfTokenManager(); 
 $node = new CUDNode($client);
 if(!($tokenManager->checkToken($token))){
-    die(); 
+    header("HTTP/1.0 403 Forbidden");
+    die(json_encode(array('status' => 'error', 'message' => 'Invalid session token'))); 
 }
 //1 check if extra parameters are present in the psotdata request. 
 //otherwise kill it!
@@ -26,7 +29,20 @@ if(!array_key_exists('app_logic_db_neoid', $postdata)){
 }
 //else: if both app_logic_db_* elements exist: read and use them. 
 $neo_id_constraint = (int)$postdata['app_logic_db_neoid']; 
-$neo_label_constraint = $postdata['app_logic_db_label']; 
+// Force capitalization of node names (e.g. Text); and force lowercasing of node properties)
+$neo_label_constraint = ucfirst(preg_replace('/\s+/', '', (string)$postdata['app_logic_db_label'])); 
+
+// Check authentication and edit permissions for this node:
+$user = new User($client);
+if ($user->checkSession() === false) {
+    header("HTTP/1.0 401 Unauthorized");
+    die(json_encode(array('status' => 'error', 'message' => 'Not authenticated')));
+}
+$rights = $node->determineRightsSet($user, $neo_id_constraint);
+if (empty($rights['edit'])) {
+    header("HTTP/1.0 403 Forbidden");
+    die(json_encode(array('status' => 'error', 'message' => 'Insufficient permissions to update this node')));
+}
 
 //2 get NODESMODEL to know which key value pairs shoulc be retained and which are tampered with. 
 //check if app_logic_db_label is a defined label in the nodemodel. The definitions are needed to validate the POST request. 

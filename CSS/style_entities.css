@@ -1,1 +1,168 @@
 .linkedNode{font-weight:bold;}
+
+/* Fixed dimension for slideover inspector drawer to prevent initial size jumping */
+#slideover {
+  width: 36rem !important;
+  max-width: 100vw !important;
+}
+
+/* Modern styling for automatic annotations (LATTE suggestions) */
+.app_automatic {
+  background-color: rgba(100, 116, 139, 0.5) !important;
+  color: #0f172a !important;
+  cursor: pointer !important;
+  border: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  text-decoration: underline !important;
+  text-decoration-color: #475569 !important;
+  text-underline-offset: 3px !important;
+  text-decoration-thickness: 1.5px !important;
+  transition: background-color 0.15s ease, filter 0.15s ease !important;
+}
+
+.app_automatic:hover {
+  background-color: rgba(100, 116, 139, 0.68) !important;
+  filter: brightness(0.92);
+}
+
+.app_automatic.markedAnnotation {
+  background-color: rgba(165, 180, 252, 0.7) !important;
+  color: #1e1b4b !important;
+  font-weight: 700 !important;
+  border: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  text-decoration: underline !important;
+  text-decoration-color: #4338ca !important;
+  text-underline-offset: 3px !important;
+  text-decoration-thickness: 2px !important;
+}
+
+/* Retrimming mode active range highlight */
+.app_automatic_retrimming {
+  background-color: rgba(254, 240, 138, 0.85) !important;
+  color: #713f12 !important;
+  font-weight: 600 !important;
+  border: none !important;
+  outline: none !important;
+  border-radius: 0 !important;
+  padding: 0 !important;
+  margin: 0 !important;
+  box-shadow: none !important;
+  text-decoration: underline !important;
+  text-decoration-color: #d97706 !important;
+  text-underline-offset: 3px !important;
+  text-decoration-thickness: 2px !important;
+}
+
+/* Retrim draggable handles at boundaries */
+.latte-retrim-handle {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 14px !important;
+  height: 20px !important;
+  margin: 0 2px !important;
+  background-color: #4f46e5 !important;
+  color: #ffffff !important;
+  border-radius: 4px !important;
+  font-size: 8px !important;
+  cursor: ew-resize !important;
+  user-select: none !important;
+  vertical-align: middle !important;
+  z-index: 50 !important;
+  box-shadow: 0 2px 5px rgba(79, 70, 229, 0.35) !important;
+  transition: transform 0.1s ease, background-color 0.15s ease !important;
+}
+
+.latte-retrim-handle:hover,
+.latte-retrim-handle.is-dragging {
+  background-color: #4338ca !important;
+  transform: scale(1.18) !important;
+}
+
+/* Floating retrim action toolbar */
+#latteRetrimBar {
+  position: fixed !important;
+  bottom: 1.5rem !important;
+  left: 50% !important;
+  transform: translateX(-50%) !important;
+  z-index: 99998 !important;
+  display: flex !important;
+  align-items: center !important;
+  gap: 0.75rem !important;
+  padding: 0.65rem 1.15rem !important;
+  background-color: #ffffff !important;
+  border: 1px solid #cbd5e1 !important;
+  border-radius: 1rem !important;
+  box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.15), 0 8px 10px -6px rgba(0, 0, 0, 0.1) !important;
+}
+
+.btn-nudge {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  width: 22px !important;
+  height: 22px !important;
+  border-radius: 6px !important;
+  background-color: #f1f5f9 !important;
+  border: 1px solid #cbd5e1 !important;
+  color: #475569 !important;
+  font-size: 10px !important;
+  cursor: pointer !important;
+  transition: all 0.1s ease !important;
+}
+.btn-nudge:hover {
+  background-color: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+/* Smooth fade-in animation for slideover inspector content */
+@keyframes slideoverFadeIn {
+  0% {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.slideover-fade-in {
+  animation: slideoverFadeIn 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards !important;
+  will-change: opacity, transform;
+}
+
+/* Batch delete modal button styling */
+#btnConfirmDeleteSingleAuto,
+#btnDeleteAllAuto,
+#btnDeleteSingleAuto {
+  background-color: #e11d48 !important;
+  color: #ffffff !important;
+  border: 1px solid #be123c !important;
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  cursor: pointer !important;
+}
+
+#btnConfirmDeleteSingleAuto:hover,
+#btnDeleteAllAuto:hover,
+#btnDeleteSingleAuto:hover {
+  background-color: #be123c !important;
+  color: #ffffff !important;
+}
+
+/* Hide knowledge bases box while schema notice is active */
+#slideover:has(#schemaNoticeCard) #urlrelations,
+#slideover:has(.schema-notice) #urlrelations {
+  display: none !important;
+}

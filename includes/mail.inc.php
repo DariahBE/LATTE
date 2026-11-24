@@ -1,9 +1,14 @@
 <?php
 use PHPMailer\PHPMailer\PHPMailer;
-use PHPMailer\PHPMailer\Exception;
-require 'PHPMailer/src/Exception.php';
-require 'PHPMailer/src/PHPMailer.php';
-require 'PHPMailer/src/SMTP.php';
+// Load PHPMailer via Composer autoloader or bundled fallback.
+if (file_exists(dirname(__DIR__) . '/vendor/autoload.php')) {
+    require_once dirname(__DIR__) . '/vendor/autoload.php';
+}
+if (!class_exists('PHPMailer\PHPMailer\PHPMailer')) {
+    require_once __DIR__ . '/PHPMailer/src/Exception.php';
+    require_once __DIR__ . '/PHPMailer/src/PHPMailer.php';
+    require_once __DIR__ . '/PHPMailer/src/SMTP.php';
+}
 
 
 class Mail{

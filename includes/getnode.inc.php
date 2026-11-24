@@ -93,10 +93,18 @@ class Node{
     $indexedProperties = array(); 
     $query = 'SHOW INDEXES'; 
     $result = $this->client->run($query); 
-     foreach($result as $key=> $value){ 
+    foreach($result as $key=> $value){ 
       #Composite indexes aren't used so [0] is safe to use. 
-      $nodeLabel = $value['labelsOrTypes'][0]; 
-      $property = $value['properties'][0]; 
+      $labels = $value['labelsOrTypes'] ?? null;
+      $properties = $value['properties'] ?? null;
+      if (empty($labels) || empty($properties)) {
+        continue;
+      }
+      $nodeLabel = is_array($labels) ? ($labels[0] ?? null) : (is_iterable($labels) ? iterator_to_array($labels)[0] ?? null : null);
+      $property = is_array($properties) ? ($properties[0] ?? null) : (is_iterable($properties) ? iterator_to_array($properties)[0] ?? null : null);
+      if (!$nodeLabel || !$property || $nodeLabel === 'null' || $property === 'null') {
+        continue;
+      }
       $idxname = $value['name'];
       // if label does not exist in return value: add it
       if(!(array_key_exists($nodeLabel, $indexedProperties))){
@@ -106,11 +114,11 @@ class Node{
       if(!(array_key_exists($property, $indexedProperties[$nodeLabel]))){
         $indexedProperties[$nodeLabel][$property] = $idxname; 
       }
-     }
+    }
     return $indexedProperties; 
   }
 
-  function modifyIndex($label, $prop, $action, $idxname){
+  function modifyIndex($label, $prop, $action, $idxname = null){
     /*adds or removes the index on a $label.prop from a node. 
       $label = labelname
       $prop = propertyname
@@ -118,36 +126,45 @@ class Node{
     */
     $allowed_actions = ['add', 'drop']; 
     if (in_array($action, $allowed_actions)){
+      // Force capitalization of node names (e.g. Text); and force lowercasing of node properties)
+      $safeLabel = ucfirst(preg_replace('/[^a-zA-Z0-9_]/', '', (string)$label));
+      $safeProp = strtolower(preg_replace('/[^a-zA-Z0-9_]/', '', (string)$prop));
+      $safeIdx = preg_replace('/[^a-zA-Z0-9_]/', '', (string)($idxname ?? ''));
       if($action === 'add'){
-        //NEO4J does not give you the index name directly in a create statemnt :(
-        $query = 'CREATE INDEX IF NOT EXISTS FOR (p:'.$label.') ON (p.'.$prop.');';
-      }else{
-        if($action === 'drop'){
-          if($idxname === null){
-            die(); 
-          }else{
-            $query = 'DROP INDEX '.$idxname.' IF EXISTS;';
+        // NEO4J does not give you the index name directly in a create statemnt :(
+        $query = 'CREATE INDEX IF NOT EXISTS FOR (p:'.$safeLabel.') ON (p.'.$safeProp.');';
+        $result = $this->client->run($query); 
+        $added = $result->getSummary()->getCounters()['indexesAdded']; 
+        $idx_name = null;
+        // Look up index name from database indexes.
+        $allIndexes = $this->getIndexes();
+        if (isset($allIndexes[$safeLabel][$safeProp])) {
+          $idx_name = $allIndexes[$safeLabel][$safeProp];
+          $added = 1;
+        }
+        return array('added'=>$added, 'removed'=>0, 'name'=>$idx_name); 
+      }else if($action === 'drop'){
+        if(!$safeIdx){
+          $allIndexes = $this->getIndexes();
+          if (isset($allIndexes[$safeLabel][$safeProp])) {
+            $safeIdx = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$allIndexes[$safeLabel][$safeProp]);
           }
         }
-      }
-
-      $result =  $this->client->run($query); 
-      $added = $result->getSummary()->getCounters()['indexesAdded']; 
-      $removed = $result->getSummary()->getCounters()['indexesRemoved']; 
-      $idx_name = Null;
-      //To get the name we need an extra query if a new index was $added
-      if($added === 1 ){
-        $extra_query = 'CALL db.indexes() YIELD name, labelsOrTypes, properties
-        WHERE labelsOrTypes = ["'.$label.'"] AND properties = ["'.$prop.'"]
-        RETURN name;'; 
-        $extra_result = $this->client->run($extra_query); 
-        if(boolval($extra_result)){
-          $idx_name = $extra_result->getResults()[0]['name']; 
+        if(!$safeIdx){
+          return array('added'=>0, 'removed'=>0, 'name'=>null); 
         }
+        $query = 'DROP INDEX '.$safeIdx.' IF EXISTS;';
+        $result = $this->client->run($query); 
+        $removed = $result->getSummary()->getCounters()['indexesRemoved']; 
+        // Double check if index is gone.
+        $allIndexes = $this->getIndexes();
+        if (!isset($allIndexes[$safeLabel][$safeProp])) {
+          $removed = 1;
+        }
+        return array('added'=>0, 'removed'=>$removed, 'name'=>null); 
       }
-      return array('added'=>$added, 'removed'=>$removed, 'name'=>$idx_name); 
     }
-
+    return array('added'=>0, 'removed'=>0, 'name'=>null); 
   }
 
   //Text order methods: 
@@ -261,7 +278,7 @@ function executePremadeParameterizedQuery($query, $parameters){
     //return the PK of each Text and Annotation. 
     foreach($connectedTexts as $key => $value){
       $primaryForEt = helper_extractPrimary($value['x']['labels'][0]);
-      $entitityValue = $value['x']->getProperty($primaryForEt);
+      $entitityValue = $this->extractCoreID($value['x'], $primaryForEt, 'uid');
       if (!in_array($entitityValue, $result['entities'])){
         $result['entities'][] = $entitityValue;
       }
@@ -299,7 +316,8 @@ function executePremadeParameterizedQuery($query, $parameters){
   }
 
   function getConnections($label){
-    $result = $this->client->run('MATCH(n:'.$label.')-[r]-() UNWIND(r) AS relations RETURN DISTINCT type(relations) AS relationtype'); 
+    $cleanLabel = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$label);
+    $result = $this->client->run('MATCH(n:'.$cleanLabel.')-[r]-() UNWIND(r) AS relations RETURN DISTINCT type(relations) AS relationtype'); 
     $data = array();
     foreach($result as $record){
       $reltype = $record['relationtype'];
@@ -318,8 +336,9 @@ function executePremadeParameterizedQuery($query, $parameters){
   function findEntitiesWithVariantValue($entityLabel, $variantValue){
     //looks for entities with a known label that have a connection to a given variant!
     //Variant.variant is a hardcoded node/propery name. It is is required to be in the datamodel!
-    $query = "OPTIONAL MATCH (e:$entityLabel)-[]-(v:Variant {variant: '$variantValue'}) RETURN e";
-    $results = $this->client->run($query);
+    $safeLabel = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$entityLabel);
+    $query = "OPTIONAL MATCH (e:$safeLabel)-[]-(v:Variant {variant: \$variantVal}) RETURN e";
+    $results = $this->client->run($query, ['variantVal' => (string)$variantValue]);
     return $results;
 }
 
@@ -394,7 +413,7 @@ function executePremadeParameterizedQuery($query, $parameters){
       foreach (NODES["See_Also"] as $p){
         try{
           $v = $record->get("t")->getProperty($p);
-        }catch(e){
+        }catch(\Throwable $e){
           $v = null;
         }
         $row[$p] = $v;
@@ -439,7 +458,10 @@ function executePremadeParameterizedQuery($query, $parameters){
       // in case $coreproperty is missing. Catches bugs that are 
       // caused by a missing coreproperty (e.g. adding new properties
       // after project start); 
-      return $nodedata->getProperty($fallback); 
+      if ($fallback && $nodedata['properties']->hasKey($fallback)) {
+        return $nodedata->getProperty($fallback);
+      }
+      return (string)$nodedata->getId();
     }
   }
 
@@ -448,15 +470,16 @@ function executePremadeParameterizedQuery($query, $parameters){
     if (is_numeric($value)){
       $value = $value + 0;   //can be float too . adding +0 will allow php to automatically set the correct type.
     }
-    if(boolval($type)){
-      $typeQuery = ':'.$type;
-    }else{
-      $typeQuery = $type;
+    $cleanType = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$type);
+    $cleanKey = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$key);
+    if ($cleanKey === '') {
+      $cleanKey = 'uid';
     }
+    $typeQuery = ($cleanType !== '') ? ':'.$cleanType : '';
     //$result = $this->client->run("MATCH (node:".$type."{".$key.":".$value."}) RETURN node, id(node) AS ID LIMIT 1");
-    $result = $this->client->run('MATCH (node'.$typeQuery.'{'.$key.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
+    $result = $this->client->run('MATCH (node'.$typeQuery.'{'.$cleanKey.': $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
     // if $result == 0 and $key != uid ==> it could be the unique key is not set on the node. Fallback to UUID search!
-    if(count($result)==0 && $key != 'uid'){
+    if(count($result)==0 && $cleanKey != 'uid'){
       $result = $this->client->run('MATCH (node'.$typeQuery.'{uid: $nodeval}) RETURN node, id(node) AS ID LIMIT 1', ['nodeval'=>$value]);
     }
     // A row is a \Laudis\Neo4j\Types\CypherMap
@@ -545,8 +568,8 @@ function executePremadeParameterizedQuery($query, $parameters){
     if ($publicOnly){
       $constraintOnAnnotationLevel = '{private:false}';
     }
-    $query = "MATCH (n)<-[q:references]-(a:".ANNONODE."{$constraintOnAnnotationLevel})<-[s:contains]-(t:".TEXNODE.") where id(n)=$nodeId return t";
-    $result = $this->client->run($query, [$nodeId]);
+    $query = "MATCH (n)<-[q:references]-(a:".ANNONODE."{$constraintOnAnnotationLevel})<-[s:contains]-(t:".TEXNODE.") WHERE id(n) = \$nodeId RETURN t";
+    $result = $this->client->run($query, ['nodeId' => $nodeId]);
     return $result;
   }
 
@@ -563,13 +586,31 @@ function executePremadeParameterizedQuery($query, $parameters){
     $limString = ' ORDER BY collectiveScore '.  $extraOffset.' LIMIT '.$lim; 
     //$extraOffset = ''
     //case sensitive ==> Very Fast:
+    $validEntityType = '';
     if(boolval($entityType)){
-      $entityType = ':'.$entityType;
+      $cleanType = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$entityType);
+      if (array_key_exists($cleanType, CORENODES)) {
+        $validEntityType = ':'.$cleanType;
+      }
     }
+    $allowedEntityLabels = array_values(array_diff(array_keys(CORENODES), array(TEXNODE, ANNONODE, 'Variant', 'See_Also')));
+    $stringPropSet = array();
+    foreach (NODEMODEL as $nLabel => $nProps) {
+      if (!in_array($nLabel, $allowedEntityLabels, true)) {
+        continue;
+      }
+      foreach ($nProps as $pKey => $pMeta) {
+        if (isset($pMeta[1]) && $pMeta[1] === 'string') {
+          $stringPropSet[$pKey] = true;
+        }
+      }
+    }
+    $stringPropKeys = array_keys($stringPropSet);
+
   if($allow_levenshtein){
     $cypherQuery = '
       // Match the variant :$nameValue2 and its relationships
-      MATCH (v {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
+      MATCH (v:Variant {variant:$nameValue2})-[r1:same_as]-(q'.$validEntityType.')
       OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
       
       // Collect direct matches
@@ -580,16 +621,16 @@ function executePremadeParameterizedQuery($query, $parameters){
       // Handle cases where there is no direct match by using Levenshtein distance
       CALL {
           WITH $nameValue2 AS target
-          // Find nodes that could be potential matches
-          MATCH (v)
-          WHERE NOT EXISTS { MATCH (v {variant:$nameValue2}) }
+          // Find Variant nodes that could be potential matches
+          MATCH (v:Variant)
+          WHERE v.variant IS NOT NULL AND v.variant <> target
           WITH v, apoc.text.levenshteinDistance(v.variant, target) AS distance
-          // Sort by distance and take the top 5 closest matches
+          // Sort by distance and take the closest matches
           ORDER BY distance
           LIMIT '.(int)$levenshtein_hits.' 
           RETURN v, distance
       }
-      MATCH (v)-[r1:same_as]-(q'.$entityType.')
+      MATCH (v)-[r1:same_as]-(q'.$validEntityType.')
       OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
       WITH COALESCE(size((q)--()), 0) AS collectiveScore, 
           v, q, r1, r3, j, size((q)--()) AS qcount, distance
@@ -600,48 +641,47 @@ function executePremadeParameterizedQuery($query, $parameters){
       'nameValue2'=>$entityValue
     );
   }else if($caseSensitive){
-      // $cypherQuery = '
-      //     //OPTIONAL MATCH (p'.$entityType.')
-      //     MATCH (v {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
-      //     // OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
-      //     OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
-      //     WITH COALESCE(size((p)--()), 0)+COALESCE(size((q)--()), 0) AS collectiveScore, p AS p, v AS v, q AS q, r1 AS r1, r2 AS r2, r3 AS r3, i AS i, j AS j
-      //     RETURN p,v,q,r1,r2,r3,i,j, size((p)--()) AS pcount, size((q)--()) AS qcount, collectiveScore
-      //      '.$limString;
         $cypherQuery = '
-          MATCH (v {variant:$nameValue2})-[r1:same_as]-(q'.$entityType.')
+          MATCH (v:Variant {variant:$nameValue2})-[r1:same_as]-(q'.$validEntityType.')
           OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
           WITH COALESCE(size((q)--()), 0) AS collectiveScore, v AS v, q AS q, r1 AS r1, r3 AS r3, j AS j
           RETURN v,q,r1,r3,j, size((q)--()) AS qcount, collectiveScore
+          UNION
+          MATCH (q'.$validEntityType.')
+          WHERE any(lbl IN labels(q) WHERE lbl IN $allowedLabels)
+            AND any(k IN $stringProps WHERE q[k] IS NOT NULL AND toString(q[k]) = $nameValue2)
+          OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+          WITH COALESCE(size((q)--()), 0) AS collectiveScore, null AS v, q AS q, null AS r1, r3 AS r3, j AS j
+          RETURN v,q,r1,r3,j, size((q)--()) AS qcount, collectiveScore
           '.$limString;
       $placeholders = array(
-          'nameValue2'=>$entityValue
+          'nameValue2'=>$entityValue,
+          'allowedLabels'=>$allowedEntityLabels,
+          'stringProps'=>$stringPropKeys
       );
     }else{
-      //case Insensitive ==> using regex
+      // Case insensitive ==> using regex
       $entityValueCleaned = ignoreRegex($entityValue);
-      // $cypherQuery = '
-          // //OPTIONAL MATCH (p'.$entityType.')
-          // MATCH (v)-[r1:same_as]-(q'.$entityType.') WHERE v.variant =~ $nameValue2
-          // // OPTIONAL MATCH (p)-[r2:see_also]->(i:See_Also)
-          // OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
-          // WITH COALESCE(size((p)--()), 0)+COALESCE(size((q)--()), 0) AS collectiveScore, p AS p, v AS v, q AS q, r1 AS r1, r2 AS r2, r3 AS r3, i AS i, j AS j
-          // RETURN p,v,q,r1,r2,r3,i,j, size((p)--()) AS pcount, size((q)--()) AS qcount, collectiveScore
-          //  '.$limString;
-
-        $cypherQuery = '
-        MATCH (v)-[r1:same_as]-(q'.$entityType.') WHERE v.variant =~ $nameValue2
+      $cypherQuery = '
+        MATCH (v:Variant)-[r1:same_as]-(q'.$validEntityType.') WHERE v.variant =~ $nameValue2
         OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
         WITH COALESCE(size((q)--()), 0) AS collectiveScore, v AS v, q AS q, r1 AS r1, r3 AS r3, j AS j
         RETURN v,q,r1,r3,j, size((q)--()) AS qcount, collectiveScore
+        UNION
+        MATCH (q'.$validEntityType.')
+        WHERE any(lbl IN labels(q) WHERE lbl IN $allowedLabels)
+          AND any(k IN $stringProps WHERE q[k] IS NOT NULL AND toString(q[k]) =~ $nameValue2)
+        OPTIONAL MATCH (q)-[r3:see_also]->(j:See_Also)
+        WITH COALESCE(size((q)--()), 0) AS collectiveScore, null AS v, q AS q, null AS r1, r3 AS r3, j AS j
+        RETURN v,q,r1,r3,j, size((q)--()) AS qcount, collectiveScore
         '.$limString;
       $placeholders = array(
-          'nameValue2'=>'(?i)'.$entityValueCleaned
+          'nameValue2'=>'(?i)'.$entityValueCleaned,
+          'allowedLabels'=>$allowedEntityLabels,
+          'stringProps'=>$stringPropKeys
       );
     }
 
-
-  
     $resultRaw = $this->client->run($cypherQuery,$placeholders);
     $formattedResults = array(
       'nodes'=>array(),
@@ -834,22 +874,28 @@ function executePremadeParameterizedQuery($query, $parameters){
     $result = array('entity'=> array(), 'labelVariants'=>array());
     $query = 'match(n)-[r:references]-(p) where n.uid = $graphid return p, id(p) as entityID'; 
     $data = $this->client->run($query, ['graphid'=>$id]); 
-    $result['entity']['neoID'] = $data[0]['entityID'];
-    $etStableUri = $this->generateURI($data[0]['entityID']); 
-    foreach($data as $row){
-      $node = $row['p']; 
-      $nodeType = $node['labels'][0];
-      $model = NODEMODEL[$nodeType]; 
-      $result['entity']['type'] = $nodeType;
-      $showAs = array();
-      foreach($node['properties'] as $property => $value){
-        if(array_key_exists($property, $model)){
-          $showAs = array($model[$property][0], $node['properties'][$property], $model[$property][1]);
-          $showAs = array($property, $value, true, null);
-          $result['entity']['properties'][$property] = $showAs;
+    if (count($data) > 0) {
+      $result['entity']['neoID'] = $data[0]['entityID'];
+      $result['entity']['properties'] = array();
+      $etStableUri = $this->generateURI($data[0]['entityID']); 
+      foreach($data as $row){
+        $node = $row['p']; 
+        $nodeType = $node['labels'][0];
+        $model = NODEMODEL[$nodeType] ?? []; 
+        $result['entity']['type'] = $nodeType;
+        $showAs = array();
+        foreach($node['properties'] as $property => $value){
+          if(array_key_exists($property, $model)){
+            $showAs = array($model[$property][0], $node['properties'][$property], $model[$property][1]);
+            $showAs = array($property, $value, true, null);
+            $result['entity']['properties'][$property] = $showAs;
+          }
         }
+        $result['entity']['stableURI'] = $etStableUri; 
       }
-      $result['entity']['stableURI'] = $etStableUri; 
+      if (empty($result['entity']['properties'])) {
+        $result['entity']['properties'] = (object) array();
+      }
     }
     return $result; 
   }
@@ -924,6 +970,9 @@ function executePremadeParameterizedQuery($query, $parameters){
           }
           
         }
+        if (isset($row['n']['properties']['wikidata_id']) && preg_match('/^Q[0-9]+$/', (string)$row['n']['properties']['wikidata_id'])) {
+          return $row['n']['properties']['wikidata_id'];
+        }
       }
     }
     return false;     //default!
@@ -961,6 +1010,15 @@ function executePremadeParameterizedQuery($query, $parameters){
         
         //var_dump($data['']);
         //echo 'NEXT: ';
+      }
+    }
+    // Also check fallback wikidata_id property on entity types without a schema wikidata field.
+    $fallbackLabels = array_values(array_diff(array_keys(CORENODES), array(TEXNODE, ANNONODE, 'Variant', 'See_Also')));
+    if (!empty($fallbackLabels)) {
+      $fbRes = $this->client->run('MATCH (n) WHERE any(lbl IN labels(n) WHERE lbl IN $labels) AND n.wikidata_id = $id RETURN id(n) AS neoID', array('labels' => $fallbackLabels, 'id' => $qid));
+      foreach ($fbRes as $row) {
+        $nid = $row->get('neoID');
+        if (!in_array($nid, $results, true)) { $results[] = $nid; }
       }
     }
     //no hits => return empty array

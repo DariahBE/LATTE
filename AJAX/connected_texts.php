@@ -1,12 +1,12 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
 
 if(!(isset($_GET['id']))){
     die(json_encode(array('error'=>'Rejected request!')));
 }
-$neoID = $_GET['id'];
+$neoID = (int)$_GET['id'];
 $graph = new Node($client);
 
 

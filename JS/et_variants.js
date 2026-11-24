@@ -23,7 +23,15 @@ class SpellingVariant {
         fetch('/AJAX/getdisposabletoken.php')
             .then((response) => response.json())
             .then((token) => {
-                fetch('/AJAX/variants/delete.php?variantid='+nodeInternalId+'&entityid='+this.variantNeoId+'&token='+token)
+                const deleteBody = new URLSearchParams();
+                deleteBody.append('variantid', nodeInternalId);
+                deleteBody.append('entityid', this.variantNeoId);
+                deleteBody.append('token', token);
+                fetch('/AJAX/variants/delete.php', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                    body: deleteBody
+                })
                 .then(data => function(){});
             const writtenValue = DOMElement.textContent; 
             //then removes it from the spellingvarianttracker
@@ -60,8 +68,8 @@ class SpellingVariant {
         this.spellingVariantTracker.push(varname);
         var storeIn = document.getElementById('variantStorageBox'); 
         var variantDisplayDiv = document.createElement('div'); 
-        variantDisplayDiv.classList.add('m-1','p-1','spellingvariantbox', 'bg-amber-100', 'flex');
-        var variantDisplayTex = document.createElement('p');
+        variantDisplayDiv.className = 'inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-xs font-medium bg-amber-50 text-amber-900 border border-amber-200/80 mr-1.5 mb-1.5 shadow-2xs';
+        var variantDisplayTex = document.createElement('span');
         variantDisplayTex.classList.add('writtenvariantvalue');
         variantDisplayTex.setAttribute('data-neo', nid);
         variantDisplayTex.setAttribute('data-uuid', uid);
@@ -69,11 +77,13 @@ class SpellingVariant {
         variantDisplayTex.appendChild(document.createTextNode(varname));
         variantDisplayDiv.appendChild(variantDisplayTex);
         if(user){
-            var variantDisplayBin = document.createElement('p');
-            variantDisplayBin.classList.add('xsbinicon', 'bg-amber-200', 'm-1','p-1', 'rounded-full'); 
+            var variantDisplayBin = document.createElement('button');
+            variantDisplayBin.setAttribute('type', 'button');
+            variantDisplayBin.className = 'text-amber-500 hover:text-rose-600 transition ml-1 cursor-pointer'; 
+            variantDisplayBin.innerHTML = '<i class="fas fa-times text-[10px]"></i>';
             variantDisplayBin.addEventListener('click', function(){classScope.binVariant(this);});
             variantDisplayDiv.appendChild(variantDisplayBin);
-            }
+        }
         storeIn.appendChild(variantDisplayDiv);
     }
 
@@ -125,13 +135,17 @@ displayET_variant(data, relatedET) {
         spellingVariantMainBox.setAttribute('id', 'embeddedSpellingVariants');
         let spellingVariantTitle = createDivider('Naming variants: ');
         spellingVariantMainBox.appendChild(spellingVariantTitle);
-        spellingVariantMainBox.classList.add('border-solid', 'border-2', 'border-black-800', 'rounded-md', 'flex-grow');
+        spellingVariantMainBox.className = 'border border-slate-200/90 rounded-xl p-3.5 bg-slate-50/50 mb-3 flex-grow';
         //TODO: if there's no value set for relatedET, then add should be disabled!
         if (classScope.userstate) {
+            let inputGroup = document.createElement('div');
+            inputGroup.className = 'flex items-center gap-2 mb-3';
             var spellingVariantCreation = document.createElement('input');
             spellingVariantCreation.setAttribute('id', 'variantInputBox');
-            spellingVariantCreation.classList.add('border-solid', 'border-2');
+            spellingVariantCreation.placeholder = 'Add new variant...';
+            spellingVariantCreation.className = 'flex-1 text-xs border border-slate-300 rounded-lg px-3 py-1.5 bg-white shadow-2xs focus:border-indigo-500 focus:ring-1 focus:ring-indigo-500';
             var addToStorageBox = document.createElement('button');
+            addToStorageBox.className = 'px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white font-semibold text-xs shadow-2xs transition';
             addToStorageBox.appendChild(document.createTextNode('Add'));
             addToStorageBox.addEventListener('click', function () {
                 let writtenValue = document.getElementById('variantInputBox').value;
@@ -142,7 +156,15 @@ displayET_variant(data, relatedET) {
                         .then(response => response.json())
                         .then(data => {
                             const token = data;
-                            fetch("/AJAX/variants/make.php?varlabel=" + writtenValue + "&entity=" + relatedET + "&token=" + token)
+                            const makeBody = new URLSearchParams();
+                            makeBody.append('varlabel', writtenValue);
+                            makeBody.append('entity', relatedET);
+                            makeBody.append('token', token);
+                            fetch("/AJAX/variants/make.php", {
+                                method: 'POST',
+                                headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                                body: makeBody
+                            })
                                 .then(response => response.json())
                                 .then(data => {
                                     let nid = data['data']['nid'];
@@ -166,13 +188,14 @@ displayET_variant(data, relatedET) {
                 addToStorageBox.disabled = true;
                 spellingVariantMainBox.classList.add('hidden');
             }
-            spellingVariantMainBox.appendChild(spellingVariantCreation);
-            spellingVariantMainBox.appendChild(addToStorageBox);
+            inputGroup.appendChild(spellingVariantCreation);
+            inputGroup.appendChild(addToStorageBox);
+            spellingVariantMainBox.appendChild(inputGroup);
         }
 
         var spellingVariantSubBox = document.createElement('div');
         spellingVariantSubBox.setAttribute('id', 'variantStorageBox');
-        spellingVariantSubBox.classList.add('flex', 'border-t-2', 'border-t-dashed', 'flex-wrap');
+        spellingVariantSubBox.className = 'flex flex-wrap items-center pt-2.5 border-t border-slate-200/80';
 
         spellingVariantMainBox.appendChild(spellingVariantSubBox);
         target.appendChild(spellingVariantMainBox);

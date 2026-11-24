@@ -1,9 +1,9 @@
 <?php
 
   header('Content-Type: application/json; charset=utf-8');
-  include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-  include_once(ROOT_DIR.'/includes/getnode.inc.php');
-  include_once(ROOT_DIR.'/includes/user.inc.php');
+  include_once(dirname(__DIR__) . '/config/config.inc.php');
+  include_once(ROOT_DIR . '/includes/getnode.inc.php');
+  include_once(ROOT_DIR . '/includes/user.inc.php');
   $node = new Node($client);
 
   $user = new User($client);
@@ -11,13 +11,13 @@
   $user_id = $user->checkSession();
 
 
-  $value = $_GET['value'];    // DO NOT typecast, can be alfanumerical!
+  $value = isset($_GET['value']) ? $_GET['value'] : '';    // DO NOT typecast, can be alphanumerical!
   //to identify a node use:
   if(isset($_GET['property'])){
     $keyname = $_GET['property'];
     //$value = 0;
     $subresult = $node->matchSingleNode(false, $keyname, $value);
-    $value = $subresult['data'][0][0]->get('ID');
+    $value = isset($subresult['data'][0][0]) ? $subresult['data'][0][0]->get('ID') : 0;
   }
   //code required to extend beyond the EGO node in the network
   $data = $node->getNeighbours((int)$value);

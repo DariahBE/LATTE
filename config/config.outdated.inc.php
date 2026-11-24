@@ -1,4 +1,10 @@
 <?php
+/* Debug mode: if true, detailed error messages and stack traces are displayed. If false, a generic controlled error message is shown. */
+$debug = True;
+if (!defined('DEBUG')) {
+    define('DEBUG', $debug);
+}
+
 /*GIVE THE PROJECT A NAME: */
 $projectName = 'ProjectName';
 
@@ -63,6 +69,16 @@ $nodesDatamodel = array(
     "extra" => ["Extra", "int", false]
   ]
 );
+
+// What is the node used for Annotations: Should match a key used in your Nodesmodel:
+$nodeAsAnnotation = 'Annotation'; 
+// What is the property that indicates the startposition of an Annotation:
+$annotationStart = 'starts';
+// What is the property that indicates the endposition of an Annotation:
+$annotationEnd = 'stops';
+// What is the node label used for Text objects. Should match a Key used in your Nodesmodel.
+$nodeAsText = 'Text';
+$propertyContainingText = 'text';
 
 //////////////////////////////////////////////////////
 
@@ -177,6 +193,14 @@ define("NODEMODEL", $nodesDatamodel);
 define("URI", $URI);
 define("WEBURL", $baseURI);
 define("PRIMARIES", $primaryKeys);
+define("CORENODES", $matchOnNodes);
+define("ANNOSTART", $annotationStart);
+define("ANNOSTOP", $annotationEnd);
+define("TEXNODE", $nodeAsText);
+define("ANNONODE", $nodeAsAnnotation);
+define("TEXNODETEXT", $propertyContainingText);
+define("TEXTSAREPUBLIC", FALSE);
+
 
 /*EntityExtractor*/
 $extractor = 'local';                         //local or Base URL
@@ -190,7 +214,7 @@ define("PYTHON", $pyenv);
 define("SCRIPTROOT", $scripts);
 
 /*system environment: where's the default folder.*/
-define( 'ROOT_DIR', $_SERVER["DOCUMENT_ROOT"] );
+define( 'ROOT_DIR', dirname(__DIR__) );
 
 /*Registration set up:
   0 = closed: no new registrations possible.
@@ -199,5 +223,10 @@ define( 'ROOT_DIR', $_SERVER["DOCUMENT_ROOT"] );
 */
 $registration_policy = 0;
 define('REGISTRATIONPOLICY', $registration_policy);
+
+/* Global error and exception handling. */
+if (defined('ROOT_DIR') && file_exists(ROOT_DIR . '/includes/error_handler.inc.php')) {
+    include_once(ROOT_DIR . '/includes/error_handler.inc.php');
+}
 
 ?>

@@ -30,7 +30,7 @@ class Validator{
     let unique_elements = document.getElementsByClassName('validateAs_unique'); 
     for (let i = 0; i < unique_elements.length; i++) {
       let elm = unique_elements[i];
-      if (elm.classList.contains('validateAs_wikidata')) {
+      if (elm.classList.contains('validateAs_wikidata') || elm.getAttribute('data-datatype') === 'wikidata') {
         continue;
       }
       if (elm.value == '') {
@@ -43,10 +43,34 @@ class Validator{
         elm.classList.remove('bg-green-50', 'border', 'border-green-500');
       }
     }
+
+    let wd_elements = document.querySelectorAll('.validateAs_wikidata, [data-datatype="wikidata"]');
+    for (let i = 0; i < wd_elements.length; i++) {
+      let elm = wd_elements[i];
+      let val = elm.value ? elm.value.trim() : '';
+      if (val !== '' && !/^Q[0-9]+$/.test(val)) {
+        let inFront = elm.previousElementSibling;
+        if (inFront && inFront.classList.contains('errorNotification')) {
+          inFront.remove();
+        }
+        var msgHolder = document.createElement('p');
+        msgHolder.classList.add('errorNotification');
+        var msgText = document.createTextNode('Wikidata ID must start with Q followed by an integer (e.g. Q123).');
+        msgHolder.appendChild(msgText);
+        elm.parentNode.insertBefore(msgHolder, elm);
+        elm.classList.add('bg-red-50', 'border', 'border-red-500', 'validatorFlaggedMistake');
+        elm.classList.remove('bg-green-50', 'border', 'border-green-500');
+      }
+    }
   }
 
-  reset(){
-    let e = event.src || event.target; 
+  reset(target = null){
+    let e = target || ((typeof event !== 'undefined' && event) ? (event.src || event.target) : null); 
+    if (!e) return;
+    let inFront = e.previousElementSibling; 
+    if(inFront && inFront.classList.contains('errorNotification')){
+      inFront.remove(); 
+    }
     e.classList.remove('validatorFlaggedMistake'); 
     e.classList.remove('bg-red-50');
     e.classList.remove('bg-green-50');
@@ -102,13 +126,16 @@ class Validator{
     }
   }
 
-  regexValidator(data){
-    if (data == ''){this.reset(); return [];}
-    var pattern = /(^Q\d+$)/;
-    if(pattern.test(data)){
+  regexValidator(data, target = null){
+    if (data === '' || data === null || typeof data === 'undefined'){
+      this.reset(target);
+      return [];
+    }
+    var pattern = /^Q[0-9]+$/;
+    if(pattern.test(String(data).trim())){
       return [true];
     }else{
-      return [false, 'Enter a valid Q-identifier: (e.g.: Q1234).'];
+      return [false, 'Wikidata ID must start with Q followed by an integer (e.g. Q123).'];
     }
   }
 
@@ -149,10 +176,12 @@ class Validator{
     if(this.get_autofetch_as_bool()){
       var mainclass = this;
       let fetch_button = document.createElement('button'); 
-      fetch_button.textContent = 'fill';
+      fetch_button.type = 'button';
+      fetch_button.textContent = 'Auto-fill';
+      fetch_button.className = 'ml-1.5 px-2 py-0.5 text-xs font-medium bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-md border border-slate-300 shadow-2xs transition cursor-pointer';
       fetch_button.onclick = function(){
         mainclass.autofetcher(item);
-      }
+      };
       item.parentElement.appendChild(fetch_button);
     }
   }
@@ -182,8 +211,8 @@ class Validator{
         if(this.classList.contains('validateAs_longtext')){
           var correct = [true]; //not really required; strings are allowed to be empty anyway!
         }*/
-        if(this.classList.contains('validateAs_wikidata')){
-          var correct = mainclass.regexValidator(this.value);
+        if(this.classList.contains('validateAs_wikidata') || this.getAttribute('data-datatype') === 'wikidata'){
+          var correct = mainclass.regexValidator(this.value, this);
         }
         if(this.classList.contains('validateAs_int')){
           var correct = mainclass.intValidator(this);

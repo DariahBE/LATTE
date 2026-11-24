@@ -9,19 +9,65 @@ function wdprompt(string, offset = 0) {
    */
   let wdboxToDrop = document.getElementById('WDResponseTarget');
   if (wdboxToDrop) { wdboxToDrop.remove(); }
-  let language = document.getElementById('wdlookuplanguage').value;         //&language=language
-  let strictLookup = document.getElementById('strictLookup').checked;       //&strictlanguage=true
-  let useFallback = document.getElementById('returnSameAsLookup').checked;  //&uselang=language
-  if (strictLookup) {
-    var extra1 = '&strictlanguage=true';
-  } else {
-    var extra1 = '&strictlanguage=false';
+
+  // Resolve lookup language using the active string matching language resolution.
+  let language = '';
+  if (typeof getActiveStringMatchingLanguage === 'function') {
+    const langInfo = getActiveStringMatchingLanguage();
+    if (langInfo && langInfo.iso) {
+      language = langInfo.iso;
+    }
   }
-  if (useFallback) {
-    var extra2 = '&uselang=' + language;
-  } else {
-    var extra2 = '';
+  if (!language) {
+    const dd = document.getElementById('wdlookuplanguage');
+    language = (dd && dd.value) ? dd.value.trim() : '';
   }
+  if (!language && typeof languageOptions !== 'undefined' && languageOptions && languageOptions.ISO_code) {
+    language = (typeof normalizeLanguageCode === 'function')
+      ? normalizeLanguageCode(languageOptions.ISO_code)
+      : String(languageOptions.ISO_code).trim().toLowerCase().split(/[-_]/)[0];
+  }
+  if (!language) {
+    const domCodeElem = document.getElementById('detectedLanguageCode');
+    const domCode = domCodeElem ? domCodeElem.textContent.trim().toLowerCase() : '';
+    if (domCode && domCode !== 'n/a' && domCode !== 'none' && domCode !== 'unknown') {
+      language = (typeof normalizeLanguageCode === 'function')
+        ? normalizeLanguageCode(domCode)
+        : domCode.split(/[-_]/)[0];
+    }
+  }
+  if (!language) {
+    const titlesDict = (typeof wdProperties !== 'undefined' && wdProperties && wdProperties.stringmatchWikipediaTitles)
+      ? wdProperties.stringmatchWikipediaTitles
+      : {};
+    const fallbackKeys = Object.keys(titlesDict);
+    if (fallbackKeys.length > 0) {
+      language = fallbackKeys[0].replace(/wiki$/, '');
+    }
+  }
+  if (!language) {
+    language = 'en';
+  }
+
+  // Synchronize the lookup language selector in the sidebar if present.
+  const lookupElem = document.getElementById('wdlookuplanguage');
+  if (lookupElem && lookupElem.value !== language) {
+    if (!lookupElem.querySelector(`option[value="${language}"]`)) {
+      const opt = document.createElement('option');
+      opt.value = language;
+      opt.textContent = language;
+      lookupElem.appendChild(opt);
+    }
+    lookupElem.value = language;
+  }
+
+  const strictElem = document.getElementById('strictLookup');
+  let strictLookup = strictElem ? strictElem.checked : false;
+  const fallbackElem = document.getElementById('returnSameAsLookup');
+  let useFallback = fallbackElem ? fallbackElem.checked : false;
+
+  var extra1 = strictLookup ? '&strictlanguage=true' : '&strictlanguage=false';
+  var extra2 = useFallback ? '&uselang=' + encodeURIComponent(language) : '';
 
   let by = 10;
   console.warn('STRINGVAL WD', string);
@@ -30,27 +76,12 @@ function wdprompt(string, offset = 0) {
   const target = document.getElementById('wdpromptBox');
   target.classList.remove('hidden');
   let table = document.createElement('table');
-  table.classList.add('table-auto');
+  table.className = 'w-full text-left text-xs divide-y divide-slate-200 border border-slate-200 rounded-xl overflow-hidden my-3 shadow-2xs';
   fetch(promptURL)
     .then((response) => response.json())
     .then((data) => {
-      //needs a title item for wikidata:
+      // Needs a title item for Wikidata:
       var searchResults = data['search'];
-      // let notice = ''; 
-      // if (searchResults.length === 0) {
-      //   notice = 'Wikidata returned no results for '+ encodeURIComponent(string) + '. Change the spelling to try again.'
-      //   target.innerHTML = '';
-      //   const noresultmsg = document.createElement('p');
-      //   noresultmsg.classList.add('border-t-2', 'mt-1', 'pt-1');
-      //   const noresulttext = document.createTextNode('No results found for the given search query.');
-      //   noresultmsg.appendChild(noresulttext);
-      //   /*let manualCreateButton = document.createElement('button'); 
-      //   let manualCreateButtonText = document.createTextNode('Add manual annotation'); 
-      //   manualCreateButton.appendChild(manualCreateButtonText); */
-      //   target.appendChild(noresultmsg);
-      //   acceptQID();
-      //   return;
-      // }
       for (var s = 0; s < searchResults.length; s++) {
         let qid, title, descr = '';
         try {
@@ -70,62 +101,71 @@ function wdprompt(string, offset = 0) {
         }
         if (qid) {
           let row = table.insertRow();
-          row.classList.add('even:bg-gray-200', 'odd:bg-gray-100', 'hover:bg-sky-200');
+          row.className = 'border-b border-slate-100 hover:bg-indigo-50/50 transition group';
           let pickThisCell = row.insertCell();
-          pickThisCell.textContent = '✓';
-          pickThisCell.addEventListener('click', function () { pickThisQID(qid) });
+          pickThisCell.className = 'p-2.5 text-center align-top w-10';
+          let pickButton = document.createElement('button');
+          pickButton.type = 'button';
+          pickButton.className = 'inline-flex items-center justify-center w-6 h-6 rounded-md bg-emerald-600 hover:bg-emerald-700 text-white font-bold text-xs shadow-2xs transition cursor-pointer';
+          pickButton.title = 'Select this entity';
+          pickButton.innerHTML = '<i class="fas fa-check"></i>';
+          pickButton.addEventListener('click', function () { pickThisQID(qid); });
+          pickThisCell.appendChild(pickButton);
+
           let qidcell = row.insertCell();
+          qidcell.className = 'p-2.5 font-mono text-xs align-top whitespace-nowrap';
           let qidlink = "https://www.wikidata.org/wiki/" + qid;
           let qidAnchor = document.createElement('a');
           qidAnchor.setAttribute('href', qidlink);
           qidAnchor.setAttribute('target', '_blank');
-          qidAnchor.classList.add('externalURILogo');
-          qidAnchor.appendChild(document.createTextNode(qid));
+          qidAnchor.className = 'text-indigo-600 hover:text-indigo-800 font-semibold inline-flex items-center gap-1';
+          qidAnchor.innerHTML = qid + ' <i class="fas fa-external-link-alt text-[9px] opacity-70"></i>';
           qidcell.appendChild(qidAnchor);
+
           let titlecell = row.insertCell();
+          titlecell.className = 'p-2.5 font-semibold text-slate-800 align-top';
           titlecell.textContent = title;
+
           let descrcell = row.insertCell();
+          descrcell.className = 'p-2.5 text-slate-500 align-top text-xs';
           descrcell.textContent = descr;
-          qidcell.classList.add('m-1', 'p-1');
-          titlecell.classList.add('m-1', 'p-1');
-          pickThisCell.classList.add('m-1', 'p-1', 'hover:bg-green-200');
-          descrcell.classList.add('m-1', 'p-1');
         }
       }
-      //navigate offsets: 
+      // Navigate offsets: 
       var navigateReply = document.createElement('div');
-      navigateReply.classList.add('flex', 'flex-row');
+      navigateReply.className = 'flex items-center justify-between py-2 text-xs text-slate-600';
       let nextOffset, prevOffset;
-      //    prev page offset:
 
       prevOffset = offset - by;
-      let prevPage = document.createElement('p');
-      prevPage.appendChild(document.createTextNode('<<'));
-      prevPage.classList.add('font-bold', 'rounded-lg', 'text-2xl', 'bg-green-400', 'text-center');
+      let prevPage = document.createElement('button');
+      prevPage.type = 'button';
+      prevPage.className = 'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium cursor-pointer shadow-2xs transition';
+      prevPage.innerHTML = '<i class="fas fa-chevron-left text-[11px]"></i> Previous';
       if (offset === 0) {
         prevPage.classList.add('invisible');
       }
-      prevPage.addEventListener('click', function () { wdprompt(string, prevOffset) });
+      prevPage.addEventListener('click', function () { wdprompt(string, prevOffset); });
       navigateReply.appendChild(prevPage);
-      //    next page offset: 
+
       nextOffset = data['search-continue'];
-
-
-      let nextPage = document.createElement('p');
-      nextPage.appendChild(document.createTextNode('>>'));
-      nextPage.classList.add('font-bold', 'rounded-lg', 'text-2xl', 'bg-green-400', 'text-center');
-      nextPage.addEventListener('click', function () { wdprompt(string, nextOffset) });
+      let nextPage = document.createElement('button');
+      nextPage.type = 'button';
+      nextPage.className = 'inline-flex items-center gap-1 px-3 py-1.5 rounded-lg border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-medium cursor-pointer shadow-2xs transition ml-auto';
+      nextPage.innerHTML = 'Next <i class="fas fa-chevron-right text-[11px]"></i>';
       if (typeof nextOffset === "undefined") {
-        //end of results;
         nextPage.classList.add('invisible');
       }
+      nextPage.addEventListener('click', function () { wdprompt(string, nextOffset); });
       navigateReply.appendChild(nextPage);
+
       target.innerHTML = '';
       target.appendChild(navigateReply);
       target.appendChild(table);
+
       if (searchResults.length == 0){
-        let noResults = document.createElement('p');
-        noResults.appendChild(document.createTextNode('Wikidata returned no results for '+ JSON.stringify(string) + '. Change the spelling to try again.')); 
+        let noResults = document.createElement('div');
+        noResults.className = 'p-3 my-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-2';
+        noResults.innerHTML = '<i class="fas fa-info-circle text-amber-500 text-sm"></i> <span>Wikidata returned no results for <strong>' + encodeURIComponent(string) + '</strong>. Change the spelling to try again.</span>';
         target.appendChild(noResults); 
       }
     });
@@ -133,67 +173,79 @@ function wdprompt(string, offset = 0) {
 
 let chosenQID = null;
 
-function acceptQID(qid = -1) {
+function syncChosenQIDToPropertyInputs(qid) {
+  const value = (qid !== -1 && qid !== null && qid !== undefined) ? String(qid) : '';
+  const wdInputs = document.querySelectorAll('#propertyBox .validateAs_wikidata, #propertyBox input[data-datatype="wikidata"], #propertyBox input[pattern*="^Q"]');
+  wdInputs.forEach(inp => {
+    inp.value = value;
+    inp.dispatchEvent(new Event('input', { bubbles: true }));
+    inp.dispatchEvent(new Event('change', { bubbles: true }));
+  });
+}
+
+async function acceptQID(qid = -1) {
   /* Start lookup if an entity in this database has the assigned QID.
-    *IF TRUE: it will load the entity
-    *IF FALSE: it will suggest you to make a new one.
-    You pass -1 to skip the check and go straight to the entity creation process.
-    Your newly created entity will NOT have extra information generated by WD. 
-  */
- //Always delete the promptbox!
- let element = document.getElementById('wdsearchpromptbox'); 
- if(element !== null){
-  element.remove(); 
- }
- //document.getElementById('wdsearchpromptbox').remove();
- if (qid !== -1) {
-  //if a valid QID is passed it means it comes from within an env where the confirmationgroup was visible.
-   document.getElementById('embeddedWDConfirmationGroup').remove();
-    checkIfConnectionExists(qid)
-      .then((data) => {
-        if (data == 0) {
-          updateState('State', 'There\'s currently no matching Q-id in the database.'); 
-        } else {
-          //add the annotationfields to the DOM as properties. EXCLUDE start, stop and selectedtext fields. 
-          let annotationProperties = document.createElement('div');
-          let annoSubContent = document.createElement('div');
-          annoSubContent.setAttribute('id', 'annotationCreationDiv');
-          buildPropertyInputFieldsFor(annocoreNode).then((content) => {
-            for (let i = 0; i < Object.keys(content).length; i++) {
-              //don't show: start, stop, selectedtext. 
-              let field = content[i];
-              let fieldAtr = field.getElementsByTagName('label')[0].getAttribute('for');
-              if (fieldAtr != startcode && fieldAtr != stopcode) {
-                annoSubContent.appendChild(field);
-              }
-            }
-            annotationProperties.appendChild(annoSubContent);
-            document.getElementById('embeddedAnnotation').appendChild(annotationProperties);
-            //attach validator after content is in the DOM:  
-            validator = new Validator;
-            validator.set_id_of_dropdown_element_for_entity(false);
-            validator.pickup();
-
-          });
-          //NO changes needed to DOM in here.
-        }
-      })
+   * If a single existing entity matches this QID, resolve immediately to that entity
+   * (adding the selected string as a spelling variant) without intermediate UI repaints.
+   * Pass -1 to skip the check and go straight to the entity creation process.
+   */
+  let element = document.getElementById('wdsearchpromptbox');
+  if (element !== null) {
+    element.remove();
   }
-  //delete all elements that are related to WD, get started with creating the ET
-  let baseElem = document.getElementById('embeddedET'); 
-  //If baseElem is not present in the DOM: make it and clear out pending links. 
-  //user wants to create a new link: clear etmain and build the box to create
-  // a new ET and annotation.
-  if (baseElem === null){
-    buildAnnotationCreationBox();
-    alert('calling into bac');
-    //baseElem = createEmbbeddedETDiv();
-    document.getElementById('etmain').innerHTML = ''; 
+  const confGroup = document.getElementById('embeddedWDConfirmationGroup');
+  if (confGroup) {
+    confGroup.remove();
+  }
+  const respTarget = document.getElementById('WDResponseTarget');
+  if (respTarget) {
+    respTarget.remove();
   }
 
-  baseElem.classList.remove('hidden');
-  let creationElement = document.getElementById('etcreate');
-  creationElement.classList.add('getAttention');
+  chosenQID = (qid !== -1 && qid !== null) ? qid : null;
+  syncChosenQIDToPropertyInputs(chosenQID);
+
+  if (qid !== -1 && qid !== null) {
+    try {
+      const res = await fetch('/AJAX/checkWDExists.php?qid=' + encodeURIComponent(qid));
+      const data = await res.json();
+      const hits = (data && Array.isArray(data.data)) ? data.data : [];
+
+      if (hits.length === 1 && typeof window.quickLinkSpanToEntity === 'function' && typeof globalSelectionText === 'string' && globalSelectionText.trim() !== '') {
+        await window.quickLinkSpanToEntity(hits[0], globalSelectionStart, globalSelectionEnd, globalSelectionText.trim(), false);
+        return;
+      }
+
+      if (hits.length > 0) {
+        // Multiple existing entities share this QID: render hit selector once.
+        await checkIfConnectionExists(qid);
+        return;
+      }
+    } catch (err) {
+      console.warn('Could not check existing Wikidata entity for ' + qid, err);
+    }
+  }
+
+  // No existing entity found (or skipped with -1): reveal entity creation form once.
+  let baseElem = document.getElementById('embeddedET') || document.getElementById('lattePromotionContainer');
+  if (baseElem === null) {
+    if (typeof buildAnnotationCreationBox === 'function') {
+      buildAnnotationCreationBox();
+    }
+    const etMainElem = document.getElementById('etmain');
+    if (etMainElem) {
+      etMainElem.innerHTML = '';
+    }
+    baseElem = document.getElementById('embeddedET') || document.getElementById('lattePromotionContainer');
+  }
+
+  if (baseElem) {
+    baseElem.classList.remove('hidden');
+  }
+  let creationElement = document.getElementById('etcreate') || document.getElementById('lattePromotionContainer');
+  if (creationElement) {
+    creationElement.classList.add('getAttention');
+  }
 }
 function pickThisQID(qid) {
   /*
@@ -204,6 +256,8 @@ function pickThisQID(qid) {
     the user does not want to commit this QID. 
   */
   chosenQID = qid;
+  // Populate any visible wikidata property input immediately so promotion saves the picked QID.
+  syncChosenQIDToPropertyInputs(chosenQID);
   //console.log(qid); 
   //clear the promptbox:
   document.getElementById('wdpromptBox').classList.add('hidden');
@@ -218,53 +272,58 @@ function pickThisQID(qid) {
   //    if yes, enable the buttons,
   let rejectButton = document.createElement('button');
   let acceptButton = document.createElement('button');
-  rejectButton.classList.add('bg-red-500', 'hover:bg-red-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
-  acceptButton.classList.add('bg-green-500', 'hover:bg-green-700', 'text-white', 'font-bold', 'py-2', 'px-4', 'rounded');
-  let rejectText = document.createTextNode('Reject');
-  let acceptText = document.createTextNode('Accept');
+  rejectButton.type = 'button';
+  acceptButton.type = 'button';
+  rejectButton.className = 'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-rose-600 hover:bg-rose-700 text-white font-semibold text-xs shadow-2xs transition cursor-pointer';
+  acceptButton.className = 'inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-2xs transition cursor-pointer';
+  rejectButton.innerHTML = '<i class="fas fa-times"></i> Reject';
+  acceptButton.innerHTML = '<i class="fas fa-check"></i> Accept';
+
   const element = document.getElementById('embeddedWDConfirmationGroup');
   // If the element exists, remove it from the DOM
   if (element) {
     element.remove();
   }
   rejectButton.addEventListener('click', function () {
-    wd = null; //destroy wikidataObject
+    wd = null; // Destroy wikidataObject
+    chosenQID = null;
+    syncChosenQIDToPropertyInputs(null);
     let inputPrompt = document.getElementById('wikidataInputPrompter'); 
     if(inputPrompt!== null){
       wdprompt(inputPrompt.value, 0);
     }
     deleteIfExistsById('embeddedWDConfirmationGroup'); 
-    deleteIfExistsById('WDResponseTarget')
+    deleteIfExistsById('WDResponseTarget');
   });
   acceptButton.addEventListener('click', function () {
-    //when normally annotating an entity then selecting and accepting a Q-id. 
+    // When normally annotating an entity then selecting and accepting a Q-id: 
     console.log('Calling acceptQID with: ', qid); 
     acceptQID(qid);
   });
 
   const displayWDtarget = document.getElementById('WDResponseTarget');
-  rejectButton.appendChild(rejectText);
-  acceptButton.appendChild(acceptText);
   let confirmationDiv = document.createElement('div');
   confirmationDiv.setAttribute('id', 'embeddedWDConfirmationGroup');
-  confirmationDiv.appendChild(acceptButton);
+  confirmationDiv.className = 'flex items-center justify-end gap-2 p-3 my-3 bg-slate-50 border border-slate-200/90 rounded-xl shadow-2xs';
   confirmationDiv.appendChild(rejectButton);
-  // call to /user/AJAX/profilestate.php  ==> logincheck
-  $.ajax({url: "/user/AJAX/profilestate.php", success: function(result){
-    if (result['valid']){
-      //there's a logged in user: show buttons
-      document.getElementById('slideoverDynamicContent').insertBefore(confirmationDiv, displayWDtarget);
-    }else{
-      let loginwarningDiv = document.createElement('div');
-      let loginwarningTextNode = document.createElement('p');
-      loginwarningTextNode.classList.add('text-sm'); 
-      let loginwarningText = document.createTextNode('Further interactions with the database are limited for non-logged in users.'); 
-      loginwarningTextNode.appendChild(loginwarningText); 
-      loginwarningDiv.appendChild(loginwarningTextNode); 
-      document.getElementById('slideoverDynamicContent').insertBefore(loginwarningDiv, displayWDtarget); 
-    }//user is not logged in showing does not make sense
-  }
-});
+  confirmationDiv.appendChild(acceptButton);
+  // Call to /user/AJAX/profilestate.php => logincheck
+  fetch("/user/AJAX/profilestate.php")
+    .then(response => response.json())
+    .then(result => {
+      if (result['valid']){
+        // There's a logged in user: show buttons
+        document.getElementById('slideoverDynamicContent').insertBefore(confirmationDiv, displayWDtarget);
+      }else{
+        let loginwarningDiv = document.createElement('div');
+        loginwarningDiv.className = 'p-3 my-2 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 text-xs flex items-center gap-2';
+        loginwarningDiv.innerHTML = '<i class="fas fa-info-circle text-amber-500"></i> <span>Further interactions with the database are limited for non-logged in users.</span>';
+        document.getElementById('slideoverDynamicContent').insertBefore(loginwarningDiv, displayWDtarget); 
+      }
+    })
+    .catch(error => {
+      console.error('Error checking profile state:', error);
+    });
 }
 
 function showHit(id) {
@@ -319,15 +378,17 @@ let checkIfConnectionExists = async (qid) => {
         if (data['hits'] != 0) {
           //load the first hit anyway: 
           let maintarget = document.getElementById('embeddedET');
-          maintarget.innerHTML = '';
-          maintarget.classList.remove('hidden');
-          let contentNav = document.createElement('div');
-          contentNav.setAttribute('id', 'navigateETs');
-          let hitNav = document.createElement('div');
-          hitNav.setAttribute('id', 'displayHitEt');
-          maintarget.appendChild(contentNav);   //navigates through the hits.
-          maintarget.appendChild(hitNav);       //prepares a box to display single hit info. 
-          showHit(hits[j]);
+          if (maintarget) {
+            maintarget.innerHTML = '';
+            maintarget.classList.remove('hidden');
+            let contentNav = document.createElement('div');
+            contentNav.setAttribute('id', 'navigateETs');
+            let hitNav = document.createElement('div');
+            hitNav.setAttribute('id', 'displayHitEt');
+            maintarget.appendChild(contentNav);   //navigates through the hits.
+            maintarget.appendChild(hitNav);       //prepares a box to display single hit info. 
+            showHit(hits[j]);
+          }
           //add navigationmenu if there's more than one option: 
           if (hits.length > 1) {
             function paginationIndicator(p) {
@@ -342,16 +403,19 @@ let checkIfConnectionExists = async (qid) => {
                 navigateNext.classList.remove('invisible');
               }
             }
-            let navigateHits = document.createElement('p');
-            navigateHits.classList.add('w-full');
-            navigateBack = document.createElement('span');
-            navigateBack.appendChild(document.createTextNode('<<'));
-            navigateNext = document.createElement('span');
-            navigateNext.appendChild(document.createTextNode('>>'));
-            navigateBack.classList.add('text-lg', 'm-1', 'p-1', 'rounded-full', 'bg-amber-200'); 
-            navigateNext.classList.add('text-lg', 'm-1', 'p-1', 'rounded-full', 'bg-amber-200'); 
+            let navigateHits = document.createElement('div');
+            navigateHits.className = 'flex items-center gap-2 p-2 bg-slate-50 border border-slate-200 rounded-xl text-xs my-2';
+            navigateBack = document.createElement('button');
+            navigateBack.type = 'button';
+            navigateBack.innerHTML = '<i class="fas fa-chevron-left"></i>';
+            navigateNext = document.createElement('button');
+            navigateNext.type = 'button';
+            navigateNext.innerHTML = '<i class="fas fa-chevron-right"></i>';
+            navigateBack.className = 'inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 shadow-2xs transition cursor-pointer'; 
+            navigateNext.className = 'inline-flex items-center justify-center w-7 h-7 rounded-lg border border-slate-200 bg-white hover:bg-slate-100 text-slate-700 shadow-2xs transition cursor-pointer'; 
             navigateState = document.createElement('span');
             navigateState.setAttribute('id', 'optionsIndicatorWD');
+            navigateState.className = 'font-semibold text-slate-700 px-1';
             navigateState.appendChild(document.createTextNode((j + 1) + ' of ' + hits.length));
             navigateNext.addEventListener('click', function () {
               if (j + 1 < hits.length) {
@@ -376,32 +440,39 @@ let checkIfConnectionExists = async (qid) => {
             navigateHits.appendChild(navigateState);
             navigateHits.appendChild(navigateNext);
             let connectButton = document.createElement('button'); 
-            connectButton.appendChild(document.createTextNode('Connect')); 
-            connectButton.classList.add('bg-green-500', 'font-bold'); 
+            connectButton.type = 'button';
+            connectButton.innerHTML = '<i class="fas fa-link mr-1"></i> Connect'; 
+            connectButton.className = 'inline-flex items-center px-3 py-1.5 rounded-lg bg-emerald-600 hover:bg-emerald-700 text-white font-semibold text-xs shadow-2xs transition ml-auto cursor-pointer'; 
             connectButton.addEventListener('click', function(){
               let annotationProperties = document.getElementById('embeddedAnnotation').getElementsByClassName('property');
               let annotationCollectionBox = extractAnnotationPropertiesFromDOM(annotationProperties);
-              //fetch a fresh CSRF token
+              // Fetch a fresh CSRF token
               fetch('/user/AJAX/profilestate.php?fastconnect=1')
                 .then((response) => response.json())
                 .then((token) => {
                   if(token.valid){
                     connectAnnoToEntity(hits[j], languageOptions.nodeid, globalSelectionStart, globalSelectionEnd, globalSelectionText, annotationCollectionBox, token.csrf);
                   }
-                })
-            })
+                });
+            });
             let navelem = document.getElementById('navigateETs');
-            navelem.appendChild(navigateHits);
-            navelem.appendChild(connectButton); 
+            if (navelem) {
+              navelem.appendChild(navigateHits);
+              navelem.appendChild(connectButton);
+            }
           }
           resolve(data['hits']);
         } else {
           //let the user fill out the entity type and go from there
           //create flash box to prompt attention: 
           //OK
-          let creationElement = document.getElementById('etcreate');
-          creationElement.classList.add('getAttention');
-          loadPropertiesOfSelectedType(false);
+          let creationElement = document.getElementById('etcreate') || document.getElementById('lattePromotionContainer');
+          if (creationElement) {
+            creationElement.classList.add('getAttention');
+          }
+          if (!document.getElementById('lattePromotionContainer')) {
+            loadPropertiesOfSelectedType(false);
+          }
           resolve(0);
         }
       })

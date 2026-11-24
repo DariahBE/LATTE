@@ -11,10 +11,19 @@ class KnowledgeBase {
         this.addNewButton = document.getElementById('add_kb_relation'); 
         this.mainKBElement = document.getElementById('urlrelations');
         this.subKBElement = document.getElementById('urlrelationscontainer');
+
+        const hasNonCore = (typeof window.hasNonCoreEntities !== 'undefined')
+          ? Boolean(window.hasNonCoreEntities)
+          : (typeof coreNodes !== 'undefined' && coreNodes.length > 0);
+
+        if (!hasNonCore && this.mainKBElement) {
+            this.mainKBElement.classList.add('hidden');
+            this.mainKBElement.style.setProperty('display', 'none', 'important');
+        }
         this.addNewButton.style.display = 'none'; 
         this.addNewButton.disabled = true; 
         // console.log(et,state); 
-        if(!(et===false)){
+        if(!(et===false) && hasNonCore){
             this.displayEntries(et); 
             this.neoIdOfEt = et; 
             if(this.userstate){
@@ -59,26 +68,28 @@ class KnowledgeBase {
         const kblink = elem.k.properties.partner_uri;
         const kbneoid = elem.k.id; 
         const kb_block = document.createElement('div'); 
-        kb_block.classList.add('m-1', 'p-1', 'kbrelationbox', 'bg-green-100', 'flex'); 
+        kb_block.className = 'm-1 px-2.5 py-1 kbrelationbox inline-flex items-center gap-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs hover:bg-emerald-100/70 transition'; 
         const p_one = document.createElement('p');
         p_one.addEventListener('click', function(){
             window.open(kblink, '_blank');
         }); 
-        p_one.classList.add('displayPartnerName'); 
+        p_one.className = 'displayPartnerName cursor-pointer hover:underline inline-flex items-center gap-1'; 
         p_one.setAttribute('data-neo', kbneoid); 
         p_one.setAttribute('data-uuid', kbuuid); 
         p_one.setAttribute('data-link', kblink); 
-
-        p_one.appendChild(document.createTextNode(partnername)); 
+        p_one.innerHTML = '<i class="fas fa-external-link-alt text-[10px] text-emerald-600 opacity-80"></i> <span>' + partnername + '</span>';
 
         kb_block.appendChild(p_one);
         if(classScope.userstate){
-            const p_two = document.createElement('p');
-            p_two.classList.add('xsbinicon', 'bg-green-200', 'm-1', 'p-1', 'rounded-full'); 
+            const p_two = document.createElement('button');
+            p_two.type = 'button';
+            p_two.className = 'xsbinicon ml-1 p-0.5 rounded text-emerald-600 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer flex items-center justify-center'; 
+            p_two.title = 'Remove relation';
+            p_two.innerHTML = '<i class="fas fa-times text-[11px]"></i>';
             p_two.addEventListener('click', function(){
                 classScope.binkb(this); 
-            })
-        kb_block.appendChild(p_two);
+            });
+            kb_block.appendChild(p_two);
         }
         this.subKBElement.appendChild(kb_block); 
     }
@@ -116,20 +127,23 @@ class KnowledgeBase {
     appendToDom(data){
         // Create a div element for the relation box
         const relationBox = document.createElement('div');
-        relationBox.className = 'm-1 p-1 kbrelationbox bg-green-100 flex';
+        relationBox.className = 'm-1 px-2.5 py-1 kbrelationbox inline-flex items-center gap-1.5 rounded-lg text-xs font-medium bg-emerald-50 text-emerald-800 border border-emerald-200/90 shadow-2xs hover:bg-emerald-100/70 transition';
         // Create a kb box subelement for the display partner name
         const displayPartnerName = document.createElement('p');
-        displayPartnerName.className = 'displayPartnerName';
+        displayPartnerName.className = 'displayPartnerName cursor-pointer hover:underline inline-flex items-center gap-1';
         displayPartnerName.setAttribute('data-neo', data.kb_neo_id);
         displayPartnerName.setAttribute('data-uuid', data.kb_uuid);
         displayPartnerName.setAttribute('data-link', data.kb_uri);
-        displayPartnerName.textContent = data.kb_label;
+        displayPartnerName.innerHTML = '<i class="fas fa-external-link-alt text-[10px] text-emerald-600 opacity-80"></i> <span>' + data.kb_label + '</span>';
         displayPartnerName.addEventListener('click', function(){
             window.open(data.kb_uri, '_blank');
-        })
+        });
         // Create a kb box subelement for the XS bin icon
-        const xsBinIcon = document.createElement('p');
-        xsBinIcon.className = 'xsbinicon bg-green-200 m-1 p-1 rounded-full';
+        const xsBinIcon = document.createElement('button');
+        xsBinIcon.type = 'button';
+        xsBinIcon.className = 'xsbinicon ml-1 p-0.5 rounded text-emerald-600 hover:text-rose-600 hover:bg-rose-50 transition cursor-pointer flex items-center justify-center';
+        xsBinIcon.title = 'Remove relation';
+        xsBinIcon.innerHTML = '<i class="fas fa-times text-[11px]"></i>';
         xsBinIcon.addEventListener('click', () => {
             this.binkb(xsBinIcon); 
         });
@@ -163,27 +177,19 @@ class KnowledgeBase {
             fetch('/AJAX/getdisposabletoken.php?task=1')
             .then((response) => response.json())
             .then((token) => {
-            
-                // Prepare data for POST request
-                const postData = {
-                    token: token,
-                    id: this.neoIdOfEt,
-                    label: labelstring, 
-                    uri: url
-                };
-                // Define fetch options for POST request
-                const options = {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json'
-                    },
-                    body: JSON.stringify(postData)
-                };
+                const formData = new FormData();
+                formData.append('data[id]', this.neoIdOfEt);
+                formData.append('data[label]', labelstring);
+                formData.append('data[uri]', url);
 
-                $.post("/AJAX/fetch_kb.php?mode=create&token=" + token + "&id=" + this.neoIdOfEt, { data: postData })
-                    .then(function( data ) {
-                        self.appendToDom(data); 
+                fetch("/AJAX/fetch_kb.php?mode=create&token=" + token + "&id=" + this.neoIdOfEt, {
+                    method: 'POST',
+                    body: formData
                 })
+                .then(response => response.json())
+                .then(data => {
+                    self.appendToDom(data); 
+                });
             })
             this.handleClose();
         }else{
@@ -205,76 +211,90 @@ class KnowledgeBase {
 
     buildCreationDisplay(){
         if(!(this.userstate)){return;}
-        //builds a two-field form: partner name and the URI
+        // Builds a two-field form: partner name and the URI
         // Create modal background
         const self = this;
         const modalBackground = document.createElement('div');
         modalBackground.id = 'modal';
-        modalBackground.className = 'fixed inset-0 bg-black opacity-50 z-50';
+        modalBackground.className = 'fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-50 transition-opacity';
         document.body.appendChild(modalBackground);
 
         // Create form container
         const formContainer = document.createElement('div');
         formContainer.id = 'formContainer';
-        formContainer.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-lg shadow-md z-50';
+        formContainer.className = 'fixed top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 bg-white p-6 rounded-2xl shadow-2xl border border-slate-200 z-50 w-full max-w-md';
         
+        // Modal header
+        const headerDiv = document.createElement('div');
+        headerDiv.className = 'mb-4';
+        const title = document.createElement('h3');
+        title.className = 'text-base font-bold text-slate-800';
+        title.textContent = 'Add knowledge base link';
+        const subtitle = document.createElement('p');
+        subtitle.className = 'text-xs text-slate-500 mt-0.5';
+        subtitle.textContent = 'Connect this entity to an external authority or encyclopedia.';
+        headerDiv.appendChild(title);
+        headerDiv.appendChild(subtitle);
+        formContainer.appendChild(headerDiv);
+
         // Create form
         const form = document.createElement('form');
         form.id = 'myForm';
         form.className = 'space-y-4';
 
-        //create nameDiv = 
+        // Create nameDiv
         const nameDiv = document.createElement('div'); 
-        nameDiv.classList.add('w-full');
-        // Create name input field
+        nameDiv.className = 'w-full';
         const nameLabel = document.createElement('label');
-        nameLabel.htmlFor = 'name';
-        nameLabel.textContent = 'Name:';
-        //form.appendChild(nameLabel);
+        nameLabel.htmlFor = 'new_kb_name_field';
+        nameLabel.className = 'block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5';
+        nameLabel.textContent = 'Authority / partner name:';
         nameDiv.appendChild(nameLabel);
 
         const nameInput = document.createElement('input');
         nameInput.type = 'text';
         nameInput.id = 'new_kb_name_field';
         nameInput.name = 'name';
-        nameInput.className = 'border rounded-md px-2 py-1';
+        nameInput.placeholder = 'e.g. VIAF, GeoNames, DNB';
+        nameInput.className = 'w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm shadow-2xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-hidden transition';
         nameDiv.appendChild(nameInput);
-        form.appendChild(nameDiv)
+        form.appendChild(nameDiv);
 
-        //url Div: 
+        // Create urlDiv
         const urlDiv = document.createElement('div'); 
-        urlDiv.classList.add('w-full');
-        // Create URL input field
+        urlDiv.className = 'w-full';
         const urlLabel = document.createElement('label');
-        urlLabel.htmlFor = 'url';
-        urlLabel.textContent = 'URL:';
+        urlLabel.htmlFor = 'new_kb_url_field';
+        urlLabel.className = 'block text-xs font-semibold text-slate-700 uppercase tracking-wider mb-1.5';
+        urlLabel.textContent = 'Target URI:';
         urlDiv.appendChild(urlLabel);
 
         const urlInput = document.createElement('input');
         urlInput.type = 'url';
         urlInput.id = 'new_kb_url_field';
         urlInput.name = 'url';
-        urlInput.className = 'border rounded-md px-2 py-1';
+        urlInput.placeholder = 'https://...';
+        urlInput.className = 'w-full rounded-xl border border-slate-300 px-3.5 py-2 text-sm shadow-2xs focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 outline-hidden transition';
         urlDiv.appendChild(urlInput);
         form.appendChild(urlDiv); 
 
         // Create submit and close buttons
         const buttonContainer = document.createElement('div');
-        buttonContainer.className = 'flex justify-between';
-
-        const submitButton = document.createElement('button');
-        submitButton.type = 'button';
-        submitButton.id = 'submitBtn_kb';
-        submitButton.className = 'bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600';
-        submitButton.textContent = 'Submit';
-        buttonContainer.appendChild(submitButton);
+        buttonContainer.className = 'flex items-center justify-end gap-2 pt-2';
 
         const closeButton = document.createElement('button');
         closeButton.type = 'button';
         closeButton.id = 'closeBtn_kb';
-        closeButton.className = 'bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600';
-        closeButton.textContent = 'Close';
+        closeButton.className = 'px-4 py-2 text-xs font-semibold text-slate-700 bg-slate-100 hover:bg-slate-200 rounded-xl transition cursor-pointer';
+        closeButton.textContent = 'Cancel';
         buttonContainer.appendChild(closeButton);
+
+        const submitButton = document.createElement('button');
+        submitButton.type = 'button';
+        submitButton.id = 'submitBtn_kb';
+        submitButton.className = 'px-4 py-2 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-700 rounded-xl shadow-xs transition cursor-pointer';
+        submitButton.textContent = 'Add link';
+        buttonContainer.appendChild(submitButton);
 
         form.appendChild(buttonContainer);
         formContainer.appendChild(form);
@@ -282,6 +302,9 @@ class KnowledgeBase {
         document.body.appendChild(formContainer);
 
         // Add event listeners
+        modalBackground.addEventListener('click', function(){
+            self.handleClose();
+        });
         submitButton.addEventListener('click', function(){
             self.handleSubmit();
         });

@@ -37,14 +37,23 @@ class nodeCreator{
 
   preSubmitCheck(eventhandle){
     eventhandle.preventDefault();
+    const form = document.getElementById('inputformSecondStage');
+    if (form && !form.reportValidity()) {
+      return;
+    }
+    if (typeof validator !== 'undefined' && validator && typeof validator.checkRequired === 'function') {
+      validator.checkRequired();
+    }
     //if everything is valid: submit to creation endpoint and create the node!
-    var errrormessagesOnScreen = document.getElementsByClassName('errorNotification'); 
-    if(errrormessagesOnScreen.length){
-      var notification = document.createElement('p'); 
-      notification.setAttribute('id', 'detectedPresentError'); 
-      var notificationText = document.createTextNode('One or more properties have an invalid value. Data was not submitted.');
-      notification.appendChild(notificationText); 
-      document.getElementById('formMessageBox').appendChild(notification);
+    let errrormessagesOnScreen = document.getElementsByClassName('errorNotification'); 
+    let flaggedMistakes = document.getElementsByClassName('validatorFlaggedMistake');
+    if(errrormessagesOnScreen.length || flaggedMistakes.length){
+      document.getElementById('formMessageBox').innerHTML = `
+        <div id="detectedPresentError" class="p-4 mb-4 rounded-xl bg-amber-50 border border-amber-200 text-amber-800 flex items-center gap-3 shadow-sm">
+          <span class="w-6 h-6 rounded-full bg-amber-100 text-amber-700 flex items-center justify-center font-bold text-xs">!</span>
+          <p class="text-sm font-medium">One or more properties have an invalid or missing required value. Data was not submitted.</p>
+        </div>
+      `;
       return; 
     }else{
       document.getElementById('formMessageBox').innerHTML = ''; 
@@ -52,72 +61,88 @@ class nodeCreator{
     //presubmit check passed: send the form: 
     //make it return the stable URI for the newly created node if possible. 
     //backend should also validate the input!
-    var nodeType = document.getElementById('nodeTypeSelection').firstChild.value;
-    var formcontent = document.getElementById('inputformSecondStage').getElementsByClassName('form-group');
+    let nodeType = document.getElementById('nodeTypeSelection').firstChild.value;
+    let formcontent = document.getElementById('inputformSecondStage').getElementsByClassName('form-group');
     let submissiondata = {'formdata': {}, 'etype': nodeType, 'token': null};
     for (let j = 0; j < formcontent.length; j++){
       let group = formcontent[j]; 
       let group_box = group.getElementsByClassName('attachValidator')[0]; 
       let group_name = group_box.getAttribute('data-name');
-      let group_value = group_box.value; 
+      let group_value = group_box.type === 'checkbox' ? group_box.checked : group_box.value; 
       submissiondata['formdata'][group_name] = group_value; 
     }
 
-     
     fetch("/AJAX/getdisposabletoken.php")
       .then(response => response.json())
-      .then(data => {
-        const token = data;
-        const url = "/AJAX/crud/insert.php"; 
-        submissiondata['token'] = token; 
-        $.ajax({
-          type: "POST",
-          url: url,
-          data: submissiondata, 
-          success: (e) => {
-            this.reset();
-            let result = document.createElement('p'); 
-            if(e.hasOwnProperty('stable') && Array.isArray(e['stable']) && e['stable'].length > 0){
-              let resultText = document.createTextNode('A new entry was successfully added to the database. You can access this new node here: '); 
-              let resultSubLink= document.createElement('a');
-              let resultSubLinkText = document.createTextNode(e['stable'][0]);
-              resultSubLink.setAttribute('href', e['stable'][0]);
-              resultSubLink.appendChild(resultSubLinkText); 
-              result.appendChild(resultText); 
-              result.appendChild(resultSubLink); 
-              result.classList.add('border-green-500'); 
-              document.getElementById('formMessageBox').appendChild(result);  
-            }else{
-              let resultText = document.createTextNode('This element could not be added to the database.');
-              result.appendChild(resultText);
-              document.getElementById('formMessageBox').appendChild(result);
-            } 
-          },
-          dataType: "JSON"    // datatype as optional parameter. 
+      .then(token => {
+        const url = "/AJAX/crud/insert.php";
+        const formData = new FormData();
+        formData.append('token', token);
+        formData.append('etype', nodeType);
+        for (const [k, v] of Object.entries(submissiondata['formdata'])) {
+          formData.append('formdata[' + k + ']', v);
+        }
+
+        return fetch(url, {
+          method: 'POST',
+          body: formData
         });
+      })
+      .then(response => response.json())
+      .then(e => {
+        this.reset();
+        const stableUri = (e.hasOwnProperty('stable') && Array.isArray(e['stable']) && e['stable'].length > 0) 
+          ? e['stable'][0] 
+          : (e.hasOwnProperty('stable') && typeof e['stable'] === 'string' && e['stable'].length > 0 ? e['stable'] : false);
+        if(stableUri){
+          document.getElementById('formMessageBox').innerHTML = `
+            <div class="p-4 mb-4 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-800 flex flex-col sm:flex-row sm:items-center justify-between gap-3 shadow-sm">
+              <div class="flex items-center gap-3">
+                <span class="w-7 h-7 rounded-full bg-emerald-100 text-emerald-700 flex items-center justify-center font-bold text-xs">✓</span>
+                <div>
+                  <p class="font-semibold text-sm">Entity created successfully</p>
+                  <p class="text-xs text-emerald-700 break-all">${stableUri}</p>
+                </div>
+              </div>
+              <a href="${stableUri}" class="inline-flex items-center justify-center px-4 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-sm transition-colors whitespace-nowrap">
+                View entity
+              </a>
+            </div>
+          `;
+        }else{
+          document.getElementById('formMessageBox').innerHTML = `
+            <div class="p-4 mb-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center gap-3 shadow-sm">
+              <span class="w-6 h-6 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs">!</span>
+              <p class="text-sm font-medium">This element could not be added to the database.</p>
+            </div>
+          `;
+        } 
+      })
+      .catch(() => {
+        document.getElementById('formMessageBox').innerHTML = `
+          <div class="p-4 mb-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 flex items-center gap-3 shadow-sm">
+            <span class="w-6 h-6 rounded-full bg-rose-100 text-rose-700 flex items-center justify-center font-bold text-xs">!</span>
+            <p class="text-sm font-medium">This element could not be added to the database.</p>
+          </div>
+        `;
       });
   }
 
-
-
-  
-
   createFormForType(eventhandle){
     /**
-     * Creates the form to create a new node. When a text node is created it'll change the layout of the form
+     * Creates the form to create a new node. When a text node is created it will change the layout of the form
      * so that the field which contains the text property is a textarea instead of a text input. 
-     * 
      */
-    var formTarget = document.getElementById('propertySection');
+    let formTarget = document.getElementById('propertySection');
     formTarget.innerHTML = ''; 
     formTarget.classList.remove('hidden'); 
-    var type = eventhandle.srcElement.value;
-    var form = document.createElement('form');
+    let type = eventhandle.srcElement.value;
+    let form = document.createElement('form');
     form.setAttribute('id', 'inputformSecondStage'); 
-    var formGrid = document.createElement('div'); 
-    formGrid.classList.add('grid','gap-6', 'mb-6', 'md:grid-cols-2'); 
+    let formGrid = document.createElement('div'); 
+    formGrid.classList.add('grid', 'gap-6', 'mb-6', 'md:grid-cols-2'); 
     form.classList.add('inputFormForData'); 
-    var textproperty = false;
+    let textproperty = false;
     if(type == 'false'){
       return;
     }else if (type === texnode){
@@ -128,95 +153,119 @@ class nodeCreator{
     fetch('/AJAX/get_structure.php?type='+type)
       .then((response) => response.json())
       .then((data) =>{
-        var keys = Object.keys(data['data']); 
+        let keys = Object.keys(data['data']); 
         data = data['data'];
-        for(var i=0; i<keys.length; i++){
+        for(let i=0; i<keys.length; i++){
           if(textproperty && keys[i]==textproperty){
-            //don't add the TEXNODETEXT content in between the bulk of the properties. 
             ikey = i; 
             continue;
           }
-          //var fieldName = 'field_name_'+toString(i); 
-          var attributes = data[keys[i]];
-          var oneRowToDOM = document.createElement('div');
+          let attributes = data[keys[i]];
+          let oneRowToDOM = document.createElement('div');
           oneRowToDOM.classList.add('form-group');
-          var labelForOneRow = document.createElement('label');
-          var labelText = document.createTextNode(attributes[0]);
-          var uniqueness = attributes[2]; 
-          //label associated with the input field:
-          labelForOneRow.appendChild(labelText);
-          //textarea field: where user is allowed to enter data.
-          var inputField = document.createElement('textarea'); 
-          inputField.classList.add('w-full');
-          inputField.classList.add('form-control');
-          inputField.classList.add('attachValidator');
+          let labelForOneRow = document.createElement('label');
+          labelForOneRow.classList.add('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-1.5');
+          let uniqueness = attributes[2]; 
+          let propType = attributes[1].toLowerCase();
+
           if(uniqueness){
-            //test if uniqueness class is part of the DOM: Test Passed
+            labelForOneRow.innerHTML = attributes[0] + ' <span class="text-rose-500">*</span> <span class="text-xs text-slate-400 font-normal">(unique)</span>';
+          }else{
+            labelForOneRow.textContent = attributes[0];
+          }
+
+          let inputField;
+          if(propType === 'int' || propType === 'float'){
+            inputField = document.createElement('input');
+            inputField.type = 'number';
+            if(propType === 'float'){
+              inputField.step = 'any';
+            }
+            inputField.classList.add('w-full', 'px-3.5', 'py-2.5', 'bg-white', 'border', 'border-slate-300', 'rounded-lg', 'shadow-sm', 'text-slate-800', 'text-sm', 'focus:ring-2', 'focus:ring-indigo-500', 'focus:border-indigo-500', 'transition-colors', 'attachValidator');
+          }else if(propType === 'uri'){
+            inputField = document.createElement('input');
+            inputField.type = 'url';
+            inputField.placeholder = 'https://...';
+            inputField.classList.add('w-full', 'px-3.5', 'py-2.5', 'bg-white', 'border', 'border-slate-300', 'rounded-lg', 'shadow-sm', 'text-slate-800', 'text-sm', 'focus:ring-2', 'focus:ring-indigo-500', 'focus:border-indigo-500', 'transition-colors', 'attachValidator');
+          }else if(propType === 'bool'){
+            inputField = document.createElement('input');
+            inputField.type = 'checkbox';
+            inputField.classList.add('h-5', 'w-5', 'rounded', 'border-slate-300', 'text-indigo-600', 'focus:ring-indigo-500', 'attachValidator');
+          }else if(propType === 'wikidata'){
+            inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.placeholder = 'Q...';
+            inputField.classList.add('w-full', 'px-3.5', 'py-2.5', 'bg-white', 'border', 'border-slate-300', 'rounded-lg', 'shadow-sm', 'text-slate-800', 'text-sm', 'focus:ring-2', 'focus:ring-indigo-500', 'focus:border-indigo-500', 'transition-colors', 'attachValidator');
+          }else{
+            inputField = document.createElement('input');
+            inputField.type = 'text';
+            inputField.classList.add('w-full', 'px-3.5', 'py-2.5', 'bg-white', 'border', 'border-slate-300', 'rounded-lg', 'shadow-sm', 'text-slate-800', 'text-sm', 'focus:ring-2', 'focus:ring-indigo-500', 'focus:border-indigo-500', 'transition-colors', 'attachValidator');
+          }
+
+          if(uniqueness){
             inputField.classList.add('validateAs_unique');
             inputField.required = true; 
           }
-          inputField.classList.add('validateAs_'+attributes[1].toLowerCase());
-          inputField.dataset.name=keys[i];
+          inputField.classList.add('validateAs_'+propType);
+          inputField.dataset.name = keys[i];
           oneRowToDOM.appendChild(labelForOneRow);
           oneRowToDOM.appendChild(inputField);
           formGrid.appendChild(oneRowToDOM);
         }
         form.appendChild(formGrid); 
-        if(textproperty){
-          //instead put it in a separate row and make it full width!
-          //Also increase the height of it then!
-          var attributes = data[keys[ikey]];
-          var oneRowToDOM = document.createElement('div');
-          oneRowToDOM.classList.add('w-full', 'form-group', 'col-span-12');
-          var labelForOneRow = document.createElement('label');
-          var labelText = document.createTextNode(attributes[0]);
-          var uniqueness = attributes[2]; 
-          //label associated with the input field:
-          labelForOneRow.appendChild(labelText);
-          //textarea field: where user is allowed to enter data.
-          var inputField = document.createElement('textarea'); 
-          inputField.setAttribute('rows', 10);
-          inputField.classList.add('w-full');
-          inputField.classList.add('form-control');
-          inputField.classList.add('attachValidator');
+        if(textproperty && ikey !== null){
+          let attributes = data[keys[ikey]];
+          let oneRowToDOM = document.createElement('div');
+          oneRowToDOM.classList.add('w-full', 'form-group', 'col-span-12', 'mb-6');
+          let labelForOneRow = document.createElement('label');
+          labelForOneRow.classList.add('block', 'text-sm', 'font-medium', 'text-slate-700', 'mb-1.5');
+          let uniqueness = attributes[2]; 
           if(uniqueness){
-            //test if uniqueness class is part of the DOM: Test Passed
+            labelForOneRow.innerHTML = attributes[0] + ' <span class="text-rose-500">*</span> <span class="text-xs text-slate-400 font-normal">(unique)</span>';
+          }else{
+            labelForOneRow.textContent = attributes[0];
+          }
+          let inputField = document.createElement('textarea'); 
+          inputField.setAttribute('rows', 8);
+          inputField.classList.add('w-full', 'px-3.5', 'py-2.5', 'bg-white', 'border', 'border-slate-300', 'rounded-lg', 'shadow-sm', 'text-slate-800', 'font-mono', 'text-sm', 'leading-relaxed', 'focus:ring-2', 'focus:ring-indigo-500', 'focus:border-indigo-500', 'transition-colors', 'attachValidator');
+          if(uniqueness){
             inputField.classList.add('validateAs_unique');
             inputField.required = true; 
           }
           inputField.classList.add('validateAs_'+attributes[1].toLowerCase());
-          inputField.dataset.name=keys[ikey];
+          inputField.dataset.name = keys[ikey];
           oneRowToDOM.appendChild(labelForOneRow);
           oneRowToDOM.appendChild(inputField);
           form.appendChild(oneRowToDOM);
         }
-        var submit = document.createElement('input');
+        let submit = document.createElement('button');
         submit.setAttribute('type', 'submit');
+        submit.textContent = 'Save entity';
         submit.addEventListener('click', event => this.preSubmitCheck(event)); 
-        submit.classList.add('btn','bg-blue-400', 'm-2', 'p-2', 'rounded-sm'); 
+        submit.classList.add('px-6', 'py-2.5', 'bg-indigo-600', 'hover:bg-indigo-700', 'text-white', 'font-medium', 'text-sm', 'rounded-lg', 'shadow-sm', 'transition-colors', 'cursor-pointer'); 
         form.appendChild(submit);
         formTarget.appendChild(form);
         validator = new Validator;
         validator.set_id_of_dropdown_element_for_entity('select_dd_element');
-        //explicitly allow the use of autofetching incremental IDs in creation mode. 
         validator.set_autofetch_to(true);
         validator.pickup();
       });
   }
 
   createNodeTypeSelector(){
-    var target = document.getElementById('nodeTypeSelection');
+    let target = document.getElementById('nodeTypeSelection');
     target.innerHTML = '';
-    var selectBlock = document.createElement('select');
+    let selectBlock = document.createElement('select');
     selectBlock.setAttribute('id', 'select_dd_element'); 
-    var prompt = document.createElement('option');
+    selectBlock.classList.add('w-full', 'sm:w-80', 'px-3.5', 'py-2.5', 'bg-white', 'border', 'border-slate-300', 'rounded-lg', 'shadow-sm', 'text-slate-700', 'text-sm', 'font-medium', 'focus:ring-2', 'focus:ring-indigo-500', 'focus:border-indigo-500', 'transition-colors');
+    let prompt = document.createElement('option');
     prompt.setAttribute('disabled', 1);
     prompt.setAttribute('selected', 1);
-    prompt.text = "Select Node Type";
+    prompt.text = "Select entity type";
     prompt.value = false;
     selectBlock.appendChild(prompt);
-    for(var i = 0; i < Object.keys(this.coreNodes).length; i++){
-      var o = document.createElement('option');
+    for(let i = 0; i < Object.keys(this.coreNodes).length; i++){
+      let o = document.createElement('option');
       o.value = this.coreNodes[i];
       o.text = this.coreNodes[i];
       selectBlock.appendChild(o);

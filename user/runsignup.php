@@ -1,8 +1,8 @@
 <?php
 //session_start(); //not needed to access captche, it's already included by the csrf call
 header('Content-Type: application/json; charset=utf-8');
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/user.inc.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
 include_once(ROOT_DIR.'/includes/getnode.inc.php');
 include_once(ROOT_DIR.'/includes/csrf.inc.php');
 include_once(ROOT_DIR.'/includes/client.inc.php');
@@ -76,8 +76,6 @@ if(!empty($missing)) {
         if(count($result) === 0){
             echo json_encode(array('msg' => 'Invalid invitecode'));
             die();
-        }else{
-            $existingNodeId = $data[0]['n']['id'];
         }
         // $parameters = array(
         //   'token' => $_POST['invitetoken'], 

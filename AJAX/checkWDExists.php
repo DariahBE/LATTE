@@ -3,11 +3,11 @@
 header('Content-Type: application/json; charset=utf-8');
 // parse the model and get all possible wikidata fields: 
 
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/user.inc.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
 
-$wikidataID = $_GET['qid'];
+$wikidataID = isset($_GET['qid']) ? $_GET['qid'] : '';
 //validate qid= Q123
 if(preg_match("/^Q[0-9]*$/", $wikidataID)){
   //only open for registered users (if text are hidden)

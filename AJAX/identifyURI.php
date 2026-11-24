@@ -7,10 +7,10 @@ header('Content-Type: application/json; charset=utf-8');
 */ 
 
 
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
 
-$neoId = (int)$_GET['id']; 
+$neoId = isset($_GET['id']) ? (int)$_GET['id'] : 0; 
 
 //extract from the database the type of node it is: 
 
@@ -19,5 +19,5 @@ $data = $node->generateURI($neoId);
 $connections = $node->countConnections($neoId);
 
 echo json_encode(array('uri' => $data, 'connections' =>$connections)); 
-die()
+die();
 ?>

@@ -3,40 +3,22 @@ let globalLoginAvailable = false;
 let globalAnnoInteractId = false;
 
 function checklogin() {
-  return new Promise((resolve, reject) => {
-      $.ajax({
-          url: "/user/AJAX/profilestate.php",
-          success: function(result) {
-              resolve(result['valid']);
-          },
-          error: function(error) {
-              reject(error);
-          }
-      });
-  });
+  return fetch("/user/AJAX/profilestate.php")
+    .then(res => res.json())
+    .then(result => result['valid'])
+    .catch(() => false);
 }
 checklogin()
   .then(valid => {
     globalLoginAvailable = valid;
   })
-  .catch(error => {
+  .catch(() => {
     globalLoginAvailable = false; 
-  })
-
+  });
 
 function getInfoFromBackend(url) {
-  var myPromise = new Promise((resolve, reject) => {
-    $.ajax({
-      type: "GET",
-      headers: { "Content-type": "application/x-www-form-urlencoded; charset=UTF-8" },
-      url: url,
-      success: function (result) {
-        resolve(result);
-      }
-    });
-
-  })
-  return myPromise;
+  return fetch(url)
+    .then(res => res.json());
 }
 
 function findRelatedTexts(neoID) {
@@ -51,59 +33,25 @@ function findRelatedTexts(neoID) {
       document.getElementById("relatedTextStats").innerHTML = `<p>${showToUser}</p>`;
     });
 }
-/*
-function decideOnEdit(protected, level){
-  console.log(protected, level);
-  if(protected){
-    return false;
-  }
-  else if (level > 1 ){
-    return true;
-  }else{
-    return false;
-  }
-}
 
-function waitForElement(selector) {
-  return new Promise(resolve => {
-    if (document.querySelector(selector)) {
-      return resolve(document.querySelector(selector));
-    }
-
-    const observer = new MutationObserver(mutations => {
-      if (document.querySelector(selector)) {
-        resolve(document.querySelector(selector));
-        observer.disconnect();
-      }
-    });
-
-    observer.observe(document.body, {
-      childList: true,
-      subtree: true
-    });
-  });
-}
-*/
 
 function createStableLinkingBlock(nodeid, stableURI) {
-  //generates a link to the graph explorer page
-  //and to the stable URI 
-  //returns a DIV with both link elements embedded in.
+  // Generates clean action badges to the graph explorer and stable record
   var linkToGraphExplorer = '/explore/' + nodeid;
   var linkElement = document.createElement('a');
   linkElement.setAttribute('href', linkToGraphExplorer);
   linkElement.setAttribute('target', '_blank');
-  imgElement = document.createElement('img');
-  imgElement.src = '/images/graphExplore.png';
-  linkElement.appendChild(imgElement);
+  linkElement.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold transition shadow-2xs';
+  linkElement.innerHTML = '<i class="fas fa-project-diagram text-[11px]"></i><span>Explore in graph</span>';
+
   var linkToStablePage = document.createElement('a');
   linkToStablePage.setAttribute('href', stableURI);
   linkToStablePage.setAttribute('target', '_blank');
-  stableImgElement = document.createElement('i');
-  stableImgElement.classList.add('fas', 'fa-anchor');
-  linkToStablePage.appendChild(stableImgElement);
+  linkToStablePage.className = 'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-slate-50 hover:bg-slate-100 text-slate-700 border border-slate-200 text-xs font-semibold transition shadow-2xs';
+  linkToStablePage.innerHTML = '<i class="fas fa-anchor text-[11px]"></i><span>Stable record</span>';
+
   subdivGateway = document.createElement('div');
-  subdivGateway.classList.add('flex', 'flex-row');
+  subdivGateway.className = 'flex flex-wrap items-center gap-2 my-3';
   subdivGateway.setAttribute('id', 'stableBox');
   subdivGateway.appendChild(linkElement);
   subdivGateway.appendChild(linkToStablePage);
@@ -152,28 +100,32 @@ async function createEditRemoveBox(etnodeid, annonodeid){
     let annodeleteElement = document.createElement('a'); 
     annodeleteElement.setAttribute('href', annoDeleteLink);
     
-    annotationPart.classList.add('w-full');
-    let annotationSectionHeader = document.createElement('H4'); 
-    annotationSectionHeader.appendChild(document.createTextNode('Edit annotation: '));
+    annotationPart.className = 'w-full mb-3 p-3 bg-slate-50 rounded-xl border border-slate-200/80';
+    let annotationSectionHeader = document.createElement('h4'); 
+    annotationSectionHeader.appendChild(document.createTextNode('Annotation actions:'));
+    annotationSectionHeader.className = 'text-xs font-bold uppercase tracking-wider text-slate-500 mb-2';
     annotationPart.appendChild(annotationSectionHeader); 
-    annotationSectionHeader.classList.add('font-bold', 'text-lg', 'w-full');
+
+    let annotationActions = document.createElement('div');
+    annotationActions.className = 'flex items-center gap-2';
 
     let annotationDelete = document.createElement('button'); 
-    annotationDelete.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-red-500', 'hover:bg-red-700');
-    annotationDelete.appendChild(document.createTextNode('Delete'));
+    annotationDelete.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition shadow-2xs';
+    annotationDelete.appendChild(document.createTextNode('Delete annotation'));
 
     let annotationEdit = document.createElement('button'); 
-    annotationEdit.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-blue-500', 'hover:bg-blue-700');
-    annotationEdit.appendChild(document.createTextNode('Edit'));
+    annotationEdit.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 border border-slate-200 transition shadow-2xs';
+    annotationEdit.appendChild(document.createTextNode('Edit annotation'));
 
     annoeditElement.appendChild(annotationEdit); 
     annodeleteElement.appendChild(annotationDelete); 
     if (annoupdate) {
-      annotationPart.appendChild(annoeditElement);
+      annotationActions.appendChild(annoeditElement);
     }
     if (annodelete) {
-      annotationPart.appendChild(annodeleteElement); 
+      annotationActions.appendChild(annodeleteElement); 
     }
+    annotationPart.appendChild(annotationActions);
   }
 
   let entityEditLink = '/crud/edit.php?id=' + etnodeid;
@@ -183,29 +135,33 @@ async function createEditRemoveBox(etnodeid, annonodeid){
   let etDeleteElement = document.createElement('a'); 
   etDeleteElement.setAttribute('href', entityDeleteLink); 
   let entityPart = document.createElement('div'); 
-  entityPart.classList.add('w-full');
+  entityPart.className = 'w-full mb-3 p-3 bg-slate-50 rounded-xl border border-slate-200/80';
 
-  let entitySectionHeader = document.createElement('H4'); 
-  entitySectionHeader.appendChild(document.createTextNode('Edit entity: '));
-  entitySectionHeader.classList.add('font-bold', 'text-lg', 'w-full');
+  let entitySectionHeader = document.createElement('h4'); 
+  entitySectionHeader.appendChild(document.createTextNode('Entity actions:'));
+  entitySectionHeader.className = 'text-xs font-bold uppercase tracking-wider text-slate-500 mb-2';
   entityPart.appendChild(entitySectionHeader);
 
+  let entityActions = document.createElement('div');
+  entityActions.className = 'flex items-center gap-2';
+
   let entityDelete = document.createElement('button');
-  entityDelete.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-red-500', 'hover:bg-red-700');
-  entityDelete.appendChild(document.createTextNode('Delete'));
+  entityDelete.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 transition shadow-2xs';
+  entityDelete.appendChild(document.createTextNode('Delete entity'));
 
   let entityEdit = document.createElement('button'); 
-  entityEdit.classList.add('btn', 'rounded', 'text-white', 'font-bold', 'py-2', 'px-4', 'bg-blue-500', 'hover:bg-blue-700');
-  entityEdit.appendChild(document.createTextNode('Edit'));
+  entityEdit.className = 'px-3 py-1.5 rounded-lg text-xs font-semibold bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 transition shadow-2xs';
+  entityEdit.appendChild(document.createTextNode('Edit entity'));
 
-  etDeleteElement.appendChild(entityDelete);
   etEditElement.appendChild(entityEdit);
+  etDeleteElement.appendChild(entityDelete);
   if (etupdate) {
-    entityPart.appendChild(etEditElement);
+    entityActions.appendChild(etEditElement);
   }
   if (etdelete) {
-    entityPart.appendChild(etDeleteElement);
+    entityActions.appendChild(etDeleteElement);
   }
+  entityPart.appendChild(entityActions);
 
   subdivGateway.setAttribute('id', 'editBox');
   if (annoupdate || annodelete){
@@ -252,14 +208,22 @@ function writeField(key, data, protected, structure) {
     fieldvalue.value = data ? 'true' : 'false'; // set the selected option based on the data
     field.appendChild(fieldvalue);
   } else if (fieldType === 'uri') {
-    if (data != ''){
-      var fieldvalue = document.createElement('a');
-      fieldvalue.classList.add('externalURILogo');
-      fieldvalue.setAttribute('href', data);
-      fieldvalue.setAttribute('target', '_blank');
-      fieldvalue.appendChild(document.createTextNode(data));
-      field.appendChild(fieldvalue);
-      fieldvalue.setAttribute('type', 'url');
+    const rawUri = String(data || '').trim();
+    if (rawUri !== '') {
+      if (/^https?:\/\//i.test(rawUri)) {
+        var fieldvalue = document.createElement('a');
+        fieldvalue.classList.add('externalURILogo');
+        fieldvalue.setAttribute('href', rawUri);
+        fieldvalue.setAttribute('target', '_blank');
+        fieldvalue.setAttribute('rel', 'noopener noreferrer');
+        fieldvalue.appendChild(document.createTextNode(rawUri));
+        field.appendChild(fieldvalue);
+        fieldvalue.setAttribute('type', 'url');
+      } else {
+        var fieldvalue = document.createElement('span');
+        fieldvalue.appendChild(document.createTextNode(rawUri));
+        field.appendChild(fieldvalue);
+      }
     }
   } else if (fieldType === 'wikidata'){
     var fieldvalue = document.createElement('a');
@@ -281,6 +245,95 @@ function writeField(key, data, protected, structure) {
   //console.log('created textfield', field);
   return field;
 }
+
+// Render promotion interface allowing an automated suggestion to be promoted to a custom entity type.
+function renderAutomaticPromotionBox(container, sugId, start, stop, detectedType, snippetText) {
+  const existing = document.getElementById('lattePromotionContainer');
+  if (existing) existing.remove();
+  const existingCreate = document.getElementById('etcreate');
+  if (existingCreate) existingCreate.remove();
+
+  // Reset chosen QID when opening promotion box
+  chosenQID = null;
+  globalSelectionText = snippetText || '';
+  globalSelectionStart = start;
+  globalSelectionEnd = stop;
+
+  const promotionDiv = document.createElement('div');
+  promotionDiv.id = 'lattePromotionContainer';
+  promotionDiv.className = 'mt-4 p-4 rounded-2xl bg-white border border-slate-200/90 shadow-xs space-y-4';
+
+  const esc = (typeof window.escapeHtml === 'function')
+    ? window.escapeHtml
+    : (s => (s || '').replace(/[&<>'"]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;',"'":'&#39;','"':'&quot;'}[c])));
+
+  promotionDiv.innerHTML = `
+    <div class="flex items-center justify-between pb-3 border-b border-slate-100">
+      <div class="flex items-center gap-2.5">
+        <div class="w-8 h-8 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-xs">
+          <i class="fas fa-arrow-up"></i>
+        </div>
+        <div>
+          <h4 class="text-xs font-bold text-slate-900">Promote to custom entity</h4>
+          <p class="text-[11px] text-slate-500">Assign this mention to a custom entity type in the graph</p>
+        </div>
+      </div>
+      <span class="px-2 py-0.5 rounded-md bg-slate-100 text-slate-600 font-mono text-[10px]">
+        Offsets: ${start} - ${stop}
+      </span>
+    </div>
+
+    <div class="space-y-1.5">
+      <label for="entityTypeSelector" class="block text-xs font-semibold text-slate-700">
+        1) Select entity type:
+      </label>
+      <div id="nodeTypeSelection" class="relative">
+        <select id="entityTypeSelector" class="w-full px-3 py-2 bg-slate-50 border border-slate-300 rounded-xl text-xs font-medium text-slate-800 focus:bg-white focus:ring-2 focus:ring-emerald-500 focus:border-emerald-500 transition cursor-pointer">
+          <option value="" disabled selected>Choose an entity type...</option>
+        </select>
+      </div>
+    </div>
+
+    <div id="annotationCreationDiv" class="hidden"></div>
+
+    <div id="variantStorageBox" class="hidden">
+      <span class="writtenvariantvalue">${esc(snippetText)}</span>
+    </div>
+  `;
+
+  container.appendChild(promotionDiv);
+
+  const selector = promotionDiv.querySelector('#entityTypeSelector');
+  const availableTypes = (typeof coreNodes !== 'undefined' && Array.isArray(coreNodes)) ? coreNodes : [];
+
+  let preselectType = null;
+  availableTypes.forEach(type => {
+    const opt = document.createElement('option');
+    opt.value = type;
+    opt.textContent = type;
+    selector.appendChild(opt);
+    if (detectedType && type.toLowerCase() === detectedType.toLowerCase()) {
+      preselectType = type;
+    }
+  });
+
+  selector.addEventListener('change', function() {
+    if (typeof loadPropertiesOfSelectedType === 'function') {
+      loadPropertiesOfSelectedType(this.value);
+    }
+  });
+
+  if (preselectType && typeof loadPropertiesOfSelectedType === 'function') {
+    selector.value = preselectType;
+    loadPropertiesOfSelectedType(preselectType);
+  }
+
+  // Initiate Wikidata ID lookup workflow using snippetText
+  if (typeof createWDPromptBox === 'function') {
+    createWDPromptBox(promotionDiv, false, snippetText);
+  }
+}
+window.renderAutomaticPromotionBox = renderAutomaticPromotionBox;
 
 let auto_annotation_internal_id = NaN; 
 function showdata(data) {
@@ -320,11 +373,27 @@ function showdata(data) {
   if (datamode === 'controll') {
     findRelatedTexts(data['entity'][0]['neoID']);
   } else if (datamode === 'automated'){
-    // console.warn('extract start and stop from automated ets. '); 
-    // console.log(data.annotation.properties[startcode][1])
-    globalSelectionEnd = data.annotation.properties[stopcode][1];
-    globalSelectionStart = data.annotation.properties[startcode][1];
-    auto_annotation_internal_id = data['neo_id_of_auto_anno']; 
+    const sugStartVal = parseInt(data.annotation.properties[startcode][1] ?? 0, 10);
+    const sugStopVal = parseInt(data.annotation.properties[stopcode][1] ?? 0, 10);
+    globalSelectionStart = sugStartVal;
+    globalSelectionEnd = sugStopVal;
+    auto_annotation_internal_id = data['neo_id_of_auto_anno'] || 0; 
+    window.currentLatteSuggestionId = data['suggestion_id'] || null;
+    window.currentTextNeoId = data['text_neo_id'] || (typeof languageOptions !== 'undefined' ? languageOptions.nodeid : null); 
+
+    let snippet = '';
+    if (typeof getSelectedTextSnippet === 'function') {
+      snippet = getSelectedTextSnippet(sugStartVal, sugStopVal);
+    }
+    if (!snippet) {
+      const spans = [];
+      for (let i = sugStartVal; i <= sugStopVal; i++) {
+        const s = (typeof getSpanByIter === 'function') ? getSpanByIter(i) : document.querySelector(`.ltr[data-itercounter="${i}"]`);
+        if (s) spans.push(s.textContent);
+      }
+      snippet = spans.join('');
+    }
+    globalSelectionText = snippet;
   }
   var annotationStructure = data['annotationFields'];
   var annotationExtraFields = Object.keys(data['annotationFields']) || false;
@@ -354,6 +423,70 @@ function showdata(data) {
   for (var i = 0; i < annotationExtraFields.length; i++) {
     annotationTarget.appendChild(writeField(annotationExtraFields[i], '', false, annotationStructure));
   }
+
+  // If viewing an automated suggestion and user has edit rights, render action buttons.
+  if (datamode === 'automated') {
+    const sugId = data['suggestion_id'];
+    const sugStart = parseInt(data.annotation?.properties?.[startcode]?.[1] ?? 0, 10);
+    const sugStop = parseInt(data.annotation?.properties?.[stopcode]?.[1] ?? 0, 10);
+    const detectedType = data.annotation?.properties?.['detected_type']?.[1] || 'Entity';
+    const canEdit = data['can_remove'] || (typeof window.userHasEditRights !== 'undefined' && window.userHasEditRights);
+
+    const hasNonCore = (typeof window.hasNonCoreEntities !== 'undefined')
+      ? Boolean(window.hasNonCoreEntities)
+      : (typeof coreNodes !== 'undefined' && coreNodes.length > 0);
+
+    // If no custom entity types defined in schema, render schema notice directly in this single pass
+    if (!hasNonCore) {
+      const kbBox = document.getElementById('urlrelations');
+      if (kbBox) {
+        kbBox.classList.add('hidden');
+        kbBox.style.setProperty('display', 'none', 'important');
+      }
+
+      const noticeCard = document.createElement('div');
+      noticeCard.id = 'schemaNoticeCard';
+      noticeCard.className = 'schema-notice mt-4 p-3.5 rounded-xl bg-amber-50 border border-amber-200/80 text-amber-900 text-xs space-y-1.5';
+      noticeCard.innerHTML = `
+        <div class="flex items-center gap-2 font-semibold text-amber-800">
+          <i class="fas fa-info-circle text-amber-600"></i>
+          <span>Schema notice</span>
+        </div>
+        <p class="leading-relaxed text-amber-700">
+          No entity types outside of the core components have been defined. You can inspect, re-trim, or delete this suggestion, but custom entity types must be configured in the schema before linking it as a stored entity.
+        </p>
+      `;
+      annotationTarget.appendChild(noticeCard);
+    } else if (canEdit) {
+      // Custom entity types exist: render the promotion creation box so user can assign this mention to a custom entity type.
+      renderAutomaticPromotionBox(annotationTarget, sugId, sugStart, sugStop, detectedType, globalSelectionText || '');
+    }
+
+    if (canEdit && sugId) {
+      const actionsCard = document.createElement('div');
+      actionsCard.className = 'mt-4 pt-3 border-t border-slate-200 flex items-center gap-2';
+      actionsCard.innerHTML = `
+        <button type="button" id="slideoverRetrimBtn" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border border-indigo-200 text-xs font-semibold transition cursor-pointer shadow-2xs">
+          <i class="fas fa-arrows-alt-h text-[11px]"></i>
+          <span>Retrim bounds</span>
+        </button>
+        <button type="button" onclick="removeAutomaticSuggestion('${sugId}')" class="flex-1 inline-flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-rose-50 hover:bg-rose-100 text-rose-700 border border-rose-200 text-xs font-semibold transition cursor-pointer shadow-2xs">
+          <i class="fas fa-trash-alt text-[11px]"></i>
+          <span>Delete suggestion</span>
+        </button>
+      `;
+      annotationTarget.appendChild(actionsCard);
+
+      setTimeout(() => {
+        document.getElementById('slideoverRetrimBtn')?.addEventListener('click', function() {
+          if (typeof toggleSlide === 'function') toggleSlide(0);
+          if (typeof startRetrimming === 'function') {
+            startRetrimming(sugId, parseInt(sugStart, 10), parseInt(sugStop, 10), detectedType);
+          }
+        });
+      }, 0);
+    }
+  }
   //show the type of the annotation as a header entry: 
   if (datamode === 'controll') {
     let etType = createDivider('Entity: ' + data['entity'][0]['type']); 
@@ -364,8 +497,9 @@ function showdata(data) {
     var entityStructure = data['entityFields'];
     let etpropdiv = document.createElement('div'); 
     etpropdiv.classList.add('etPropContainer'); 
-    Object.keys(data['entity'][0].properties).forEach(key => {
-      var row = data['entity'][0].properties[key];
+    const entityProperties = (data['entity'] && data['entity'][0] && data['entity'][0].properties) ? data['entity'][0].properties : {};
+    Object.keys(entityProperties).forEach(key => {
+      var row = entityProperties[key];
       let displayName = row[0];
       let displayValue = row[1];
       etpropdiv.appendChild(writeField(displayName, displayValue, true, entityStructure)); 
@@ -382,6 +516,27 @@ function showdata(data) {
       kb = new KnowledgeBase(false, false);
     })
     gateWay.appendChild(createStableLinkingBlock(neoid, etStable));
+    if (typeof window.userHasEditRights !== 'undefined' && window.userHasEditRights) {
+      const annoStartVal = parseInt(data?.annotation?.properties?.[startcode]?.[1] ?? -1, 10);
+      const annoStopVal = parseInt(data?.annotation?.properties?.[stopcode]?.[1] ?? -1, 10);
+      let matchedTextSnippet = '';
+      if (annoStartVal >= 0 && annoStopVal >= annoStartVal) {
+        if (typeof getSelectedTextSnippet === 'function') {
+          matchedTextSnippet = getSelectedTextSnippet(annoStartVal, annoStopVal);
+        } else {
+          const spans = [];
+          for (let i = annoStartVal; i <= annoStopVal; i++) {
+            const s = document.querySelector(`.ltr[data-itercounter="${i}"]`);
+            if (s) spans.push(s.textContent);
+          }
+          matchedTextSnippet = spans.join('');
+        }
+      }
+      matchedTextSnippet = (matchedTextSnippet || '').trim();
+      if (matchedTextSnippet !== '') {
+        gateWay.appendChild(createPropagateOccurrencesBlock(neoid, matchedTextSnippet));
+      }
+    }
     createEditRemoveBox(neoid, globalAnnoInteractId)
     .then(divelement => {
       console.log('divelement', divelement);
@@ -406,33 +561,120 @@ function showdata(data) {
     //displayET_variant(data['variants'], neoid);
     //With the type known: look up if there's a wikidata attribute: 
     let wdLabelAccordingToModel = Object.keys(entityStructure).filter(ar => entityStructure[ar][1] == 'wikidata')[0] || false;  
-    if (wdLabelAccordingToModel !==  false && data['entity'][0].properties[wdLabelAccordingToModel] !== undefined ) {
-      /*It's not always possible to assign Q-ids to an entity; so it could be undefined. Only run this block if there's a link to WD */
-      let qid = data['entity'][0].properties[wdLabelAccordingToModel][1]; 
-      var wd = new wikibaseEntry(qid, wdProperties, 'slideover', 'qid');
-      wd.getWikidata()
-        .then(function () { wd.renderEntities(qid) });
+    if (wdLabelAccordingToModel !==  false && entityProperties[wdLabelAccordingToModel] !== undefined ) {
+      /* It is not always possible to assign Q-IDs to an entity, so it could be undefined. Only run this block if there is a valid Wikidata Q-ID. */
+      let qid = entityProperties[wdLabelAccordingToModel][1]; 
+      let entityType = (data['entity'] && data['entity'][0] && data['entity'][0]['type']) ? data['entity'][0]['type'] : null;
+      if (qid && typeof qid === 'string' && /^Q[0-9]+$/.test(qid.trim())) {
+        var wd = new wikibaseEntry(qid.trim(), wdProperties, 'slideover', 'qid', entityType);
+        wd.getWikidata()
+          .then(function () { wd.renderEntities(qid.trim()); })
+          .catch(function (err) { console.warn('Could not load Wikidata entry for ' + qid, err); });
+      }
     }
   } else if (datamode === 'automated') {
-    // improved code by relying on the global! 
-    //  value is assigned to globalSelectionText by using the annotation trigger. 
-    
-    $ld_count = $('#max_ld'); 
-    $baseURL = '/AJAX/getEntitySuggestion.php?';
-    $parameters = {
-      'type': '',    //type is empty as there was no pickup by NERtool
-      'value': globalSelectionText,
-      'casesensitive': false, 
-      'allow_levenshtein': $('#use_ld').is(":checked"), 
-      'levenshtein_items': $('#max_ld').val()
-    };
-    $sendTo = $baseURL + jQuery.param($parameters);
-    //there's no need to keep the call to the suggestionbox during the conversion process!
-    //makeSuggestionBox();
-    getInfoFromBackend($sendTo)
-    .then((data) => {
-        loadIntoSuggestionBox(data, globalSelectionStart, globalSelectionEnd);
-      })
+    // Automated suggestions: check if any existing entity in the graph matches this spelling.
+    const lookupVal = (typeof globalSelectionText === 'string') ? globalSelectionText.trim() : '';
+    const texNeoId = (typeof languageOptions !== 'undefined' && languageOptions && languageOptions.nodeid)
+      ? languageOptions.nodeid
+      : (window.currentTextNeoId || '');
+    if (lookupVal !== '') {
+      const matchContainer = document.createElement('div');
+      matchContainer.id = 'autoEntityMatchesCard';
+      matchContainer.className = 'mt-4 p-3 rounded-xl bg-indigo-50/70 border border-indigo-200 space-y-2';
+      matchContainer.innerHTML = '<div class="text-xs font-semibold text-indigo-800"><i class="fas fa-spinner fa-spin mr-1.5"></i>Checking existing entities matching "' + lookupVal.replace(/</g, '&lt;') + '"...</div>';
+      annotationTarget.appendChild(matchContainer);
+
+      const params = new URLSearchParams({
+        type: '',
+        value: lookupVal,
+        casesensitive: 'false',
+        allow_levenshtein: 'false',
+        texid: texNeoId
+      });
+      fetch('/AJAX/getEntitySuggestion.php?' + params.toString())
+        .then(r => r.json())
+        .then(resData => {
+          if (!resData || !Array.isArray(resData.nodes) || resData.nodes.length === 0) {
+            matchContainer.remove();
+            return;
+          }
+          matchContainer.innerHTML = '';
+          const header = document.createElement('div');
+          header.className = 'text-xs font-bold text-indigo-900 flex items-center gap-1.5';
+          header.innerHTML = '<i class="fas fa-link text-indigo-600"></i><span>Matching existing entities (' + resData.nodes.length + ')</span>';
+          matchContainer.appendChild(header);
+
+          const canEdit = (typeof window.userHasEditRights !== 'undefined' && window.userHasEditRights) || (typeof globalLoginAvailable !== 'undefined' && globalLoginAvailable);
+
+          resData.nodes.slice(0, 5).forEach(nodeItem => {
+            const eid = nodeItem[0];
+            const etype = nodeItem[1] || 'Entity';
+            const props = nodeItem[2] || {};
+            let displayLabel = '';
+            for (const [k, v] of Object.entries(props)) {
+              if (v && v.value && k !== 'uid') {
+                displayLabel = String(v.value);
+                break;
+              }
+            }
+            if (!displayLabel) displayLabel = '#' + eid;
+
+            const row = document.createElement('div');
+            row.className = 'flex items-center justify-between gap-2 p-2 rounded-lg bg-white border border-indigo-100 text-xs';
+            const info = document.createElement('div');
+            info.className = 'min-w-0 flex-1';
+            info.innerHTML = `<span class="font-semibold text-slate-900 truncate block">${displayLabel.replace(/</g, '&lt;')}</span><span class="text-[10px] text-slate-500">${etype}</span>`;
+            row.appendChild(info);
+
+            if (canEdit && typeof window.quickLinkSpanToEntity === 'function') {
+              const actions = document.createElement('div');
+              actions.className = 'flex items-center gap-1 flex-shrink-0';
+
+              const linkBtn = document.createElement('button');
+              linkBtn.type = 'button';
+              linkBtn.className = 'px-2.5 py-1 rounded bg-indigo-600 hover:bg-indigo-700 text-white text-[11px] font-semibold cursor-pointer';
+              linkBtn.textContent = 'Link';
+              linkBtn.onclick = function () {
+                linkBtn.disabled = true;
+                window.quickLinkSpanToEntity(eid, globalSelectionStart, globalSelectionEnd, lookupVal, false)
+                  .catch(() => { linkBtn.disabled = false; });
+              };
+
+              const linkAllBtn = document.createElement('button');
+              linkAllBtn.type = 'button';
+              linkAllBtn.className = 'px-2.5 py-1 rounded bg-emerald-600 hover:bg-emerald-700 text-white text-[11px] font-semibold cursor-pointer';
+              linkAllBtn.textContent = 'Link all';
+              linkAllBtn.title = 'Link this mention and all matching occurrences in document';
+              linkAllBtn.onclick = function () {
+                linkAllBtn.disabled = true;
+                window.quickLinkSpanToEntity(eid, globalSelectionStart, globalSelectionEnd, lookupVal, true)
+                  .catch(() => { linkAllBtn.disabled = false; });
+              };
+
+              actions.appendChild(linkBtn);
+              actions.appendChild(linkAllBtn);
+              row.appendChild(actions);
+            }
+            matchContainer.appendChild(row);
+          });
+
+          // Also populate the floating context popup under the cursor if present.
+          if (typeof window.renderMatchingEntitiesInSuggestionBox === 'function') {
+            window.renderMatchingEntitiesInSuggestionBox(resData, globalSelectionStart, globalSelectionEnd, lookupVal);
+          }
+        })
+        .catch(() => {
+          matchContainer.remove();
+        });
+    }
+  }
+
+  // Update spinner with smooth fade in of 0.25 seconds for the final output
+  if (annotationTarget) {
+    annotationTarget.classList.remove('slideover-fade-in');
+    void annotationTarget.offsetWidth;
+    annotationTarget.classList.add('slideover-fade-in');
   }
 }
 
@@ -495,134 +737,225 @@ function handleError(e) {
   document.body.appendChild(modal);
 }
 
-function loadAnnotationData(annotationID = false) {
+let activeResolvingAnnotationId = null;
+let lastAnnotationResolveTimestamp = 0;
 
-  console.log(globalLoginAvailable); 
+function showSlideoverLoadingState() {
+  if (typeof toggleSlide === 'function') {
+    toggleSlide(1);
+  }
+  const titleEl = document.getElementById('slideover-title');
+  if (titleEl) {
+    titleEl.textContent = 'Entity & annotation inspector';
+  }
+  const content = document.getElementById('slideoverDynamicContent');
+  if (!content) return;
+
+  content.classList.remove('slideover-fade-in');
+  content.innerHTML = `
+    <div id="slideoverLoadingSpinner" class="w-full flex flex-col items-center justify-center py-24 px-4 text-center space-y-4">
+      <div class="relative w-12 h-12 flex items-center justify-center">
+        <div class="absolute inset-0 rounded-full border-2 border-indigo-100 animate-ping opacity-35"></div>
+        <div class="w-10 h-10 rounded-full border-2 border-slate-200 border-t-indigo-600 animate-spin"></div>
+        <i class="fas fa-fingerprint text-indigo-500 text-xs absolute"></i>
+      </div>
+      <div class="space-y-1">
+        <p class="text-xs font-semibold text-slate-800">Resolving annotation</p>
+        <p class="text-[11px] text-slate-400">Fetching graph properties and metadata...</p>
+      </div>
+      <div class="w-40 h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1">
+        <div class="h-full bg-indigo-500/70 rounded-full animate-pulse w-3/4"></div>
+      </div>
+    </div>
+  `;
+}
+
+function showSlideoverErrorState(message) {
+  const content = document.getElementById('slideoverDynamicContent');
+  if (!content) return;
+  content.classList.remove('slideover-fade-in');
+  void content.offsetWidth;
+  const esc = (typeof window.escapeHtml === 'function') ? window.escapeHtml : (s => s);
+  content.innerHTML = `
+    <div class="p-4 rounded-xl bg-rose-50 border border-rose-200 text-rose-800 text-xs flex items-start gap-2.5">
+      <i class="fas fa-exclamation-circle text-rose-600 shrink-0 mt-0.5"></i>
+      <div>
+        <p class="font-semibold text-rose-900">Unable to load annotation</p>
+        <p class="mt-1 text-rose-700 leading-relaxed">${esc(message)}</p>
+      </div>
+    </div>
+  `;
+  content.classList.add('slideover-fade-in');
+}
+
+function createPropagateOccurrencesBlock(entityNeoId, selectionText) {
+  const container = document.createElement('div');
+  container.className = 'mt-3 p-3 bg-indigo-50/70 border border-indigo-200 rounded-xl space-y-2';
+
+  const title = document.createElement('div');
+  title.className = 'text-xs font-semibold text-indigo-900 flex items-center gap-1.5';
+  title.innerHTML = '<i class="fas fa-clone text-indigo-600"></i><span>Propagate entity in text</span>';
+
+  const desc = document.createElement('p');
+  desc.className = 'text-xs text-slate-600';
+  desc.textContent = 'Link all unannotated occurrences of "' + selectionText + '" in this document to this entity.';
+
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'w-full inline-flex items-center justify-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-semibold shadow-2xs transition-colors cursor-pointer';
+  btn.innerHTML = '<i class="fas fa-magic text-[11px]"></i><span>Apply to all occurrences</span>';
+
+  const statusEl = document.createElement('div');
+  statusEl.className = 'text-xs hidden';
+
+  btn.addEventListener('click', async function () {
+    const texNeoId = (typeof languageOptions !== 'undefined' && languageOptions && languageOptions.nodeid)
+      ? languageOptions.nodeid
+      : (window.currentTextNeoId || 0);
+    if (!texNeoId) return;
+
+    btn.disabled = true;
+    btn.classList.add('opacity-50', 'cursor-not-allowed');
+    btn.textContent = 'Propagating...';
+    statusEl.classList.add('hidden');
+
+    try {
+      const tokenRes = await fetch('/AJAX/getdisposabletoken.php?task=1');
+      const freshToken = await tokenRes.json();
+      const batchForm = new FormData();
+      batchForm.append('sourceNeoID', entityNeoId);
+      batchForm.append('texNeoid', texNeoId);
+      batchForm.append('selection', selectionText);
+      batchForm.append('csrf', freshToken);
+      batchForm.append('matchCase', 'true');
+      batchForm.append('wholeWord', 'true');
+
+      const res = await fetch('/AJAX/crud/connect_all_occurrences.php', {
+        method: 'POST',
+        body: batchForm
+      });
+      const data = await res.json();
+      statusEl.classList.remove('hidden');
+      if (data.success && data.created_count > 0) {
+        data.annotations.forEach(anno => {
+          if (typeof displayUpdatedText === 'function') {
+            displayUpdatedText(anno.type, anno.start, anno.stop, anno.uuid);
+          }
+          if (window.storedAnnotations && window.storedAnnotations.relations) {
+            window.storedAnnotations.relations[anno.uuid] = {
+              start: anno.start,
+              stop: anno.stop,
+              type: anno.type
+            };
+          }
+        });
+        statusEl.className = 'text-xs font-semibold text-emerald-700';
+        statusEl.textContent = data.msg || ('Linked ' + data.created_count + ' additional occurrence(s).');
+      } else if (data.success) {
+        statusEl.className = 'text-xs text-slate-600';
+        statusEl.textContent = data.msg || 'No additional unannotated occurrences found.';
+      } else {
+        statusEl.className = 'text-xs font-semibold text-rose-600';
+        statusEl.textContent = data.error || 'Failed to propagate entity.';
+      }
+    } catch (err) {
+      statusEl.classList.remove('hidden');
+      statusEl.className = 'text-xs font-semibold text-rose-600';
+      statusEl.textContent = 'Network error while propagating entity.';
+    } finally {
+      btn.disabled = false;
+      btn.classList.remove('opacity-50', 'cursor-not-allowed');
+      btn.innerHTML = '<i class="fas fa-magic text-[11px]"></i><span>Apply to all occurrences</span>';
+    }
+  });
+
+  container.appendChild(title);
+  container.appendChild(desc);
+  container.appendChild(btn);
+  container.appendChild(statusEl);
+  return container;
+}
+
+function loadAnnotationData(annotationID = false) {
   var relatedAnnotations = []; 
   if (!(annotationID)){
-    //get annotationID in case of clickevent trigger: find the source of the event. 
-    var eventsource = event.source || event.target;
-    //event.preventDefault();
-    relatedAnnotations = eventsource.dataset.annotation.split(',');
-    annotationID = relatedAnnotations[0];
+    // Get annotationID in case of click event trigger: find source of event. 
+    var eventsource = (typeof event !== 'undefined' && event) ? (event.source || event.target) : null;
+    if (eventsource && eventsource.dataset && eventsource.dataset.annotation) {
+      relatedAnnotations = eventsource.dataset.annotation.split(',');
+      annotationID = relatedAnnotations[0];
+    }
   }
-  //otherwise the annotationID is given as of the function call parameter(in case of
-  //  programatically triggering the event). 
-  // to handle multiple overlapping annotations do a check here: is the even triggered by an overlap (2 or more) or not (1 or 0). 
+  if (!annotationID && relatedAnnotations.length === 0) {
+    return;
+  }
+
+  // Guard against duplicate concurrent calls for the same annotation
+  const now = Date.now();
+  if (annotationID && activeResolvingAnnotationId === annotationID && (now - lastAnnotationResolveTimestamp) < 400) {
+    return;
+  }
+  activeResolvingAnnotationId = annotationID;
+  lastAnnotationResolveTimestamp = now;
+
+  // Single annotation resolution
   if(relatedAnnotations.length <= 1){
+    // Immediately open slider drawer with subtle noticeable loading spinner
+    showSlideoverLoadingState();
+
     getInfoFromBackend("/AJAX/resolve_annotation.php?annotation=" + annotationID)
     .then((data) => {
       if (data['code']==-1){
+        showSlideoverErrorState(data['error'] || 'Could not resolve annotation data.');
         handleError(''); 
       }else{
         globalAnnoInteractId = data['annotation']['neoid']; 
-        //console.log(data); 
         showdata(data);
         updateState('State', 'An annotated entity was selected, you can now see the data held in the database.'); 
       }
     })
-    .catch(err => handleError(err) );
+    .catch(err => {
+      showSlideoverErrorState('An error occurred while loading annotation data.');
+      handleError(err);
+    })
+    .finally(() => {
+      setTimeout(() => {
+        if (activeResolvingAnnotationId === annotationID) {
+          activeResolvingAnnotationId = null;
+        }
+      }, 200);
+    });
   }
 }
 
 function addInteractionToEntities() {
-  var links = document.getElementsByClassName('linked');
+  // Main text annotations are handled through delegation in initAnnotationClickDelegation.
+  // This listener attaches only to linked elements outside #textcontent to prevent duplicate firing.
+  var links = document.querySelectorAll('.linked:not(#textcontent .linked)');
   for (var i = 0; i < links.length; i++) {
-    links[i].addEventListener('click', function () {
+    links[i].addEventListener('click', function (e) {
+      e.stopPropagation();
       loadAnnotationData();
-    })
+    });
   }
-};
+}
 
 
 
 function createDivider(string){
   /**
-   * USED to structure the entity sidebar with extended info for
-   * wikidata, variants and entity.  
+   * Used to structure the entity sidebar with extended info for
+   * Wikidata, variants and entity.  
    */
   const divider = document.createElement('h3');
   const dividerstring = document.createTextNode(string);
   divider.appendChild(dividerstring);
-  divider.classList.add('font-bold', 'text-lg', 'w-full', 'items-center', 'flex', 'justify-center'); 
+  divider.className = 'text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1.5 mt-4 mb-3 flex items-center gap-1.5'; 
   return divider;
 }
 
-// function showDBInfoFor(id, extra = '') {
-//   // TO DO dormant code (cleanup allows for deletion!) (ok)
-//   /*
-//   * Uses the internal NEOID identifier to fetch all information of a given entity.
-//   * given info includes: variants, properties, stable id, label and the datamodel!
-//   * THIS is a function specific to the disambiguation process coming from showhit()-calls. 
-//   * Needs to be extende so that it shows the actual data in the DOM. 
-//   */
-//   let extended = '';
-//   if (extra) {
-//     extended = '&extended=1'
-//   }
-//   // shows all data there's stored about it.
-//   getInfoFromBackend('/AJAX/getETById.php?id=' + id + extended)   //irrelevant at this point!
-//     .then((data) => {
-//       //process entity information: 
-//       //  Use the order defined by the model to show properties: 
-//       const model = data['extra']['model']; 
-//       const info = data['props'];
-//       // Iterate over properties
-//       //let reduced = info.map(sublist => sublist[0]);    //OK: 
-//       /*for (let mod of Object.values(model)){ 
-//         let modName = mod[0]; 
-//         if(reduced.indexOf(modName)>-1){
-//           //let domElement = document.createElement('span');
-//           console.log('PROP FOUND: ', modName, info[reduced.indexOf(modName)]);
-//         }
-//       }*/
-
-//       // for (let i = 0; i < model.length; i++) {
-//       //   let modelBlock = model[i]; 
-//       //   let domName = modelBlock[0]; 
-//       //   let domType = modelBlock[1]; 
-//       // }
-//       // for (let i = 0; i < info.length; i++) {
-//       //   let infoBlock = info[i];
-//       //   let blockName = infoBlock[0];
-//       //   let blockData = infoBlock[1];
-//       //   console.log(infoBlock);
-//       // }
-//       //process: variants
-//       const variants = data['variantSpellings'];
-//       const uri = data['stable'];
-//       neoVarsToDom(variants, 1); 
-//       //make varbox visible!
-//       document.getElementById('embeddedSpellingVariants').classList.remove('hidden'); 
-//       //showing entity in the DOM: 
-//       //1:  Make empty
-//       let proptarget = document.getElementById('displayHitEt'); 
-//       proptarget.innerHTML = ''; 
-//       //show the type of entity that has a potential match!
-//       let typeOfEt = data.extra.label;
-//       proptarget.appendChild(createDivider('Entity: '+typeOfEt)); 
-//       //2:  use writeField function!
-//       Object.values(data['props']).forEach((prop) => {
-//         console.log('property: ', prop); 
-//         let propKey = prop[0];
-//         let propVal = prop[1];
-//         console.log(propKey, propVal); 
-//         let subelem = writeField(propKey, propVal, true, data.extra.model);
-//         console.log(subelem); 
-//         proptarget.appendChild(subelem); 
-//       });
-//       //TO DO: option to connect ET to current selection is still missing!! // not required, dormant code!
-
-//       let referenceNode = document.getElementById('relatedTextStats').parentElement;
-//       //remove the stable block if it exists: 
-//       let stableBox = document.getElementById('stableBox');
-//       if (stableBox) { stableBox.remove(); }
-//       referenceNode.appendChild(createStableLinkingBlock(id, uri));
-//       referenceNode.appendChild(createEditRemoveBox(id, globalAnnoInteractId));
-//     });
-
-// }
-
-$(document).ready(function () {
+if (document.readyState === 'loading') {
+  document.addEventListener('DOMContentLoaded', addInteractionToEntities);
+} else {
   addInteractionToEntities();
-});
+}

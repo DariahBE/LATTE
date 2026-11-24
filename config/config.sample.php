@@ -1,11 +1,17 @@
 <?php
+/* Debug mode: if true, detailed error messages and stack traces are displayed. If false, a generic controlled error message is shown. */
+$debug = True;
+if (!defined('DEBUG')) {
+    define('DEBUG', $debug);
+}
+
 /*GIVE THE PROJECT A NAME: */
-$projectName = <insert project name>
+$projectName = '<insert project name>';
 
 /*Connect to the NEO4Jdatabase:*/
 //$defaultdriver = 'neo4j';   //neo4j or bolt  // disabled!
 $hostname =  '<name of the neo4J container>';    //where's the DB hosted
-$hostport = <portnumber here>;           //Port used by the DB
+$hostport = 7687;           //Port used by the DB
 $userName = '<username here>';
 $userPaswrd = '<password here>';
 $databaseName = '<dbname.db here>'; //database hosted on the graph DB instance.
@@ -19,7 +25,7 @@ $originEmail = '<sent-from email to be shown to recipients.>';     //emailadress
 $smtpUser = '<username of the smtp server>';     //account use on the server to send the mail. set to false if there is no authentication method
 $smtpPassword = '<password of the smtp server>';     //password associated to the email adress. set to false if there is no authentication method
 $smtpServer = '<SMTP server address>';
-$smtpPort = <SMTP Port number>;     //port of the SMTP server  //default = 25
+$smtpPort = 25;     //port of the SMTP server  //default = 25
 $selfSignedCertificates = true;           //set to true for servers where a self-signed SSL-certificate is being used (see Bug info described here: https://github.com/PHPMailer/PHPMailer/issues/718 )
 
 
@@ -185,7 +191,7 @@ define("CONNECTORENDPOINT", $latteConnector);
 
 
 /*system environment: where's the default folder.*/
-define( 'ROOT_DIR', $_SERVER["DOCUMENT_ROOT"] );
+define( 'ROOT_DIR', dirname(__DIR__) );
 
 /*Registration set up:
   0 = closed: no new registrations possible.
@@ -194,5 +200,10 @@ define( 'ROOT_DIR', $_SERVER["DOCUMENT_ROOT"] );
 */
 $registration_policy = 1;
 define('REGISTRATIONPOLICY', $registration_policy);
+
+/* Global error and exception handling. */
+if (defined('ROOT_DIR') && file_exists(ROOT_DIR . '/includes/error_handler.inc.php')) {
+    include_once(ROOT_DIR . '/includes/error_handler.inc.php');
+}
 
 ?>

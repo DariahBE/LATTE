@@ -1,370 +1,486 @@
 <?php
+/**
+ * Wikidata user preferences and caching manager.
+ * Supports per-entity-type Wikidata P-tag selection, custom property lookup,
+ * temporal data strategies (e.g. census evolution), and missing data indicators.
+ */
 
-  class Wikidata_user extends User{
-
-    private $wikidataPrefixToWikipediaLinks = array(
-      // add whatever languages you want!
-      //  As key you use the key used by the wikidata response.
-      //  THe value is an array holding the following options: 
-      //      URL PREFIX: the first part is the prefix of the URL (notice the language is encoded in there)
-      //      DOM STRING: The second part is the string shown in the DOM to indicate what lanagues are use.  
-      //      ISDEFAULT?: A Boolean indicating if the language is shown by default. 
-      //
-      'enwiki' => array('https://en.wikipedia.org/wiki/', 'English', True), 
-      'enwikivoyage' => array('https://en.wikivoyage.org/wiki/', 'wikivoyage (EN)', True), 
-      'frwiki' => array('https://fr.wikipedia.org/wiki/', 'Français', True), 
-      'nlwiki' => array('https://nl.wikipedia.org/wiki/', 'Nederlands', False), 
-      'dewiki' => array('https://de.wikipedia.org/wiki/', 'Deutsch', False), 
-      'plwiki' => array('https://pl.wikipedia.org/wiki/', 'Polski', False), 
-      'ptwiki' => array('https://pt.wikipedia.org/wiki/', 'Português', False), 
-      'eswiki' => array('https://es.wikipedia.org/wiki/', 'Español', False), 
-      'itwiki' => array('https://it.wikipedia.org/wiki/', 'Italiano', False), 
-      'elwiki' => array('https://el.wikipedia.org/wiki/', 'ελληνικά', False), 
-      'huwiki' => array('https://hu.wikipedia.org/wiki/', 'magyar nyelv', False), 
-      'ukwiki' => array('https://uk.wikipedia.org/wiki/', 'українська мова', False), 
-    ); 
-
-    private $wikidataProperties = array(
-      //Add whatever properties you want!! NOTICE for every added property, set the appropriate data type to use in the frontend (4th parameter) !!!
-      // The value is an array, 
-      //      THe first part is the label to be used in the DOM: 
-      //      The second part is a boolean: True indicates the property is part of the default display. 
-      //      The third is the type of data used in the User Frontend: Choose between: geo, uri, img, str
-
-      'P625' => array('Coordinates', True, 'geo'),
-      'P18' => array('Image', True, 'img'), 
-      'P94' => array('Coat of Arms', False, 'img'), 
-      'P1801' => array('Commemorative Plaque', False, 'img'), 
-      'P1082' => array('Population count', False, 'str'), 
-      'P158' => array('Seal', False, 'img'), 
-      'P214' => array('VIAF ID', True, 'uri'), 
-      'P244' => array('Library of Congress ID', False, 'uri'), 
-      'P1566' => array('Geonames ID', True, 'uri'), 
-      'P21' => array('Gender', True, 'str'), 
-      'P569' => array('Date of Birth', True, 'str'), 
-      'P106' => array('Occupation', False, 'str'), 
-      'P2671' => array('Google Knowledge Graph ID', False, 'uri'), 
-      'P1449' => array('Nickname', True, 'str'),
-      'P1198' => array('Unemployment rate', True, 'str'),
-      'P2884' => array('Mains voltage', True, 'str'), 
-      'P2250' => array('Life expectansy', True, 'str'), 
-      'P2044' => array('Height above sea level', True, 'str')
-    ); 
-
-    //used for the label returned by the wikidata api: 
-    private $wikidataPreferedLanguages = array(
-      'en' => 'English',
-      'fr' => 'Français',
-      'de' => 'Deutsch', 
-      'nl' => 'Nederlands', 
-      'pl' => 'Polski',
-      'pt' => 'Português', 
-      'es' => 'Español', 
-      'it' => 'Italiano', 
-      'hu' => 'magyar nyelv', 
-      'uk' => 'українська мова',
-    );
-
-    public $customPreferences = array(
-        'shownProperties' => false,
-        'fallbackLanguage' => 'en',
-        'preferredLanguage' => false,
-        'showWikipediaLinksTo' => false,
-        'stringmatchWikipediaTitles' =>false
-    ); 
-
-    /**helper function reads and validates data coming from the database. If it matches expectations, data is stored in memory, later it is stored in a cookie! */
-  private  function read_validate_and_store_settings($data, $settings){
-    if(boolval($data)){
-      //data is a comma separated string: 
-      $retrievedData = explode(',', $data);
-      $saveto = $settings[0];
-      $checkAgainst = $settings[1];
-      //vallidate that every value in $retrievedData is allowed by the backend!
-      $trustedOutput = array(); 
-      foreach($retrievedData as $choice){
-        if (array_key_exists($choice, $checkAgainst)){
-          array_push($trustedOutput, $choice);
-        }
-      }
-      if(boolval(count($trustedOutput))){
-        $this->customPreferences[$saveto] = $trustedOutput;
-      }
-    }else{
-      return false;
-    }
-  }
-
-    public function buildPreferences(){
-      /**Preferences dominance order: 
-       * There is always a Settings-cookie for wikidata preferences. The content of this cookie is determined by: 
-       *    If A cookie is set: the cookie takes precedence over all else!
-       *    If NO cookie is set and the user is logged and has valid userpreferences: use the stored, static preferences.
-       *    If neither a cookie, nor preferences apply to the session => use defaultvalues. 
-      */
-
-
-  
-      //
-      //      LOADING COOKIES: VALIDATE THEM!!
-      //
-      $cookies = array(
-        'wd_properties' => array('shownProperties', $this->wikidataProperties),
-        'wd_pref_lang' => array('preferredLanguage', $this->wikidataPreferedLanguages),
-        'wd_links' => array('showWikipediaLinksTo', $this->wikidataPrefixToWikipediaLinks), 
-        'wd_wikipedia_titles' =>array('stringmatchWikipediaTitles', $this->wikidataPrefixToWikipediaLinks)
-      ); 
-
-
-      foreach($cookies as $cookiename => $cookieHandle){
-        if(isset($_COOKIE[$cookiename])){
-          $saveto = $cookieHandle[0];
-          $checkAgainst = $cookieHandle[1];
-          //a wikidata properties: cookie is present. 
-          //wd_properties is a string (comma separated list of keys)! In the output, only show the properties that are trusted.
-          //if tampered input was provided ==> filter all invalid entries
-          //if you end up with an empty list ==> the value stays false and the next step is followed!
-          $untrustedCookie = explode(',', $_COOKIE[$cookiename]); 
-          $trustedOutput = array(); 
-          foreach($untrustedCookie as $choice){
-            if (array_key_exists($choice, $checkAgainst)){
-              array_push($trustedOutput, $choice);
-            }
-          }
-          if(boolval(count($trustedOutput))){
-            $this->customPreferences[$saveto] = $trustedOutput;
-          }
-        }
-      }
-      //cookies are parse and checked: look for user preferences if any of the optional items are still false AND a session is set!
-      if(!($this->customPreferences['shownProperties'] && $this->customPreferences['preferredLanguage'] && $this->customPreferences['showWikipediaLinksTo'] && $this->customPreferences['stringmatchWikipediaTitles'])){
-        //uses the user sql id integer field!
-        if(isset($_SESSION['userid'])){
-          $query = "SELECT 
-            userdata.wd_property_preferences as wd_properties,
-            userdata.wd_language_preferences as wd_pref_lang,
-            userdata.wd_wikilink_preferences as wd_links, 
-            userdata.wd_titlestring_preferences as wd_wikipedia_titles
-            FROM userdata 
-            WHERE 
-            userdata.id = ? LIMIT 1;
-            ";
-          $stmt = $this->sqlite->prepare($query);
-          //uses the user sql ID (integer)
-          $stmt->execute(array($_SESSION['userid']));
-          $result = $stmt->fetchAll(PDO::FETCH_ASSOC);
-          foreach($result as $row){
-            if(!$this->customPreferences['shownProperties']){
-              $this->read_validate_and_store_settings($row['wd_properties'], $cookies['wd_properties']);
-            }
-            if (!$this->customPreferences['preferredLanguage']){
-              $this->read_validate_and_store_settings($row['wd_pref_lang'], $cookies['wd_pref_lang']);
-            }
-            if(!$this->customPreferences['showWikipediaLinksTo']){
-              $this->read_validate_and_store_settings($row['wd_links'], $cookies['wd_links']);
-            }
-            if(!$this->customPreferences['stringmatchWikipediaTitles']){
-              $this->read_validate_and_store_settings($row['wd_wikipedia_titles'], $cookies['wd_wikipedia_titles']);
-            }
-          }
-        }
-      }
-
-      //cookies and static user preferences are checked: Look for whatever is defaulted and set that to items that are still false: 
-      if(!($this->customPreferences['shownProperties'] && $this->customPreferences['preferredLanguage'] && $this->customPreferences['showWikipediaLinksTo'] && $this->customPreferences['stringmatchWikipediaTitles'])){
-        //properties (P-tags)
-        if(!$this->customPreferences['shownProperties']){
-          $defaultProperties = array(); 
-          foreach($this->wikidataProperties as $k=>$v){
-            if($v[1]){
-              array_push($defaultProperties, $k); 
-            }
-          }
-          $this->customPreferences['shownProperties'] = $defaultProperties;
-        }
-        //language: no nonsense - resolve ENglish as default
-        if (!$this->customPreferences['preferredLanguage']){
-          $this->customPreferences['preferredLanguage'] = array('en');
-        }
-        //wikipedia links!
-        if(!$this->customPreferences['showWikipediaLinksTo']){
-          $defaultLinks = array();
-          foreach($this->wikidataPrefixToWikipediaLinks as $k=>$v){
-            if($v[2]){
-              array_push($defaultLinks, $k); 
-            }
-          }
-          $this->customPreferences['showWikipediaLinksTo'] = $defaultLinks;
-        }
-        //lookup string based matches in the following wikis: A wiki is a 2letter language code followed by 'wiki'
-        //e.g. enwiki ==> english Wikipedia; nlwiki, dewiki, frwiki....
-        if(!$this->customPreferences['stringmatchWikipediaTitles']){
-          $defaultLinks = array();
-          foreach($this->wikidataPrefixToWikipediaLinks as $k=>$v){
-            if($v[2]){
-              array_push($defaultLinks, $k); 
-            }
-          }
-          $this->customPreferences['stringmatchWikipediaTitles'] = $defaultLinks;
-        }
-      //$customPreferences now has it's settings!
-      }
-      //end of building preferences is reached ==> store whatever comes out in cookies!
-      //this is done every time the method is called, that way unwanted/unsuppor²ted properties get filtered out in case of tampering.
-      $cleanedCookieString_properties = implode(',', $this->customPreferences['shownProperties']);
-      $cleanedCookieString_links = implode(',', $this->customPreferences['showWikipediaLinksTo']);
-      $cleanedCookieString_language = implode(',', $this->customPreferences['preferredLanguage']); 
-      $cleanedCookieString_titleLookup = implode(',', $this->customPreferences['stringmatchWikipediaTitles']);
-      $cookieOptions = array(
-        'path' => '/',
-        'expires' => time()+3600*24*365, 
-        'samesite' => 'Strict'
-      ); 
-      setcookie('wd_properties', $cleanedCookieString_properties, $cookieOptions);
-      setcookie('wd_links', $cleanedCookieString_links, $cookieOptions);
-      setcookie('wd_pref_lang', $cleanedCookieString_language, $cookieOptions);
-      setcookie('wd_wikipedia_titles', $cleanedCookieString_language, $cookieOptions);
-      }
-
-      private function getUserSettingsForKey($key){
-        //no need to check here; input is validated in this->generateForm: 
-        $query = 'SELECT '; 
-        //$query = 'MATCH (n:priv_user) WHERE n.userid = $uid RETURN '; 
-        if($key === 'properties'){
-          //$query.= ' n.wd_property_preferences ' ;  
-          $query.= ' userdata.wd_property_preferences ' ;  
-        }elseif($key === 'links'){
-          //$query .= ' n.wd_wikilink_preferences ';
-          $query .= ' userdata.wd_wikilink_preferences ';
-        }elseif($key === 'titles'){
-          //$query .= ' n.wd_titlestring_preferences ';
-          $query .= ' userdata.wd_titlestring_preferences ';
-        }elseif($key === 'language'){
-          //$query .= ' n.wd_language_preferences ';
-          $query .= ' userdata.wd_language_preferences '; 
-        }
-        $query .= ' AS data FROM userdata WHERE userdata.id = ? LIMIT 1 '; 
-        $stmt = $this->sqlite->prepare($query);
-        //uses the user sql ID (integer)
-        $stmt->execute(array($_SESSION['userid']));
-        $data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-        return explode(',', $data[0]['data']);
-      }
-
-      public function generateForm($formname){
-        if($formname === 'properties'){
-          $data = $this->wikidataProperties;
-          $position = 0;
-        }elseif($formname === 'links'){
-          $data = $this->wikidataPrefixToWikipediaLinks;
-          $position = 1;
-        }elseif($formname === 'titles'){
-          $data = $this->wikidataPrefixToWikipediaLinks;
-          $position = 1;
-        }else{
-          throw new Exception('Invalid form');
-        }
-        //what is chosen by the user: 
-        //idSalt: give the ID an extra salt to prevent one form activating the other when clicking on labels: 
-        $salt = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 8);
-        $userChoice = $this->getUserSettingsForKey($formname);
-        //generate HTML here: 
-        $output = '<div class=""><form method="POST" action="profileUpdate.php" class="" ><div class="grid lg:grid-cols-4 lg:gap-4 md:grid-cols-3 md:gap:3 sm:grid-cols-1 sm:gap-4">'; 
-        foreach($data as $key => $value){
-          if(in_array($key, $userChoice)){
-            $checked = ' checked '; 
-          }else{
-            $checked = ''; 
-          }
-          $saltedKey = $salt.$key; //randomizes ID's with salted string
-          $output .= 
-          '<div class="">
-            <input type="checkbox" id="'.$saltedKey.'" name="'.$key.'" '.$checked.'  >
-            <label for="'.$saltedKey.'">'.$value[$position].'</label>
-          </div>'; 
-        }
-        $output .= '</div><div class="appearance-none block w-full bg-grey-lighter text-grey-darker border border-grey-lighter rounded py-3 px-4 mb-3"><input class="hidden" name="form_type_setting_application_value" value="'.$formname.'"><input class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded" type="submit" value = "Submit"></form></div></div>';
-        return $output; 
-      }
-
-
-  public function storeProfileSettings($formname, $keys){
-    //vallidate the formname: 
-    $validForms = array(
-      'properties' => array($this->wikidataProperties, 'wd_property_preferences'),
-      'links' => array($this->wikidataPrefixToWikipediaLinks, 'wd_wikilink_preferences'), 
-      'titles' => array($this->wikidataPrefixToWikipediaLinks, 'wd_titlestring_preferences')
-    ); 
-    if(!(in_array($formname, array_keys($validForms)))){die("Invalid form detected.");}
-    //validate the keys: Do this in such a way that only whitelisted items are approved: 
-    $validatedKeys = array(); 
-    foreach($keys as $key){
-      if(array_key_exists($key, $validForms[$formname][0])){
-        array_push($validatedKeys, $key);
-      }
-    }
-    //if one or more valid keys are detected: 
-    if(count($validatedKeys)>0){
-      //update the settings: 
-      //uses the user sql ID (integer)
-      $userid = $_SESSION['userid'];
-      $validData = implode(',',$validatedKeys); 
-      $updateWDsettingsQuery = 'UPDATE userdata SET '.$validForms[$formname][1].' = ?  WHERE id = ? ';
-      //$updateWDsettingsQuery = 'MATCH (n:priv_user) WHERE n.userid = $uid SET n.'.$validForms[$formname][1].' = $prefString  return n; ';
-      //$updateAction = $this->client->run($updateWDsettingsQuery, array('uid'=>$userid, 'prefString'=>$validData)); 
-      $stmt = $this->sqlite->prepare($updateWDsettingsQuery);
-      $stmt->execute(array($validData, $userid));
-      //$data = $stmt->fetchAll(PDO::FETCH_ASSOC);
-
-      if($stmt->rowCount()===1){
-        return True; 
-      }
-    }
-    return False; 
-  }
-
-  public function makeSettingsDictionary(){
-    //only call this after the buildPreferences() method has been called!
-    $outputdictionary = array(
-      'fallbackLanguage' => $this->customPreferences['fallbackLanguage'],
-    ); 
-    $link = array(
-      'shownProperties' => array($this->wikidataProperties), 
-      'showWikipediaLinksTo' => array($this->wikidataPrefixToWikipediaLinks), 
-      'preferredLanguage' => array($this->wikidataPreferedLanguages),
-      'stringmatchWikipediaTitles' => array($this->wikidataPrefixToWikipediaLinks)
-    );
-    foreach($this->customPreferences as $prefName => $prefValue){
-      //add the key to the public dictionary if it does not exist!: 
-      if(!(array_key_exists($prefName, $outputdictionary))){
-        $outputdictionary[$prefName] = array(); 
-        //php based dict with settings: 
-        $codedSettings = $link[$prefName][0];
-        //public dict key is created, now fill with values!
-        foreach($prefValue as $choice){
-          $valueForChoice = $codedSettings[$choice];
-          $outputdictionary[$prefName][$choice] = $valueForChoice; 
-        }
-        
-      }
-
-    }
-    return $outputdictionary;
-  }
-
-  public function labelIndicator(){
-    /**
-     * renders a kv-array indicating which property holds the dedicate Q-label for a given entitytype. 
-     */
-    $indicator = array(); 
-    foreach(NODEMODEL as $key => $value){
-      foreach (NODEMODEL[$key] as $property => $propsettings){
-        if($propsettings[1] === 'wikidata'){
-          $indicator[$key] = $property;
-        }
-      }
-    }
-    return $indicator;
-  }
+if (!defined('ROOT_DIR')) {
+    include_once(dirname(__DIR__) . '/config/config.inc.php');
 }
-?>
+include_once(ROOT_DIR . '/includes/user.inc.php');
+
+class Wikidata_user extends User {
+
+    /**
+     * Supported Wikipedia language link portals.
+     */
+    protected $wikidataPrefixToWikipediaLinks = array(
+        'enwiki' => array('https://en.wikipedia.org/wiki/', 'English', true),
+        'enwikivoyage' => array('https://en.wikivoyage.org/wiki/', 'Wikivoyage (EN)', true),
+        'frwiki' => array('https://fr.wikipedia.org/wiki/', 'French', true),
+        'nlwiki' => array('https://nl.wikipedia.org/wiki/', 'Dutch', false),
+        'dewiki' => array('https://de.wikipedia.org/wiki/', 'German', false),
+        'plwiki' => array('https://pl.wikipedia.org/wiki/', 'Polish', false),
+        'ptwiki' => array('https://pt.wikipedia.org/wiki/', 'Portuguese', false),
+        'eswiki' => array('https://es.wikipedia.org/wiki/', 'Spanish', false),
+        'itwiki' => array('https://it.wikipedia.org/wiki/', 'Italian', false),
+        'lawiki' => array('https://la.wikipedia.org/wiki/', 'Latin', false),
+        'elwiki' => array('https://el.wikipedia.org/wiki/', 'Greek', false),
+        'huwiki' => array('https://hu.wikipedia.org/wiki/', 'Hungarian', false),
+        'ukwiki' => array('https://uk.wikipedia.org/wiki/', 'Ukrainian', false),
+        'ruwiki' => array('https://ru.wikipedia.org/wiki/', 'Russian', false),
+        'jawiki' => array('https://ja.wikipedia.org/wiki/', 'Japanese', false),
+        'zhwiki' => array('https://zh.wikipedia.org/wiki/', 'Chinese', false),
+        'arwiki' => array('https://ar.wikipedia.org/wiki/', 'Arabic', false),
+        'svwiki' => array('https://sv.wikipedia.org/wiki/', 'Swedish', false),
+        'cswiki' => array('https://cs.wikipedia.org/wiki/', 'Czech', false),
+        'dawiki' => array('https://da.wikipedia.org/wiki/', 'Danish', false),
+        'fiwiki' => array('https://fi.wikipedia.org/wiki/', 'Finnish', false),
+        'nowiki' => array('https://no.wikipedia.org/wiki/', 'Norwegian', false),
+        'trwiki' => array('https://tr.wikipedia.org/wiki/', 'Turkish', false),
+        'hewiki' => array('https://he.wikipedia.org/wiki/', 'Hebrew', false),
+    );
+
+    /**
+     * Supported language codes for Wikidata labels.
+     */
+    protected $wikidataPreferedLanguages = array(
+        'en' => 'English',
+        'fr' => 'Français',
+        'de' => 'Deutsch',
+        'nl' => 'Nederlands',
+        'pl' => 'Polski',
+        'pt' => 'Português',
+        'es' => 'Español',
+        'it' => 'Italiano',
+        'hu' => 'Magyar',
+        'uk' => 'Українська',
+    );
+
+    /**
+     * Active evaluated preferences structure.
+     */
+    public $customPreferences = array(
+        'shownPropertiesByEntity' => array(),
+        'shownProperties' => array(),
+        'fallbackLanguage' => 'en',
+        'preferredLanguage' => array('en'),
+        'showWikipediaLinksTo' => array('enwiki', 'frwiki'),
+        'stringmatchWikipediaTitles' => array('enwiki', 'frwiki'),
+        'prioritizeDetectedLanguage' => true,
+    );
+
+    /**
+     * Ensure optional title preference columns exist in SQLite userdata.
+     */
+    public function ensureTitlePrefsColumn(): void {
+        try {
+            $this->sqlite->exec("ALTER TABLE userdata ADD COLUMN wd_prioritize_detected_language INTEGER DEFAULT 1");
+        } catch (\Throwable $e) {
+            // Column already exists or table locked.
+        }
+    }
+
+    /**
+     * Default catalog of recommended Wikidata P-tags organized by entity type.
+     */
+    public static function getDefaultPropertyCatalog(): array {
+        return array(
+            'Person' => array(
+                'P21' => array('label' => 'Gender', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P569' => array('label' => 'Date of birth', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P570' => array('label' => 'Date of death', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P106' => array('label' => 'Occupation', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P19' => array('label' => 'Place of birth', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P20' => array('label' => 'Place of death', 'type' => 'str', 'enabled' => false, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P27' => array('label' => 'Country of citizenship', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P214' => array('label' => 'VIAF ID', 'type' => 'uri', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P244' => array('label' => 'Library of Congress ID', 'type' => 'uri', 'enabled' => false, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P18' => array('label' => 'Image', 'type' => 'img', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+            ),
+            'Place' => array(
+                'P625' => array('label' => 'Coordinates', 'type' => 'geo', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P17' => array('label' => 'Country', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P131' => array('label' => 'Located in administrative territory', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P1082' => array('label' => 'Population', 'type' => 'str', 'enabled' => true, 'show_missing' => true, 'temporal_mode' => 'history'),
+                'P2044' => array('label' => 'Elevation above sea level', 'type' => 'str', 'enabled' => false, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P1566' => array('label' => 'GeoNames ID', 'type' => 'uri', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P2131' => array('label' => 'Nominal GDP', 'type' => 'str', 'enabled' => false, 'show_missing' => false, 'temporal_mode' => 'history'),
+                'P18' => array('label' => 'Image', 'type' => 'img', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+            ),
+            'Organization' => array(
+                'P112' => array('label' => 'Founded by', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P571' => array('label' => 'Inception', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P159' => array('label' => 'Headquarters location', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P856' => array('label' => 'Official website', 'type' => 'uri', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P17' => array('label' => 'Country', 'type' => 'str', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P18' => array('label' => 'Image', 'type' => 'img', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+            ),
+            '_global' => array(
+                'P18' => array('label' => 'Image', 'type' => 'img', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P625' => array('label' => 'Coordinates', 'type' => 'geo', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+                'P214' => array('label' => 'VIAF ID', 'type' => 'uri', 'enabled' => true, 'show_missing' => false, 'temporal_mode' => 'latest'),
+            ),
+        );
+    }
+
+    /**
+     * Get path to the compiled zero-query cache file for a specific user.
+     */
+    public static function getCacheFilePath(int $userId): string {
+        return ROOT_DIR . '/storage/cache/wd_prefs_user_' . $userId . '.cache.php';
+    }
+
+    /**
+     * Invalidate compiled preferences cache for a user.
+     */
+    public static function invalidateCache(int $userId): void {
+        $cacheFile = self::getCacheFilePath($userId);
+        if (file_exists($cacheFile)) {
+            @unlink($cacheFile);
+        }
+    }
+
+    /**
+     * Get entity types from the active model that have a Wikidata property.
+     */
+    public function labelIndicator(): array {
+        $indicator = array();
+        if (defined('NODEMODEL') && is_array(NODEMODEL)) {
+            foreach (NODEMODEL as $key => $properties) {
+                if (!is_array($properties)) {
+                    continue;
+                }
+                foreach ($properties as $property => $propsettings) {
+                    if (isset($propsettings[1]) && $propsettings[1] === 'wikidata') {
+                        $indicator[$key] = $property;
+                        break;
+                    }
+                }
+            }
+        }
+        return $indicator;
+    }
+
+    /**
+     * Build and return raw per-entity property settings for a user.
+     */
+    public function getUserPreferences(?int $userId = null): array {
+        if ($userId === null) {
+            $userId = isset($_SESSION['userid']) ? (int)$_SESSION['userid'] : 0;
+        }
+
+        if ($userId <= 0) {
+            return self::getDefaultPropertyCatalog();
+        }
+
+        $cacheFile = self::getCacheFilePath($userId);
+        if (file_exists($cacheFile)) {
+            $cached = @include($cacheFile);
+            if (is_array($cached) && !empty($cached)) {
+                return $cached;
+            }
+        }
+
+        $catalog = self::getDefaultPropertyCatalog();
+        $activeEntities = $this->labelIndicator();
+        foreach (array_keys($activeEntities) as $et) {
+            if (!isset($catalog[$et])) {
+                $catalog[$et] = $catalog['_global'];
+            }
+        }
+
+        $stmt = $this->sqlite->prepare("SELECT wd_property_preferences FROM userdata WHERE id = ? LIMIT 1");
+        $stmt->execute(array($userId));
+        $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+        $savedRaw = $row['wd_property_preferences'] ?? '';
+        $saved = null;
+        if (!empty($savedRaw)) {
+            $decoded = json_decode($savedRaw, true);
+            if (is_array($decoded)) {
+                $saved = $decoded;
+            }
+        }
+
+        if ($saved === null) {
+            $saved = $catalog;
+            $this->saveUserPreferences($userId, $saved);
+        } else {
+            // Ensure any newly added entity types are present.
+            foreach (array_keys($activeEntities) as $et) {
+                if (!isset($saved[$et])) {
+                    $saved[$et] = $catalog[$et] ?? $catalog['_global'];
+                }
+            }
+            $this->compileCache($userId, $saved);
+        }
+
+        return $saved;
+    }
+
+    /**
+     * Save per-entity property settings into SQLite and update cache.
+     */
+    public function saveUserPreferences(int $userId, array $preferences): bool {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $jsonString = json_encode($preferences, JSON_UNESCAPED_UNICODE | JSON_PRETTY_PRINT);
+        $stmt = $this->sqlite->prepare("UPDATE userdata SET wd_property_preferences = ? WHERE id = ?");
+        $stmt->execute(array($jsonString, $userId));
+
+        $this->compileCache($userId, $preferences);
+        return true;
+    }
+
+    /**
+     * Write optimized PHP cache for instant zero-query loading.
+     */
+    protected function compileCache(int $userId, array $preferences): void {
+        $cacheFile = self::getCacheFilePath($userId);
+        $cacheDir = dirname($cacheFile);
+        if (!is_dir($cacheDir)) {
+            @mkdir($cacheDir, 0777, true);
+        }
+
+        $content = "<?php\n// Compiled user Wikidata preferences cache.\nreturn " . var_export($preferences, true) . ";\n";
+        @file_put_contents($cacheFile, $content, LOCK_EX);
+    }
+
+    /**
+     * Build preferences into memory and cookies.
+     */
+    public function buildPreferences(): void {
+        $userId = isset($_SESSION['userid']) ? (int)$_SESSION['userid'] : 0;
+        $userEntityPrefs = $this->getUserPreferences($userId);
+
+        $shownByEntity = array();
+        $flatShown = array();
+
+        foreach ($userEntityPrefs as $entityType => $properties) {
+            $shownByEntity[$entityType] = array();
+            if (!is_array($properties)) {
+                continue;
+            }
+            foreach ($properties as $propCode => $propData) {
+                $enabled = !empty($propData['enabled']);
+                $label = $propData['label'] ?? $propCode;
+                $type = $propData['type'] ?? 'str';
+                $showMissing = !empty($propData['show_missing']);
+                $temporalMode = $propData['temporal_mode'] ?? 'latest';
+
+                $tuple = array($label, $enabled, $type, $showMissing, $temporalMode);
+                $shownByEntity[$entityType][$propCode] = $tuple;
+
+                if ($enabled) {
+                    $flatShown[$propCode] = $tuple;
+                }
+            }
+        }
+
+        $this->customPreferences['shownPropertiesByEntity'] = $shownByEntity;
+        $this->customPreferences['shownProperties'] = $flatShown;
+
+        // Load language and link settings from SQLite userdata.
+        if ($userId > 0) {
+            $this->ensureTitlePrefsColumn();
+            $stmt = $this->sqlite->prepare("SELECT wd_language_preferences, wd_wikilink_preferences, wd_titlestring_preferences, wd_prioritize_detected_language FROM userdata WHERE id = ? LIMIT 1");
+            $stmt->execute(array($userId));
+            $row = $stmt->fetch(PDO::FETCH_ASSOC);
+
+            if ($row) {
+                if (!empty($row['wd_language_preferences'])) {
+                    $this->customPreferences['preferredLanguage'] = explode(',', $row['wd_language_preferences']);
+                }
+                if (!empty($row['wd_wikilink_preferences'])) {
+                    $this->customPreferences['showWikipediaLinksTo'] = explode(',', $row['wd_wikilink_preferences']);
+                }
+                if (isset($row['wd_titlestring_preferences'])) {
+                    $rawTitles = trim($row['wd_titlestring_preferences']);
+                    if ($rawTitles === '') {
+                        $this->customPreferences['stringmatchWikipediaTitles'] = array();
+                    } else {
+                        $this->customPreferences['stringmatchWikipediaTitles'] = array_values(array_filter(array_map('trim', explode(',', $rawTitles))));
+                    }
+                }
+                if (isset($row['wd_prioritize_detected_language']) && $row['wd_prioritize_detected_language'] !== null) {
+                    $this->customPreferences['prioritizeDetectedLanguage'] = (bool)$row['wd_prioritize_detected_language'];
+                }
+            }
+        }
+    }
+
+    /**
+     * Save title string matching preferences (prioritization and fallback languages).
+     */
+    public function saveTitlePreferences(int $userId, bool $prioritizeDetected, array $languages): bool {
+        if ($userId <= 0) {
+            return false;
+        }
+
+        $this->ensureTitlePrefsColumn();
+
+        $cleaned = array();
+        foreach ($languages as $l) {
+            $code = strtolower(trim((string)$l));
+            if ($code === '') continue;
+            if (!str_ends_with($code, 'wiki')) {
+                $code .= 'wiki';
+            }
+            if (preg_match('/^[a-z0-9_-]+wiki$/', $code) && !in_array($code, $cleaned, true)) {
+                $cleaned[] = $code;
+            }
+        }
+
+        $langString = implode(',', $cleaned);
+        $prioritizeVal = $prioritizeDetected ? 1 : 0;
+
+        $stmt = $this->sqlite->prepare("UPDATE userdata SET wd_titlestring_preferences = ?, wd_prioritize_detected_language = ? WHERE id = ?");
+        $stmt->execute(array($langString, $prioritizeVal, $userId));
+
+        $this->customPreferences['stringmatchWikipediaTitles'] = $cleaned;
+        $this->customPreferences['prioritizeDetectedLanguage'] = $prioritizeDetected;
+
+        self::invalidateCache($userId);
+        return true;
+    }
+
+    /**
+     * Store profile settings from standard POST submissions.
+     */
+    public function storeProfileSettings(string $formname, array $keys): bool {
+        $userId = isset($_SESSION['userid']) ? (int)$_SESSION['userid'] : 0;
+        if ($userId <= 0) {
+            return false;
+        }
+
+        if ($formname === 'links') {
+            $valid = array_intersect($keys, array_keys($this->wikidataPrefixToWikipediaLinks));
+            $stmt = $this->sqlite->prepare("UPDATE userdata SET wd_wikilink_preferences = ? WHERE id = ?");
+            $stmt->execute(array(implode(',', $valid), $userId));
+            self::invalidateCache($userId);
+            return true;
+        }
+
+        if ($formname === 'titles') {
+            $prioritize = isset($_POST['prioritize_detected_language']);
+            $rawLangs = $_POST['fallback_languages'] ?? $keys;
+            if (!is_array($rawLangs)) {
+                $rawLangs = explode(',', (string)$rawLangs);
+            }
+            return $this->saveTitlePreferences($userId, $prioritize, $rawLangs);
+        }
+
+        if ($formname === 'language') {
+            $valid = array_intersect($keys, array_keys($this->wikidataPreferedLanguages));
+            $stmt = $this->sqlite->prepare("UPDATE userdata SET wd_language_preferences = ? WHERE id = ?");
+            $stmt->execute(array(implode(',', $valid), $userId));
+            self::invalidateCache($userId);
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
+     * Render settings dictionary passed to JavaScript client.
+     */
+    public function makeSettingsDictionary(?string $entityType = null): array {
+        if (empty($this->customPreferences['shownPropertiesByEntity'])) {
+            $this->buildPreferences();
+        }
+
+        $linksDict = array();
+        foreach ($this->customPreferences['showWikipediaLinksTo'] as $prefix) {
+            if (isset($this->wikidataPrefixToWikipediaLinks[$prefix])) {
+                $linksDict[$prefix] = $this->wikidataPrefixToWikipediaLinks[$prefix];
+            }
+        }
+
+        $preferredLang = !empty($this->customPreferences['preferredLanguage'])
+            ? $this->customPreferences['preferredLanguage'][0]
+            : 'en';
+
+        $langDict = array($preferredLang => ($this->wikidataPreferedLanguages[$preferredLang] ?? 'English'));
+
+        $titlesDict = array();
+        foreach ($this->customPreferences['stringmatchWikipediaTitles'] as $prefix) {
+            $cleanPrefix = strtolower(trim($prefix));
+            if ($cleanPrefix === '') continue;
+            if (isset($this->wikidataPrefixToWikipediaLinks[$cleanPrefix])) {
+                $titlesDict[$cleanPrefix] = $this->wikidataPrefixToWikipediaLinks[$cleanPrefix];
+            } else {
+                $langCode = preg_replace('/wiki$/', '', $cleanPrefix);
+                $titlesDict[$cleanPrefix] = array(
+                    "https://{$langCode}.wikipedia.org/wiki/",
+                    strtoupper($langCode) . ' (' . $cleanPrefix . ')'
+                );
+            }
+        }
+
+        $flatShown = $this->customPreferences['shownProperties'];
+        if ($entityType !== null && isset($this->customPreferences['shownPropertiesByEntity'][$entityType])) {
+            $flatShown = array();
+            foreach ($this->customPreferences['shownPropertiesByEntity'][$entityType] as $code => $tuple) {
+                if (!empty($tuple[1])) {
+                    $flatShown[$code] = $tuple;
+                }
+            }
+        }
+
+        return array(
+            'shownPropertiesByEntity' => $this->customPreferences['shownPropertiesByEntity'],
+            'shownProperties' => $flatShown,
+            'showWikipediaLinksTo' => $linksDict,
+            'preferredLanguage' => $langDict,
+            'fallbackLanguage' => $this->customPreferences['fallbackLanguage'],
+            'stringmatchWikipediaTitles' => $titlesDict,
+            'prioritizeDetectedLanguage' => !empty($this->customPreferences['prioritizeDetectedLanguage']),
+        );
+    }
+
+    /**
+     * Legacy HTML generator for links and titles tabs.
+     */
+    public function generateForm(string $formname): string {
+        $baseUrl = defined('BASE_URL') ? BASE_URL : '';
+        $actionUrl = $baseUrl . '/user/profileUpdate.php';
+
+        include_once(ROOT_DIR . '/includes/csrf.inc.php');
+        $csrfManager = new CsrfTokenManager();
+        $csrfVal = $csrfManager->getToken();
+
+        $data = $this->wikidataPrefixToWikipediaLinks;
+        $selected = ($formname === 'titles')
+            ? $this->customPreferences['stringmatchWikipediaTitles']
+            : $this->customPreferences['showWikipediaLinksTo'];
+
+        $salt = substr(str_shuffle('abcdefghijklmnopqrstuvwxyz'), 0, 8);
+        $output = '<form method="POST" action="' . htmlspecialchars($actionUrl, ENT_QUOTES, 'UTF-8') . '" class="space-y-4">';
+        $output .= '<input type="hidden" name="csrf_token" value="' . htmlspecialchars($csrfVal, ENT_QUOTES, 'UTF-8') . '">';
+        $output .= '<input type="hidden" name="form_type_setting_application_value" value="' . htmlspecialchars($formname, ENT_QUOTES, 'UTF-8') . '">';
+        $output .= '<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">';
+
+        foreach ($data as $key => $value) {
+            $checked = in_array($key, $selected, true) ? ' checked ' : '';
+            $saltedKey = $salt . $key;
+            $output .= '<label for="' . $saltedKey . '" class="flex items-center gap-2.5 p-3 rounded-xl border border-slate-200/80 bg-white hover:bg-slate-50/80 cursor-pointer transition-all shadow-2xs">
+                <input type="checkbox" id="' . $saltedKey . '" name="' . htmlspecialchars($key, ENT_QUOTES, 'UTF-8') . '" ' . $checked . ' class="rounded text-indigo-600 focus:ring-indigo-500 h-4 w-4 border-slate-300">
+                <span class="text-xs font-medium text-slate-700 leading-snug">' . htmlspecialchars($value[1], ENT_QUOTES, 'UTF-8') . '</span>
+            </label>';
+        }
+
+        $output .= '</div>';
+        $output .= '<div class="pt-2 flex justify-end">
+            <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 text-xs font-semibold rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 shadow-xs transition-colors">
+                <i class="fas fa-save text-[11px]"></i>
+                <span>Save ' . htmlspecialchars($formname, ENT_QUOTES, 'UTF-8') . ' preferences</span>
+            </button>
+        </div></form>';
+
+        return $output;
+    }
+}

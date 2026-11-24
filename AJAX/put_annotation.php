@@ -10,8 +10,8 @@
     //header:
     header('Content-Type: application/json; charset=utf-8');
     //includes: 
-    include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-    include_once(ROOT_DIR.'/includes/user.inc.php');
+    include_once(dirname(__DIR__) . '/config/config.inc.php');
+    include_once(ROOT_DIR . '/includes/user.inc.php');
     include_once(ROOT_DIR.'/includes/csrf.inc.php');
     include_once(ROOT_DIR.'/includes/getnode.inc.php');
     include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
@@ -27,9 +27,10 @@
     }
 
     ////Implement rights-check here: 
-
-
-
+    if ($user_id === false || $user->hasEditRights($user->myRole) < 1) {
+        echo json_encode(array('msg' => 'Insufficient permissions to create annotations.'));
+        die();
+    }
     ///end of rights-check. 
 
     //interpretation of the post request!
@@ -62,8 +63,7 @@
     }
     $tokenManager = new CsrfTokenManager(); 
     $validToken = $tokenManager->checkToken($token); 
-    //if(!($validToken)){
-    if(False){
+    if(!($validToken)){
         echo json_encode(array('msg' => 'Invalid session token')); 
         die();
     }
@@ -99,115 +99,186 @@
     //      if not, generate a unique value. 
     $model = NODEMODEL[$nodelabel];
     //look for access to the primary key data. What key in the returned NODE type is the Primary Key. (unique field)
+    // Validate and clean all wikidata properties across the entity:
+    if (!is_array($properties)) {
+        $properties = array();
+    }
+    $splitWikidataEntity = !empty($data['split_wikidata_entity']) && filter_var($data['split_wikidata_entity'], FILTER_VALIDATE_BOOLEAN);
+    $chosenQid = trim((string)($data['wikidata_qid'] ?? ''));
+    if ($chosenQid !== '' && preg_match('/^Q[0-9]+$/', $chosenQid)) {
+        $hasSchemaWikidataProp = false;
+        foreach ($model as $propKey => $propMeta) {
+            if (strtolower($propMeta[1] ?? '') === 'wikidata') {
+                $hasSchemaWikidataProp = true;
+                if (empty($properties[$propKey])) {
+                    $properties[$propKey] = $chosenQid;
+                }
+                break;
+            }
+        }
+        if (!$hasSchemaWikidataProp && empty($properties['wikidata_id'])) {
+            $properties['wikidata_id'] = $chosenQid;
+        }
+    }
+
+    // Determine effective Wikidata QID from either wikidata_qid or any wikidata-typed property.
+    $effectiveQid = ($chosenQid !== '' && preg_match('/^Q[0-9]+$/', $chosenQid)) ? $chosenQid : '';
+    if ($effectiveQid === '') {
+        foreach ($properties as $pKey => $pVal) {
+            $pType = isset($model[$pKey]) ? strtolower($model[$pKey][1] ?? '') : '';
+            if (($pType === 'wikidata' || $pKey === 'wikidata_id') && preg_match('/^Q[0-9]+$/', trim((string)$pVal))) {
+                $effectiveQid = trim((string)$pVal);
+                break;
+            }
+        }
+    }
+
+    // By default (unless split_wikidata_entity is explicitly requested), reuse an existing entity with the same Q-ID
+    // and attach the new spelling as a Variant.
+    $existingEntityNeoId = null;
+    if ($effectiveQid !== '' && !$splitWikidataEntity) {
+        $matchingQidNodes = $node->fetchWikidataFromAnyPossibleEt($effectiveQid);
+        if (!empty($matchingQidNodes)) {
+            $existingEntityNeoId = (int)$matchingQidNodes[0];
+        }
+    }
+
     $found_key = array_search(true, array_column($model, 2), true);
     if ($found_key !== false){
         $keys = array_keys($model);
         $primaryKeyName = $keys[$found_key];
-        if(array_key_exists($primaryKeyName, $properties)){
+        $primaryKeyType = strtolower($model[$primaryKeyName][1] ?? '');
+
+        if ($primaryKeyType === 'wikidata') {
+            // Wikidata properties must never be auto-filled with an integer!
+            if (array_key_exists($primaryKeyName, $properties) && trim((string)$properties[$primaryKeyName]) !== '') {
+                $qVal = trim((string)$properties[$primaryKeyName]);
+                if (!preg_match('/^Q[0-9]+$/', $qVal)) {
+                    $node->rollbackTransaction();
+                    echo json_encode(array('msg' => 'Invalid Wikidata ID format. Must start with Q followed by an integer (e.g. Q123).'));
+                    exit;
+                }
+                if ($existingEntityNeoId === null && !$splitWikidataEntity) {
+                    $node->checkKeyUniqueness($nodelabel, $primaryKeyName, $qVal);
+                }
+                $properties[$primaryKeyName] = $qVal;
+            } else {
+                unset($properties[$primaryKeyName]);
+            }
+        } elseif(array_key_exists($primaryKeyName, $properties)){
             //check for uniqueness:
             $value_to_check = $properties[$primaryKeyName]; 
             if ($value_to_check == ''){
-                $value_to_check = $node->generateUniqueKey($nodelabel, $primaryKeyName); 
-                $properties[$primaryKeyName] = $value_to_check; 
-            }else{
+                if ($primaryKeyType === 'int') {
+                    $value_to_check = $node->generateUniqueKey($nodelabel, $primaryKeyName); 
+                    $properties[$primaryKeyName] = $value_to_check; 
+                } else {
+                    unset($properties[$primaryKeyName]);
+                }
+            }elseif ($existingEntityNeoId === null){
                 $node->checkKeyUniqueness($nodelabel, $primaryKeyName, $value_to_check);
             }
         }else{
-            // no unique key provided: let the program generate a new integer ID. 
-            // then assign it into the properties dictionary!
-            $properties[$primaryKeyName] = $node->generateUniqueKey($nodelabel, $primaryKeyName); 
+            if ($primaryKeyType === 'int') {
+                $properties[$primaryKeyName] = $node->generateUniqueKey($nodelabel, $primaryKeyName); 
+            }
         }
-    }try {
-        //createNewNode needs to automatically generate a primary key for entities where the model uses an integer key as unique value. 
-        $createdEntity = $node->createNewNode($nodelabel, $properties, true); 
-        //returns NEO ID of created node. 
-    }catch (\Throwable $th){
-        //throw $th;
-        $node->rollbackTransaction();
-        die($th);
     }
+    if (is_array($properties)) {
+        foreach ($properties as $propKey => $propVal) {
+            if (isset($model[$propKey])) {
+                $pType = strtolower($model[$propKey][1] ?? '');
+                if ($pType === 'wikidata') {
+                    $trimmedQ = trim((string)$propVal);
+                    if ($trimmedQ === '') {
+                        unset($properties[$propKey]);
+                    } else {
+                        if (!preg_match('/^Q[0-9]+$/', $trimmedQ)) {
+                            $node->rollbackTransaction();
+                            echo json_encode(array('msg' => 'Invalid Wikidata ID format. Must start with Q followed by an integer (e.g. Q123).'));
+                            exit;
+                        }
+                        $properties[$propKey] = $trimmedQ;
+                    }
+                }
+            }
+        }
+    }
+    try {
+        if ($existingEntityNeoId !== null) {
+            $createdEntity = $existingEntityNeoId;
+            $labelRes = $client->run('MATCH (e) WHERE id(e) = $eid RETURN labels(e)[0] AS lbl LIMIT 1', ['eid' => $existingEntityNeoId]);
+            if ($labelRes->count() > 0 && $labelRes->first()->get('lbl')) {
+                $nodelabel = (string)$labelRes->first()->get('lbl');
+            }
+        } else {
+            //createNewNode needs to automatically generate a primary key for entities where the model uses an integer key as unique value. 
+            $createdEntity = $node->createNewNode($nodelabel, $properties, true); 
 
-    //connect the user ID to $createdEnditity!
-    try{
-        $node->connectNodes($userNeoId, $createdEntity, 'priv_created');
-    }catch(\Throwable $th){
-        //throw $th;
-        $node->rollbackTransaction();
-        die('rollback of changes: user error');
-    }
-    
-    //connect variant spellings to the $createdentity:
-    //user ID is not connected to variants.
-    //Connect the variants: 
-    foreach($variants as $variant){
-        try{
-            $r = $node->createVariantRelation($variant, $createdEntity); 
-        }catch(\Throwable $th){
-            $node->rollbackTransaction();
-            die('Rejected variant node. '); 
+            //connect the user ID to $createdEnditity!
+            $node->connectNodes($userNeoId, $createdEntity, 'priv_created');
         }
-    }
-        
-    //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
-    if ($annomode === 'automated'){
-        try {
+
+        //connect variant spellings to the $createdentity:
+        foreach($variants as $variant){
+            $r = $node->createVariantRelation($variant, $createdEntity); 
+        }
+
+        //connect the $createdEntity to a text using the text NEOID and the $createdEntity ID
+        $hasLegacyAutoNode = ($annomode === 'automated' && !empty($data['neo_id_internal']) && (int)$data['neo_id_internal'] > 0);
+        if ($hasLegacyAutoNode){
+            $annotation_neo_id = $data['neo_id_internal']; 
+            if (!$node->determineRightsSet(2, (int)$annotation_neo_id)) {
+                $node->rollbackTransaction();
+                echo json_encode(array('msg' => 'Insufficient permissions to convert this annotation.'));
+                exit;
+            }
             $startAutomated = $annotationNode[ANNOSTART];
             $stopAutomated = $annotationNode[ANNOSTOP];
             unset($annotationNode[ANNOSTART]);
             unset($annotationNode[ANNOSTOP]);
-            $annotation_neo_id = $data['neo_id_internal']; 
-            //bugpatch applied.
             $createAnnotation = $annotation->convertAutomaticAnnotationToConfirmedAnnotation($annotation_neo_id, $annotationNode); 
-        }catch(\Throwable $th){
-            $node->rollbackTransaction();
-            throw $th;
-            die('rollback of changes: annoupdate error');
+        }else{
+            $createAnnotation = $node->createNewNode(ANNONODE, $annotationNode, true);
         }
-    }else{
-        try {
-            $createAnnotation = $node->createNewNode(ANNONODE, $annotationNode,true);
-        }catch(\Throwable $th){
-            $node->rollbackTransaction();
-            throw $th;
-            die('rollback of changes: annocreation error');
-        }
-    }
 
+        //$annotations shares the transaction with $node!
+        $createdAnnotationUUID = $annotation->fetchAnnotationUUID($createAnnotation); 
+        //connect the user to the created annotation: 
+        $node->connectNodes($userNeoId, $createAnnotation, 'priv_created'); 
 
-
-
-    //$annotations shares the transaction with $node!
-    $createdAnnotationUUID = $annotation->fetchAnnotationUUID($createAnnotation); 
-    //connect the user to the created annotation: 
-    $node->connectNodes($userNeoId, $createAnnotation, 'priv_created'); 
-
-    //connect the entity with the annotation !
-    try{
+        //connect the entity with the annotation !
         $node->connectNodes($createAnnotation, $createdEntity, 'references');
-    }catch(\Throwable $th){
-        //throw $th;
-        $node->rollbackTransaction();
-        die('rollback of changes: annotation ID error');
-    }
 
-    //connect the text with the annotation !
-    if($annomode !== 'automated'){
-        try{
+        //connect the text with the annotation !
+        if(!$hasLegacyAutoNode){
             $node->connectNodes($texid, $createAnnotation, 'contains');
-        }catch(\Throwable $th){
-            //throw $th;
-            $node->rollbackTransaction();
-            die('rollback of changes: annotation ID error');
         }
-    }
 
-   
-    //original code: 
-    $node->commitTransaction();
+        // Promote any automatic suggestion covering this span by removing it from latte_suggestions on the text node.
+        try {
+            include_once(ROOT_DIR . '/includes/latte_queue_manager.inc.php');
+            $startPos = (int)($annotationNode[ANNOSTART] ?? ($startAutomated ?? 0));
+            $stopPos = (int)($annotationNode[ANNOSTOP] ?? ($stopAutomated ?? 0));
+            if (!empty($texid)) {
+                LatteQueueManager::promoteSuggestion($client, (int)$texid, $startPos, $stopPos);
+            }
+        } catch (\Throwable $e) {
+            error_log('Failed to promote automatic suggestion on text node ' . $texid . ': ' . $e->getMessage());
+        }
+
+        $node->commitTransaction();
+    } catch (\Throwable $th) {
+        $node->rollbackTransaction();
+        http_response_code(500);
+        echo json_encode(array('msg' => 'Error persisting annotation: ' . $th->getMessage()));
+        exit;
+    }
     $node_reply = array();
     $node_reply['data'] = array(
         'intid' => $createAnnotation,
-        'uuid' => $createdAnnotationUUID, 
+        'uuid' => $createdAnnotationUUID,
+        'merged_into_existing' => ($existingEntityNeoId !== null),
         'type' => $nodelabel, 
         'start' => $annotationNode[ANNOSTART] ?? $startAutomated, 
         'stop' => $annotationNode[ANNOSTOP] ?? $stopAutomated,

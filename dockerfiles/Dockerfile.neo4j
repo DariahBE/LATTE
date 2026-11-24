@@ -1,0 +1,13 @@
+# Dockerfile for Neo4j database with APOC plugin (2026-LATTE_NEO4J).
+FROM neo4j:4.4-community
+
+# Bundle the verified APOC plugin jar into the image.
+COPY plugins/apoc-4.4.0.1-all.jar /var/lib/neo4j/plugins/apoc-4.4.0.1-all.jar
+COPY plugins/apoc-4.4.0.1-all.jar /plugins/apoc-4.4.0.1-all.jar
+
+# Bundle the default Neo4j configuration with APOC procedures enabled.
+COPY conf/neo4j.conf /var/lib/neo4j/conf/neo4j.conf
+COPY conf/neo4j.conf /conf/neo4j.conf
+
+# Expose HTTP and Bolt ports.
+EXPOSE 7474 7687

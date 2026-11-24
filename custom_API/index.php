@@ -1,23 +1,17 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/user.inc.php');
-include_once(ROOT_DIR.'/includes/csrf.inc.php');
-include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
-include_once(ROOT_DIR.'/includes/customapi.inc.php');
-include_once(ROOT_DIR.'\config\CAPI_config.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
+include_once(ROOT_DIR . '/includes/csrf.inc.php');
+include_once(ROOT_DIR . '/includes/nodes_extend_cud.inc.php');
+include_once(ROOT_DIR . '/includes/customapi.inc.php');
+include_once(ROOT_DIR . '/config/CAPI_config.php');
 
-//die('okido'); 
-
-$api_profile = $_GET['profile']; 
-if(isset($_GET['secret'])){
-    $profile_secret = $_GET['secret']; 
-}else{
-    $profile_secret = false; 
-}
-$request_type = $_GET['type']; 
+$api_profile = isset($_GET['profile']) ? $_GET['profile'] : ''; 
+$profile_secret = isset($_GET['secret']) ? $_GET['secret'] : false; 
+$request_type = isset($_GET['type']) ? $_GET['type'] : ''; 
 
 $api = new API($api_settings); 
 $node = new Node($client); 

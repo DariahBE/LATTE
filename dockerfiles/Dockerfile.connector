@@ -1,0 +1,30 @@
+# Dockerfile for LATTE connector (2026-LATTE_CONNECTOR).
+FROM python:3.12-slim
+
+# Install system dependencies, build tools, and git.
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    git \
+    build-essential \
+    curl \
+    && apt-get clean \
+    && rm -rf /var/lib/apt/lists/*
+
+WORKDIR /app
+
+# Build arguments for repository location, branch, and cache busting.
+ARG CONNECTOR_REPO=https://github.com/DariahBE/LATTE_connector.git
+ARG CONNECTOR_BRANCH=main
+ARG CACHEBUST=1
+
+# Clone the connector repository.
+RUN git clone --depth 1 --branch ${CONNECTOR_BRANCH} ${CONNECTOR_REPO} /app
+
+# Normalize requirements file encoding from UTF-16LE to UTF-8 if necessary, then install dependencies.
+RUN python3 -c "p='/app/requirements.txt'; b=open(p,'rb').read(); (open(p,'w',encoding='utf-8').write(b.decode('utf-16')) if (b.startswith(b'\xff\xfe') or b.startswith(b'\xfe\xff')) else None)" \
+    && pip install --no-cache-dir -r /app/requirements.txt
+
+# Expose HTTP port for API requests.
+EXPOSE 8000
+
+# Run the Flask app with Gunicorn.
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "2", "--timeout", "300", "app:app"]

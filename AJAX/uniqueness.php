@@ -1,12 +1,14 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
  
 /**
  * Lockdown this endpoint, should only be reachable for logged in users.
  */
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 if(!(isset($_SESSION) && isset($_SESSION['userid']) && boolval($_SESSION['userid']))){
     header("HTTP/1.0 404 Not Found");
     exit(); 

@@ -1,28 +1,78 @@
-<div class="bg-white shadow-lg">
-    <div class="container mx-auto z-50">
-        <nav class="flex items-center py-4">
-            <div class="group relative">
-                <button class="text-gray-800 hover:bg-gray-200 px-3 py-2 rounded-md">
-                User Management
-                </button>
-                <div class="subgroup absolute hidden bg-white border border-gray-300  w-32 rounded-lg shadow-lg group-hover:block">
-                    <!-- Submenu items -->
-                    <a href="/admin/usermanagement#overview" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Overview</a>
-                    <a href="/admin/usermanagement#block" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Block user</a>
-                    <a href="/admin/usermanagement#add" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Add user</a>
-                </div>
+<?php
+$currentScript = $_SERVER['SCRIPT_NAME'] ?? '';
+$adminBase = (defined('BASE_URL') ? BASE_URL : '') . '/admin';
+
+$navItems = [
+    [
+        'label' => 'Dashboard',
+        'icon' => 'fas fa-chart-line',
+        'href' => $adminBase . '/index.php',
+        'active' => strpos($currentScript, 'admin/index.php') !== false,
+    ],
+    [
+        'label' => 'User management',
+        'icon' => 'fas fa-users-cog',
+        'href' => $adminBase . '/usermanagement/index.php',
+        'active' => strpos($currentScript, 'usermanagement') !== false,
+    ],
+    [
+        'label' => 'Entity management',
+        'icon' => 'fas fa-cubes',
+        'href' => $adminBase . '/entities.php',
+        'active' => strpos($currentScript, 'entities.php') !== false,
+    ],
+    [
+        'label' => 'System settings',
+        'icon' => 'fas fa-sliders-h',
+        'href' => $adminBase . '/settings.php',
+        'active' => strpos($currentScript, 'settings.php') !== false,
+    ],
+    [
+        'label' => 'Database validation',
+        'icon' => 'fas fa-heartbeat',
+        'href' => $adminBase . '/validate_db.php',
+        'active' => strpos($currentScript, 'validate_db.php') !== false,
+    ],
+    [
+        'label' => 'Index management',
+        'icon' => 'fas fa-bolt',
+        'href' => $adminBase . '/mod_indexes.php',
+        'active' => strpos($currentScript, 'mod_indexes.php') !== false,
+    ],
+    [
+        'label' => 'Bulk text importer',
+        'icon' => 'fas fa-file-import',
+        'href' => $adminBase . '/bulk_text_loader.php',
+        'active' => strpos($currentScript, 'bulk_text_loader.php') !== false,
+    ],
+    [
+        'label' => 'LATTE queue',
+        'icon' => 'fas fa-tasks',
+        'href' => $adminBase . '/connector_queue.php',
+        'active' => strpos($currentScript, 'connector_queue.php') !== false,
+    ],
+];
+?>
+<div class="bg-white border-b border-slate-200/80 shadow-xs mb-6">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-3">
+        <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="flex items-center gap-2">
+                <span class="inline-flex items-center justify-center w-8 h-8 rounded-lg bg-indigo-50 text-indigo-700 text-sm font-semibold">
+                    <i class="fas fa-shield-alt"></i>
+                </span>
+                <span class="text-sm font-bold tracking-tight text-slate-800">Admin control panel</span>
             </div>
-            <div class="group relative">
-                <button class="text-gray-800 hover:bg-gray-200 px-3 py-2 rounded-md">
-                Database Management
-                </button>
-                <div class="subgroup absolute hidden bg-white border border-gray-300  w-32 rounded-lg shadow-lg group-hover:block">
-                    <!-- Submenu items -->
-                    <a href="/admin/validate_db.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Database Validation </a>
-                    <a href="/admin/mod_indexes.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Indexes </a>
-                    <a href="/admin/bulk_text_loader.php" class="block px-4 py-2 text-gray-800 hover:bg-gray-200">Bulk text importer</a>
-                </div>
-            </div>
-        </nav>
+            <nav class="flex flex-wrap items-center gap-1.5" aria-label="Admin sub navigation">
+                <?php foreach ($navItems as $item): ?>
+                    <a href="<?= htmlspecialchars($item['href'], ENT_QUOTES, 'UTF-8') ?>"
+                       class="inline-flex items-center gap-2 px-3.5 py-1.5 text-xs font-medium rounded-lg transition-all <?= $item['active']
+                           ? 'bg-indigo-600 text-white shadow-xs font-semibold'
+                           : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100' ?>">
+                        <i class="<?= htmlspecialchars($item['icon'], ENT_QUOTES, 'UTF-8') ?>"></i>
+                        <span><?= htmlspecialchars($item['label'], ENT_QUOTES, 'UTF-8') ?></span>
+                    </a>
+                <?php endforeach; ?>
+            </nav>
+        </div>
     </div>
 </div>

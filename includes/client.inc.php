@@ -1,7 +1,9 @@
 <?php
 error_reporting(E_ALL ^ (E_NOTICE | E_WARNING | E_DEPRECATED));
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-require ROOT_DIR.'/vendor/autoload.php';
+if (!defined('ROOT_DIR')) {
+    include_once(dirname(__DIR__) . '/config/config.inc.php');
+}
+require ROOT_DIR . '/vendor/autoload.php';
 
 
 use Laudis\Neo4j\ClientBuilder;

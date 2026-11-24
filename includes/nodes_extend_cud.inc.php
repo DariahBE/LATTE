@@ -14,10 +14,11 @@
 class CUDNode extends Node {
 
 
-    /*
-        DO NOT PUT CONSTRUCTOR IN HERE, it's inherited from the Node object!
-        client property is passed down as a protected prop!!!
-    */
+    function __construct($client){
+      parent::__construct($client);
+      // Initialize tsx to the client so non-transactional queries can run.
+      $this->tsx = $client;
+    }
 
     /**
      * Determines the level of the requested operation and returns it. 
@@ -82,21 +83,31 @@ class CUDNode extends Node {
     $this->tsx = $this->client->beginTransaction();
   }
   public function rollbackTransaction(){
-    $this->tsx->rollback();
+    if ($this->tsx && method_exists($this->tsx, 'rollback')) {
+      $this->tsx->rollback();
+    }
+    $this->tsx = $this->client;
   }
   public function commitTransaction(){
-    $this->tsx->commit();
+    if ($this->tsx && method_exists($this->tsx, 'commit')) {
+      $this->tsx->commit();
+    }
+    $this->tsx = $this->client;
   }
 
   public function connectNodes($sourceNodeNeoId, $targetNodeNeoId, $edgeName) {
+    $safeEdge = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$edgeName);
     $query = "
         MATCH (sourceNode)
-        WHERE ID(sourceNode) = $sourceNodeNeoId
+        WHERE id(sourceNode) = \$sourceId
         MATCH (targetNode)
-        WHERE ID(targetNode) = $targetNodeNeoId
-        CREATE (sourceNode)-[:$edgeName]->(targetNode)
+        WHERE id(targetNode) = \$targetId
+        CREATE (sourceNode)-[:$safeEdge]->(targetNode)
     ";
-    $this->tsx->run($query); 
+    $this->tsx->run($query, [
+      'sourceId' => (int)$sourceNodeNeoId,
+      'targetId' => (int)$targetNodeNeoId
+    ]); 
   }
 
   public function checkKeyUniqueness($label, $property, $value){
@@ -104,8 +115,10 @@ class CUDNode extends Node {
      * Checks if a given key is Unique for $label and $property combination. 
      * Returns BOOL
      */
+    $cleanLabel = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$label);
+    $cleanProperty = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$property);
     $query = '
-      MATCH (p:'.$label.' {'.$property.': $checkValue})
+      MATCH (p:'.$cleanLabel.' {'.$cleanProperty.': $checkValue})
       RETURN p
     ';
     $data = array('checkValue' => $value);
@@ -120,10 +133,12 @@ class CUDNode extends Node {
      * The value is returned to the calling instance and inserted there.
      */
     //var_dump($label, $property); 
-     $query = "
-      MATCH (n:".$label.")
-      RETURN n.".$property." AS highest
-      ORDER BY n.".$property." DESC
+    $cleanLabel = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$label);
+    $cleanProperty = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$property);
+    $query = "
+      MATCH (n:".$cleanLabel.")
+      RETURN n.".$cleanProperty." AS highest
+      ORDER BY n.".$cleanProperty." DESC
       LIMIT 1"; 
     $result = $this->tsx->run($query); 
     //var_dump($result); 
@@ -332,7 +347,6 @@ class CUDNode extends Node {
               return false;
           }
       }
-      var_dump('returning', filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false); 
       return filter_var($value, FILTER_VALIDATE_BOOLEAN, FILTER_NULL_ON_FAILURE) ?? false;
     }
 
@@ -340,6 +354,8 @@ class CUDNode extends Node {
      * 
      */
     function createNewNode($label, $data, $createUID = true){
+        // Force capitalization of node names (e.g. Text); and force lowercasing of node properties)
+        $label = ucfirst(preg_replace('/\s+/', '', (string)$label));
         // is the user even allowed to create a node??
         // check authorization!
         $user = new User($this->client); 
@@ -357,6 +373,8 @@ class CUDNode extends Node {
                 $placeholderValues = array();
                 //var_dump($data); 
                 foreach($data as $key => $value){
+                    // Force capitalization of node names (e.g. Text); and force lowercasing of node properties)
+                    $key = strtolower(preg_replace('/\s+/', '', (string)$key));
                     //empty uri triggers fatal error: empty values should not be parsed as data!! Unless it's for PK field: 
                     //LOGIC: 
                     //do not store empty values in the database! drop them from data: 
@@ -379,6 +397,15 @@ class CUDNode extends Node {
                       continue;
                     }else if($value !== ''){
                         if(array_key_exists($key, NODEMODEL[$label])){
+                            if(strtolower(NODEMODEL[$label][$key][1]) === 'wikidata'){
+                                $qCandidate = trim((string)$value);
+                                if(!preg_match('/^Q[0-9]+$/', $qCandidate)){
+                                    echo json_encode(array('ERR'=> 'Invalid Wikidata ID format ('.$qCandidate.'). Must start with Q followed by an integer (e.g. Q123).'));
+                                    $this->rollbackTransaction();
+                                    die();
+                                }
+                                $value = $qCandidate;
+                            }
                             $nodeAttributes[] = ' n.'.$key.' = $placeholder_'.$placeholder;
                             //enforce the correct type of the $value!
                             $reformattedValue = $this->helper_enforceType(NODEMODEL[$label][$key][1],$value); 
@@ -464,32 +491,27 @@ class CUDNode extends Node {
         return [];
       }
 
-      // Create a comma-separated string of IDs for the Cypher query
-      $idList = implode(',', $id_array);
+      // Clean and cast IDs for parameterization
+      $cleanIdList = array_map('intval', $id_array);
 
       // Prepare the Cypher query to find connected nodes
       // The MATCH clause finds nodes connected by the specified edge label
-      // the $connectionLabel is required to be there. 
-      // relationshipCount is then automatically 1 or higher. 
-      // if one of the relations is 'created' (application logic) then the count increases to two.
-      // if there's more than 2 relations, the node is part of other clusters and should remain! 
-      // OK: what if there's two creation labels going from User to Node. Then relationshipCount becomes 3
-      // and the node might end up floating. the propper check would be: 
-      // relationshipCount - createdcount == 1
       $query = "
         MATCH (n)-[r]->(m)
-        WHERE id(n) IN [$idList] AND type(r) = '$connectionLabel'
+        WHERE id(n) IN \$idList AND type(r) = \$connectionLabel
         WITH m, COUNT(r) AS relationshipCount
         MATCH (m)
         OPTIONAL MATCH (m)-[c:priv_created]->()
         WITH m, relationshipCount, COUNT(c) AS createdCount
         WHERE relationshipCount - createdCount = 1
         RETURN DISTINCT id(m) AS connectedNodeId
-
       ";
 
       // Execute the query
-      $result = $this->tsx->run($query);
+      $result = $this->tsx->run($query, [
+        'idList' => $cleanIdList,
+        'connectionLabel' => (string)$connectionLabel
+      ]);
       // Collect the results
       foreach ($result as $row){
         $connectedNodeIds[] = $row->get('connectedNodeId'); 
@@ -608,31 +630,38 @@ class CUDNode extends Node {
       //iterator to distinguish query placeholders. 
       $ph = 1; 
       $placeholders = array(); 
-      function ph_generator($ph){
-        $ph_name = 'PH_'.$ph; 
-        return $ph_name; 
-      }
 
       //handle the actual given data: 
       $remove_command = array();
       $update_command = array(); 
       foreach ($data as $key => $value) {
-        if ($value == '') {
-            $remove_command[] = 'n.'.$key;
+        $cleanKey = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$key);
+        if ($cleanKey === '') {
+          continue;
+        }
+        if ($value === '') {
+          $remove_command[] = 'n.'.$cleanKey;
         } else {
-            $placeholder = ph_generator($ph); 
-            $ph++; 
-            $placeholders[$placeholder] = $value; 
-            // $phs[$placeholders[0]] -> $value; 
-            $update_command[] = 'n.'.$key.' = $'.$placeholder;
+          $placeholder = 'PH_'.$ph; 
+          $ph++; 
+          $placeholders[$placeholder] = $value; 
+          $update_command[] = 'n.'.$cleanKey.' = $'.$placeholder;
         }
       }
 
       //attach $dropbools to the $remove_command here to handle delete of 'false' values!
       // i.e. ==> empty(POST) === false(LOGIC) === null(DATABASE). 
-      foreach ($dropbools as $val) {
-        $remove_command[] = 'n.'.$val; 
+      if (is_array($dropbools)) {
+        foreach ($dropbools as $val) {
+          $cleanVal = preg_replace('/[^a-zA-Z0-9_]/', '', (string)$val);
+          if ($cleanVal !== '') {
+            $remove_command[] = 'n.'.$cleanVal; 
+          }
+        }
       }
+
+      $remove_query = null;
+      $update_query = null;
       if (boolval($remove_command)){
         $remove_command = implode(', ', $remove_command);
         $remove_query = 'MATCH (n) WHERE id(n) = $neoid REMOVE '.$remove_command;

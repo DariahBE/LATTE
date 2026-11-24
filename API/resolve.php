@@ -25,11 +25,10 @@
 */
 header('Content-Type: application/json; charset=utf-8');
 
-$partnerURI = $_GET['partneruri'];
-//var_dump($partnerURI);
+$partnerURI = isset($_GET['partneruri']) ? $_GET['partneruri'] : '';
 
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
 
 $graph = new Node($client);
 $core = $graph->matchSingleNode("See_Also", "partner_uri", $partnerURI);

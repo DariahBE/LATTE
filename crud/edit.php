@@ -1,67 +1,66 @@
 <?php
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR."/includes/client.inc.php");
-include_once(ROOT_DIR.'/includes/navbar.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/user.inc.php');
-include_once(ROOT_DIR.'/includes/csrf.inc.php');
-include_once(ROOT_DIR.'/includes/buildform.inc.php');
-//Edit portal is only open for registered users: 
-//  SO: check user registration
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . "/includes/client.inc.php");
+include_once(ROOT_DIR . '/includes/navbar.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
+include_once(ROOT_DIR . '/includes/csrf.inc.php');
+include_once(ROOT_DIR . '/includes/nodes_extend_cud.inc.php');
+include_once(ROOT_DIR . '/includes/buildform.inc.php');
+// Edit portal is only open for registered users: 
+// SO: check user registration.
 $user = new User($client);
 $user_id = $user->checkSession();
 if($user_id === false){
-  header("Location: /user/login.php");
-  die("redir required"); 
+  header("Location: " . BASE_URL . "/user/login.php");
+  exit("Redirect required"); 
 }
 
 $tokenManager = new CsrfTokenManager(); 
 $token = $tokenManager->generateToken();
 
-//referrer: 
+// Referrer: 
 $ref = false;
 if(isset($_SERVER['HTTP_REFERER'])){
   $ref = $_SERVER['HTTP_REFERER']; 
 }
 
 
-//get the node ID: 
+// Get the node ID: 
 if(isset($_GET['id'])){
   $id = (int)$_GET['id']; 
 }else{
-  header("Location: /index.php");
-  die("redir required"); 
+  header("Location: " . BASE_URL . "/index.php");
+  exit("Redirect required"); 
 }
-// with the node ID get the data from the DB
+// With the node ID get the data from the DB.
 $node = new Node($client);
 $requestedNode = $node->fetchRawEtById($id); 
 $requestedNodeLabel = $requestedNode['label'];
-//with label and properties known for the node, get the model as defined in config file. 
-//restrict edit to entitytypes in CORENODES constant
-//and :
-//      do not allow users to edit the text property of text nodes!!
-//      do not allow users to edit value that are used in unique keys! (API's depend on them)
-//      do not allow users to edit UUID fields. 
+
+// Verify edit permissions for this node.
+$crudNode = new CUDNode($client);
+$rights = $crudNode->determineRightsSet($user, $id);
+if (!$rights['edit']) {
+  http_response_code(403);
+  die('You do not have permission to edit this node.');
+}
+
+// With label and properties known for the node, get the model as defined in config file. 
+// Restrict edit to entity types in CORENODES constant.
 $model = false; 
 if(array_key_exists($requestedNodeLabel, CORENODES)){
   $model = NODEMODEL[$requestedNodeLabel]; 
-}/*else{
-  die('Node is not editable or does not exist.');
-}*/
-//don't edit text!! ==> remove it from editable features
+}
+// Don't edit text property of text nodes.
 if($requestedNodeLabel === TEXNODE){
   unset($model[TEXNODETEXT]);
 }
-//remove start and stop properties from the annotation node: 
+// Remove start and stop properties from the annotation node: 
 if($requestedNodeLabel === ANNONODE){
   unset($model[ANNOSTART]);
   unset($model[ANNOSTOP]);
 }
-
-//Once the user is detected, make sure that the user has the rights to edit this node: 
-//$allowedToEdit = $user->hasEditRights($user->myRole, $user->myName === $owner);
-
-
 
 ?>
 
@@ -69,10 +68,14 @@ if($requestedNodeLabel === ANNONODE){
 <html lang="en" dir="ltr">
   <head>
     <meta charset="utf-8">
-    <title><?php echo PROJECTNAME;?></title>
-    <link rel="stylesheet" href="/CSS/stylePublic.css">
-    <script src="/JS/jquery-3.6.0.min.js"></script>
-    <script src="/JS/validation.js"></script>
+    <title><?php echo htmlspecialchars(PROJECTNAME, ENT_QUOTES, 'UTF-8'); ?></title>
+    <link rel="stylesheet" href="<?php echo BASE_URL; ?>/CSS/stylePublic.css">
+    <script src="<?php echo BASE_URL; ?>/JS/jquery-3.6.0.min.js"></script>
+    <script src="<?php echo BASE_URL; ?>/JS/validation.js"></script>
+    <?php
+      include_once(ROOT_DIR . '/includes/matomo.inc.php');
+      echo renderMatomoTracking();
+    ?>
   </head>
   <body class="">
     <div>
@@ -92,7 +95,7 @@ if($requestedNodeLabel === ANNONODE){
       <div class='2xl:w-1/2 xl:w-2/3 items-center m-auto'>
         <div class='main py-4 my-4'>
           <h2 class='w-full'>Update node properties</h2>
-          <h3 class='w-full'>Type: <?php echo $requestedNodeLabel;  ?></h3>
+          <h3 class='w-full'>Type: <?php echo htmlspecialchars((string)$requestedNodeLabel, ENT_QUOTES, 'UTF-8'); ?></h3>
         </div>
           <?php
             $form = new FormGenerator('update_action.php');
@@ -134,7 +137,7 @@ if($requestedNodeLabel === ANNONODE){
   validator.set_autofetch_to(false); 
   validator.pickup();
 
-  const ref = "<?php echo htmlspecialchars($ref) ?>";
+  const ref = <?php echo json_encode($ref, JSON_HEX_TAG | JSON_HEX_AMP | JSON_HEX_APOS | JSON_HEX_QUOT); ?>;
   document.addEventListener('DOMContentLoaded', function() {
     const form = document.getElementById('updateform');
     //const responseDiv = document.getElementById('response');

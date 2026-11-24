@@ -10,6 +10,51 @@
  *        a.getWikidata(); 
  */
 
+if (typeof createDivider !== 'function') {
+  window.createDivider = function(string) {
+    const divider = document.createElement('h3');
+    divider.appendChild(document.createTextNode(string));
+    divider.className = 'text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1.5 mt-4 mb-3 flex items-center gap-1.5';
+    return divider;
+  };
+}
+
+if (typeof window.normalizeLanguageCode !== 'function') {
+  window.normalizeLanguageCode = function(raw) {
+    if (!raw) return null;
+    const str = String(raw).trim().toLowerCase();
+    const nameToCode = {
+      german: 'de', deutsch: 'de', de: 'de',
+      french: 'fr', francais: 'fr', français: 'fr', fr: 'fr',
+      english: 'en', en: 'en',
+      dutch: 'nl', nederlands: 'nl', nl: 'nl',
+      spanish: 'es', espanol: 'es', español: 'es', es: 'es',
+      italian: 'it', italiano: 'it', it: 'it',
+      latin: 'la', latina: 'la', la: 'la',
+      greek: 'el', 'ancient greek': 'grc', grc: 'grc', el: 'el',
+      portuguese: 'pt', portugues: 'pt', português: 'pt', pt: 'pt',
+      polish: 'pl', polski: 'pl', pl: 'pl',
+      russian: 'ru', ru: 'ru',
+      japanese: 'ja', ja: 'ja',
+      chinese: 'zh', zh: 'zh',
+      arabic: 'ar', ar: 'ar',
+      swedish: 'sv', sv: 'sv',
+      ukrainian: 'uk', uk: 'uk',
+      hungarian: 'hu', hu: 'hu',
+      czech: 'cs', cs: 'cs',
+      danish: 'da', da: 'da',
+      finnish: 'fi', fi: 'fi',
+      norwegian: 'no', no: 'no',
+      turkish: 'tr', tr: 'tr',
+      hebrew: 'he', he: 'he'
+    };
+    const clean = str.replace(/wiki$/, '').split(/[-_\s/]/)[0];
+    if (nameToCode[str]) return nameToCode[str];
+    if (nameToCode[clean]) return nameToCode[clean];
+    return clean;
+  };
+}
+
 function helper_setWDLanguages(ddopttarget){
   //TODO: not implemented yet - weird code //BUG
   // Argument in function is not properly implemented
@@ -118,16 +163,46 @@ function helper_setWDLanguages(ddopttarget){
     'zh-mo': "中文（澳門）‎",'zh-my': "中文（马来西亚）‎",'zh-sg': "中文（新加坡）‎",'zh-tw': "中文（台灣）‎",
     'zh-yue': "粵語‎",zu: "isiZulu"
   };
+  if (!ddopttarget) {
+    ddopttarget = document.getElementById('wdlookuplanguage');
+  }
+  if (!ddopttarget) return;
+
+  var prefLanguage = false;
   try{
     prefLanguage = Object.keys(wdProperties['preferredLanguage'])[0];
   }catch(err){
     prefLanguage = false;  
   }
+  const configuredSites = (typeof wdProperties !== 'undefined' && wdProperties && wdProperties['stringmatchWikipediaTitles'])
+    ? Object.keys(wdProperties['stringmatchWikipediaTitles'])
+    : [];
+  let firstFallbackIso = configuredSites.length > 0 ? configuredSites[0].replace(/wiki$/, '') : 'en';
+
   var fallbackLanguage = !!wdProperties['fallbackLanguage'] ? wdProperties['fallbackLanguage'] : false; 
   var appFallbackLanguage = 'en'; 
-  var setSelected = prefLanguage ? prefLanguage : fallbackLanguage;
-  //var ddopttarget = document.getElementById('wdlookuplanguage'); 
+  var setSelected = prefLanguage ? prefLanguage : (firstFallbackIso ? firstFallbackIso : fallbackLanguage);
   setSelected = setSelected ? setSelected : appFallbackLanguage; 
+
+  const prioritize = (typeof wdProperties !== 'undefined' && wdProperties && wdProperties['prioritizeDetectedLanguage'] !== undefined)
+    ? Boolean(wdProperties['prioritizeDetectedLanguage'])
+    : true;
+  let detectedIso = null;
+  if (typeof languageOptions !== 'undefined' && languageOptions && languageOptions.ISO_code) {
+    detectedIso = normalizeLanguageCode(languageOptions.ISO_code);
+  }
+  if (!detectedIso) {
+    const domCodeElem = document.getElementById('detectedLanguageCode');
+    const domCode = domCodeElem ? domCodeElem.textContent.trim().toLowerCase() : '';
+    if (domCode && domCode !== 'n/a' && domCode !== 'none' && domCode !== 'unknown') {
+      detectedIso = normalizeLanguageCode(domCode);
+    }
+  }
+  if (prioritize && detectedIso && languages[detectedIso]) {
+    setSelected = detectedIso;
+  }
+
+  ddopttarget.innerHTML = '';
   for(const key in languages){
     let displayLanguage = languages[key]; 
     let ddopt = document.createElement('option'); 
@@ -138,8 +213,179 @@ function helper_setWDLanguages(ddopttarget){
     }
     ddopttarget.appendChild(ddopt); 
   }
+
+  if (setSelected) {
+    ddopttarget.value = setSelected;
+  }
+
+  if (ddopttarget && !ddopttarget.dataset.langChangeListenerBound) {
+    ddopttarget.dataset.langChangeListenerBound = 'true';
+    ddopttarget.addEventListener('change', function() {
+      if (typeof updateWDPromptLangIndicator === 'function') {
+        updateWDPromptLangIndicator();
+      }
+    });
+  }
 }
 
+// Resolve the active string matching language, label, and auto-detection status.
+function getActiveStringMatchingLanguage() {
+  const prioritize = (typeof wdProperties !== 'undefined' && wdProperties && wdProperties['prioritizeDetectedLanguage'] !== undefined)
+    ? Boolean(wdProperties['prioritizeDetectedLanguage'])
+    : true;
+
+  // Resolve detected document language from options or DOM.
+  let detectedIso = null;
+  if (typeof languageOptions !== 'undefined' && languageOptions && languageOptions.ISO_code) {
+    detectedIso = normalizeLanguageCode(languageOptions.ISO_code);
+  }
+  if (!detectedIso) {
+    const domCodeElem = document.getElementById('detectedLanguageCode');
+    const domCode = domCodeElem ? domCodeElem.textContent.trim().toLowerCase() : '';
+    if (domCode && domCode !== 'n/a' && domCode !== 'none' && domCode !== 'unknown') {
+      detectedIso = normalizeLanguageCode(domCode);
+    }
+  }
+
+  // Resolve user configured fallback languages from preferences dictionary.
+  const titlesDict = (typeof wdProperties !== 'undefined' && wdProperties && wdProperties['stringmatchWikipediaTitles'])
+    ? wdProperties['stringmatchWikipediaTitles']
+    : {};
+  const fallbackKeys = Object.keys(titlesDict);
+  const firstFallbackKey = fallbackKeys.length > 0 ? fallbackKeys[0] : 'enwiki';
+  const firstFallbackIso = firstFallbackKey.replace(/wiki$/, '');
+
+  // Check current selection in the lookup language selector.
+  const dd = document.getElementById('wdlookuplanguage');
+  let activeIso = (dd && dd.value && dd.value.trim() !== '') ? dd.value.trim() : null;
+  if (!activeIso) {
+    activeIso = (prioritize && detectedIso) ? detectedIso : firstFallbackIso;
+  }
+  if (!activeIso) {
+    activeIso = 'en';
+  }
+
+  // Auto-detection is actively used if prioritization is enabled and active ISO matches detected ISO.
+  const isAutodetected = Boolean(prioritize && detectedIso && (activeIso === detectedIso));
+
+  // Friendly name lookup matching the strings configured in userpage.
+  const activeWikiKey = activeIso + 'wiki';
+  let label = null;
+  if (titlesDict[activeWikiKey] && titlesDict[activeWikiKey][1]) {
+    label = titlesDict[activeWikiKey][1];
+  } else if (titlesDict[activeIso] && titlesDict[activeIso][1]) {
+    label = titlesDict[activeIso][1];
+  } else {
+    const friendlyMap = {
+      en: 'English', fr: 'French', de: 'German', nl: 'Dutch',
+      es: 'Spanish', it: 'Italian', la: 'Latin', pt: 'Portuguese',
+      pl: 'Polish', ru: 'Russian', ja: 'Japanese', zh: 'Chinese',
+      ar: 'Arabic', sv: 'Swedish', uk: 'Ukrainian', el: 'Greek',
+      hu: 'Hungarian', cs: 'Czech', da: 'Danish', fi: 'Finnish',
+      no: 'Norwegian', tr: 'Turkish', he: 'Hebrew'
+    };
+    label = friendlyMap[activeIso] || (activeIso.toUpperCase() + ' (' + activeWikiKey + ')');
+  }
+
+  return {
+    iso: activeIso,
+    wikiKey: activeWikiKey,
+    label: label,
+    isAutodetected: isAutodetected,
+    detectedIso: detectedIso,
+    firstFallbackIso: firstFallbackIso,
+    prioritize: prioritize
+  };
+}
+window.getActiveStringMatchingLanguage = getActiveStringMatchingLanguage;
+
+// Render language indicator in the Wikidata prompt box.
+function renderWDPromptLangIndicator(container) {
+  if (!container) return;
+  const info = getActiveStringMatchingLanguage();
+  container.innerHTML = '';
+
+  const wrapper = document.createElement('div');
+  wrapper.className = 'flex items-center justify-between gap-2 px-3 py-1.5 bg-slate-50 border border-slate-200/80 rounded-xl text-xs text-slate-500 my-1 shadow-2xs';
+
+  // Left side: icon and language name.
+  const left = document.createElement('div');
+  left.className = 'flex items-center gap-1.5 min-w-0';
+  left.innerHTML = `
+    <i class="fas fa-language text-slate-400 text-sm shrink-0"></i>
+    <span class="text-slate-500 font-medium">Matching language:</span>
+    <span class="font-bold text-slate-800 truncate" title="${info.label} (${info.wikiKey})">${info.label}</span>
+  `;
+  wrapper.appendChild(left);
+
+  // Right side: clever auto-detection status badge and one-click switcher.
+  const right = document.createElement('div');
+  right.className = 'flex items-center gap-1.5 shrink-0';
+
+  if (info.isAutodetected) {
+    right.innerHTML = `
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200/90 shadow-2xs cursor-pointer select-none transition hover:bg-emerald-100" title="Language automatically detected by LATTE connector. Click to toggle to fallback language.">
+        <span class="relative flex h-2 w-2">
+          <span class="animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75"></span>
+          <span class="relative inline-flex rounded-full h-2 w-2 bg-emerald-500"></span>
+        </span>
+        <i class="fas fa-wand-magic-sparkles text-[9px] text-emerald-600"></i>
+        <span>Auto-detected</span>
+      </span>
+    `;
+    const badge = right.querySelector('span');
+    badge.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const dd = document.getElementById('wdlookuplanguage');
+      if (dd && info.firstFallbackIso) {
+        dd.value = info.firstFallbackIso;
+        dd.dispatchEvent(new Event('change'));
+      }
+      const inp = document.getElementById('wikidataInputPrompter');
+      if (inp && typeof wdprompt === 'function') {
+        wdprompt(inp.value, 0);
+      }
+      renderWDPromptLangIndicator(container);
+    });
+  } else {
+    const hasDetected = Boolean(info.detectedIso);
+    right.innerHTML = `
+      <span class="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[10px] font-medium bg-slate-100 text-slate-600 border border-slate-200/90 shadow-2xs select-none transition ${hasDetected ? 'cursor-pointer hover:bg-slate-200' : ''}" title="${hasDetected ? 'Using configured fallback language. Click to toggle to auto-detected language (' + info.detectedIso + ').' : 'Using configured fallback language (no auto-detected language available).'}">
+        <span class="inline-flex rounded-full h-2 w-2 bg-slate-400"></span>
+        <i class="fas fa-arrow-rotate-left text-[9px] text-slate-500"></i>
+        <span>Fallback</span>
+      </span>
+    `;
+    if (hasDetected) {
+      const badge = right.querySelector('span');
+      badge.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const dd = document.getElementById('wdlookuplanguage');
+        if (dd && info.detectedIso) {
+          dd.value = info.detectedIso;
+          dd.dispatchEvent(new Event('change'));
+        }
+        const inp = document.getElementById('wikidataInputPrompter');
+        if (inp && typeof wdprompt === 'function') {
+          wdprompt(inp.value, 0);
+        }
+        renderWDPromptLangIndicator(container);
+      });
+    }
+  }
+
+  wrapper.appendChild(right);
+  container.appendChild(wrapper);
+}
+window.renderWDPromptLangIndicator = renderWDPromptLangIndicator;
+
+function updateWDPromptLangIndicator() {
+  const container = document.getElementById('wdPromptLangContainer');
+  if (container) {
+    renderWDPromptLangIndicator(container);
+  }
+}
+window.updateWDPromptLangIndicator = updateWDPromptLangIndicator;
 
 
 class wikibaseEntry {
@@ -154,12 +400,15 @@ class wikibaseEntry {
   OutputFormattedDataBlocks;    //Object with all qid keys that are valid and for each qid all groups are added. Output generated by display...* functions are stored in each block! Display is later shown in DOM by final renderBlocks function
   windowmode              //static or slideover
 
-  //vallidate the Input dependent on the key ==> QID 
-  constructor(inputvariable, settings, displaymode, by='qid') {
-    //id should be validated first: does it start with Q followed by int. 
+  entityType;             //entity type identifier (e.g. Person, Place)
+
+  // Validate the input dependent on the key ==> QID 
+  constructor(inputvariable, settings, displaymode, by='qid', entityType = null) {
+    // ID should be validated first: does it start with Q followed by int. 
     this.OutputFormattedDataBlocks = {};
     this.usersettings = settings; 
     this.windowmode = displaymode; 
+    this.entityType = entityType;
     // this.Pindicators = {
     //   'PERSON': ["P1006","P1038","P1047","P1185","P119","P1196","P1213","P1233","P1290","P1317","P1415","P1422","P157","P1648","P1710","P19","P1907","P1908","P1935","P1938","P1971","P20","P2180","P22","P2421","P2460","P2498","P25","P26","P2732","P2744","P2745","P2753","P2944","P2972","P2973","P2977","P3029","P3150","P3217","P3373","P3448","P3576","P3595","P3909","P40","P4177","P4180","P4193","P4359","P4459","P451","P4602","P4789","P496","P4963","P509","P5563","P569","P570","P5726","P5756","P5756","P5956","P6038","P6059","P6167","P6234","P651","P6829","P6941","P6996","P7023","P7041","P7042","P723","P7902","P7928","P7939","P7941","P8081","P8122","P8130","P8341","P8810","P9058","P947"],
     //   'PLACE': ["P30","P36","P47","P131","P189","P206","P276","P291","P403","P610","P613","P625","P669","P706","P931","P937","P1302","P1332","P1333","P1334","P1335","P1376","P1589","P2672","P2825","P3018","P3032","P3096","P3137","P3179","P3403","P3470","P3842","P4091","P4388","P4552","P4565","P4647","P4688","P5248","P5607","P5998","P6375","P17","P150","P190","P242","P281","P296","P297","P298","P299","P300","P374","P382","P402","P429","P439","P440","P442","P454","P455","P500","P501","P507","P525","P539","P590","P605","P630","P635","P677","P716","P721","P722","P757","P761","P764","P771","P772","P773","P774","P775","P776","P777","P778","P779","P782","P804","P806","P809","P814","P821","P843","P882","P901","P909","P939","P948","P954","P964","P981","P984","P988","P1010","P1067","P1077","P1115","P1116","P1140","P1168","P1172","P1188","P1203","P1217","P1276","P1281","P1282","P1305","P1311","P1336","P1370","P1380","P1381","P1383","P1388","P1397","P1398","P1400","P1404","P1456","P1459","P1460","P1481","P1566","P1584","P1585","P1602","P1621","P1653","P1667","P1684","P1699","P1717","P1732","P1792","P1837","P1841","P1848","P1850","P1854","P1866","P1871","P1879","P1886","P1887","P1894","P1920","P1936","P1937","P1943","P1944","P1945","P1958","P1976","P2025","P2081","P2082","P2099","P2100","P2123","P2186","P2258","P2270","P2290","P2326","P2467","P2468","P2473","P2477","P2487","P2491","P2496","P2497","P2503","P2504","P2505","P2506","P2516","P2520","P2525","P2526","P2561","P2564","P2584","P2585","P2586","P2588","P2595","P2618","P2621","P2633","P2659","P2672","P2673","P2674","P2762","P2763","P2783","P2787","P2788","P2815","P2817","P2856","P2863","P2866","P2867","P2887","P2917","P2927","P2929","P2956","P2971","P2980","P2981","P2982","P2983","P3009","P3012","P3024","P3059","P3067","P3104","P3108","P3109","P3118","P3119","P3120","P3182","P3197","P3198","P3202","P3209","P3211","P3223","P3227","P3230","P3238","P3256","P3257","P3296","P3304","P3309","P3326","P3335","P3353","P3371","P3394","P3396","P3401","P3407","P3412","P3419","P3422","P3423","P3425","P3426","P3472","P3481","P3498","P3503","P3507","P3513","P3514","P3515","P3516","P3517","P3555","P3562","P3563","P3572","P3580","P3601","P3609","P3613","P3615","P3616","P3626","P3627","P3628","P3633","P3635","P3639","P3676","P3707","P3714","P3723","P3727","P3728","P3731","P3735","P3749","P3758","P3759","P3770","P3806","P3809","P3810","P3813","P3824","P3850","P3856","P3863","P3866","P3896","P3907","P3920","P3922","P3972","P3974","P3988","P3990","P3992","P3993","P4001","P4005","P4007","P4009","P4014","P4029","P4038","P4046","P4055","P4059","P4075","P4083","P4088","P4091","P4093","P4094","P4098","P4117","P4118","P4119","P4133","P4136","P4141","P4142","P4143","P4146","P4154","P4170","P4171","P4172","P4182","P4219","P4227","P4244","P4245","P4246","P4249","P4266","P4291","P4328","P4334","P4335","P4340","P4346","P4352","P4356","P4358","P4388","P4401","P4423","P4528","P4533","P4535","P4591","P4595","P4641","P4658","P4672","P4689","P4694","P4697","P4702","P4708","P4711","P4755","P4762","P4777","P4792","P4800","P4803","P4812","P4820","P4856","P4881","P5010","P5011","P5020","P5050","P5140","P5141","P5180","P5207","P5208","P5215","P5288","P5289","P5294","P5388","P5400","P5464","P5515","P5535","P5598","P5599","P5601","P5611","P5633","P5634","P5652","P5696","P5746","P5757","P5758","P5759","P5761","P5763","P5764","P5782","P5818","P5904","P5946","P5965","P6006","P6017","P6082","P6120","P6144","P6148","P6155","P6192","P6230","P6233","P6244","P6265","P6340","P200","P201","P205","P403","P469","P761","P884","P885","P974","P1200","P1404","P1717","P2516","P2584","P2856","P3006","P3119","P3326","P3394","P3707","P3866","P3871","P4002","P4190","P4202","P4279","P4511","P4528","P4568","P4614","P4661","P4792","P5079","P6148"], 
@@ -194,8 +443,47 @@ class wikibaseEntry {
         redirections: false // defaults to true
       }); 
     }else if(this.searchMode === 'str'){
-      var wikiLangLinks = Object.keys(wdProperties['stringmatchWikipediaTitles']);
-      var wikiLangLinksForSites = wikiLangLinks.join('|'); 
+      const prioritizeDetected = (typeof wdProperties !== 'undefined' && wdProperties && wdProperties['prioritizeDetectedLanguage'] !== undefined)
+        ? Boolean(wdProperties['prioritizeDetectedLanguage'])
+        : true;
+
+      // Check if LATTE connector has detected a language for the current document
+      let detectedLang = null;
+      if (typeof languageOptions !== 'undefined' && languageOptions && languageOptions.ISO_code) {
+        detectedLang = normalizeLanguageCode(languageOptions.ISO_code);
+      }
+      if (!detectedLang) {
+        const domCodeElem = document.getElementById('detectedLanguageCode');
+        const domCode = domCodeElem ? domCodeElem.textContent.trim().toLowerCase() : '';
+        if (domCode && domCode !== 'n/a' && domCode !== 'none' && domCode !== 'unknown') {
+          detectedLang = normalizeLanguageCode(domCode);
+        }
+      }
+
+      // Build fallback language sites from user configuration
+      const configuredSites = (typeof wdProperties !== 'undefined' && wdProperties && wdProperties['stringmatchWikipediaTitles'])
+        ? Object.keys(wdProperties['stringmatchWikipediaTitles'])
+        : [];
+
+      let sites = [];
+      if (prioritizeDetected && detectedLang) {
+        const detectedWiki = detectedLang + 'wiki';
+        sites.push(detectedWiki);
+        configuredSites.forEach(s => {
+          if (s !== detectedWiki && !sites.includes(s)) {
+            sites.push(s);
+          }
+        });
+      } else {
+        sites = [...configuredSites];
+      }
+
+      // If no fallback languages are configured, default to English Wikipedia
+      if (sites.length === 0) {
+        sites.push('enwiki');
+      }
+
+      var wikiLangLinksForSites = sites.join('|'); 
       /*
        * the SDK keeps setting normalized=true with no way to override it from within the object. 
        * BUT: if normalization is enabled; then you can only look in one site!
@@ -208,7 +496,7 @@ class wikibaseEntry {
         redirections: false // defaults to true
       }); 
       //strip normalization out of the url; IF wikiLangLinks.length > 1:
-      if(wikiLangLinks.length > 1){
+      if(sites.length > 1){
         url = url.replace('&normalize=true',''); 
       }
   }
@@ -271,88 +559,132 @@ class wikibaseEntry {
     });
   }*/
   renderEntities(qid){
-    //with all the entities categorized by the classify() call:
-    //show them in the DOM. Use user preferences and highest probability to display ets:
-    //in STR mode: 
-    //    cases can go from 0 to multiple entities!
-    //in Q-mode:
-    //    One entity only; 
+    // With all the entities categorized by the classify() call:
+    // show them in the DOM. Use user preferences and highest probability to display entities.
     var madeAtLeastOneMatch = false;
     var baseBlock = {'wikilink': [], 'uri':[], 'geo':[], 'img':[], 'str':[]}; 
     var promisses = []; 
     if(this.searchMode === 'qid'){
       this.OutputFormattedDataBlocks[qid]= baseBlock; 
-      this.originalData = JSON.parse(JSON.stringify(this.rawData));     //deepcopy! otherwise wdk.parse.wd.entities overrides this
+      this.originalData = JSON.parse(JSON.stringify(this.rawData));     // Deepcopy to preserve original raw data
       try{
         this.parsedData = wdk.parse.wd.entities(this.rawData); 
       } catch {
-        //skip linking to WD if entities are unparsable.
+        // Skip linking to Wikidata if entities are unparsable
         console.error('WDK could not parse entity.');
         deleteIfExistsById("wdsearchpromptbox"); 
         deleteIfExistsById("embeddedWDConfirmationGroup"); 
         deleteIfExistsById("wdsearchpromptbox"); 
-        acceptQID(-1);
+        if (typeof acceptQID === 'function') {
+          acceptQID(-1);
+        }
         return;
       }
-      Object.keys(this.parsedData[qid].claims).forEach(e => {
-        if (Object.keys(this.usersettings['shownProperties']).includes(e)){
+
+      // Determine active properties for the given entity type:
+      let activeProperties = {};
+      if (this.entityType && this.usersettings && this.usersettings['shownPropertiesByEntity'] && this.usersettings['shownPropertiesByEntity'][this.entityType]) {
+        activeProperties = this.usersettings['shownPropertiesByEntity'][this.entityType];
+      } else if (this.usersettings && this.usersettings['shownPropertiesByEntity'] && this.usersettings['shownPropertiesByEntity']['_global']) {
+        activeProperties = this.usersettings['shownPropertiesByEntity']['_global'];
+      } else if (this.usersettings && this.usersettings['shownProperties']) {
+        activeProperties = this.usersettings['shownProperties'];
+      }
+
+      let availableClaims = (this.parsedData[qid] && this.parsedData[qid].claims) ? this.parsedData[qid].claims : {};
+
+      // Process all active configured properties for this entity type:
+      for (const [propCode, propDef] of Object.entries(activeProperties)) {
+        let wdPropLabel = propDef[0] || propCode;
+        let isEnabled = Boolean(propDef[1]);
+        let wdProcessAs = propDef[2] || 'str';
+        let showMissing = Boolean(propDef[3]);
+        let temporalMode = propDef[4] || 'latest';
+
+        if (!isEnabled) {
+          continue;
+        }
+
+        if (propCode in availableClaims) {
           madeAtLeastOneMatch = true;
-          var wikidata_response = this.parsedData[qid].claims[e]; 
-          var userSelected = this.usersettings['shownProperties'][e];
-          let wdPropLabel = userSelected[0]; 
-          let wdProcessAs = userSelected[2];
+          var wikidata_response = availableClaims[propCode];
           if(wdProcessAs === 'uri'){
-            promisses.push(this.displayURI(wdPropLabel, wikidata_response, qid, e));
+            promisses.push(this.displayURI(wdPropLabel, wikidata_response, qid, propCode));
           }else if(wdProcessAs === 'geo'){
-            promisses.push(this.displayCoordinateData(wikidata_response, qid, e));
+            promisses.push(this.displayCoordinateData(wikidata_response, qid, propCode));
           }else if(wdProcessAs === 'img'){
-            promisses.push(this.displayImageData(wdPropLabel,wikidata_response, qid, e));
+            promisses.push(this.displayImageData(wdPropLabel, wikidata_response, qid, propCode));
           }else if(wdProcessAs === 'str'){
-            promisses.push(this.displayStringData(wdPropLabel, wikidata_response, qid, e));
+            promisses.push(this.displayStringData(wdPropLabel, wikidata_response, qid, propCode, temporalMode));
           }
+        } else if (showMissing) {
+          madeAtLeastOneMatch = true;
+          this.displayMissingNotice(wdPropLabel, qid, propCode, wdProcessAs);
         }
-      });
-      //handle the wikipedia links: 
-      Object.keys(this.parsedData[qid].sitelinks).forEach(key => {
-        let sitelinkValue = this.parsedData[qid].sitelinks[key]; 
-        // if key is also a key in : showWikipediaLinksTo:: 
-        if(key in wdProperties['showWikipediaLinksTo']){
-          //use sitelinkValue to generate a link to wikipedia: 
-          let wikipediaURI = wdProperties['showWikipediaLinksTo'][key][0]+sitelinkValue; 
-          let wikipediaAnchorText = wdProperties['showWikipediaLinksTo'][key][1]; 
-          let wikipediaClickLink = document.createElement('a'); 
-          wikipediaClickLink.setAttribute('target', '_blank'); 
-          wikipediaClickLink.setAttribute('href', wikipediaURI); 
-          wikipediaClickLink.appendChild(document.createTextNode(wikipediaAnchorText)); 
-          wikipediaClickLink.classList.add('externalURILogo', 'flex'); 
-          this.OutputFormattedDataBlocks[qid]['wikilink'].push(wikipediaClickLink);
-        }
-      })
+      }
+
+      // Handle the Wikipedia links: 
+      if (this.parsedData[qid] && this.parsedData[qid].sitelinks) {
+        Object.keys(this.parsedData[qid].sitelinks).forEach(key => {
+          let sitelinkValue = this.parsedData[qid].sitelinks[key]; 
+          // If key is also in showWikipediaLinksTo:
+          if(this.usersettings && this.usersettings['showWikipediaLinksTo'] && key in this.usersettings['showWikipediaLinksTo']){
+            let wikipediaURI = this.usersettings['showWikipediaLinksTo'][key][0] + sitelinkValue; 
+            let wikipediaAnchorText = this.usersettings['showWikipediaLinksTo'][key][1]; 
+            let wikipediaClickLink = document.createElement('a'); 
+            wikipediaClickLink.setAttribute('target', '_blank'); 
+            wikipediaClickLink.setAttribute('href', wikipediaURI); 
+            wikipediaClickLink.appendChild(document.createTextNode(wikipediaAnchorText)); 
+            wikipediaClickLink.classList.add('externalURILogo', 'flex'); 
+            this.OutputFormattedDataBlocks[qid]['wikilink'].push(wikipediaClickLink);
+          }
+        });
+      }
     }
+
     Promise.all(promisses).then((values)=> {
       var keyToTitle = {'wikilink': 'Wikis', 'uri': 'External Identifiers', 'geo': 'Maps', 'img': 'Images', 'str': 'Literals'};
-      // output the OutputFormattedDataBlocks to DOM. 
-      let target;
+      // Output the OutputFormattedDataBlocks to DOM:
+      let target = null;
       if(this.windowmode === 'slideover'){
         target = document.getElementById('slideoverDynamicContent'); 
       }else if(this.windowmode === 'static'){
         target = document.getElementById('insertWDHere'); 
+      }else if(this.windowmode === 'preview'){
+        target = document.getElementById('previewWDTarget');
       }
-      var d=document.getElementById('WDResponseTarget');
-      if(d!==null){d.remove();}
+
+      if(!target){
+        console.warn('Target container not found for Wikidata display mode: ' + this.windowmode);
+        return;
+      }
+
+      let existing = target.querySelector('#WDResponseTarget') || (this.windowmode !== 'preview' ? document.getElementById('WDResponseTarget') : null);
+      if(existing !== null){
+        existing.remove();
+      }
+
       let dataDivMain = document.createElement('div'); 
-      dataDivMain.classList.add('border-t-2', 'mt-1', 'pt-1');
+      dataDivMain.className = 'border-t border-slate-200/80 mt-4 pt-3';
       dataDivMain.setAttribute('id', 'WDResponseTarget');
       let wikidataTitleBlock = document.createElement('h2'); 
-      wikidataTitleBlock.appendChild(document.createTextNode('Wikidata:')); 
-      wikidataTitleBlock.classList.add('text-2xl', 'font-bold'); 
+      wikidataTitleBlock.innerHTML = '<i class="fab fa-wikipedia-w text-indigo-500 mr-1.5"></i> Wikidata'; 
+      wikidataTitleBlock.className = 'text-xs font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center'; 
       dataDivMain.appendChild(wikidataTitleBlock);
+
       if (this.searchMode === 'qid'){
         for (const [key, value] of Object.entries(this.OutputFormattedDataBlocks[qid])) {
           if(value.length === 0){continue;}
           let dataDivCategory = document.createElement('div'); 
           dataDivCategory.classList.add('my-2', 'py-2'); 
-          let categoryTitle = createDivider(keyToTitle[key]);
+          let categoryTitle = (typeof createDivider === 'function')
+            ? createDivider(keyToTitle[key])
+            : (function(label) {
+                let h = document.createElement('h3');
+                h.className = 'text-xs font-bold uppercase tracking-wider text-slate-500 border-b border-slate-200 pb-1.5 mt-4 mb-3';
+                h.textContent = label;
+                return h;
+              })(keyToTitle[key]);
           dataDivCategory.appendChild(categoryTitle); 
           for(var n = 0; n < value.length; n++){
             dataDivCategory.appendChild(value[n]); 
@@ -361,13 +693,31 @@ class wikibaseEntry {
         }
       }
       target.appendChild(dataDivMain); 
-      buildCaroussel(); 
-      buildMaps(); 
-      if(!(madeAtLeastOneMatch)){
-        document.getElementById('WDResponseTarget').innerHTML = '<p>Wikidata returned no property tags which are in the project scope.</p>'; 
-      }
-    })
 
+      if(typeof buildCaroussel === 'function'){
+        try { buildCaroussel(); } catch(err) { console.warn('Caroussel error:', err); }
+      }
+      if(typeof buildMaps === 'function'){
+        try { buildMaps(); } catch(err) { console.warn('Maps error:', err); }
+      }
+
+      if(!(madeAtLeastOneMatch)){
+        let emptyNotice = document.createElement('p');
+        emptyNotice.className = 'text-xs text-slate-400 italic py-2';
+        emptyNotice.textContent = 'Wikidata returned no property tags within project scope.';
+        dataDivMain.appendChild(emptyNotice);
+      }
+    });
+
+  }
+
+  displayMissingNotice(label, q, property, processAs){
+    var cat = (processAs === 'uri') ? 'uri' : (processAs === 'geo' ? 'geo' : (processAs === 'img' ? 'img' : 'str'));
+    var into = this.OutputFormattedDataBlocks[q][cat];
+    var pelement = document.createElement('p');
+    pelement.className = 'my-1';
+    pelement.innerHTML = "<a href='https://www.wikidata.org/wiki/Property:" + property + "' target='_blank' class='font-bold'>" + label + "</a>: <span class='text-[11px] text-slate-400 italic'>No data available</span>";
+    into.push(pelement);
   }
 
   /**
@@ -446,153 +796,206 @@ class wikibaseEntry {
     //A separate caroussel JS file handles the actual display of data. 
   }
 
-  async displayStringData(label, value, q, property){
-    var labelLanguagePreference = document.getElementById('wdlookuplanguage').value;
+  async displayStringData(label, value, q, property, temporalMode = 'latest'){
+    var langElem = document.getElementById('wdlookuplanguage');
+    var labelLanguagePreference = (langElem && langElem.value) ? langElem.value : (this.usersettings && this.usersettings['preferredLanguage'] ? Object.keys(this.usersettings['preferredLanguage'])[0] : 'en');
     var into = this.OutputFormattedDataBlocks[q]['str'];
-    //show this as: user provided string with embedded link to wikidata where te property is explained: value. 
     var pelement = document.createElement('p');
-    let propertyset = this.originalData['entities'][q]['claims'][property]
+    pelement.className = 'my-1';
+    let propertyset = (this.originalData && this.originalData['entities'] && this.originalData['entities'][q] && this.originalData['entities'][q]['claims']) ? this.originalData['entities'][q]['claims'][property] : null;
+    if(!propertyset || propertyset.length === 0){
+      return;
+    }
     let propertyDataType = propertyset[0]['mainsnak']['datatype']; 
+
     if(propertyDataType === 'time'){
-      //format the literal into a nice datetime field: 
       var date = new Date(value); 
-      var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: <span>"+date+"</span>"; 
+      var formattedDate = isNaN(date.getTime()) ? value : date.toLocaleDateString();
+      var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: <span>"+formattedDate+"</span>"; 
       pelement.innerHTML = showAs; 
       into.push(pelement); 
     }else if (propertyDataType === 'wikibase-item'){
       let newElements = []; 
       let multidata = []; 
-      //look up the labels: ==> prefer to use the label that's selected in the lookup; if that's missing; use 'en'
-      //if both fail, don't show the labelstring, but fallback on the qid, stored in the variable 'value'; 
-    //if you receive multiple values for value, you have to explicitly implode it with | for the API to work!: 
-      var urlForValueLookup = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+value.join('|')+"&props=labels&format=json&origin=*"; 
+      var valueArray = Array.isArray(value) ? value : [value];
+      var urlForValueLookup = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+valueArray.join('|')+"&props=labels&format=json&origin=*"; 
       return await fetch(urlForValueLookup)
         .then(response => response.json())
         .then(response => {
-          value.forEach(qvalue => {
-            //var pelement = document.createElement('p');
-            let labelList = response['entities'][qvalue]['labels'];
+          valueArray.forEach(qvalue => {
+            let labelList = (response['entities'] && response['entities'][qvalue] && response['entities'][qvalue]['labels']) ? response['entities'][qvalue]['labels'] : {};
             let showToUser = qvalue; 
             if(labelLanguagePreference in labelList){
               showToUser = labelList[labelLanguagePreference]['value'];
-            }else if('en' in labelList){    //default to english
+            }else if('en' in labelList){
               showToUser = labelList['en']['value'];
             }
             multidata.push([showToUser, qvalue]); 
-            //var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: <span>"+showToUser+"</span>"; 
-            //pelement.innerHTML = showAs; 
-            //into.push(pelement); 
           });
           let showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: "; 
           const anchors = multidata.map(([text, href]) => {
-            const anchor = "<a href = 'https://www.wikidata.org/wiki/"+href+"' target='_blank'>"+text+"</a>"; 
-            return anchor;
+            return "<a href='https://www.wikidata.org/wiki/"+href+"' target='_blank' class='hover:underline text-indigo-600'>"+text+"</a>"; 
           });
-          showAs = showAs+ "<span>"+anchors.join(', ')+"</span>"; 
+          showAs = showAs + "<span>"+anchors.join(', ')+"</span>"; 
           pelement.innerHTML = showAs; 
           newElements.push(pelement);
         }).then(function(){
           into.push(...newElements); 
-        }
-        )
+        }).catch(err => {
+          console.warn('Error resolving wikibase item labels:', err);
+          pelement.innerHTML = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: <span>"+valueArray.join(', ')+"</span>";
+          into.push(pelement);
+        });
 
-      }else if (propertyDataType === 'monolingualtext'){
-        if (value.length === 1){
-          // show as paragraph
-          var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+value[0]+"</span>"; 
-        }else{
-          // show as unordered list
-          var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <ul>";
-          for(let i = 0; i<value.length; i++){
-            showAs += '<li>'+value[i]+'</li>'; 
-          }
-          showAs +='</ul>';
+    }else if (propertyDataType === 'monolingualtext'){
+      var valueArr = Array.isArray(value) ? value : [value];
+      if (valueArr.length === 1){
+        var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: <span>"+valueArr[0]+"</span>"; 
+      }else{
+        var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: <ul class='list-disc list-inside ml-2 text-xs'>";
+        for(let i = 0; i < valueArr.length; i++){
+          showAs += '<li>'+valueArr[i]+'</li>'; 
         }
+        showAs += '</ul>';
+      }
+      pelement.innerHTML = showAs; 
+      into.push(pelement); 
+
+    }else if (propertyDataType === 'quantity'){
+      // Extract all statements with temporal qualifiers (P585: point in time):
+      let statementsWithTime = [];
+      for (let i = 0; i < propertyset.length; i++) {
+        let stmt = propertyset[i];
+        if (stmt.mainsnak && stmt.mainsnak.datavalue && stmt.mainsnak.datavalue.value) {
+          let rawAmt = stmt.mainsnak.datavalue.value.amount;
+          let unit = stmt.mainsnak.datavalue.value.unit || '';
+          let timeStr = null;
+          let year = null;
+          if (stmt.qualifiers && stmt.qualifiers.P585 && stmt.qualifiers.P585[0] && stmt.qualifiers.P585[0].datavalue && stmt.qualifiers.P585[0].datavalue.value) {
+            timeStr = stmt.qualifiers.P585[0].datavalue.value.time;
+            let m = timeStr.match(/^[+-]?(\d{4})/);
+            if (m) {
+              year = parseInt(m[1], 10);
+            }
+          }
+          statementsWithTime.push({
+            statement: stmt,
+            amount: rawAmt,
+            unit: unit,
+            timeStr: timeStr,
+            year: year,
+            rank: stmt.rank
+          });
+        }
+      }
+
+      // Sort chronologically descending:
+      statementsWithTime.sort((a, b) => {
+        if (a.year !== null && b.year !== null) return b.year - a.year;
+        if (a.year !== null) return -1;
+        if (b.year !== null) return 1;
+        return 0;
+      });
+
+      // Primary statement is preferred rank if present, or latest year:
+      let primaryEntry = statementsWithTime.find(s => s.rank === 'preferred') || statementsWithTime[0];
+      if (!primaryEntry) {
+        return;
+      }
+
+      let propertyUnit = primaryEntry.unit;
+      const formatAmount = (numStr) => {
+        let num = Number(numStr);
+        return isNaN(num) ? numStr : num.toLocaleString();
+      };
+
+      const renderQuantityElement = (unitText) => {
+        let unitSuffix = unitText ? (' ' + unitText) : '';
+        let primaryFormatted = formatAmount(primaryEntry.amount) + unitSuffix;
+        let yearBadge = primaryEntry.year ? (" <span class='text-[11px] font-medium text-slate-500 bg-slate-100 border border-slate-200/80 px-1.5 py-0.5 rounded ml-1'>" + primaryEntry.year + "</span>") : '';
+
+        // Check if evolution history should be appended:
+        let historyHtml = '';
+        if (temporalMode === 'history' && statementsWithTime.length > 1) {
+          let validWithYears = statementsWithTime.filter(s => s.year !== null);
+          let seenYears = new Set();
+          let uniqueYearsList = [];
+          for (let s of validWithYears) {
+            if (!seenYears.has(s.year)) {
+              seenYears.add(s.year);
+              uniqueYearsList.push(s);
+            }
+          }
+
+          if (uniqueYearsList.length > 1) {
+            let listRows = uniqueYearsList.map(item => {
+              return "<div class='flex items-center justify-between text-[11px] py-0.5 pr-2 hover:bg-slate-50 rounded'>" +
+                "<span class='font-medium text-slate-600'>" + item.year + "</span>" +
+                "<span class='text-slate-800 font-mono'>" + formatAmount(item.amount) + unitSuffix + "</span>" +
+                "</div>";
+            }).join('');
+
+            historyHtml = "<details class='mt-1 text-xs'>" +
+              "<summary class='cursor-pointer text-indigo-600 hover:text-indigo-700 font-medium text-[11px] select-none py-0.5'>" +
+              "View recorded evolution (" + uniqueYearsList.length + " data points)</summary>" +
+              "<div class='mt-1.5 ml-1 pl-2.5 border-l-2 border-indigo-200 max-h-36 overflow-y-auto space-y-0.5'>" +
+              listRows +
+              "</div></details>";
+          }
+        }
+
+        var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: <span>"+primaryFormatted+"</span>" + yearBadge + historyHtml; 
         pelement.innerHTML = showAs; 
         into.push(pelement); 
-    }else if (propertyDataType === 'quantity'){
-      // using the wdk method already selected the preferred statement in value. 
-      // propertyset is not filtered with the preferred statement; so if there's more than 1 key in propertyset: get the preferred rank.
-      // If preferred is not found, or there's only one statement ==> get item at index 0. 
-      let counted = propertyset.length;
-      let preferredProperty = null; 
-      if (counted > 1){
-        //look for the propertyDict that has a preferred rank: 
-        for(let i = 0; i < counted; i++){
-          if(propertyset[i].rank === 'preferred'){
-            preferredProperty = propertyset[i]; 
-          }
-        }
-        if(preferredProperty === null){
-          preferredProperty = propertyset[0]; 
-        }
-      }else if(counted === 1){
-        preferredProperty = propertyset[0]; 
-      }else{
-        console.warn('No property found, dropping statement for ', property); 
-      }
-      let propertyUnit = preferredProperty['mainsnak']['datavalue']['value']['unit'];
-      let lowerbound = null; 
-      let upperbound = null; 
-      if ('lowerBound' in preferredProperty['mainsnak']['datavalue']['value']){
-        lowerbound = preferredProperty['mainsnak']['datavalue']['value']['lowerBound']; 
-      }
-      if('upperBound' in preferredProperty['mainsnak']['datavalue']['value']){
-        upperbound = preferredProperty['mainsnak']['datavalue']['value']['upperBound']; 
-      }
-      //Displaystrategy: 
-      // Bounded data (lower/upper) is no showen at the moment.
-      // if propertyUnit === URL to wikidata with Q-ID ==> fetch it (return promise ) (check using regex)
-      // if not URL ==> just show it in DOM. 
-      //test pattern:
-      if(/^(http.*wikidata.org\/entity\/Q[0-9]*)$/.test(propertyUnit)){
-        //true: so matching pattern, but URL does not pass CORS: modify URL. 
-        let Qmatch = propertyUnit.match(/Q[0-9]*/); 
+      };
+
+      // Resolve unit if it is a Wikidata entity:
+      if (/^(http.*wikidata.org\/entity\/Q[0-9]*)$/.test(propertyUnit)) {
+        let Qmatch = propertyUnit.match(/Q[0-9]*/)[0]; 
         let unitLookupUrl = "https://www.wikidata.org/w/api.php?action=wbgetentities&ids="+Qmatch+"&props=labels|claims&format=json&origin=*";
         return await fetch(unitLookupUrl)
-        .then(response => response.json())
-        .then(response => {
-          //get unit symbol: property P5061.
-          //if missing ==> use label. 
-          let labelList = response['entities'][Qmatch]['labels'];
-          let claimslist = response['entities'][Qmatch]['claims'];
-          //get claim P5061: 
-          let claimSymbol
-          if('P5061'in claimslist){
-            //if rank is preferred: take that one, otherwise take item at index 0: 
-            let prefstatement = claimslist['P5061'][0];    //take item at index 0 anyway
-            for(let i = 0; i < claimslist['P5061']; i++){
-              if(claimslist['P5061'][i].rank==='preferred'){
-                prefstatement = claimslist['P5061'][i]; 
+          .then(response => response.json())
+          .then(response => {
+            let labelList = (response['entities'] && response['entities'][Qmatch] && response['entities'][Qmatch]['labels']) ? response['entities'][Qmatch]['labels'] : {};
+            let claimslist = (response['entities'] && response['entities'][Qmatch] && response['entities'][Qmatch]['claims']) ? response['entities'][Qmatch]['claims'] : {};
+            let claimSymbol = '';
+
+            if('P5061' in claimslist && claimslist['P5061'].length > 0){
+              let prefstatement = claimslist['P5061'][0];
+              for(let i = 0; i < claimslist['P5061'].length; i++){
+                if(claimslist['P5061'][i].rank === 'preferred'){
+                  prefstatement = claimslist['P5061'][i]; 
+                }
+              }
+              if (prefstatement && prefstatement['mainsnak'] && prefstatement['mainsnak']['datavalue']) {
+                claimSymbol = prefstatement['mainsnak']['datavalue']['value'].text || '';
               }
             }
 
-            claimSymbol = prefstatement['mainsnak']['datavalue']['value'].text; 
-
-          }else{
-            //labelList parse rules: use preferredlanguage, the fallback to english, if both fail ==> resolve to item at index 0: 
-            let useAsLabel
-            if(labelLanguagePreference in labelList){
-              useAsLabel = labelList[labelLanguagePreference]; 
-            }else if('en' in labelList){
-              useAsLabel = labelList['en']; 
-            }else{
-              useAsLabel = labelList[Object.keys(labelList)[0]]; 
+            if(!claimSymbol){
+              if(labelLanguagePreference in labelList){
+                claimSymbol = labelList[labelLanguagePreference]['value']; 
+              }else if('en' in labelList){
+                claimSymbol = labelList['en']['value']; 
+              }else if(Object.keys(labelList).length > 0){
+                claimSymbol = labelList[Object.keys(labelList)[0]]['value']; 
+              }
             }
-            claimSymbol = useAsLabel['value']; 
-          }
-          let showToUser = value +' '+ claimSymbol; 
-          var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+showToUser+"</span>"; 
-          pelement.innerHTML = showAs; 
-          into.push(pelement); 
-        })
-      }else{
-        var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"<a>: <span>"+value+"</span>"; 
-        pelement.innerHTML = showAs; 
-        into.push(pelement); 
+
+            renderQuantityElement(claimSymbol);
+          }).catch(err => {
+            console.warn('Error resolving unit from Wikidata:', err);
+            renderQuantityElement('');
+          });
+      } else {
+        renderQuantityElement('');
       }
+
     }else{
-      console.warn('Unsupported datatype: ', propertyDataType); 
+      var rawString = Array.isArray(value) ? value.join(', ') : String(value);
+      var showAs = "<a href='https://www.wikidata.org/wiki/Property:"+property+"' target='_blank' class='font-bold'>"+label+"</a>: <span>"+rawString+"</span>"; 
+      pelement.innerHTML = showAs; 
+      into.push(pelement); 
     }
   }
 

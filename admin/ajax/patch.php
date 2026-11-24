@@ -1,26 +1,24 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
 
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/user.inc.php');
-include_once(ROOT_DIR.'/includes/csrf.inc.php');
-include_once(ROOT_DIR.'/includes/integrity.inc.php');
+include_once(dirname(__DIR__, 2) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
+include_once(ROOT_DIR . '/includes/csrf.inc.php');
+include_once(ROOT_DIR . '/includes/integrity.inc.php');
 
-if(isset($_SESSION["userid"])){
-    $user = new User($client);
-  }else{
-    header("Location: /user/login.php?redir=/admin/index.php");
-    die("redir required"); 
-  }
-  //only allow admins here; 
-  $adminMode = False;
-  if($user->myRole !== "Admin"){
+$user = new User($client);
+$user_id = $user->checkSession();
+if (!$user_id) {
+    header("Location: " . BASE_URL . "/user/login.php?redir=" . urlencode(BASE_URL . "/admin/index.php"));
+    exit("Redirect required"); 
+}
+// Only allow admins here: 
+if (!$user->isAdmin()) {
     header("HTTP/1.0 403 Forbidden");
-    die();
-  }else{
-    $adminMode = True;
-  }
+    exit();
+}
+$adminMode = true;
 
   //check CSRF
   $token = False;
@@ -38,10 +36,12 @@ if(isset($_SESSION["userid"])){
     //revoke the CSRF it's a single use token.
     $tokenManager->revokeToken();
     $integrity = new Integrity($client); 
-    switch ($_GET['operation']){
+    $operation = isset($_POST['operation']) ? $_POST['operation'] : (isset($_GET['operation']) ? $_GET['operation'] : '');
+    $nodename = isset($_POST['nodename']) ? $_POST['nodename'] : (isset($_GET['nodename']) ? $_GET['nodename'] : '');
+    switch ($operation){
         case "noderemoval":
-            // Code to execute for option 1
-            $integrity->deleteNodesNotMatchingModel($_GET['nodename']); 
+            // Code to execute for option 1.
+            $integrity->deleteNodesNotMatchingModel($nodename); 
             break;
         case "fixuuid":
             // Code to execute for option 2

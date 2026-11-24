@@ -24,7 +24,8 @@ class Siloconnector{
    *  The internal NEO ID is used!!! Do not use to provide stable identifiers!!!
   */
   public function getNeighboursConnectedBy($neoID, $relation='see_also'){
-    $connectedSiloAnnotations = $this->client->run('MATCH (x)-[r:'.$relation.']-(silo) WHERE id(x) = $nodeval RETURN silo', ['nodeval'=>$neoID]);
+    $safeRelation = preg_replace('/[^a-zA-Z0-9_]/', '', $relation);
+    $connectedSiloAnnotations = $this->client->run('MATCH (x)-[r:'.$safeRelation.']-(silo) WHERE id(x) = $nodeval RETURN silo', ['nodeval'=>(int)$neoID]);
     $this->connectedOverRelation = $connectedSiloAnnotations; 
   }
 
@@ -58,7 +59,9 @@ class Siloconnector{
         $anchorText = 'Link';
       }
       if($mode === 'html'){
-        $oneBlock = "<a href='".$urival."' target='_blank'>$anchorText</a>"; 
+        $safeUri = htmlspecialchars((string)$urival, ENT_QUOTES, 'UTF-8');
+        $safeAnchor = htmlspecialchars((string)$anchorText, ENT_QUOTES, 'UTF-8');
+        $oneBlock = "<a href='".$safeUri."' target='_blank' rel='noopener noreferrer'>$safeAnchor</a>"; 
         $output[]=$oneBlock; 
       }else if ($mode === 'json'){
         $oneBlock = array(

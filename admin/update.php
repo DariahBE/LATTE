@@ -3,19 +3,22 @@
 
 
   //base imports
-  include_once($_SERVER["DOCUMENT_ROOT"]."/config/config.inc.php");
+  if (!defined('ROOT_DIR')) {
+    include_once(dirname(__DIR__)."/config/config.inc.php");
+  }
   include_once(ROOT_DIR."/includes/client.inc.php");
   include_once(ROOT_DIR."/includes/user.inc.php");
   include_once(ROOT_DIR."/includes/navbar.inc.php");
-  //there must be a logged in  user; if no session is active, make them log in and redirect back here. 
+  //there must be a logged in user; if no session is active, make them log in and redirect back here. 
   if(isset($_SESSION["userid"])){
     $user = new User($client);
   }else{
-    header("Location: /user/login.php?redir=/admin/index.php");
+    $loginUrl = (defined('BASE_URL') ? BASE_URL : '') . "/user/login.php?redir=" . (defined('BASE_URL') ? BASE_URL : '') . "/admin/update.php";
+    header("Location: $loginUrl");
     die("redir required"); 
   }
-  //only allow admins here; 
-  if($user->myRole !== "Admin"){
+  // Only allow admins here.
+  if (!$user->isAdmin()) {
     header("HTTP/1.0 403 Forbidden");
     die("Insufficient rights, forbidden access");
   }

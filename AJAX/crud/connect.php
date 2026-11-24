@@ -1,40 +1,42 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/nodes_extend_cud.inc.php');
-include_once(ROOT_DIR.'/includes/annotation.inc.php');
-include_once(ROOT_DIR.'/includes/user.inc.php');
-include_once(ROOT_DIR.'/includes/csrf.inc.php');
+include_once(dirname(__DIR__, 2) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
+include_once(ROOT_DIR . '/includes/nodes_extend_cud.inc.php');
+include_once(ROOT_DIR . '/includes/annotation.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
+include_once(ROOT_DIR . '/includes/csrf.inc.php');
+include_once(ROOT_DIR . '/includes/latte_queue_manager.inc.php');
 
-//check if the user is logged in; 
-if(isset($_SESSION['userid'])){
-  $user = new User($client);
-  //node and client need to share all updates in a single transactino object: 
-  // SHARED TRANSACTION
-  $node = new CUDNode($client); 
-  $node->startTransaction(); 
-  $annotation = new Annotation(False, $node->gettsx());
-}else{
-  die();
+$user = new User($client);
+$user_id = $user->checkSession();
+if(!$user_id){
+  http_response_code(401);
+  die(json_encode(array('error' => 'Login required')));
 }
 
+// Node and client need to share all updates in a single transaction object: 
 $tokenManager = new CsrfTokenManager();
 
-
 $data = $_POST;
-$texID = (int)$data['texNeoid'];
-$entityID = (int)$data['sourceNeoID'];
-$texSelection = $data['selection']; 
-$selectionStart = (int)$data['start']; 
-$selectionEnd = (int)$data['stop'];
-$token = $data['csrf'];
-$extra = $data['properties'];
+$texID = isset($data['texNeoid']) ? (int)$data['texNeoid'] : 0;
+$entityID = isset($data['sourceNeoID']) ? (int)$data['sourceNeoID'] : 0;
+$texSelection = isset($data['selection']) ? $data['selection'] : ''; 
+$selectionStart = isset($data['start']) ? (int)$data['start'] : 0; 
+$selectionEnd = isset($data['stop']) ? (int)$data['stop'] : 0;
+$token = isset($data['csrf']) ? $data['csrf'] : '';
+$extra = isset($data['properties']) ? $data['properties'] : [];
 //check if token equals the session variable and that the session did not yet expire 
 if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['fastconnectiontoken']) && $token === $_SESSION['fastconnectiontoken'] && time() - $_SESSION['connectiontokencreatetime'] < 300 ){
   //destroy the token: can only be used once. 
   unset($_SESSION['fastconnectiontoken']);
   unset($_SESSION['connectiontokencreatetime']);
+
+  // Node and client need to share all updates in a single transaction object: 
+  $node = new CUDNode($client); 
+  $node->startTransaction(); 
+  $annotation = new Annotation(False, $node->gettsx());
+
   try {
     $data = $annotation->createAnnotationWithExistingEt($texID, $entityID, $user, $selectionStart, $selectionEnd, $extra);
   } catch (\Throwable $th) {
@@ -82,11 +84,16 @@ if (isset($_SESSION['connectiontokencreatetime']) && isset($_SESSION['fastconnec
     die(json_encode("An unexpected error occurred.")); 
   }
 
+  // Promote any automatic suggestion covering this span by removing it from latte_suggestions on the text node.
+  try {
+    LatteQueueManager::promoteSuggestion($client, $texID, $selectionStart, $selectionEnd);
+  } catch (\Throwable $e) {
+    error_log('Failed to promote automatic suggestion on text node ' . $texID . ': ' . $e->getMessage());
+  }
+
   echo json_encode($mergeToDict); 
   $annotation->commitTransaction();   // you need to commit when the transaction finishes without errors!
 }else{
   die(json_encode('Insecure or expired request.')); 
 }
-#cyper query that creates a new node with label Annotation and connects it to two other nodes by passing the internal ID
-// TODO: auto_annotation node has to be deleted when ET's are connected to a text over an automatic annotation!!!! 
 ?>

@@ -1,0 +1,137 @@
+# Docker compose configuration for LATTE suite.
+
+networks:
+  2026_LATTE_NETWORK:
+    name: 2026_LATTE_NETWORK
+    driver: bridge
+
+volumes:
+  latte_neo4j_data:
+    name: latte_neo4j_data
+  latte_matomo_db:
+    name: latte_matomo_db
+  latte_matomo_data:
+    name: latte_matomo_data
+
+services:
+  # Neo4j graph database backend with APOC.
+  neo4j:
+    build:
+      context: .
+      dockerfile: Dockerfile.neo4j
+    image: latte/neo4j:4.4-apoc
+    container_name: 2026-LATTE_NEO4J
+    restart: unless-stopped
+    ports:
+      - "${NEO4J_HTTP_PORT:-7477}:7474"
+      - "${NEO4J_BOLT_PORT:-7700}:7687"
+    environment:
+      - NEO4J_AUTH=${NEO4J_USER:-neo4j}/${NEO4J_PASSWORD:-password}
+      - NEO4J_dbms_security_procedures_unrestricted=apoc.*
+      - NEO4J_dbms_security_procedures_allowlist=apoc.*
+      - NEO4J_apoc_export_file_enabled=true
+      - NEO4J_apoc_import_file_enabled=true
+      - NEO4J_apoc_import_file_use__neo4j__config=true
+      - NEO4J_dbms_default__database=${NEO4J_DB_NAME:-latte}
+    volumes:
+      # Persistent volume for Neo4j graph database to prevent data loss.
+      - latte_neo4j_data:/data
+      - ./plugins:/plugins
+      - ./conf:/conf
+    networks:
+      2026_LATTE_NETWORK:
+        aliases:
+          - neo4j
+          - 2026-LATTE_NEO4J
+
+  # Python entity extraction and language detection connector.
+  connector:
+    build:
+      context: .
+      dockerfile: Dockerfile.connector
+      args:
+        CONNECTOR_REPO: ${CONNECTOR_REPO:-https://github.com/DariahBE/LATTE_connector.git}
+        CONNECTOR_BRANCH: ${CONNECTOR_BRANCH:-main}
+        CACHEBUST: ${CONNECTOR_CACHEBUST:-1}
+    image: latte/connector:latest
+    container_name: 2026-LATTE_CONNECTOR
+    restart: unless-stopped
+    ports:
+      - "${CONNECTOR_PORT:-8000}:8000"
+    networks:
+      2026_LATTE_NETWORK:
+        aliases:
+          - connector
+          - latte_connector
+          - 2026-LATTE_CONNECTOR
+
+  # LATTE PHP and Apache web application frontend.
+  web:
+    build:
+      context: ..
+      dockerfile: dockerfiles/Dockerfile.web
+    image: latte/web:2.0
+    container_name: 2026-LATTE_WEB2.0
+    restart: unless-stopped
+    ports:
+      - "${WEB_HTTP_PORT:-80}:80"
+      - "${WEB_HTTPS_PORT:-443}:443"
+    environment:
+      APACHE_LOG_DIR: /var/log/apache2
+    volumes:
+      # Live bind mount: reflects host code edits and git pulls immediately inside the container.
+      - ../:/var/www/html
+      # Persistent storage mount: protects SQLite databases and system configurations from data loss.
+      - ../storage:/var/www/html/storage
+    depends_on:
+      - neo4j
+      - connector
+    networks:
+      2026_LATTE_NETWORK:
+        aliases:
+          - web
+          - latte_web
+          - 2026-LATTE_WEB2.0
+
+  # MariaDB backend for Matomo analytics.
+  matomo_db:
+    image: mariadb:11
+    container_name: 2026-LATTE_MATOMO_DB
+    restart: unless-stopped
+    command: --max-allowed-packet=64MB
+    environment:
+      - MYSQL_ROOT_PASSWORD=${MATOMO_DB_ROOT_PASSWORD:-matomo_root_password}
+      - MYSQL_DATABASE=${MATOMO_DB_NAME:-matomo}
+      - MYSQL_USER=${MATOMO_DB_USER:-matomo}
+      - MYSQL_PASSWORD=${MATOMO_DB_PASSWORD:-matomo_password}
+    volumes:
+      - latte_matomo_db:/var/lib/mysql
+    networks:
+      2026_LATTE_NETWORK:
+        aliases:
+          - matomo_db
+          - 2026-LATTE_MATOMO_DB
+
+  # Matomo web analytics service.
+  matomo:
+    image: matomo:apache
+    container_name: 2026-LATTE_MATOMO
+    restart: unless-stopped
+    ports:
+      - "${MATOMO_PORT:-8080}:80"
+    environment:
+      - MATOMO_DATABASE_HOST=matomo_db
+      - MATOMO_DATABASE_ADAPTER=mysql
+      - MATOMO_DATABASE_TABLES_PREFIX=matomo_
+      - MATOMO_DATABASE_USERNAME=${MATOMO_DB_USER:-matomo}
+      - MATOMO_DATABASE_PASSWORD=${MATOMO_DB_PASSWORD:-matomo_password}
+      - MATOMO_DATABASE_DBNAME=${MATOMO_DB_NAME:-matomo}
+    volumes:
+      - latte_matomo_data:/var/www/html
+    depends_on:
+      - matomo_db
+    networks:
+      2026_LATTE_NETWORK:
+        aliases:
+          - matomo
+          - 2026-LATTE_MATOMO

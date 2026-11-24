@@ -1,17 +1,17 @@
 <?php
 header('Content-Type: application/json; charset=utf-8');
-include_once($_SERVER["DOCUMENT_ROOT"].'/config/config.inc.php');
-include_once(ROOT_DIR.'/includes/getnode.inc.php');
-include_once(ROOT_DIR.'/includes/user.inc.php');
-include_once(ROOT_DIR.'/includes/search.inc.php');
+include_once(dirname(__DIR__) . '/config/config.inc.php');
+include_once(ROOT_DIR . '/includes/getnode.inc.php');
+include_once(ROOT_DIR . '/includes/user.inc.php');
+include_once(ROOT_DIR . '/includes/search.inc.php');
 
 //check access policy: endpoint should die() when data is not configured to be openly accessible.
 //both text and entities have to be public, otherwise die()
 $user = new User($client);
 $user->checkAccess(TEXTSAREPUBLIC &&  ENTITIESAREPUBLIC);
 
-$labelname = $_POST['node']; 
-$labeloptions = $_POST['options']; 
+$labelname = isset($_POST['node']) ? $_POST['node'] : ''; 
+$labeloptions = isset($_POST['options']) ? $_POST['options'] : []; 
 
 if (!array_key_exists($labelname, NODEMODEL)){
   die(json_encode(array('searchparameters invalid'))); 
