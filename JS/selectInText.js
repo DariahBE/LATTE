@@ -599,6 +599,15 @@ function getTextSelection() {
   if (startIter === endIter && (!sel || sel.isCollapsed)) {
     const clickedSpan = (typeof getSpanByIter === 'function') ? getSpanByIter(startIter) : document.querySelector(`.ltr[data-itercounter="${startIter}"]`);
     if (clickedSpan) {
+      // Confirmed/stored annotations are handled by initAnnotationClickDelegation on click; do not treat a single click as a new text selection.
+      if (
+        clickedSpan.dataset &&
+        clickedSpan.dataset.annotation &&
+        !clickedSpan.classList.contains('app_automatic') &&
+        !clickedSpan.classList.contains('automatic_unstored')
+      ) {
+        return false;
+      }
       // Check if clicked span is part of an automatic annotation
       let matchedSug = null;
       const autoId = clickedSpan.getAttribute('data-annotation');
